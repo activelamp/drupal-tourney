@@ -1,0 +1,106 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for tournaments.
+ */
+ 
+/**
+ * Implements hook_schema().
+ */
+function tourney_schema() {
+  $schema['tourney_tournament'] = array(
+    'description' => 'The base table for tournaments.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The primary identifier for a tournament.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'title' => array(
+        'description' => 'The title of the tournament, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'type' => array(
+        'description' => 'The style of tournament play.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      'players' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The number of contestants in tournament.",),
+      'winner' => array(
+        'description' => 'Winner of the tournament.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'unique keys' => array(
+      'tid' => array('tid'),
+      ),
+    'primary key' => array('tid'),
+  );
+  
+  $schema['tourney_match'] = array(
+    'description' => 'The base table for a match.',
+    'fields' => array(
+      'mid' => array(
+        'description' => 'The primary identifier for a match.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'title' => array(
+        'description' => 'The title of a match, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'games' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The number of games in a match.",),
+      'winner' => array(
+        'description' => 'Winner of the match.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'unique keys' => array(
+      'mid' => array('mid'),
+      ),
+    'primary key' => array('mid'),
+  );
+  
+  $schema['tourney_game'] = array(
+    'description' => 'The base table for a match.',
+    'fields' => array(
+      'gid' => array(
+        'description' => 'The primary identifier for a game.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'winner' => array(
+        'description' => 'Winner of the match.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'unique keys' => array(
+      'gid' => array('gid'),
+      ),
+    'primary key' => array('gid'),
+  );
+  return $schema;
+}
+

@@ -1,0 +1,5 @@
+name = Tourney Module
+description = Provides entities to create a tournament, with matches, and games
+core = 7.x
+
+dependencies[] = entity

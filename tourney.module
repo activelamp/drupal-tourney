@@ -1,0 +1,132 @@
+<?php
+
+/**
+ * @file
+ * Create tournament, match, and game entities for creating tournaments.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function tourney_menu() {
+ 
+  $items['tourney/add'] = array(
+    'title' => 'Add a new tournament',
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('tourney_tournament', NULL, 'add'),
+    'access arguments' => array('access content'),
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'includes/tourney.tournament.inc',
+  );
+  $items['tourney/%tourney_tournament'] = array(
+    'title callback' => 'tourney_page_title',
+    'title arguments' => array(1),
+    'page callback' => 'tourney_tournament_page_view',
+    'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'file' => 'includes/tourney.tournament.inc',
+  );
+  
+  return $items;
+}
+
+/**
+ * Menu title callback.
+ */
+function tourney_page_title($tourney) {
+  return drupal_ucfirst($tourney->label());
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function tourney_entity_info() {
+  $return = array(
+    'tourney_tournament' => array(
+      'label' => t('Tournament'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'tourney_tournament',
+      // 'fieldable' => TRUE,
+      'static cache' => TRUE,
+      'translation' => array(
+        'locale' => TRUE,
+      ),
+      'entity keys' => array(
+        'id' => 'tid',
+        'label' => 'title',
+      ),
+      'access callback' => 'tourney_access',
+      'module' => 'tourney',
+    ),
+    
+    'tourney_match' => array(
+      'label' => t('Match'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'tourney_match',
+      // 'fieldable' => TRUE,
+      'static cache' => TRUE,
+      'translation' => array(
+        'locale' => TRUE,
+      ),
+      'entity keys' => array(
+        'id' => 'mid',
+        'label' => 'title',
+      ),
+    ),
+    
+    'tourney_game' => array(
+      'label' => t('Game'),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIController',
+      'base table' => 'tourney_game',
+      // 'fieldable' => TRUE,
+      'static cache' => TRUE,
+      'translation' => array(
+        'locale' => TRUE,
+      ),
+      'entity keys' => array(
+        'id' => 'gid',
+      ),
+    ),
+  );
+
+  return $return;
+}
+
+/**
+ * Fetch a tournament object
+ * 
+ * @param $tid
+ *   Integer specifying the tournament id
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   A fully-loaded object of FALSE of it cannot be loaded.
+ * 
+ * @see tourney_tournament_load_multiple()
+ */
+function tourney_tournament_load($tid = NULL, $reset = FALSE) {
+  $tids = isset($tid) ? array($tid) : array();
+  $conditions = array();
+  $tournament = tourney_tournament_load_multiple($tids, $conditions, $reset);
+
+  return $tournament ? reset($tournament) : FALSE;
+}
+
+/**
+ * Load multiple tournament entities based on certain conditions.
+ *
+ * @param $tids
+ *   An array of entity IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {entity} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   An array of tournament entity objects, indexed by tid.
+ */
+function tourney_tournament_load_multiple($tids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('tourney_tournament', $tids, $conditions, $reset);
+}
