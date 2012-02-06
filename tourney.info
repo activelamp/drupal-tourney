@@ -2,4 +2,13 @@ name = Tourney Module
 description = Provides entities to create a tournament, with matches, and games
 core = 7.x
 
+dependencies[] = devel
+
+dependencies[] = ctools
 dependencies[] = entity
+
+files[] = includes/tourney.controller.inc
+files[] = includes/default_styles/single_elim.inc
+files[] = includes/default_styles/double_elim.inc
+files[] = includes/default_styles/round_robin.inc
+files[] = includes/default_styles/ladder.inc

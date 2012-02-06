@@ -130,3 +130,30 @@ function tourney_tournament_load($tid = NULL, $reset = FALSE) {
 function tourney_tournament_load_multiple($tids = array(), $conditions = array(), $reset = FALSE) {
   return entity_load('tourney_tournament', $tids, $conditions, $reset);
 }
+
+/**
+ * Implements hook_entity_insert().
+ */
+function tourney_entity_insert($entity, $entity_type) {
+  // Build a nested array of matches for the tournament being saved.
+  $matches = new TourneyBuildMatches($entity->players, $entity->type);
+  $matches->create();
+}
+
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function tourney_ctools_plugin_type() {
+  $plugins['tourney_styles'] = array(
+    'load themes' => TRUE,
+  );
+
+  return $plugins;
+}
+
+function tourney_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'tourney' && $plugin == 'tourney_styles') {
+    return 'plugins/tourney_styles';
+  }
+}

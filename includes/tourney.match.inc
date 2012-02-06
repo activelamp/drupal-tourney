@@ -2,7 +2,10 @@
 
 /**
  * @file
- * Defines the wrapper functions for Entity API CRUD
+ * Defines the wrapper functions for Entity API CRUD specifically for the match
+ * entity. To used these function make sure you module_load_include().
+ * 
+ * @todo: I may move these functions to the .module file if I use these often
  */
  
 /**

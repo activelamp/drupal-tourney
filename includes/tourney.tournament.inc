@@ -2,9 +2,8 @@
 
 /**
  * @file
- * Adds tourament pages.
+ * Adds tourament pages for page callbacks in hook_menu().
  */
-
 
 /**
  * The tournament form.
@@ -22,7 +21,7 @@ function tourney_tournament_form($form, &$form_state) {
     '#type' => 'select',
     '#title' => t('Tournament style'),
     '#description' => t('Choose the style of play for this tournament'),
-    '#options' => drupal_map_assoc(array('Single Elimination', 'Double Elimination', 'Round Robin', 'Ladder')),
+    '#options' => drupal_map_assoc(array('SingleElimination', 'DoubleElimination', 'RoundRobin', 'Ladder')),
     '#default_value' => -1,
   );
   
@@ -52,6 +51,7 @@ function tourney_tournament_form($form, &$form_state) {
   $form['#submit'][] = 'tourney_tournament_form_submit';
   return $form;
 }
+
 /**
  * Tournament form submit handler.
  */
