@@ -6,16 +6,16 @@
  */
 
 /**
-* Single Elimination Tournament
+* Ladder Tournament
 */
 $plugin = array(
-  'name' => t('Single Elimination Tournament'),
-  'machine name' => 'single_elim',
+  'name' => t('Ladder Tournament'),
+  'machine name' => 'ladder',
   'description' => t('This is the description of the tournament'),
-  'weight' => 0,
+  'weight' => 4,
   'total games' => 5,
-  'builder controller' => 'SingleElimination', 
-  'completed controller' => 'SingleEliminationMatchComplete',
+  'builder controller' => 'Ladder', 
+  'completed controller' => 'LadderMatchComplete',
 );
 
 // Define any classes below to extend default functionality in the controllers.

@@ -21,7 +21,7 @@ function tourney_tournament_form($form, &$form_state) {
     '#type' => 'select',
     '#title' => t('Tournament style'),
     '#description' => t('Choose the style of play for this tournament'),
-    '#options' => drupal_map_assoc(array('SingleElimination', 'DoubleElimination', 'RoundRobin', 'Ladder')),
+    '#options' => tourney_get_type_options(),
     '#default_value' => -1,
   );
   

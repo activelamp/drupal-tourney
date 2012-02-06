@@ -140,6 +140,35 @@ function tourney_entity_insert($entity, $entity_type) {
   $matches->create();
 }
 
+/**
+ * Fetch metadata for all tournament_type plugins.
+ *
+ * @return
+ *   An array of arrays with information about all available tournament types.
+ */
+function tourney_get_types() {
+  ctools_include('plugins');
+  return ctools_get_plugins('tourney', 'tourney_styles');
+}
+
+/**
+ * Build an options array to be used in forms.
+ */
+function tourney_get_type_options($reset = FALSE) {
+  ctools_include('plugins');
+  static $options = array();
+
+  if (!empty($options) && !$reset) {
+    return $options;
+  }
+
+  $plugins = tourney_get_types();
+  uasort($plugins, 'ctools_plugin_sort');
+  foreach ($plugins as $info) {
+    $options[$info['builder controller']] = $info['name'];
+  }
+  return $options;
+}
 
 /**
  * Implements hook_ctools_plugin_type().
