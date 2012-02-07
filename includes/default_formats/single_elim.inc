@@ -38,23 +38,23 @@ class SingleElimination implements TourneyMatch {
   }
   
   /**
-   * Figure out how many rounds there should be based on $contestants_in_round,
+   * Figure out how many rounds there should be based on $num_contestants,
    * then loop through and build all rounds.
    * 
-   * @param $contestants_in_round
+   * @param $num_contestants
    *   The number of contestants in the first round.
    * @return $matches
    *   The matches array completely built out.
    */
-  protected function build_rounds($contestants_in_round) {
+  protected function build_rounds($num_contestants) {
     $matches = array();
-    $this->calculate_rounds($contestants_in_round);
+    $this->calculate_rounds($num_contestants);
     $num_rounds = $this->num_rounds;
 
     for ($r=1;$r<=$num_rounds;$r++) {
       $matches['round-'. $r] = array();
       // Loop through all matches for this round
-      for ($m=1;$m<=$contestants_in_round/2;$m++) {
+      for ($m=1;$m<=$num_contestants/2;$m++) {
         $matches['round-'. $r]['match-'. $m] = array(
           'contestant-1' => 'manual',
           'contestant-2' => 'manual',
@@ -62,7 +62,7 @@ class SingleElimination implements TourneyMatch {
         
         $matches = $this->set_match_path($matches, $r, $m);
       }
-      $contestants_in_round /= 2;
+      $num_contestants /= 2;
     }
     return $matches;
   }
