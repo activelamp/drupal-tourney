@@ -8,7 +8,7 @@ dependencies[] = ctools
 dependencies[] = entity
 
 files[] = includes/tourney.controller.inc
-files[] = includes/default_styles/single_elim.inc
-files[] = includes/default_styles/double_elim.inc
-files[] = includes/default_styles/round_robin.inc
-files[] = includes/default_styles/ladder.inc
+files[] = includes/default_formats/single_elim.inc
+files[] = includes/default_formats/double_elim.inc
+files[] = includes/default_formats/round_robin.inc
+files[] = includes/default_formats/ladder.inc

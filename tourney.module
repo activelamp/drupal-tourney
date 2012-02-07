@@ -148,7 +148,7 @@ function tourney_entity_insert($entity, $entity_type) {
  */
 function tourney_get_types() {
   ctools_include('plugins');
-  return ctools_get_plugins('tourney', 'tourney_styles');
+  return ctools_get_plugins('tourney', 'tourney_formats');
 }
 
 /**
@@ -174,7 +174,7 @@ function tourney_get_type_options($reset = FALSE) {
  * Implements hook_ctools_plugin_type().
  */
 function tourney_ctools_plugin_type() {
-  $plugins['tourney_styles'] = array(
+  $plugins['tourney_formats'] = array(
     'load themes' => TRUE,
   );
 
@@ -182,7 +182,7 @@ function tourney_ctools_plugin_type() {
 }
 
 function tourney_ctools_plugin_directory($module, $plugin) {
-  if ($module == 'tourney' && $plugin == 'tourney_styles') {
-    return 'plugins/tourney_styles';
+  if ($module == 'tourney' && $plugin == 'tourney_formats') {
+    return 'plugins/tourney_formats';
   }
 }
