@@ -53,15 +53,8 @@ class SingleElimination implements TourneyMatch {
 
     for ($r=1;$r<=$num_rounds;$r++) {
       $matches['round-'. $r] = array();
-      // Loop through all matches for this round
-      for ($m=1;$m<=$num_contestants/2;$m++) {
-        $matches['round-'. $r]['match-'. $m] = array(
-          'contestant-1' => 'manual',
-          'contestant-2' => 'manual',
-        );
-        
-        $matches = $this->set_match_path($matches, $r, $m);
-      }
+      $this->build_round($matches, $num_contestants, $r);
+      
       $num_contestants /= 2;
     }
     return $matches;
@@ -91,6 +84,16 @@ class SingleElimination implements TourneyMatch {
   
   protected function set_message() {
     drupal_set_message(get_class($this) .' with '. $this->num_contestants .' contestants and '. $this->num_rounds .' rounds.');
+  }
+  
+  protected function build_round(&$matches, $contestants, $round) {
+    for ($match=1;$match<=$contestants/2;$match++) {
+      $matches['round-'. $round]['match-'. $match] = array(
+        'contestant-1' => 'manual',
+        'contestant-2' => 'manual',
+      );
+      $matches = $this->set_match_path($matches, $round, $match);
+    }
   }
     
   private function calculate_rounds($num_contestants) {
