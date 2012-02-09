@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class Ladder implements TourneyMatch {
+class Ladder implements TourneyMatchInterface {
   
   protected $num_contestants;
   protected $matches;

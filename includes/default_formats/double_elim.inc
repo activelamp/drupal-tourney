@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class DoubleElimination extends SingleElimination implements TourneyMatch {
+class DoubleElimination extends SingleElimination implements TourneyMatchInterface {
   
   protected $num_bottom_rounds;
   // Set a variable when contestants in round are from the same bracket.

@@ -26,6 +26,14 @@ function tourney_menu() {
     'access arguments' => array('access content'),
     'file' => 'includes/tourney.tournament.inc',
   );
+  $items['tourney/match/%tourney_match'] = array(
+    'title callback' => 'tourney_page_title',
+    'title arguments' => array(2),
+    'page callback' => 'tourney_match_page_view',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'file' => 'includes/tourney.match.inc',
+  );
   
   return $items;
 }
@@ -48,6 +56,7 @@ function tourney_entity_info() {
       'controller class' => 'EntityAPIController',
       'base table' => 'tourney_tournament',
       // 'fieldable' => TRUE,
+      'uri callback' => 'tourney_uri',
       'static cache' => TRUE,
       'translation' => array(
         'locale' => TRUE,
@@ -66,6 +75,7 @@ function tourney_entity_info() {
       'controller class' => 'EntityAPIController',
       'base table' => 'tourney_match',
       // 'fieldable' => TRUE,
+      'uri callback' => 'tourney_uri',
       'static cache' => TRUE,
       'translation' => array(
         'locale' => TRUE,
@@ -82,6 +92,7 @@ function tourney_entity_info() {
       'controller class' => 'EntityAPIController',
       'base table' => 'tourney_game',
       // 'fieldable' => TRUE,
+      'uri callback' => 'tourney_uri',
       'static cache' => TRUE,
       'translation' => array(
         'locale' => TRUE,
@@ -93,6 +104,12 @@ function tourney_entity_info() {
   );
 
   return $return;
+}
+
+function tourney_uri($tourney) {
+  return array(
+    'path' => 'tourney/1',
+  );
 }
 
 /**
@@ -132,12 +149,60 @@ function tourney_tournament_load_multiple($tids = array(), $conditions = array()
 }
 
 /**
+ * Fetch a match object
+ * 
+ * @param $mid
+ *   Integer specifying the match id
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   A fully-loaded object or FALSE of it cannot be loaded.
+ * 
+ * @see tourney_match_load_multiple()
+ */
+function tourney_match_load($mid = NULL, $reset = FALSE) {
+  $mids = isset($mid) ? array($mid) : array();
+  $conditions = array();
+  $match = tourney_match_load_multiple($mids, $conditions, $reset);
+
+  return $match ? reset($match) : FALSE;
+}
+
+/**
+ * Load multiple match entities based on certain conditions.
+ *
+ * @param $mids
+ *   An array of entity IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {entity} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   An array of match entity objects, indexed by mid.
+ */
+function tourney_match_load_multiple($mids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('tourney_match', $mids, $conditions, $reset);
+}
+
+/**
+ * Delete multiple tournament entities.
+ *
+ * @param $mids
+ *   An array of test entity IDs.
+ */
+function tourney_match_delete_multiple(array $mids) {
+  entity_get_controller('tourney_match')->delete($mids);
+}
+
+/**
  * Implements hook_entity_insert().
  */
 function tourney_entity_insert($entity, $entity_type) {
-  // Build a nested array of matches for the tournament being saved.
-  $matches = new TourneyBuildMatches($entity->players, $entity->type);
-  $matches->create();
+  if (in_array($entity_type, tourney_get_type_options())) {
+    // Build a nested array of matches for the tournament being saved.
+    $matches = new TourneyBuildMatches($entity->players, $entity->type);
+    $matches->create();
+  }
 }
 
 /**

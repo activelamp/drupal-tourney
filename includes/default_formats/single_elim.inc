@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class SingleElimination implements TourneyMatch {
+class SingleElimination implements TourneyMatchInterface {
   
   protected $num_contestants;
   protected $num_rounds;
