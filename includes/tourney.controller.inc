@@ -62,8 +62,10 @@ class TourneyBuildMatches {
        $this->save_match($value);
       }
       else {
-        $match = $key;
-        dpm($value);
+        $match = new stdClass();
+        $match->title = $key;
+        $match->games = 5;
+        entity_save('tourney_match', $match);
       }
       // if (strpos($key, $identifier .'-') !== 0) {
       
