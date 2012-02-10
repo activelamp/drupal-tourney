@@ -104,3 +104,68 @@ function tourney_schema() {
   return $schema;
 }
 
+/**
+ * Implements hook_install().
+ */
+function tourney_install() {
+  /** Creating the tournament <=> match relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'has_match';
+  $relation->label = 'has match';
+  $relation->reverse_label = 'is match of';
+  $relation->directional = true;
+  $relation->source_bundles['tourney_tournament:*'] = 'tourney_match:*';
+  $relation->target_bundles['tourney_match:*'] = 'tourney_tournament:*';
+  relation_type_save($relation);
+  
+  /** Creating the match <=> game relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'has_game';
+  $relation->label = 'has game';
+  $relation->reverse_label = 'is game of';
+  $relation->directional = true;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_game:*';
+  $relation->target_bundles['tourney_game:*'] = 'tourney_match:*';
+  relation_type_save($relation);
+  
+  /** Creating the loser path relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'loser_goes_to';
+  $relation->label = 'loser goes to';
+  $relation->reverse_label = 'is loser of';
+  $relation->directional = true;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
+  $relation->target_bundles['tourney_match:*'] = 'tourney_match:*';
+  relation_type_save($relation);
+  
+  /** Creating the winner path relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'winner_goes_to';
+  $relation->label = 'winner goes to';
+  $relation->reverse_label = 'is winner of';
+  $relation->directional = true;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
+  $relation->target_bundles['tourney_match:*'] = 'tourney_match:*';
+  relation_type_save($relation);
+  
+  // Define fields for the tournament has match relation.
+  $field = array(
+    'field_name' => 'bracket',
+    'cardinality' => 1,
+    'type' => 'text',
+  );
+  
+  field_create_field($field);
+  
+  $field_instance = array(
+    'instance_1' => array(
+      'field_name' => 'bracket',
+      'label' => t('Bracket'),
+    ),
+  );
+  
+  $field_instance['entity_type'] = 'relation';
+  $field_instance['bundle'] = 'has_match';
+  field_create_instance($field_instance);
+}
+
