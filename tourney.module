@@ -198,7 +198,7 @@ function tourney_match_delete_multiple(array $mids) {
  * Implements hook_entity_insert().
  */
 function tourney_entity_insert($entity, $entity_type) {
-  if (in_array($entity_type, tourney_get_type_options())) {
+  if ($entity_type == 'tourney_tournament') {
     // Build a nested array of matches for the tournament being saved.
     $matches = new TourneyBuildMatches($entity->players, $entity->type);
     $matches->create();

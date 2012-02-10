@@ -43,9 +43,9 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
     $this->build_round($first_loss, 2, 2);
     
     return array(
-      'top-bracket' => $top_bracket, 
-      'bottom-bracket' => $bottom_bracket,
-      'champion-bracket' => array_merge($champion_match, $first_loss),
+      'bracket-top' => $top_bracket, 
+      'bracket-bottom' => $bottom_bracket,
+      'bracket-champion' => array_merge($champion_match, $first_loss),
     );
   }
   
@@ -72,8 +72,8 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
       if ($this->same_bracket) {
         $matches['round-'. $previous_round]['match-'. $previous_match]['winner'] = 'round-'. $current_round .'_match-'. $current_match . '_contestant-1';
         $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'round-'. $current_round .'_match-'. $current_match . '_contestant-2';
-        $matches['round-'. $previous_round]['match-'. $previous_match]['loser'] = 'bracket-2_round-[bottom-round]_match-'. $current_match . '_contestant-2';
-        $matches['round-'. $previous_round]['match-'. $pm]['loser'] = 'bracket-2_round-[bottom-round]'. $current_round .'_match-'. $current_match . '_contestant-2';
+        $matches['round-'. $previous_round]['match-'. $previous_match]['loser'] = 'bracket-bottom_round-[bottom-round]_match-'. $current_match . '_contestant-2';
+        $matches['round-'. $previous_round]['match-'. $pm]['loser'] = 'bracket-bottom_round-[bottom-round]'. $current_round .'_match-'. $current_match . '_contestant-2';
         $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'round-'. $previous_round .'_match-'. $previous_match;
         $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'round-'. $previous_round .'_match-'. $pm;
       }
@@ -84,14 +84,14 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
         $top_round = array_search($current_round, $this->bracket_alignment) + 1;
         $matches['round-'. $previous_round]['match-'. $current_match]['winner'] = 'round-'. $current_round .'_match-'. $current_match . '_contestant-1';
         $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'round-'. $previous_round .'_match-'. $current_match;
-        $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-1_round-'. $top_round .'_match-'. $current_match;
+        $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-top_round-'. $top_round .'_match-'. $current_match;
       }
     }
     
     // Setup the first round of the bottom bracket
     if ($current_round == 1 && !$this->same_bracket) {
-      $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-1_round-'. $current_round .'_match-'. $previous_match;
-      $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-1_round-'. $current_round .'_match-'. $pm;
+      $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-top_round-'. $current_round .'_match-'. $previous_match;
+      $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-top_round-'. $current_round .'_match-'. $pm;
     }
     
     return $matches;

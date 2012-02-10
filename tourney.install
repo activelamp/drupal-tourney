@@ -154,18 +154,41 @@ function tourney_install() {
     'cardinality' => 1,
     'type' => 'text',
   );
-  
   field_create_field($field);
-  
+
   $field_instance = array(
-    'instance_1' => array(
-      'field_name' => 'bracket',
-      'label' => t('Bracket'),
-    ),
+    'entity_type' => 'relation',
+    'bundle' => 'has_match',
+    'field_name' => 'bracket',
+    'label' => t('Bracket'),
   );
+  field_create_instance($field_instance);
   
-  $field_instance['entity_type'] = 'relation';
-  $field_instance['bundle'] = 'has_match';
+  $field = array(
+    'field_name' => 'round',
+    'cardinality' => 1,
+    'type' => 'text',
+  );
+  field_create_field($field);
+
+  $field_instance = array(
+    'entity_type' => 'relation',
+    'bundle' => 'has_match',
+    'field_name' => 'round',
+    'label' => t('Round'),
+  );
   field_create_instance($field_instance);
 }
+
+/**
+ * Implements hook_uninstall().
+ */
+function tourney_uninstall() {
+  relation_type_delete('has_match');
+  relation_type_delete('has_game');
+  relation_type_delete('loser_goes_to');
+  relation_type_delete('winner_goes_to');
+}
+
+
 
