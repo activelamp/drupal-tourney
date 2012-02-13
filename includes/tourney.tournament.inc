@@ -72,6 +72,8 @@ function tourney_tournament_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
   tourney_tournament_save($tourney);
+  
+  $form_state['redirect'] = 'tourney/'. $tourney->id;
 }
 
 /**

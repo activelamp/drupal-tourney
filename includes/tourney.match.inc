@@ -63,6 +63,8 @@ function tourney_match_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_match', $tourney, $form, $form_state);
   tourney_match_save($tourney);
+  
+  $form_state['redirect'] = 'tourney/match/'. $tourney->id;
 }
 
 /**
@@ -121,4 +123,6 @@ function tourney_game_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_game', $tourney, $form, $form_state);
   tourney_game_save($tourney);
+  
+  $form_state['redirect'] = 'tourney/game/'. $tourney->id;
 }
