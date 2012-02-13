@@ -27,7 +27,10 @@ class TourneyBuildMatches {
     if (!class_exists($match_style)) {
       trigger_error(t('Unable to create !match_style matches. Class not found', array('!match_style' => $match_style)), E_USER_ERROR);
     }
-    $this->match_style = new $match_style($num_contestants);
+    $interfaces = class_implements($match_style);
+    if (isset($interfaces['TourneyMatchInterface'])) {
+      $this->match_style = new $match_style($num_contestants);
+    }
   }
   
   /**
@@ -70,6 +73,7 @@ class TourneyBuildMatches {
       else {
         // Build the match object to save
         $match = new stdClass();
+        $match->type = 'match';
         $match->title = $key;
         $match->games = 5;
         $match->next_match_winner = array_key_exists('winner', $value) ? $value['winner'] : '';
@@ -87,6 +91,7 @@ class TourneyBuildMatches {
         
         // Create the first game of the match
         $game = new stdClass();
+        $game->type = 'game';
         $game->title = 'game-1';
         tourney_game_save($game);
         

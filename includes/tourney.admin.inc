@@ -38,7 +38,7 @@ function tourney_type_form($form, &$form_state, $tourney_type, $op = 'edit') {
     '#size' => 30,
   );
   // Machine-readable type name.
-  $form['name'] = array(
+  $form['type'] = array(
     '#type' => 'machine_name',
     '#default_value' => isset($tourney_type->type) ? $tourney_type->type : '',
     '#maxlength' => 32,

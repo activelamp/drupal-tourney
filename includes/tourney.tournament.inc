@@ -8,21 +8,27 @@
 /**
  * The tournament form.
  */
-function tourney_tournament_form($form, &$form_state) {
+function tourney_tournament_form($form, &$form_state, $tourney) {
+  // Set the bundle name
+  $tourney->type = 'tournament';
+  $form_state['tourney'] = $tourney;
+  
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Tournament Name'),
     '#description' => t('Enter the name of this tournament.'),
     '#size' => 40,
     '#maxlength' => 255,
+    '#default_value' => isset($tourney->title) ? $tourney->title : '',
   );
   
-  $form['type'] = array(
+  $form['format'] = array(
     '#type' => 'select',
     '#title' => t('Tournament style'),
     '#description' => t('Choose the style of play for this tournament'),
     '#options' => tourney_get_type_options(),
-    '#default_value' => -1,
+    '#disabled' => isset($tourney->format) ? TRUE : FALSE,
+    '#default_value' => isset($tourney->format) ? $tourney->format : -1,
   );
   
   $form['players'] = array(
@@ -31,6 +37,8 @@ function tourney_tournament_form($form, &$form_state) {
     '#description' => t('Enter the number contestants playing in this tournament'),
     '#size' => 10,
     '#maxlength' => 2,
+    '#disabled' => isset($tourney->players) ? TRUE : FALSE,
+    '#default_value' => isset($tourney->players) ? $tourney->players : '',
   );
   
   $form['winner'] = array(
@@ -38,8 +46,10 @@ function tourney_tournament_form($form, &$form_state) {
     '#title' => t('Winner'),
     '#description' => t('The description appears usually below the item.'),
     '#options' => drupal_map_assoc(array('No Winner')),
-    '#default_value' => -1,
+    '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
   );
+  
+  field_attach_form('tourney_tournament', $tourney, $form, $form_state);
   
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -49,6 +59,7 @@ function tourney_tournament_form($form, &$form_state) {
   );
 
   $form['#submit'][] = 'tourney_tournament_form_submit';
+  
   return $form;
 }
 
@@ -58,7 +69,7 @@ function tourney_tournament_form($form, &$form_state) {
 function tourney_tournament_form_submit($form, &$form_state) {
   drupal_set_message(t('Your tournament has been saved.'));
   
-  $tourney = new stdClass();
+  $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
   tourney_tournament_save($tourney);
 }
@@ -106,4 +117,13 @@ function tourney_overview_entities() {
     $items[] = l($label, 'admin/structure/tourney/'. $entity_short);
   }
   return theme('item_list', array('items' => $items));
+}
+
+/**
+ * Page callback. Edit a tournament.
+ */
+function tourney_tournament_edit($tournament) {
+  drupal_set_title(t('Edit Tournament: @title', array('@title' => $tournament->title)));
+  
+  return drupal_get_form('tourney_tournament_form', $tournament);
 }

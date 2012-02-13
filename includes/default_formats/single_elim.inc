@@ -89,8 +89,8 @@ class SingleElimination implements TourneyMatchInterface {
   protected function build_round(&$matches, $contestants, $round) {
     for ($match=1;$match<=$contestants/2;$match++) {
       $matches['round-'. $round]['match-'. $match] = array(
-        'contestant-1' => 'manual',
-        'contestant-2' => 'manual',
+        'contestant-1' => ($round == 1) ? 'manual' : '',
+        'contestant-2' => ($round == 1) ? 'manual' : '',
       );
       $matches = $this->set_match_path($matches, $round, $match);
     }
