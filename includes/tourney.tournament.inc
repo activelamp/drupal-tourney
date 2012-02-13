@@ -60,7 +60,7 @@ function tourney_tournament_form_submit($form, &$form_state) {
   
   $tourney = new stdClass();
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
-  entity_save('tourney_tournament', $tourney);  
+  tourney_tournament_save($tourney);
 }
 
 /**

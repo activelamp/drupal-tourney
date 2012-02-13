@@ -16,6 +16,8 @@ class TourneyBuildMatches {
   protected $num_contestants;
   protected $match_style;
   protected $matches;
+  protected $tournament;
+  protected $match_path = array();
   
   /**
    * Constructor
@@ -36,13 +38,17 @@ class TourneyBuildMatches {
 
     // Build the match structure
     $this->matches = $this->match_style->build();
-
-    
-    // Create the actual match entities and the first game.
-    $this->save();
   }
   
-  public function save() {
+  /**
+   * Saves the matches for the tournament.
+   * 
+   * @param $tournament
+   *   The entity object of the tournament the matches are being saved in.
+   */
+  public function save($tournament) {
+    dpm($this->matches);
+    $this->tournament = $tournament;
     $this->save_match($this->matches);
   }
   
@@ -53,7 +59,7 @@ class TourneyBuildMatches {
     $identifiers = array('bracket', 'round');
     foreach ($matches as $key => $value) {
       foreach ($identifiers as $identifier) {
-        // We only want matches, but keep metadata.
+        // We only want matches, but keep bracket and round metadata.
         if (strpos($key, $identifier .'-') === 0 && is_array($value)) {
           ${$identifier} = $key;
         }
@@ -62,23 +68,40 @@ class TourneyBuildMatches {
        $this->save_match($value);
       }
       else {
+        // Build the match object to save
         $match = new stdClass();
         $match->title = $key;
         $match->games = 5;
-        entity_save('tourney_match', $match);
+        $match->next_match_winner = array_key_exists('winner', $value) ? $value['winner'] : '';
+        $match->next_match_loser = array_key_exists('loser', $value) ? $value['loser'] : '';
+        $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : '';
+        $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : '';
+        tourney_match_save($match);
+        
+        // Add the relationship to the tournament.
+        $rid = $this->create_relation('has_match', 'tourney_tournament', $this->tournament->tid, 'tourney_match', $match->mid);
+        $relation = relation_load($rid);
+        $relation->bracket[LANGUAGE_NONE][0]['value'] = $bracket;
+        $relation->round[LANGUAGE_NONE][0]['value'] = $round;
+        relation_save($relation);
+        
+        // Create the first game of the match
+        $game = new stdClass();
+        $game->title = 'game-1';
+        tourney_game_save($game);
+        
+        // Add the relationship to the game.
+        $rid = $this->create_relation('has_game', 'tourney_match', $match->mid, 'tourney_game', $game->gid);
       }
-      // if (strpos($key, $identifier .'-') !== 0) {
-      
     }
   }
   
-  private function create_relation($source_entity, $source_id, $destination_entity, $destination_id) {
-    $predicate = 'has_match';
+  private function create_relation($predicate, $source_entity, $source_id, $destination_entity, $destination_id) {
     $entity_keys = array(
-      array('entity_type' => 'tourney_tournament', 'entity_id' => 1),
-      array('entity_type' => 'tourney_match', 'entity_id' => 7),
+      array('entity_type' => $source_entity, 'entity_id' => $source_id),
+      array('entity_type' => $destination_entity, 'entity_id' => $destination_id),
     );
-    $rid = relation_insert($predicate, $entity_keys);
+    return relation_insert($predicate, $entity_keys);
   }
 }
 

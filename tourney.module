@@ -99,6 +99,7 @@ function tourney_entity_info() {
       ),
       'entity keys' => array(
         'id' => 'gid',
+        'label' => 'title',
       ),
     ),
   );
@@ -202,7 +203,30 @@ function tourney_entity_insert($entity, $entity_type) {
     // Build a nested array of matches for the tournament being saved.
     $matches = new TourneyBuildMatches($entity->players, $entity->type);
     $matches->create();
+    // Create the actual match entities and the first game.
+    $matches->save($entity);
   }
+}
+
+/**
+ * Save a tournament entity.
+ */
+function tourney_tournament_save(&$tourney) {
+  entity_save('tourney_tournament', $tourney);  
+}
+
+/**
+ * Save a match entity.
+ */
+function tourney_match_save(&$match) {
+  entity_save('tourney_match', $match);
+}
+
+/**
+ * Save a game entity.
+ */
+function tourney_game_save(&$game) {
+  entity_save('tourney_game', $game);
 }
 
 /**
