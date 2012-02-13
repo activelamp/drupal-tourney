@@ -34,6 +34,14 @@ function tourney_menu() {
     'access arguments' => array('access content'),
     'file' => 'includes/tourney.match.inc',
   );
+  $items['admin/structure/tourney'] = array(
+    'title' => t('Manage Tourney Entities'),
+    'page callback' => 'tourney_overview_entities',
+    'access arguments' => array('access content'),
+    'description' => t('Manage Tournament entities.'),
+    'file' => 'includes/tourney.tournament.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
   
   return $items;
 }
@@ -49,63 +57,120 @@ function tourney_page_title($tourney) {
  * Implements hook_entity_info().
  */
 function tourney_entity_info() {
-  $return = array(
-    'tourney_tournament' => array(
-      'label' => t('Tournament'),
+  $return = array();
+  $entities = tourney_entities();
+  foreach ($entities as $entity_name => $bundle) {
+    // Entity name minus the tourney_ prefix
+    $entity_short = substr($entity_name, 8);
+    
+    $return[$entity_name] = array(
+      'label' => $entity_name,
       'entity class' => 'Entity',
       'controller class' => 'EntityAPIController',
-      'base table' => 'tourney_tournament',
-      // 'fieldable' => TRUE,
+      'base table' => $entity_name,
+      'fieldable' => TRUE,
       'uri callback' => 'tourney_uri',
       'static cache' => TRUE,
       'translation' => array(
         'locale' => TRUE,
       ),
       'entity keys' => array(
-        'id' => 'tid',
+        'id' => 'id',
         'label' => 'title',
+      ),
+      'bundles' => array(),
+      'bundle keys' => array(
+        'bundle' => 'name',
       ),
       'access callback' => 'tourney_access',
       'module' => 'tourney',
-    ),
+    );
     
-    'tourney_match' => array(
-      'label' => t('Match'),
-      'entity class' => 'Entity',
-      'controller class' => 'EntityAPIController',
-      'base table' => 'tourney_match',
-      // 'fieldable' => TRUE,
-      'uri callback' => 'tourney_uri',
-      'static cache' => TRUE,
-      'translation' => array(
-        'locale' => TRUE,
-      ),
-      'entity keys' => array(
-        'id' => 'mid',
-        'label' => 'title',
-      ),
-    ),
     
-    'tourney_game' => array(
-      'label' => t('Game'),
-      'entity class' => 'Entity',
-      'controller class' => 'EntityAPIController',
-      'base table' => 'tourney_game',
-      // 'fieldable' => TRUE,
-      'uri callback' => 'tourney_uri',
-      'static cache' => TRUE,
-      'translation' => array(
-        'locale' => TRUE,
-      ),
-      'entity keys' => array(
-        'id' => 'gid',
-        'label' => 'title',
-      ),
-    ),
-  );
+    // Add bundle info but bypass entity_load() as we cannot use it here.
+    $types = db_select($entity_name .'_type', 'ttp')
+      ->fields('ttp')
+      ->execute()
+      ->fetchAllAssoc('name');
 
+    foreach ($types as $type => $info) {
+      $return[$entity_name]['bundles'][$type] = array(
+        'label' => $info->label,
+        'admin' => array(
+          'path' => 'admin/structure/tourney/'. $entity_short .'/manage/%'. $entity_name .'_type',
+          'real path' => 'admin/structure/tourney/'. $entity_short .'/manage/'. $type,
+          'bundle argument' => 5,
+          'access arguments' => array('access content'),
+        ),
+      );
+    }
+
+    $return[$entity_name .'_type'] = array(
+      'label' => t('@entity type', array('@entity' => ucfirst($entity_short))),
+      'plural label' => t('@entity types', array('@entity' => ucfirst($entity_short))),
+      'entity class' => 'Entity',
+      'controller class' => 'EntityAPIControllerExportable',
+      'base table' => $entity_name .'_type',
+      'fieldable' => FALSE,
+      'bundle of' => $entity_name,
+      'exportable' => TRUE,
+      'entity keys' => array(
+        'id' => 'id',
+        'name' => 'name',
+        'label' => 'label',
+      ),
+      'access callback' => 'tourney_access',
+      'module' => 'tourney',
+      // Enable the entity API's admin UI.
+      'admin ui' => array(
+        'path' => 'admin/structure/tourney/'. $entity_short,
+        'file' => 'includes/tourney.admin.inc',
+      ),
+    );
+  }
+  
   return $return;
 }
+
+/**
+ * Implements hook_forms().
+ */
+function tourney_forms($form_id, $args) {
+  foreach (tourney_entities() as $entity_name => $bundle) {
+    $forms[$entity_name .'_type_form'] = array(
+      'callback' => 'tourney_type_form',
+    );
+  }
+  return $forms;
+}
+
+/**
+ * Defines the entities and their  default bundles for the entities created by 
+ * this module.
+ */
+function tourney_entities() {
+  $types = &drupal_static(__FUNCTION__);
+  
+  if (empty($types)) {
+    $types['tourney_tournament'] = (object) array(
+      'type' => 'tournament',
+      'name' => t('Tournament'),
+      'description' => t('A tournament entity.'),
+    );
+    $types['tourney_match'] = (object) array(
+      'type' => 'match',
+      'name' => t('Match'),
+      'description' => t('A match entity.'),
+    );
+    $types['tourney_game'] = (object) array(
+      'type' => 'game',
+      'name' => t('Game'),
+      'description' => t('A game entity.'),
+    );
+  }
+  return $types;
+}
+
 
 function tourney_uri($tourney) {
   return array(
@@ -114,9 +179,57 @@ function tourney_uri($tourney) {
 }
 
 /**
+ * Menu auto loaders.
+ */
+function tourney_tournament_type_load($type) {
+  return tourney_tournament_type_get_types($type);
+}
+function tourney_match_type_load($type) {
+  return tourney_match_type_get_types($type);
+}
+function tourney_game_type_load($type) {
+  return tourney_game_type_get_types($type);
+}
+
+/**
+ * Wrapper functions for the default entities #machine_name existing callback.
+ */
+function tourney_tournament_type_get_types($type_name = NULL) {
+  return tourney_entity_get_types('tourney_tournament_type', $type_name);
+}
+function tourney_match_type_get_types($type_name = NULL) {
+  return tourney_entity_get_types('tourney_match_type', $type_name);
+}
+function tourney_game_type_get_types($type_name = NULL) {
+  return tourney_entity_get_types('tourney_game_type', $type_name);
+}
+
+/**
+ * Gets an array of all types, keyed by the type name.
+ *
+ * @param $entity_name
+ *   The name of the entity to look at.
+ * @param $type_name
+ *   If set, the type with the given name is returned.
+ * @return 
+ *   Depending whether $type isset, an array of types or a single one.
+ */
+function tourney_entity_get_types($entity_name, $type_name = NULL) {
+  $types = entity_load_multiple_by_name($entity_name, isset($type_name) ? array($type_name) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
+}
+
+/**
+ * Access callback for tourney module.
+ */
+function tourney_access() {
+  return true;
+}
+
+/**
  * Fetch a tournament object
  * 
- * @param $tid
+ * @param $id
  *   Integer specifying the tournament id
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
@@ -125,10 +238,10 @@ function tourney_uri($tourney) {
  * 
  * @see tourney_tournament_load_multiple()
  */
-function tourney_tournament_load($tid = NULL, $reset = FALSE) {
-  $tids = isset($tid) ? array($tid) : array();
+function tourney_tournament_load($id = NULL, $reset = FALSE) {
+  $ids = isset($id) ? array($id) : array();
   $conditions = array();
-  $tournament = tourney_tournament_load_multiple($tids, $conditions, $reset);
+  $tournament = tourney_tournament_load_multiple($ids, $conditions, $reset);
 
   return $tournament ? reset($tournament) : FALSE;
 }
@@ -136,23 +249,23 @@ function tourney_tournament_load($tid = NULL, $reset = FALSE) {
 /**
  * Load multiple tournament entities based on certain conditions.
  *
- * @param $tids
+ * @param $ids
  *   An array of entity IDs.
  * @param $conditions
  *   An array of conditions to match against the {entity} table.
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
  * @return
- *   An array of tournament entity objects, indexed by tid.
+ *   An array of tournament entity objects, indexed by id.
  */
-function tourney_tournament_load_multiple($tids = array(), $conditions = array(), $reset = FALSE) {
-  return entity_load('tourney_tournament', $tids, $conditions, $reset);
+function tourney_tournament_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('tourney_tournament', $ids, $conditions, $reset);
 }
 
 /**
  * Fetch a match object
  * 
- * @param $mid
+ * @param $id
  *   Integer specifying the match id
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
@@ -161,10 +274,10 @@ function tourney_tournament_load_multiple($tids = array(), $conditions = array()
  * 
  * @see tourney_match_load_multiple()
  */
-function tourney_match_load($mid = NULL, $reset = FALSE) {
-  $mids = isset($mid) ? array($mid) : array();
+function tourney_match_load($id = NULL, $reset = FALSE) {
+  $ids = isset($id) ? array($id) : array();
   $conditions = array();
-  $match = tourney_match_load_multiple($mids, $conditions, $reset);
+  $match = tourney_match_load_multiple($ids, $conditions, $reset);
 
   return $match ? reset($match) : FALSE;
 }
@@ -172,27 +285,27 @@ function tourney_match_load($mid = NULL, $reset = FALSE) {
 /**
  * Load multiple match entities based on certain conditions.
  *
- * @param $mids
+ * @param $ids
  *   An array of entity IDs.
  * @param $conditions
  *   An array of conditions to match against the {entity} table.
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
  * @return
- *   An array of match entity objects, indexed by mid.
+ *   An array of match entity objects, indexed by id.
  */
-function tourney_match_load_multiple($mids = array(), $conditions = array(), $reset = FALSE) {
-  return entity_load('tourney_match', $mids, $conditions, $reset);
+function tourney_match_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('tourney_match', $ids, $conditions, $reset);
 }
 
 /**
  * Delete multiple tournament entities.
  *
- * @param $mids
+ * @param $ids
  *   An array of test entity IDs.
  */
-function tourney_match_delete_multiple(array $mids) {
-  entity_get_controller('tourney_match')->delete($mids);
+function tourney_match_delete_multiple(array $ids) {
+  entity_get_controller('tourney_match')->delete($ids);
 }
 
 /**

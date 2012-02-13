@@ -12,7 +12,7 @@ function tourney_schema() {
   $schema['tourney_tournament'] = array(
     'description' => 'The base table for tournaments.',
     'fields' => array(
-      'tid' => array(
+      'id' => array(
         'description' => 'The primary identifier for a tournament.',
         'type' => 'serial',
         'unsigned' => TRUE,
@@ -43,15 +43,15 @@ function tourney_schema() {
         'default' => ''),
       ),
     'unique keys' => array(
-      'tid' => array('tid'),
+      'id' => array('id'),
       ),
-    'primary key' => array('tid'),
+    'primary key' => array('id'),
   );
   
   $schema['tourney_match'] = array(
     'description' => 'The base table for a match.',
     'fields' => array(
-      'mid' => array(
+      'id' => array(
         'description' => 'The primary identifier for a match.',
         'type' => 'serial',
         'unsigned' => TRUE,
@@ -100,15 +100,15 @@ function tourney_schema() {
         'default' => ''),
       ),
     'unique keys' => array(
-      'mid' => array('mid'),
+      'id' => array('id'),
       ),
-    'primary key' => array('mid'),
+    'primary key' => array('id'),
   );
   
   $schema['tourney_game'] = array(
     'description' => 'The base table for a match.',
     'fields' => array(
-      'gid' => array(
+      'id' => array(
         'description' => 'The primary identifier for a game.',
         'type' => 'serial',
         'unsigned' => TRUE,
@@ -127,9 +127,77 @@ function tourney_schema() {
         'default' => ''),
       ),
     'unique keys' => array(
-      'gid' => array('gid'),
+      'id' => array('id'),
       ),
-    'primary key' => array('gid'),
+    'primary key' => array('id'),
+  );
+  
+  // Defing the bundle schemas for all three entities
+  $schema['tourney_tournament_type'] =
+  $schema['tourney_match_type'] =
+  $schema['tourney_game_type'] = array(
+    'description' => 'Stores information about all defined types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique type ID.',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this type in relation to others.',
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this type.',
+        'merge' => TRUE,
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
   );
   return $schema;
 }
@@ -208,6 +276,26 @@ function tourney_install() {
     'label' => t('Round'),
   );
   field_create_instance($field_instance);
+  
+  // Create the default bundles for the tournaments
+  $type = entity_create('tourney_tournament_type', array(
+    'name' => 'tournament',
+    'label' => t('Tournament'),
+    'weight' => 0,
+  ));
+  $type->save();
+  $type = entity_create('tourney_match_type', array(
+    'name' => 'match',
+    'label' => t('Match'),
+    'weight' => 0,
+  ));
+  $type->save();
+  $type = entity_create('tourney_game_type', array(
+    'name' => 'game',
+    'label' => t('Game'),
+    'weight' => 0,
+  ));
+  $type->save();
 }
 
 /**

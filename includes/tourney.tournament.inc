@@ -87,9 +87,23 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
 /**
  * Delete multiple tournament entities.
  *
- * @param $tids
+ * @param $ids
  *   An array of test entity IDs.
  */
-function tourney_tournament_delete_multiple(array $tids) {
-  entity_get_controller('tourney_tournament')->delete($tids);
+function tourney_tournament_delete_multiple(array $ids) {
+  entity_get_controller('tourney_tournament')->delete($ids);
+}
+
+/**
+ * Page callback. Show a listing of default entities.
+ */
+function tourney_overview_entities() {
+  foreach (tourney_entities() as $entity_name => $entity_type) {
+    // Entity name minus the tourney_ prefix
+    $entity_short = substr($entity_name, 8);
+    
+    $label = t('Manage @entity', array('@entity' => ucfirst($entity_short)));
+    $items[] = l($label, 'admin/structure/tourney/'. $entity_short);
+  }
+  return theme('item_list', array('items' => $items));
 }

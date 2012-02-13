@@ -8,6 +8,7 @@ dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = relation
 
+files[] = includes/tourney.admin.inc
 files[] = includes/tourney.controller.inc
 files[] = includes/default_formats/single_elim.inc
 files[] = includes/default_formats/double_elim.inc
