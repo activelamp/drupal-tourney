@@ -28,6 +28,7 @@ function tourney_match_edit($match) {
  */
 function tourney_match_form($form, &$form_state, $tourney) {
   $tourney->type = 'match';
+  $form_state['tourney'] = $tourney;
   
   $form['title'] = array(
     '#type' => 'textfield',
@@ -54,6 +55,17 @@ function tourney_match_form($form, &$form_state, $tourney) {
 }
 
 /**
+ * Match form submit handler.
+ */
+function tourney_match_form_submit($form, &$form_state) {
+  drupal_set_message(t('Your match has been saved.'));
+  
+  $tourney = $form_state['tourney'];
+  entity_form_submit_build_entity('tourney_match', $tourney, $form, $form_state);
+  tourney_match_save($tourney);
+}
+
+/**
  * Show the tournament page.
  */
 function tourney_game_page_view($tourney) {
@@ -74,6 +86,7 @@ function tourney_game_edit($game) {
  */
 function tourney_game_form($form, &$form_state, $tourney) {
   $tourney->type = 'game';
+  $form_state['tourney'] = $tourney;  
   
   $form['title'] = array(
     '#type' => 'textfield',
@@ -97,4 +110,15 @@ function tourney_game_form($form, &$form_state, $tourney) {
   
 
   return $form;
+}
+
+/**
+ * Game form submit handler.
+ */
+function tourney_game_form_submit($form, &$form_state) {
+  drupal_set_message(t('Your game has been saved.'));
+  
+  $tourney = $form_state['tourney'];
+  entity_form_submit_build_entity('tourney_game', $tourney, $form, $form_state);
+  tourney_game_save($tourney);
 }
