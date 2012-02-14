@@ -91,20 +91,78 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
     drupal_get_path('module', 'tourney'). '/theme/tourney.css'
   );
   $entity->content['tourney_format'] = array(
-     '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
-     '#suffix' => '</div>',
-     '#markup' => $entity->format,
-   );
-   $entity->content['tourney_players'] = array(
-     '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
-     '#suffix' => '</div>',
-     '#markup' => $entity->players,
-   );
-   $entity->content['tourney_winner'] = array(
-     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-     '#suffix' => '</div>',
-     '#markup' => $entity->winner,
-   );
+   '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
+   '#suffix' => '</div>',
+   '#markup' => $entity->format,
+  );
+  $entity->content['tourney_players'] = array(
+   '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
+   '#suffix' => '</div>',
+   '#markup' => $entity->players,
+  );
+  $entity->content['tourney_winner'] = array(
+   '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+   '#suffix' => '</div>',
+   '#markup' => $entity->winner,
+  );
+  
+  // Add the matches for this tournament
+  $entity->content['matches'] = array(
+    '#prefix' => '<h2>Matches in this tournament</h2>',
+    '#theme' => 'tourney_render_matches',
+    '#matches' => _tourney_tournament_build_matches($entity),
+  );
+}
+
+function _tourney_tournament_build_matches($entity) {
+  $query = relation_query('tourney_tournament', $entity->id);
+  $query->entityCondition('bundle', 'has_match');
+  $results = $query->execute();
+
+  $matches = array();
+  foreach ($results as $id => $relation) {
+    $relation = relation_load($id);
+    $bracket = field_get_items('relation', $relation, 'bracket');
+    $round = field_get_items('relation', $relation, 'round');
+    $endpoints = field_get_items('relation', $relation, 'endpoints');
+
+    $match = tourney_match_load($endpoints[1]['entity_id']);    
+    if ($bracket[0]['safe_value'] && $round[0]['safe_value']) {
+      $matches[$bracket[0]['safe_value']][$round[0]['safe_value']][$match->id] = array(
+        'match' => $match,
+        'games' => _tourney_tournament_build_games($match),
+      );
+    }
+    else if ($round[0]['safe_value']) {
+      $matches[$round[0]['safe_value']][$match->id] = array(
+        'match' => $match,
+        'games' => _tourney_tournament_build_games($match),
+      );
+    }
+    else {
+      $matches[$match->id] = array(
+        'match' => $match,
+        'games' => _tourney_tournament_build_games($match),
+      );
+    }
+  }
+  return $matches;
+}
+
+function _tourney_tournament_build_games($entity) {
+  $query = relation_query('tourney_match', $entity->id);
+  $query->entityCondition('bundle', 'has_game');
+  $results = $query->execute();
+
+  $games = array();
+  foreach ($results as $id => $relation) {
+    $relation = relation_load($id);
+    $endpoints = field_get_items('relation', $relation, 'endpoints');
+
+    $game = tourney_game_load($endpoints[1]['entity_id']);    
+    $games[$game->id] = $game;
+  }
+  return $games;
 }
 
 /**
