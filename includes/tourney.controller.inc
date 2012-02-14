@@ -78,8 +78,8 @@ class TourneyBuildMatches {
         $match->games = 5;
         $match->next_match_winner = array_key_exists('winner', $value) ? $value['winner'] : '';
         $match->next_match_loser = array_key_exists('loser', $value) ? $value['loser'] : '';
-        $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : '';
-        $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : '';
+        $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : 'manual';
+        $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : 'manual';
         tourney_match_save($match);
         
         // Add the relationship to the tournament.

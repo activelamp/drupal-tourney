@@ -44,7 +44,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['winner'] = array(
     '#type' => 'select',
     '#title' => t('Winner'),
-    '#description' => t('The description appears usually below the item.'),
+    '#description' => t('The winner of this tournament.'),
     '#options' => drupal_map_assoc(array('No Winner')),
     '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
   );
@@ -80,21 +80,31 @@ function tourney_tournament_form_submit($form, &$form_state) {
  * Show the tournament page.
  */
 function tourney_tournament_page_view($tourney) {
-  return $tourney->view('full', 'en', 'page');
+  return $tourney->view('full', NULL, TRUE);
 }
 
 /**
  * Implements hook_ENTITY_view().
  */
 function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode = 'en') {
-  $entity->content = array(
-    'type' => array(
-      '#markup' => $entity->type,
-    ),
-    'players' => array(
-      '#markup' => $entity->players,
-    ),
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney'). '/theme/tourney.css'
   );
+  $entity->content['tourney_format'] = array(
+     '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
+     '#suffix' => '</div>',
+     '#markup' => $entity->format,
+   );
+   $entity->content['tourney_players'] = array(
+     '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
+     '#suffix' => '</div>',
+     '#markup' => $entity->players,
+   );
+   $entity->content['tourney_winner'] = array(
+     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+     '#suffix' => '</div>',
+     '#markup' => $entity->winner,
+   );
 }
 
 /**

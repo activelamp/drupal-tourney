@@ -197,6 +197,106 @@ function tourney_forms($form_id, $args) {
 }
 
 /**
+ * Implements hook_field_extra_fields().
+ */
+function tourney_field_extra_fields() {
+  $extra['tourney_tournament']['tournament'] = array(
+    'form' => array(
+      'format' => array(
+        'label' => t('Tournament Format'),
+        'description' => t('The format of the tournament'),
+        'weight' => 0,
+      ),
+      'winner' => array(
+        'label' => t('Tournament Winner'),
+        'description' => t('The winner of the tournament'),
+        'weight' => 0,
+      ),
+      'players' => array(
+        'label' => t('Tournament Players'),
+        'description' => t('The number of players in the tournament'),
+        'weight' => 0,
+      ),
+    ),
+    'display' => array(
+      'tourney_format' => array(
+        'label' => t('Tournament Format'),
+        'description' => t('The format of the tournament'),
+        'weight' => 0,
+      ),
+      'tourney_winner' => array(
+        'label' => t('Tournament Winner'),
+        'description' => t('The winner of the tournament'),
+        'weight' => 0,
+      ),
+      'tourney_players' => array(
+        'label' => t('Tournament Players'),
+        'description' => t('The number of players in the tournament'),
+        'weight' => 0,
+      ),
+    ),
+  );
+  
+  $extra['tourney_match']['match'] = array(
+    'form' => array(
+      'winner' => array(
+        'label' => t('Match Winner'),
+        'description' => t('The winner of the match'),
+        'weight' => 0,
+      ),
+      'contestant1' => array(
+        'label' => t('Contestant 1'),
+        'description' => t('The first contestant of the match'),
+        'weight' => 0,
+      ),
+      'contestant2' => array(
+        'label' => t('Contestant 2'),
+        'description' => t('The second contestant of the match'),
+        'weight' => 0,
+      ),
+    ),
+    'display' => array(
+      'match_winner' => array(
+        'label' => t('Match Winner'),
+        'description' => t('The winner of the match'),
+        'weight' => 0,
+      ),
+      'match_contestant1' => array(
+        'label' => t('Contestant 1'),
+        'description' => t('The first contestant of the match'),
+        'weight' => 0,
+      ),
+      'match_contestant2' => array(
+        'label' => t('Contestant 2'),
+        'description' => t('The second contestant of the match'),
+        'weight' => 0,
+      ),
+    ),
+  );
+  
+  $extra['tourney_game']['game'] = array(
+    'form' => array(
+      'winner' => array(
+        'label' => t('Game Winner'),
+        'description' => t('The winner of the game'),
+        'weight' => 0,
+      ),
+    ),
+    'display' => array(
+      'game_winner' => array(
+        'label' => t('Game Winner'),
+        'description' => t('The winner of the game'),
+        'weight' => 0,
+      ),
+    ),
+  );
+
+  return $extra;
+}
+
+
+
+/**
  * Defines the entities and their  default bundles for the entities created by 
  * this module.
  */
@@ -421,6 +521,27 @@ function tourney_tournament_save(&$tourney) {
  */
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
+  // Save the relation for contestants if one exists.
+  if (isset($match->contestant1) && isset($match->contestant2)) {
+    // Check to see if the relation is already added.
+    $user1 = relation_get_related_entity('tourney_match', $match->id, 'contestant_1');
+    if (is_object($user1)) {
+      return;
+    }
+    
+    // Create the new relation.
+    $entity_keys = array(
+      array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
+      array('entity_type' => 'user', 'entity_id' => $match->contestant1),
+    );
+    $rid = relation_insert('contestant_1', $entity_keys);
+    
+    $entity_keys = array(
+      array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
+      array('entity_type' => 'user', 'entity_id' => $match->contestant2),
+    );
+    $rid = relation_insert('contestant_2', $entity_keys);
+  }
 }
 
 /**

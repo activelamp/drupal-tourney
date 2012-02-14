@@ -244,25 +244,25 @@ function tourney_install() {
   $relation->target_bundles['tourney_game:*'] = 'tourney_game:*';
   relation_type_save($relation);
   
-  // /** Creating the loser path relation. */
-  // $relation = new stdClass();
-  // $relation->relation_type = 'loser_goes_to';
-  // $relation->label = 'loser goes to';
-  // $relation->reverse_label = 'is loser of';
-  // $relation->directional = true;
-  // $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
-  // $relation->target_bundles['tourney_match:*'] = 'tourney_match:*';
-  // relation_type_save($relation);
-  // 
-  // /** Creating the winner path relation. */
-  // $relation = new stdClass();
-  // $relation->relation_type = 'winner_goes_to';
-  // $relation->label = 'winner goes to';
-  // $relation->reverse_label = 'is winner of';
-  // $relation->directional = true;
-  // $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
-  // $relation->target_bundles['tourney_match:*'] = 'tourney_match:*';
-  // relation_type_save($relation);
+  /** Creating the contestant relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'contestant_1';
+  $relation->label = 'contestant 1';
+  $relation->directional = false;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
+  $relation->source_bundles['user:*'] = 'user:*';
+  $relation->target_bundles['tourney_match:*'] = array();
+  relation_type_save($relation);
+  
+  /** Creating the contestant relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'contestant_2';
+  $relation->label = 'contestant 2';
+  $relation->directional = false;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
+  $relation->source_bundles['user:*'] = 'user:*';
+  $relation->target_bundles['tourney_match:*'] = array();
+  relation_type_save($relation);
   
   // Define fields for the tournament has match relation.
   $field = array(

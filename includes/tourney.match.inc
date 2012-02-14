@@ -10,8 +10,8 @@
 /**
  * Show the tournament page.
  */
-function tourney_match_page_view($tourney) {
-  return $tourney->view('full', 'en', 'page');
+function tourney_match_page_view($match) {
+  return $match->view('full', NULL, TRUE);
 }
 
 /**
@@ -32,11 +32,39 @@ function tourney_match_form($form, &$form_state, $tourney) {
   
   $form['title'] = array(
     '#type' => 'textfield',
-    '#title' => t('Tournament Name'),
-    '#description' => t('Enter the name of this tournament.'),
+    '#title' => t('Match Name'),
+    '#description' => t('Enter the name of this match.'),
     '#size' => 40,
     '#maxlength' => 255,
     '#default_value' => isset($tourney->title) ? $tourney->title : '',
+  );
+  
+  // @todo: It would be nice if these were field api fields
+  if ($tourney->previous_match1 == 'manual') {
+    $user = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_1');
+    $form['contestant1'] = array(
+      '#title' => t('Contestant 1'),
+      '#default_value' => $user->uid ? $user->uid : -1,
+      '#disabled' => $user->uid ? TRUE : FALSE,
+      '#required' => $user->uid ? FALSE : TRUE,
+    ) + _tourney_match_contestant($tourney);
+  }
+  if ($tourney->previous_match2 == 'manual') {
+    $user = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_2');
+    $form['contestant2'] = array(
+      '#title' => t('Contestant 2'),
+      '#default_value' => $user->uid ? $user->uid : -1,
+      '#disabled' => $user->uid ? TRUE : FALSE,
+      '#required' => $user->uid ? FALSE : TRUE,
+    ) + _tourney_match_contestant($tourney);
+  }
+  
+  $form['winner'] = array(
+    '#type' => 'select',
+    '#title' => t('Winner'),
+    '#description' => t('The winner of this match.'),
+    '#options' => drupal_map_assoc(array('No Winner')),
+    '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
   );
 
   field_attach_form('tourney_match', $tourney, $form, $form_state);
@@ -55,6 +83,47 @@ function tourney_match_form($form, &$form_state, $tourney) {
 }
 
 /**
+ * Create an entity field for contestants.
+ */
+function _tourney_match_contestant($tourney) {
+  return array(
+    '#type' => 'select',
+    '#options' => _tourney_match_users(),
+    '#default_value' => '',
+    '#required' => TRUE,
+  );
+}
+
+/**
+ * Return options of users to be used in a select list
+ */
+function _tourney_match_users() {
+  $options = array('' => ' - Choose contestant - ');
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->propertyCondition('uid', 1, '>');
+    
+  $result = $query->execute();
+  if (isset($result['user'])) {
+    $uids = array_keys($result['user']);
+    $users = entity_load('user', $uids);
+    foreach ($users as $uid => $user) {
+      $options[$uid] = $user->name;
+    }
+  }
+  return $options;
+}
+
+/**
+ * Validation function for matches
+ */
+function tourney_match_form_validate($form, &$form_state) {
+  if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] == $form_state['values']['contestant2']) {
+    form_set_error('contestant1', t('Contestant 1 and Contestant 2 cannot be the same person.'));
+  }
+}
+
+/**
  * Match form submit handler.
  */
 function tourney_match_form_submit($form, &$form_state) {
@@ -70,8 +139,8 @@ function tourney_match_form_submit($form, &$form_state) {
 /**
  * Show the tournament page.
  */
-function tourney_game_page_view($tourney) {
-  return $tourney->view('full', 'en', 'page');
+function tourney_game_page_view($game) {
+  return $game->view('full', NULL, TRUE);
 }
 
 /**
@@ -97,6 +166,13 @@ function tourney_game_form($form, &$form_state, $tourney) {
     '#size' => 40,
     '#maxlength' => 255,
     '#default_value' => isset($tourney->title) ? $tourney->title : '',
+  );
+  $form['winner'] = array(
+    '#type' => 'select',
+    '#title' => t('Winner'),
+    '#description' => t('The winner of this game.'),
+    '#options' => drupal_map_assoc(array('No Winner')),
+    '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
   );
 
   field_attach_form('tourney_game', $tourney, $form, $form_state);
@@ -125,4 +201,28 @@ function tourney_game_form_submit($form, &$form_state) {
   tourney_game_save($tourney);
   
   $form_state['redirect'] = 'tourney/game/'. $tourney->id;
+}
+
+/**
+ * Implements hook_ENTITY_view().
+ */
+function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en') {
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney'). '/theme/tourney.css'
+  );
+  $entity->content['match_winner'] = array(
+    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->winner,
+  );
+  $entity->content['match_contestant1'] = array(
+    '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    // '#markup' => $entity->contestant1,
+  );
+  $entity->content['match_contestant2'] = array(
+    '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    // '#markup' => $entity->contestant2,
+  );
 }
