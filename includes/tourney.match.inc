@@ -233,6 +233,7 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
  * Implements hook_ENTITY_view().
  */
 function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en') {
+  dpm($entity);
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney'). '/theme/tourney.css'
   );

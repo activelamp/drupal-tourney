@@ -131,26 +131,36 @@ function _tourney_tournament_build_matches($entity) {
     if ($bracket[0]['safe_value'] && $round[0]['safe_value']) {
       $matches[$bracket[0]['safe_value']][$round[0]['safe_value']][$match->id] = array(
         'match' => $match,
-        'games' => _tourney_tournament_build_games($match),
+        'games' => tourney_tournament_get_match_games($match),
       );
     }
     else if ($round[0]['safe_value']) {
       $matches[$round[0]['safe_value']][$match->id] = array(
         'match' => $match,
-        'games' => _tourney_tournament_build_games($match),
+        'games' => tourney_tournament_get_match_games($match),
       );
     }
     else {
       $matches[$match->id] = array(
         'match' => $match,
-        'games' => _tourney_tournament_build_games($match),
+        'games' => tourney_tournament_get_match_games($match),
       );
     }
   }
   return $matches;
 }
 
-function _tourney_tournament_build_games($entity) {
+/**
+ * Find all the games for a given match
+ * 
+ * @param $entity
+ *   A match entity to find games associated with.
+ * @param $load_entity (boolean)
+ *   Load the game entity and return the full object.
+ * @return $games
+ *   Returns an array of game objects.
+ */
+function tourney_tournament_get_match_games($entity, $load_entity = TRUE) {
   $query = relation_query('tourney_match', $entity->id);
   $query->entityCondition('bundle', 'has_game');
   $results = $query->execute();
@@ -159,9 +169,15 @@ function _tourney_tournament_build_games($entity) {
   foreach ($results as $id => $relation) {
     $relation = relation_load($id);
     $endpoints = field_get_items('relation', $relation, 'endpoints');
-
-    $game = tourney_game_load($endpoints[1]['entity_id']);    
-    $games[$game->id] = $game;
+    
+    if ($load_entity) {
+      $game = tourney_game_load($endpoints[1]['entity_id']);    
+      $games[$game->id] = $game;
+    }
+    else {
+      $games[$endpoints[1]['entity_id']] = $endpoints[1]['entity_id'];
+    }
+    
   }
   return $games;
 }

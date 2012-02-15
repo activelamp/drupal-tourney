@@ -313,20 +313,26 @@ function tourney_theme($existing, $type, $theme, $path) {
 function tourney_entity_load($entities, $type) {
   if ($type == 'tourney_match') {
     foreach ($entities as $entity) {
+      // Get the contestants in this match.
       $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
       $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
       $entity->contestant1 = is_object($contestant1) ? $contestant1 : '';
       $entity->contestant2 = is_object($contestant1) ? $contestant2 : '';
+      
+      // Get all the games in this match.
+      module_load_include('inc', 'tourney', 'includes/tourney.tournament');
+      $entity->games = tourney_tournament_get_match_games($entity, FALSE);
     }
   }
   if ($type == 'tourney_game') {
     foreach ($entities as $entity) {
-      // Get the parent match
+      // Set the parent match on the game entity.
       $match = relation_get_related_entity('tourney_game', $entity->id, 'has_game');
-      $entity->contestants = array(
+      $entity->match = $match;
+      $entity->contestants = is_object($match->contestant1) ? array(
         $match->contestant1->uid => $match->contestant1->name,
         $match->contestant2->uid => $match->contestant2->name,
-      );
+      ) : array();
     }
   }
 }
