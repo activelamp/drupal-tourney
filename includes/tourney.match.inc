@@ -171,7 +171,7 @@ function tourney_game_form($form, &$form_state, $tourney) {
     '#type' => 'select',
     '#title' => t('Winner'),
     '#description' => t('The winner of this game.'),
-    '#options' => drupal_map_assoc(array('No Winner')),
+    '#options' => array('' => t('- Choose Winner -')) + $tourney->contestants,
     '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
   );
 

@@ -319,6 +319,16 @@ function tourney_entity_load($entities, $type) {
       $entity->contestant2 = is_object($contestant1) ? $contestant2 : '';
     }
   }
+  if ($type == 'tourney_game') {
+    foreach ($entities as $entity) {
+      // Get the parent match
+      $match = relation_get_related_entity('tourney_game', $entity->id, 'has_game');
+      $entity->contestants = array(
+        $match->contestant1->uid => $match->contestant1->name,
+        $match->contestant2->uid => $match->contestant2->name,
+      );
+    }
+  }
 }
 
 
