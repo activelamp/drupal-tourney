@@ -25,11 +25,14 @@ class TourneyBuildMatches {
   public function __construct($num_contestants, $match_style) {
     $this->num_contestants = $num_contestants;
     if (!class_exists($match_style)) {
-      trigger_error(t('Unable to create !match_style matches. Class not found', array('!match_style' => $match_style)), E_USER_ERROR);
+      trigger_error(t('Unable to create !match_style matches. Class not found.', array('!match_style' => $match_style)), E_USER_ERROR);
     }
     $interfaces = class_implements($match_style);
     if (isset($interfaces['TourneyMatchInterface'])) {
       $this->match_style = new $match_style($num_contestants);
+    }
+    else {
+      trigger_error(t('Unable to create !match_style matches. Class does not implement TourneyMatchInterface.', array('!match_style' => $match_style)), E_USER_ERROR);
     }
   }
   

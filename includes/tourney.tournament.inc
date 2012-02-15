@@ -126,7 +126,8 @@ function _tourney_tournament_build_matches($entity) {
     $round = field_get_items('relation', $relation, 'round');
     $endpoints = field_get_items('relation', $relation, 'endpoints');
 
-    $match = tourney_match_load($endpoints[1]['entity_id']);    
+    $match = tourney_match_load($endpoints[1]['entity_id']);
+    
     if ($bracket[0]['safe_value'] && $round[0]['safe_value']) {
       $matches[$bracket[0]['safe_value']][$round[0]['safe_value']][$match->id] = array(
         'match' => $match,
