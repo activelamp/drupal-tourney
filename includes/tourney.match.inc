@@ -44,18 +44,18 @@ function tourney_match_form($form, &$form_state, $tourney) {
     $user = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_1');
     $form['contestant1'] = array(
       '#title' => t('Contestant 1'),
-      '#default_value' => $user->uid ? $user->uid : -1,
-      '#disabled' => $user->uid ? TRUE : FALSE,
-      '#required' => $user->uid ? FALSE : TRUE,
+      '#default_value' => is_object($user) && $user->uid ? $user->uid : -1,
+      '#disabled' => is_object($user) && $user->uid ? TRUE : FALSE,
+      '#required' => is_object($user) && $user->uid ? FALSE : TRUE,
     ) + _tourney_match_contestant($tourney);
   }
   if ($tourney->previous_match2 == 'manual') {
     $user = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_2');
     $form['contestant2'] = array(
       '#title' => t('Contestant 2'),
-      '#default_value' => $user->uid ? $user->uid : -1,
-      '#disabled' => $user->uid ? TRUE : FALSE,
-      '#required' => $user->uid ? FALSE : TRUE,
+      '#default_value' => is_object($user) && $user->uid ? $user->uid : -1,
+      '#disabled' => is_object($user) && $user->uid ? TRUE : FALSE,
+      '#required' => is_object($user) && $user->uid ? FALSE : TRUE,
     ) + _tourney_match_contestant($tourney);
   }
   
@@ -215,14 +215,30 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#suffix' => '</div>',
     '#markup' => $entity->winner,
   );
+  $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
   $entity->content['match_contestant1'] = array(
     '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
     '#suffix' => '</div>',
-    // '#markup' => $entity->contestant1,
+    '#markup' => $contestant1->name,
   );
+  $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
   $entity->content['match_contestant2'] = array(
     '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
     '#suffix' => '</div>',
-    // '#markup' => $entity->contestant2,
+    '#markup' => $contestant2->name,
+  );
+}
+
+/**
+ * Implements hook_ENTITY_view().
+ */
+function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en') {
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney'). '/theme/tourney.css'
+  );
+  $entity->content['match_winner'] = array(
+    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->winner,
   );
 }

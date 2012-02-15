@@ -324,8 +324,6 @@ function tourney_uninstall() {
   relation_type_delete('has_game');
   relation_type_delete('contestant_1');
   relation_type_delete('contestant_2');
-  // relation_type_delete('loser_goes_to');
-  // relation_type_delete('winner_goes_to');
 }
 
 

@@ -7,6 +7,7 @@ dependencies[] = devel
 dependencies[] = ctools (>7.x-1.0-rc1)
 dependencies[] = entity
 dependencies[] = relation (>7.x-1.0-beta3)
+dependencies[] = rules
 
 files[] = includes/tourney.admin.inc
 files[] = includes/tourney.controller.inc
