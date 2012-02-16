@@ -1,0 +1,40 @@
+.tournament {
+  font-size:12px;
+  line-height:14px;
+}
+.tournament ul {
+  overflow:hidden;
+}
+.tournament .game {
+  display:none;
+}
+.tournament .round ul {
+  margin:0;
+  padding:0;
+  display:block;
+}
+div.tournament {
+  float:none;
+  overflow:hidden;
+  position:relative;
+}
+div.round {
+  float:left;
+}
+li {
+  padding:20px 25px 0 10px;
+  list-style-type:none;
+  display:block;
+  height:19px;
+}
+li:nth-child(1) {
+  border-right:0 none;
+  border-radius:0 8px 0 0;
+}
+
+.round ul li:nth-child(2) {
+  border-radius:0 4px 4px 0;
+  border-bottom:1px solid #000;
+  border-right:1px solid #000;
+  border-top:1px solid #000;
+}
