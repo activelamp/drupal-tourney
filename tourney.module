@@ -304,6 +304,21 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'matches.inc',
       'path' => $path .'/theme'
     ),
+    'tourney_render_top_bracket' => array(
+      'variables' => array('matches' => NULL, 'reset' => FALSE),
+      'file' => 'matches.inc',
+      'path' => $path .'/theme'
+    ),
+    'tourney_render_bottom_bracket' => array(
+      'variables' => array('matches' => NULL, 'reset' => FALSE),
+      'file' => 'matches.inc',
+      'path' => $path .'/theme'
+    ),
+    'tourney_render_champion_bracket' => array(
+      'variables' => array('matches' => NULL, 'reset' => FALSE),
+      'file' => 'matches.inc',
+      'path' => $path .'/theme'
+    ),
   );
 }
 
@@ -321,7 +336,7 @@ function tourney_entity_load($entities, $type) {
       
       // Get all the games in this match.
       module_load_include('inc', 'tourney', 'includes/tourney.tournament');
-      $entity->games = tourney_tournament_get_match_games($entity, FALSE);
+      $entity->games_played = tourney_tournament_get_match_games($entity, FALSE);
     }
   }
   if ($type == 'tourney_game') {
