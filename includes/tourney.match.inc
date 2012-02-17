@@ -216,17 +216,18 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#markup' => $entity->winner,
   );
   $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
-  $entity->content['match_contestant1'] = array(
+  $entity->content['match_contestant1'] = is_object($contestant1) ? array(
     '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#markup' => $contestant1->name,
-  );
+  ) : '';
+  
   $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
-  $entity->content['match_contestant2'] = array(
+  $entity->content['match_contestant2'] = is_object($contestant2) ? array(
     '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#markup' => $contestant2->name,
-  );
+  ) : '';
 }
 
 /**
