@@ -20,9 +20,6 @@ function _tourney_render_matches($matches) {
       if (is_object($value)) {
         $output .= "<li>". l($value->title, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
       }
-      else {
-        // $output .= "<li>$key</li>";
-      }
       // For each round adding a top margin after the first round.
       if (strpos($key, 'round-') === 0) {
         if ($r == 0) {
@@ -62,7 +59,10 @@ function _tourney_render_matches($matches) {
         }
         // Fallback
         else {
-          $output .= "<ul class='game'>";
+          if (strpos($key, 'bracket-') === 0) {
+            
+          }
+          $output .= "<ul class='game-" . $m . "'>";
         }
         _tourney_render_matches($value);
         $output .= "</ul>";
@@ -71,6 +71,7 @@ function _tourney_render_matches($matches) {
       }
     }
     
+    // This outputs the contestants.
     else {
       if (is_object($value) && $value->type == 'match') { 
         $contestant1 = is_object($value->contestant1) ? $value->contestant1->name : '';
@@ -96,11 +97,9 @@ function _tourney_render_matches($matches) {
           $output .= "<li style='padding-top:" . $team2_top . "px;'>". $contestant2 .' '. l($value->title, 'tourney/'. $value->type .'/'. $value->id) ."</li>"; 
         }
       }
+      // This outputs the game li's.
       elseif ((is_object($value))) {
-        $output .= "<li class='game'>". l($value->title, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
-      }
-      else {
-        $output .= "<li>$key</li>";
+        $output .= "<li class='team-game'>". l($value->title, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
       }
     }
   }
@@ -110,7 +109,14 @@ function _tourney_render_matches($matches) {
 function theme_tourney_render_matches($vars) {
   $matches = $vars['matches'];
   krumo($matches);
-  $output = "<div class='tournament'>". _tourney_render_matches($matches) ."</div>";
+  $keys = array_keys($matches);
+  krumo($keys);
+  if (strpos('bracket-bottom')) {
+    $output = "<div class='tournament'>". _tourney_render_bracket_bottom($matches) ."</div>";
+  }
+  else {
+    $output = "<div class='tournament'>". _tourney_render_matches($matches) ."</div>";
+  }
   drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/bracket.css');
   return $output;
 }
