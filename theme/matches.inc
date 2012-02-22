@@ -131,6 +131,7 @@ function tourney_render_top_bracket($matches, $reset = false) {
  */
 function theme_tourney_render_matches($vars) {
   $matches = $vars['matches'];
+  dpm($matches);
   $output = '';
   
   // If we have multiple brackets, output them one by one
@@ -152,7 +153,7 @@ function theme_tourney_render_matches($vars) {
   // This is a single bracket
   else {
     $output .= "<div class='tournament'>";
-    $output .= call_user_func_array('tourney_render_'. $name .'_bracket', array($matches, TRUE));
+    $output .= call_user_func_array('tourney_render_top_bracket', array($matches, TRUE));
     $output .= "</div>";
   }
   

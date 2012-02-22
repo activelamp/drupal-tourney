@@ -344,10 +344,11 @@ function tourney_entity_load($entities, $type) {
       // Set the parent match on the game entity.
       $match = relation_get_related_entity('tourney_game', $entity->id, 'has_game');
       $entity->match = $match;
-      $entity->contestants = is_object($match->contestant1) ? array(
-        $match->contestant1->uid => $match->contestant1->name,
-        $match->contestant2->uid => $match->contestant2->name,
-      ) : array();
+      $entity->contestants = is_object($match) && is_object($match->contestant1) 
+        ? array(
+          $match->contestant1->uid => $match->contestant1->name,
+          $match->contestant2->uid => $match->contestant2->name,
+        ) : array();
     }
   }
 }
