@@ -129,9 +129,6 @@ function tourney_action_game_is_won($match, $quotient) {
         break;
       }
     }
-    dpm($match);
-    dpm($winner_destination);
-    dpm($loser_destination);
     
     $message = t('Players moved to next round');
   }

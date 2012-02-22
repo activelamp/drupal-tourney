@@ -53,7 +53,6 @@ class TourneyBuildMatches {
    *   The entity object of the tournament the matches are being saved in.
    */
   public function save($tournament) {
-    dpm($this->matches);
     $this->tournament = $tournament;
     $this->save_match($this->matches);
   }

@@ -581,25 +581,27 @@ function tourney_tournament_save(&$tourney) {
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
   // Save the relation for contestants if one exists.
-  if (isset($match->contestant1) && isset($match->contestant2)) {
+  if (isset($match->contestant1) || isset($match->contestant2)) {
     // Check to see if the relation is already added.
     $user1 = relation_get_related_entity('tourney_match', $match->id, 'contestant_1');
-    if (is_object($user1)) {
-      return;
-    }
+    $user2 = relation_get_related_entity('tourney_match', $match->id, 'contestant_2');
     
     // Create the new relation.
-    $entity_keys = array(
-      array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
-      array('entity_type' => 'user', 'entity_id' => $match->contestant1),
-    );
-    $rid = relation_insert('contestant_1', $entity_keys);
+    if (!is_object($user1) && $match->contestant1) {
+      $entity_keys = array(
+        array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
+        array('entity_type' => 'user', 'entity_id' => $match->contestant1),
+      );
+      $rid = relation_insert('contestant_1', $entity_keys);
+    }
     
-    $entity_keys = array(
-      array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
-      array('entity_type' => 'user', 'entity_id' => $match->contestant2),
-    );
-    $rid = relation_insert('contestant_2', $entity_keys);
+    if (!is_object($user2) && $match->contestant2) {
+      $entity_keys = array(
+        array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
+        array('entity_type' => 'user', 'entity_id' => $match->contestant2),
+      );
+      $rid = relation_insert('contestant_2', $entity_keys);
+    }
   }
 }
 
@@ -608,6 +610,9 @@ function tourney_match_save(&$match) {
  */
 function tourney_game_save(&$game) {
   entity_save('tourney_game', $game);
+  if (is_object($game->match)) {
+    cache_clear_all('tourney_winner_count_'. $game->match->id, 'cache');
+  }
 }
 
 /**
