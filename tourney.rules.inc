@@ -100,18 +100,19 @@ function tourney_action_game_is_won($match, $quotient) {
     }
   }
   else {
-    $winner_destination = explode("_", $match->next_match_winner);
-    $loser_destination = explode("_", $match->next_match_loser);
-    
+    // Get the winner and loser locations into variables.
+    @list($wbracket, $wround, $wmatch, $wcontestant) = explode("_", $match->next_match_winner);
+    @list($lbracket, $lround, $lmatch, $lcontestant) = explode("_", $match->next_match_loser);
+
     // Get the tournament object this match is in.
     $tournament = relation_get_related_entity('tourney_match', $match->id, 'has_match');
-    
+
     // Get all the relations in the destination round.
     $query = relation_query('tourney_tournament', $tournament->id);
     $query->entityCondition('bundle', 'has_match')
-          ->fieldCondition('round', 'value', $winner_destination[0]);
+          ->fieldCondition('round', 'value', $wround);
     $results = $query->execute();
-    
+
     // Find the match the contestant should go to
     foreach ($results as $relation) {
       $r = relation_load($relation->rid);
@@ -119,11 +120,11 @@ function tourney_action_game_is_won($match, $quotient) {
         ? tourney_match_load($r->endpoints[LANGUAGE_NONE][1]['entity_id'])
         : NULL;
 
-      if ($next_match->title == $winner_destination[1]) {
+      if ($next_match->title == $wmatch) {
         $winners = _tourney_action_get_winner_counts($match);
         $winner = array_keys($winners, max($winners));
 
-        $contestant = str_replace('-', '', $winner_destination[2]);
+        $contestant = str_replace('-', '', $wcontestant);
         $next_match->$contestant = $winner[0];
         tourney_match_save($next_match);
         break;
