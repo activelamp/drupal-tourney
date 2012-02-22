@@ -57,41 +57,49 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
    * 
    * @param (array) $matches 
    *   The built up array structure of matches to modify.
+   * @param (string) $bracket
+   *   The bracket name for the match.
    * @param (int) $current_round 
    *   The current round number that is being built.
    * @param (int) $current_match
    *   The current match number that is being build
    */
-  protected function set_match_path($matches, $current_round, $current_match) {
+  protected function set_match_path($matches, $bracket, $current_round, $current_match) {
     $previous_round = $current_round - 1;
     // Previous Match number.
     $pm = $current_match * 2;
     $previous_match = $pm - 1;
+    $loser_bracket = ($bracket == 'top') ? 'bottom' : NULL;
+    $winner_bracket = ($bracket == 'bottom') ? 'top' : NULL;
     
     if (array_key_exists('round-'. $previous_round, $matches)) {      
       if ($this->same_bracket) {
-        $matches['round-'. $previous_round]['match-'. $previous_match]['winner'] = 'round-'. $current_round .'_match-'. $current_match . '_contestant-1';
-        $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'round-'. $current_round .'_match-'. $current_match . '_contestant-2';
-        $matches['round-'. $previous_round]['match-'. $previous_match]['loser'] = 'bracket-bottom_round-[bottom-round]_match-'. $current_match . '_contestant-2';
-        $matches['round-'. $previous_round]['match-'. $pm]['loser'] = 'bracket-bottom_round-[bottom-round]'. $current_round .'_match-'. $current_match . '_contestant-2';
-        $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'round-'. $previous_round .'_match-'. $previous_match;
-        $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'round-'. $previous_round .'_match-'. $pm;
+        $matches['round-'. $previous_round]['match-'. $previous_match]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-1';
+        $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-2';
+        $matches['round-'. $previous_round]['match-'. $previous_match]['loser'] = (isset($loser_bracket)) 
+          ? 'bracket-'. $loser_bracket .'_round-[bottom-round]_match-'. $current_match . '_contestant-2'
+          : NULL;
+        $matches['round-'. $previous_round]['match-'. $pm]['loser'] = (isset($loser_bracket)) 
+          ? 'bracket-'. $loser_bracket .'_round-[bottom-round]'. $current_round .'_match-'. $current_match . '_contestant-2'
+          : NULL;
+        $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $previous_match;
+        $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $pm;
       }
       // New contestants in round are not from the same bracket. The winner
       // from previous round will play the new contestants from other bracket.
       else {
         // Get the previous top round
         $top_round = array_search($current_round, $this->bracket_alignment) + 1;
-        $matches['round-'. $previous_round]['match-'. $current_match]['winner'] = 'round-'. $current_round .'_match-'. $current_match . '_contestant-1';
-        $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'round-'. $previous_round .'_match-'. $current_match;
-        $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-top_round-'. $top_round .'_match-'. $current_match;
+        $matches['round-'. $previous_round]['match-'. $current_match]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-1';
+        $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $current_match;
+        $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-'. $winner_bracket .'_round-'. $top_round .'_match-'. $current_match;
       }
     }
     
     // Setup the first round of the bottom bracket
     if ($current_round == 1 && !$this->same_bracket) {
-      $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-top_round-'. $current_round .'_match-'. $previous_match;
-      $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-top_round-'. $current_round .'_match-'. $pm;
+      $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-'. $winner_bracket .'_round-'. $current_round .'_match-'. $previous_match;
+      $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-'. $winner_bracket .'_round-'. $current_round .'_match-'. $pm;
     }
     
     return $matches;
@@ -106,7 +114,7 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
     // This round aligns with the top bracket
     $this->bracket_alignment[] = $num_bottom_round;
     // Build the first round
-    $this->build_round($matches, $loser_contestants, $num_bottom_round);
+    $this->build_round($matches, $loser_contestants, $num_bottom_round, 'bottom');
     
     // Loop through each additonal round
     while ($num_contestants > 1) {
@@ -123,13 +131,13 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
         // This round aligns with the top bracket
         $this->bracket_alignment[] = $num_bottom_round;
         
-        $this->build_round($matches, $loser_contestants, $num_bottom_round);
+        $this->build_round($matches, $loser_contestants, $num_bottom_round, 'bottom');
       }
       else {
         $num_bottom_round++;
         $this->losers_only = true;
         $this->same_bracket = true;
-        $this->build_round($matches, $winning_losers, $num_bottom_round);
+        $this->build_round($matches, $winning_losers, $num_bottom_round, 'bottom');
         // This round did not involve anyone from the winners bracket. Set the
         // number of contestants to equal only the teams that played.
         $loser_contestants = $winning_losers;

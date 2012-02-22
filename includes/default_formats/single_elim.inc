@@ -60,17 +60,17 @@ class SingleElimination implements TourneyMatchInterface {
     return $matches;
   }
   
-  protected function set_match_path($matches, $current_round, $current_match) {
+  protected function set_match_path($matches, $bracket, $current_round, $current_match) {
     // Set the winner path in the previous round
     $previous_round = $current_round-1;
     if (array_key_exists('round-'. $previous_round, $matches)) {
       // Previous Match number.
       $pm = $current_match * 2;
       $previous_match = $pm - 1;
-      $matches['round-'. $previous_round]['match-'. $previous_match]['winner'] = 'round-'. $current_round .'_match-'. $current_match . '_contestant-1';
-      $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'round-'. $current_round .'_match-'. $current_match . '_contestant-2';
-      $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'round-'. $previous_round .'_match-'. $previous_match;
-      $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'round-'. $previous_round .'_match-'. $pm;
+      $matches['round-'. $previous_round]['match-'. $previous_match]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-1';
+      $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-2';
+      $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $previous_match;
+      $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $pm;
     }
     return $matches;
   }
@@ -86,13 +86,13 @@ class SingleElimination implements TourneyMatchInterface {
     drupal_set_message(get_class($this) .' with '. $this->num_contestants .' contestants and '. $this->num_rounds .' rounds.');
   }
   
-  protected function build_round(&$matches, $contestants, $round) {
+  protected function build_round(&$matches, $contestants, $round, $bracket = 'top') {
     for ($match=1;$match<=$contestants/2;$match++) {
       $matches['round-'. $round]['match-'. $match] = array(
         'contestant-1' => ($round == 1) ? 'manual' : '',
         'contestant-2' => ($round == 1) ? 'manual' : '',
       );
-      $matches = $this->set_match_path($matches, $round, $match);
+      $matches = $this->set_match_path($matches, $bracket, $round, $match);
     }
   }
     
