@@ -641,6 +641,28 @@ function tourney_get_type_options($reset = FALSE) {
 }
 
 /**
+ * Create a relation between two entities.
+ * 
+ * @param $predicate
+ *   The relation type to save.
+ * @param $source_entity
+ *   The source entity.
+ * @param $source_id
+ *   The entity id of the source entity.
+ * @param $destination_entity
+ *   The destination entity.
+ * @param $destination_id
+ *   The entity id of the destination entity.
+ */
+function tourney_create_relation($predicate, $source_entity, $source_id, $destination_entity, $destination_id) {
+  $entity_keys = array(
+    array('entity_type' => $source_entity, 'entity_id' => $source_id),
+    array('entity_type' => $destination_entity, 'entity_id' => $destination_id),
+  );
+  return relation_insert($predicate, $entity_keys);
+}
+
+/**
  * Implements hook_ctools_plugin_type().
  */
 function tourney_ctools_plugin_type() {

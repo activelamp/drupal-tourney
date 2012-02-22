@@ -86,7 +86,7 @@ class TourneyBuildMatches {
         tourney_match_save($match);
         
         // Add the relationship to the tournament.
-        $rid = $this->create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $match->id);
+        $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $match->id);
         $relation = relation_load($rid);
         $relation->bracket[LANGUAGE_NONE][0]['value'] = $bracket;
         $relation->round[LANGUAGE_NONE][0]['value'] = $round;
@@ -99,17 +99,9 @@ class TourneyBuildMatches {
         tourney_game_save($game);
         
         // Add the relationship to the game.
-        $rid = $this->create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
+        $rid = tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
       }
     }
-  }
-  
-  private function create_relation($predicate, $source_entity, $source_id, $destination_entity, $destination_id) {
-    $entity_keys = array(
-      array('entity_type' => $source_entity, 'entity_id' => $source_id),
-      array('entity_type' => $destination_entity, 'entity_id' => $destination_id),
-    );
-    return relation_insert($predicate, $entity_keys);
   }
 }
 
