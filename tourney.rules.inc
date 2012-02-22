@@ -75,18 +75,19 @@ function tourney_action_get_game_count($match) {
 function tourney_action_game_is_won($match, $quotient) {
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
-    $new_game = true;
+    // Default action to create a new game.
+    $create_new_game = true;
     
     // Ensure every game has a winner selected
     foreach ($match->games_played as $game_id) {
       $game = tourney_game_load($game_id);
       if (!$game->winner) {
-        watchdog('tourney', t('Game updated, but not all games have a winner selected.'));
-        $message = t('Game updated, but not all games have a winner selected.');
-        $new_game = false;
+        $message = t('Game updated, but not all games have a winner selected. Action not completed.');
+        watchdog('tourney', $message);
+        $create_new_game = false;
       }
     }
-    if (!$new_game) {
+    if ($create_new_game) {
       $game_count = count($match->games_played);
       $game = new stdClass();
       $game->type = 'game';
@@ -99,6 +100,39 @@ function tourney_action_game_is_won($match, $quotient) {
     }
   }
   else {
+    $winner_destination = explode("_", $match->next_match_winner);
+    $loser_destination = explode("_", $match->next_match_loser);
+    
+    // Get the tournament object this match is in.
+    $tournament = relation_get_related_entity('tourney_match', $match->id, 'has_match');
+    
+    // Get all the relations in the destination round.
+    $query = relation_query('tourney_tournament', $tournament->id);
+    $query->entityCondition('bundle', 'has_match')
+          ->fieldCondition('round', 'value', $winner_destination[0]);
+    $results = $query->execute();
+    
+    // Find the match the contestant should go to
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $next_match = $r->endpoints[LANGUAGE_NONE][1]['entity_type'] == 'tourney_match'
+        ? tourney_match_load($r->endpoints[LANGUAGE_NONE][1]['entity_id'])
+        : NULL;
+
+      if ($next_match->title == $winner_destination[1]) {
+        $winners = _tourney_action_get_winner_counts($match);
+        $winner = array_keys($winners, max($winners));
+
+        $contestant = str_replace('-', '', $winner_destination[2]);
+        $next_match->$contestant = $winner[0];
+        tourney_match_save($next_match);
+        break;
+      }
+    }
+    dpm($match);
+    dpm($winner_destination);
+    dpm($loser_destination);
+    
     $message = t('Players moved to next round');
   }
   
@@ -109,20 +143,29 @@ function tourney_action_game_is_won($match, $quotient) {
 
 /**
  * Figure out how many games each contestant has won.
+ * 
+ * @param $match
+ *   The match object to check games on
+ * @return
+ *   Returns an array keyed by uid with value being the number of won games.
  */
 function _tourney_action_get_winner_counts($match) {
-  $games = array();
-  $winners = array();
-  
-  foreach ($match->games_played as $entity_id) {
-    $games[$entity_id] = tourney_game_load($entity_id); 
-    // Check to make sure the game has a winner
-    if ($games[$entity_id]->winner) {
-      // Tally up the winners in array keyed by uid
-      $winners[$games[$entity_id]->winner] = 
-        array_key_exists($games[$entity_id]->winner, $winners) 
-        ? ++$winners[$games[$entity_id]->winner] : 1; 
+  if (!$cache = cache_get('tourney_winner_count_'. $match->id)) {
+    $games = array();
+    $winners = array();
+    
+    foreach ($match->games_played as $entity_id) {
+      $games[$entity_id] = tourney_game_load($entity_id); 
+      // Check to make sure the game has a winner
+      if ($games[$entity_id]->winner) {
+        // Tally up the winners in array keyed by uid
+        $winners[$games[$entity_id]->winner] = 
+          array_key_exists($games[$entity_id]->winner, $winners) 
+          ? ++$winners[$games[$entity_id]->winner] : 1; 
+      }
     }
+    cache_set('tourney_winner_count_'. $match->id, $winners);
+    return $winners;
   }
-  return $winners;
+  return !empty($cache->data) ? $cache->data : array();
 }
