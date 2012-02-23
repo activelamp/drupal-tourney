@@ -99,8 +99,9 @@ function tourney_render_top_bracket($matches, $reset = false) {
         // If not on the first round, do not add a padding-top. All team names
         // in the first round.
         if ($r == 0) {
-          $output .= "<li>". $contestant1 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
-          $output .= "<li>". $contestant2 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
+          $output .= "<li>". $contestant1 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id .'/edit', array(), drupal_get_destination()) ."</li>";
+          $output .= "<li>". $contestant2 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id .'/edit', array(), drupal_get_destination()) ."</li>";
+          $output .= theme('ctools_dropdown', array('title' => 'Games', 'links' => _tourney_format_match_games($matches['games'])));
           $team2_top = ($tm == 0) ? 30 : $team2_top;
         }
         else {
@@ -113,17 +114,32 @@ function tourney_render_top_bracket($matches, $reset = false) {
             }
           }
           // All team names besides the 1st round.
-          $output .= "<li style='padding-top:0px;'>". $contestant1 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
-          $output .= "<li style='padding-top:" . $team2_top . "px;'>". $contestant2 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id) ."</li>"; 
+          $output .= "<li style='padding-top:0px;'>". $contestant1 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id .'/edit', array(), drupal_get_destination()) ."</li>";
+          $output .= "<li style='padding-top:" . $team2_top . "px;'>". $contestant2 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id .'/edit', array(), drupal_get_destination()) ."</li>"; 
+          $output .= theme('ctools_dropdown', array('title' => 'Games', 'links' => _tourney_format_match_games($matches['games'])));
         }
-      }
-      // This outputs the game li's.
-      elseif ((is_object($value))) {
-        $output .= "<li class='team-game'>". l($value->title, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
       }
     }
   }
   return $output;
+}
+
+/**
+ * Format an array of game objects to be usable with theme_links.
+ * 
+ * @param $games
+ *   An array of game objects to format.
+ */
+function _tourney_format_match_games($games) {
+  $return = array();
+  foreach ($games as $game) {
+    $return[] = array(
+      'title' => t('Edit @game', array('@game' => $game->title)), 
+      'href' => 'tourney/game/'. $game->id .'/edit',
+      'query' => drupal_get_destination(),
+    );
+  }
+  return $return;
 }
 
 /**

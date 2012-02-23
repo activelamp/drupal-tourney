@@ -38,3 +38,10 @@ div.round {
   border-right:1px solid #000;
   border-top:1px solid #000;
 }
+
+div.round .ctools-dropdown {
+  position:absolute;
+}
+div.round .ctools-dropdown li {
+  background-color:#efefef;
+}
