@@ -1,4 +1,9 @@
 <?php
+
+// These constants just for easy modifying should the renders need to be resized
+const TOURNEY_WIDTH = 120;
+const TOURNEY_HEIGHT = 20;
+
 /**
  * This function does the heavy lifting, adding inline css based on what round
  * the contestant is in.
@@ -11,153 +16,179 @@
  *   Returns the rendered html to be output.
  */
 function tourney_render_top_bracket($matches, $reset = false) {
-  static $output = '';
-  static $ul_top = 0;
-  static $team2_top = 0;
-  static $previous_round = '';
-  static $mar_top = 0;
-  static $r = 0;
-  static $m = 0;
-  static $tm =  0;
-  
-  // Reset all the static variables.
-  if ($reset) {
-    $output = '';
-    $ul_top = 0;
-    $team2_top = 0;
-    $previous_round = '';
-    $mar_top = 0;
-    $r = 0;
-    $m = 0;
-    $tm =  0;
+
+}
+
+/**
+ * Makes it easier to render the inline styles
+ * 
+ * @param $attributes
+ *   Associative array with property/value pairs.
+ * @return
+ *   Returns the compiled HTML attribute and value string.
+ */
+function tourney_render_style($attributes) {
+  $t = '';
+  foreach ( $attributes as $k => $v ) $t .= " $k: $v;";
+  return " style=\"$t\"";
+}
+
+/**
+ * Based on bracket type, applies different inline styling
+ * 
+ * @param $bracket
+ *   Bracket type, without bracket-, in string.
+ * @param $items
+ *   Full tournament, used to get information from other brackets if necessary.
+ * @return
+ *   Returns the rendered HTML style to be used for the current bracket.
+ */
+function tourney_bracket_style($bracket, $items) {  
+  $attributes = array();
+  if ( array_key_exists('bracket-bottom', $items) ) {
+    $brounds = count($items['bracket-bottom']);
+    $trounds = count($items['bracket-top']);
+    if ( $bracket == 'top' && $brounds > $trounds ) $attributes = array(
+      'padding-left' => TOURNEY_WIDTH * ( $brounds - $trounds ) . 'px');
+    if ( $bracket == 'champion' ) {
+      $attributes = array(
+        'margin-top' => pow(2, floor($brounds/2)-1)*-TOURNEY_WIDTH-TOURNEY_HEIGHT .'px',
+      );
+    }
   }
+  return tourney_render_style($attributes);
+}
 
-  foreach ($matches as $key => $value) {
-    $entity = '';
-    if (is_array($value)) {
-      if (strpos($key, 'round-') === 0) {
-        // For each round adding a top margin after the first round.
-        if ($r == 0) {
-          $output .= "<div class='round' style='margin-top:0px;'>";
-          $mar_top = 40;
-        }
-        else {
-          $output .= "<div class='round round-" . $r . "' style='margin-top:" . $mar_top . "px;'>";
-          $mar_top *= 2;
-        }  
-        tourney_render_top_bracket($value);
-        $output .= "</div>";
-
-        $r++;
-        $m = 0;
-      }
+/**
+ * Based on round number and bracket type, applies different inline styling
+ * 
+ * @param $round
+ *   Integer for which round is currently being rendered.
+ * @param $bracket
+ *   Bracket the round is in, to determine styling changes.
+ * @param $rounds
+ *   Integer of relevant round total.
+ * @return
+ *   Returns the rendered HTML style to be used for the current round.
+ */
+function tourney_round_style($round, $bracket = '', $rounds = 0) { 
+  $er = floor($round/2);
+  switch ( $bracket ) {
+    case 'bottom':  
+      if ( $round % 2 ) $adjust = 0;
       else {
-        // We are working with an individual match. The array structure we have
-        // only has one numeric key with an array as a value.
-        if (is_numeric($key)) {
-          // For each match, add a margin top. 
-          // Skipping the first round and each first match of each round.
-          if ($r == 0 || $m == 0)  {
-            $output .= "<ul style='margin-top:0px;'>";            
-            $ul_top = ($tm == 0) ? 30 : $ul_top;
-          }
-          else {
-            // Only change the margin if we have moved on to another round.
-            if ($r != $previous_round) {
-              $ul_top *= 2;
-              // The margin needs to add 20px on every round except the 1st.
-              if ($r > 1) {
-                $ul_top += 20;
-              }
-            }
-            $previous_round = $r;
-            $output .= "<ul style='margin-top:" . $ul_top . "px;'>";
-          }
-        }
-        // This is a game. Create the wrapper.
-        else {
-          $output .= "<ul class='games'>";
-        }
-        
-        // Recursive function to find an object and render the match or game.
-        tourney_render_top_bracket($value);
-        
-        $output .= "</ul>";
-        
-        // Match iterator and Total Match iterator increased by 1
-        $m++;
-        $tm++;
+        //$adjust = 30 * ( pow(2, $er+1) - 2 - pow(2, ($er-1)) * (($round-1)%2) );
+        $adjust = -30 * pow(2,$er-1); 
       }
+      break;
+    case 'champion':
+      $adjust = pow(2, floor($rounds/2)-1)*-TOURNEY_WIDTH-TOURNEY_HEIGHT;
+      if ( $round % 2 == 0 ) $adjust /= 2;
+      break;
+    default:
+    $adjust = pow(2, $round) * ( TOURNEY_HEIGHT / 2 );
+  }
+  $attributes = array(
+    'margin-top' => $adjust . 'px',
+  );
+  return tourney_render_style($attributes);
+}
+
+/**
+ * Based on round and bracket types, applies different inline styling to a match
+ * 
+ * @param $round
+ *   Integer for which round is currently being rendered.
+ * @param $bracket
+ *   Bracket the round is in, to determine styling changes.
+ * @param $rounds
+ *   Integer of relevant round total.
+ * @return
+ *   Returns the rendered HTML style to be used for the current match.
+ */
+function tourney_match_style($round, $bracket = '', $rounds = 0) {  
+  switch ( $bracket ) {
+    case 'top':
+    case 'none':
+      $adjust = ( ( pow(2, $round - 1) ) * TOURNEY_HEIGHT - ( TOURNEY_HEIGHT / 2 ) ) * 2;
+      break;
+    case 'bottom':
+      $er = floor(($round-1) / 2);
+      $adjust = (35 * pow($er, 2)) + (25 * $er) + 40;
+      //if ( $bracket == 'bottom' && $last ) $padding = ($padding * 2.3587) + 40;
+      break;
+    case 'champion':
+      $adjust = pow(2,floor($rounds/2)-1)*TOURNEY_WIDTH;
+      break;
+  }
+  
+  $attributes = array(
+    'padding-top' =>  $adjust . 'px',
+    'margin-bottom' => $adjust . 'px',
+  );
+  return tourney_render_style($attributes);
+}
+
+/**
+ * Renders a tournament to HTML and inline CSS
+ * 
+ * @param $items
+ *   Keyed and nested array of all the matches.
+ * @return
+ *   Returns the rendered HTML for the entire tournament.
+ */
+function tourney_render_tournament($items) {
+  static $round = 0;
+  static $rounds = 0;
+  static $bracket = 'none';
+  $output = '';
+  foreach ( $items as $key => $item ) {
+    $v = substr($key, 1 + $dash = strpos($key, '-'));
+    $k = substr($key, 0, $dash ? $dash : strlen($key));
+    $content = '';
+    switch ( $k ) {
+      case 'bracket':
+        $bracket = $v;
+        $rounds = count($item);
+        if ( $v == 'champion' ) $rounds = count($items['bracket-bottom']);
+        $prefix = "<div class=\"bracket $key\" " . tourney_bracket_style($v, $items) . ">";
+        $suffix = "<div class='clear'></div></div>";
+        break;
+      case 'round':
+        $round  = $v;
+        $style  = tourney_round_style($round, $bracket, $rounds);
+        $prefix = "<ul class=\"round $key\" $style>";
+        $suffix = "</ul>";
+        break;
+      case 'match':
+        $contestant1 = is_object($item->contestant1) ? $item->contestant1->name : 'team 1';
+        $contestant2 = is_object($item->contestant2) ? $item->contestant2->name : 'team 2';
+        $link = l($item->title, 'tourney/'. $item->type .'/'. $item->id);
+        $title = $item->title .' '. $item->id;
+        $c1 = "<span class=\"contestant\">$contestant1 $link</span>";
+        $c2 = "<span class=\"contestant last\"" . tourney_match_style($round, $bracket, $rounds) . ">$contestant2 $link</span>";
+        $prefix = "<li class=\"match\">";
+        $content = "$c1 $c2";
+        $suffix = "</li>";
+        break;
+      default:
+        $prefix = '';
+        $suffix = '';
     }
-    
-    // We have an object, output the contestants if it's a match, or output a
-    // list of games.
-    else {
-      if (is_object($value) && $value->type == 'match') { 
-        $contestant1 = is_object($value->contestant1) ? $value->contestant1->name : '';
-        $contestant2 = is_object($value->contestant2) ? $value->contestant2->name : '';
-        // If not on the first round, do not add a padding-top. All team names
-        // in the first round.
-        if ($r == 0) {
-          $output .= "<li>". $contestant1 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
-          $output .= "<li>". $contestant2 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
-          $team2_top = ($tm == 0) ? 30 : $team2_top;
-        }
-        else {
-          // If this is the same round, add the same amount of padding-top.
-          if ($r != $previous_round) {
-            $team2_top *= 2;
-            // The padding needs to add 20px on every team except the 1st.
-            if ($r > 1) {
-              $team2_top += 20;
-            }
-          }
-          // All team names besides the 1st round.
-          $output .= "<li style='padding-top:0px;'>". $contestant1 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
-          $output .= "<li style='padding-top:" . $team2_top . "px;'>". $contestant2 .' '. l($value->title .' '. $value->id, 'tourney/'. $value->type .'/'. $value->id) ."</li>"; 
-        }
-      }
-      // This outputs the game li's.
-      elseif ((is_object($value))) {
-        $output .= "<li class='team-game'>". l($value->title, 'tourney/'. $value->type .'/'. $value->id) ."</li>";
-      }
-    }
+    if ( $content == '' && is_array($item) ) $content = tourney_render_tournament($item);
+    $output .= "$prefix $content $suffix";
   }
   return $output;
 }
 
 /**
- * Theme implementation for rendering a matches array into a bracket.
+ * Theme implementation for rendering a matches array into brackets.
  */
 function theme_tourney_render_matches($vars) {
   $matches = $vars['matches'];
-  dpm($matches);
-  $output = '';
-  
-  // If we have multiple brackets, output them one by one
-  $key = array_pop(array_keys($matches));
-  if (strpos($key, 'bracket-') === 0) {
-    foreach($matches as $bracket_name => $bracket) {
-      $name = substr($bracket_name, 8);
-      // Default the bracket theme function to top bracket if a default
-      // implementation does not exist.
-      if (!function_exists('tourney_render_'. $name .'_bracket')) {
-        $name = 'top';
-      }
-      
-      $output .= "<div class='tournament'>";
-      $output .= call_user_func_array('tourney_render_'. $name .'_bracket', array($bracket, TRUE));
-      $output .= "</div>";
-    }
-  }
-  // This is a single bracket
-  else {
-    $output .= "<div class='tournament'>";
-    $output .= call_user_func_array('tourney_render_top_bracket', array($matches, TRUE));
-    $output .= "</div>";
-  }
-  
-  drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/bracket.css');
-  
+  $output  = "<div class=\"tournament\">";
+  $output .= tourney_render_tournament($matches);
+  $output .= "</div>";
+  drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/bracket.css');  
   return $output;
 }
