@@ -43,3 +43,10 @@
   border-style: solid dashed dashed none;
   border-radius: 0 0 4px 0;
 }
+
+div.round .ctools-dropdown {
+  position:absolute;
+}
+div.round .ctools-dropdown li {
+  background-color:#efefef;
+}

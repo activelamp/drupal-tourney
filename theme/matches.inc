@@ -161,6 +161,8 @@ function tourney_render_tournament($items) {
         $suffix = "</ul>";
         break;
       case 'match':
+        // ctool dropdown to be implemented:
+        //   $output .= theme('ctools_dropdown', array('title' => 'Games', 'links' => _tourney_format_match_games($matches['games'])));
         $contestant1 = is_object($item->contestant1) ? $item->contestant1->name : 'team 1';
         $contestant2 = is_object($item->contestant2) ? $item->contestant2->name : 'team 2';
         $link = l($item->title, 'tourney/'. $item->type .'/'. $item->id);
@@ -179,6 +181,24 @@ function tourney_render_tournament($items) {
     $output .= "$prefix $content $suffix";
   }
   return $output;
+}
+
+/**
+ * Format an array of game objects to be usable with theme_links.
+ * 
+ * @param $games
+ *   An array of game objects to format.
+ */
+function _tourney_format_match_games($games) {
+  $return = array();
+  foreach ($games as $game) {
+    $return[] = array(
+      'title' => t('Edit @game', array('@game' => $game->title)), 
+      'href' => 'tourney/game/'. $game->id .'/edit',
+      'query' => drupal_get_destination(),
+    );
+  }
+  return $return;
 }
 
 /**
