@@ -161,15 +161,13 @@ function tourney_render_tournament($items) {
         $suffix = "</ul>";
         break;
       case 'match':
-        // ctool dropdown to be implemented:
-        //   $output .= theme('ctools_dropdown', array('title' => 'Games', 'links' => _tourney_format_match_games($matches['games'])));
         $contestant1 = is_object($item->contestant1) ? $item->contestant1->name : 'team 1';
         $contestant2 = is_object($item->contestant2) ? $item->contestant2->name : 'team 2';
-        $link = l($item->title, 'tourney/'. $item->type .'/'. $item->id);
         $title = $item->title .' '. $item->id;
-        $c1 = "<span class=\"contestant\">$contestant1 $link</span>";
-        $c2 = "<span class=\"contestant last\"" . tourney_match_style($round, $bracket, $rounds) . ">$contestant2 $link</span>";
+        $c1 = "<span class=\"contestant\">$contestant1</span>";
+        $c2 = "<span class=\"contestant last\"" . tourney_match_style($round, $bracket, $rounds) . ">$contestant2</span>";
         $prefix = "<li class=\"match\">";
+        $prefix .= theme('ctools_dropdown', array('title' => 'Edit', 'links' => _tourney_format_match_games($items['games'])));
         $content = "$c1 $c2";
         $suffix = "</li>";
         break;
@@ -190,7 +188,14 @@ function tourney_render_tournament($items) {
  *   An array of game objects to format.
  */
 function _tourney_format_match_games($games) {
+  $first_game = reset($games);
+  
   $return = array();
+  $return[] = array(
+    'title' => t('Edit @match', array('@match' => $first_game->match->title)),
+    'href' => 'tourney/match/'. $first_game->match->id .'/edit',
+    'query' => drupal_get_destination(),
+  );
   foreach ($games as $game) {
     $return[] = array(
       'title' => t('Edit @game', array('@game' => $game->title)), 
