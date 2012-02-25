@@ -30,15 +30,6 @@ function tourney_match_form($form, &$form_state, $tourney) {
   $tourney->type = 'match';
   $form_state['tourney'] = $tourney;
   
-  $form['title'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Match Name'),
-    '#description' => t('Enter the name of this match.'),
-    '#size' => 40,
-    '#maxlength' => 255,
-    '#default_value' => isset($tourney->title) ? $tourney->title : '',
-  );
-  
   // @todo: It would be nice if these were field api fields
   if ($tourney->previous_match1 == 'manual') {
     $user = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_1');
@@ -58,6 +49,16 @@ function tourney_match_form($form, &$form_state, $tourney) {
       '#required' => is_object($user) && $user->uid ? FALSE : TRUE,
     ) + _tourney_match_contestant($tourney);
   }
+  
+  $form['games'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Games'),
+    '#description' => t('Enter the number of games in this match'),
+    '#size' => 40,
+    '#maxlength' => 255,
+    '#default_value' => $tourney->games,
+    '#required' => TRUE,
+  );
   
   $form['winner'] = array(
     '#type' => 'select',
@@ -88,7 +89,7 @@ function tourney_match_form($form, &$form_state, $tourney) {
 function _tourney_match_contestant($tourney) {
   return array(
     '#type' => 'select',
-    '#options' => _tourney_match_users(),
+    '#options' => _tourney_match_users($tourney),
     '#default_value' => '',
     '#required' => TRUE,
   );
@@ -97,7 +98,7 @@ function _tourney_match_contestant($tourney) {
 /**
  * Return options of users to be used in a select list
  */
-function _tourney_match_users() {
+function _tourney_match_users($tourney) {
   $options = array('' => ' - Choose contestant - ');
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'user')
@@ -111,13 +112,48 @@ function _tourney_match_users() {
       $options[$uid] = $user->name;
     }
   }
+
+  // Find all users currently playing in this tournament and remove them from
+  // options array.
+  _tourney_match_users_santize($tourney, $options);
+  
   return $options;
+}
+
+function _tourney_match_users_santize($tourney, &$options) {
+  // Get the tournament object this match is in.
+  $tournament = relation_get_related_entity('tourney_match', $tourney->id, 'has_match');
+  // Get all the matches in round 1 for this tournament
+  $query = relation_query('tourney_tournament', $tournament->id);
+  $query->entityCondition('bundle', 'has_match')
+        ->fieldCondition('round', 'value', 'round-1');
+  $results = $query->execute();
+  
+  $match_ids = array();
+  foreach ($results as $relation) {
+    $r = relation_load($relation->rid);
+    $match_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+  }
+  $matches = tourney_match_load_multiple($match_ids);
+  
+  // Unset users in the options array that are already selected
+  foreach ($matches as $match) {
+    if (is_object($match->contestant1)) {
+      unset($options[$match->contestant1->uid]);
+    }
+    if (is_object($match->contestant2)) {
+      unset($options[$match->contestant2->uid]);
+    }
+  }
 }
 
 /**
  * Validation function for matches
  */
 function tourney_match_form_validate($form, &$form_state) {
+  if (!is_int($form_state['values']['games']) && $form_state['values']['games'] % 2 === 0) {
+    form_set_error('games', t('The number of games must be an odd number'));
+  }
   if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] == $form_state['values']['contestant2']) {
     form_set_error('contestant1', t('Contestant 1 and Contestant 2 cannot be the same person.'));
   }
@@ -158,20 +194,11 @@ function tourney_game_edit($game) {
 function tourney_game_form($form, &$form_state, $tourney) {
   $tourney->type = 'game';
   $form_state['tourney'] = $tourney;  
-  
-  $form['title'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Game Name'),
-    '#description' => t('Enter the name of this game.'),
-    '#size' => 40,
-    '#maxlength' => 255,
-    '#default_value' => isset($tourney->title) ? $tourney->title : '',
-  );
   $form['winner'] = array(
     '#type' => 'select',
     '#title' => t('Winner'),
     '#description' => t('The winner of this game.'),
-    '#options' => array('' => t('- Choose Winner -')) + $tourney->contestants,
+    '#options' => isset($tourney->contestants) ? array('' => t('- Choose Winner -')) + $tourney->contestants : array(),
     '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
   );
 

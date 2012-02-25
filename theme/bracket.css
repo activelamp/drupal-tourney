@@ -44,9 +44,13 @@
   border-radius: 0 0 4px 0;
 }
 
-div.round .ctools-dropdown {
-  position:absolute;
+ul.round {
+  position:relative;
 }
-div.round .ctools-dropdown li {
+ul.round .ctools-dropdown {
+  position:absolute;
+  right:0;
+}
+ul.round .ctools-dropdown li {
   background-color:#efefef;
 }
