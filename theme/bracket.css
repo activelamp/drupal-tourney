@@ -44,8 +44,10 @@
   border-radius: 0 0 4px 0;
 }
 
-ul.round {
+div.tournament ul.round {
   position:relative;
+  margin:0;
+  padding:0;
 }
 ul.round .ctools-dropdown {
   position:absolute;

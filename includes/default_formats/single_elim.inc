@@ -57,7 +57,9 @@ class SingleElimination implements TourneyMatchInterface {
       
       $num_contestants /= 2;
     }
-    return $matches;
+    return array(
+      'bracket-top' => $matches, 
+    );
   }
   
   protected function set_match_path($matches, $bracket, $current_round, $current_match) {

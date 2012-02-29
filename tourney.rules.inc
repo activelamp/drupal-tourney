@@ -130,7 +130,9 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
         ->fieldCondition('round', 'value', $round)
         ->fieldCondition('bracket', 'value', $bracket);
   $results = $query->execute();
-
+  dpm($round);
+  dpm($bracket);
+  dpm($results);
   // Find the match the contestant should go to
   foreach ($results as $relation) {
     $r = relation_load($relation->rid);
