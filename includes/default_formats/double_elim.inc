@@ -157,13 +157,40 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
    */
   private function fix_top_loser_path(&$bracket) {
     foreach ($bracket as $round_id => &$round) {
+      // Need to increment match number every other match.
+      $match_iterator = 1;
+      
       foreach ($round as &$match) {
         $id_parts = explode('-', $round_id);
         $one_back = $id_parts[1] - 1;
         $bottom_round = $this->bracket_alignment[$one_back];
         if (array_key_exists('loser', $match)) {
           $match['loser'] = str_replace('[bottom-round]', $bottom_round, $match['loser']);
-          $contestant = ;
+          // First round losers can go to slot 2, after that they always go to
+          // slot 1.
+          if ($bottom_round == 1) {
+            $contestant = 2;
+          }
+          else {
+            $contestant = 1;
+            
+            // Increment the match number by one. This is a seeded match from
+            // the top bracket.
+            $loser_parts = explode('_', $match['loser']);
+            
+            // Every other match needs to increment so we don't have two teams
+            // in the same slot.
+            if ($match_iterator != 1) {
+              $match_num = substr($loser_parts[2], 6);
+              $match_incrementer = $match_iterator - $match_num;
+              // Put the loser string back together.
+              $new_match = $match_num + $match_incrementer;
+              $loser_parts[2] = 'match-'. $new_match;
+              $match['loser'] = join("_", $loser_parts);
+            }
+            
+            $match_iterator++;
+          }
           $match['loser'] = str_replace('[bottom-contestant]', $contestant, $match['loser']);
         }
       }
