@@ -317,7 +317,7 @@ function tourney_entity_load($entities, $type) {
       $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
       $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
       $entity->contestant1 = is_object($contestant1) ? $contestant1 : '';
-      $entity->contestant2 = is_object($contestant1) ? $contestant2 : '';
+      $entity->contestant2 = is_object($contestant2) ? $contestant2 : '';
       
       // Get all the games in this match.
       module_load_include('inc', 'tourney', 'includes/tourney.tournament');
