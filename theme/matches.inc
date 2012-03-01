@@ -1,8 +1,8 @@
 <?php
 
 // These constants just for easy modifying should the renders need to be resized
-const TOURNEY_WIDTH = 120;
-const TOURNEY_HEIGHT = 20;
+define('TOURNEY_WIDTH', 120);
+define('TOURNEY_HEIGHT', 20);
 
 /**
  * This function does the heavy lifting, adding inline css based on what round

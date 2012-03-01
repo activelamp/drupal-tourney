@@ -255,6 +255,11 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#suffix' => '</div>',
     '#markup' => $contestant2->name,
   ) : '';
+  
+  $entity->content['match_table'] = array(
+    '#theme' => 'tourney_render_match',
+    '#match' => $entity,
+  );
 }
 
 /**

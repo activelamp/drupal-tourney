@@ -304,6 +304,11 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'matches.inc',
       'path' => $path .'/theme'
     ),
+    'tourney_render_match' => array(
+      'variables' => array('match' => NULL),
+      'file' => 'match.inc',
+      'path' => $path .'/theme',
+    ),
   );
 }
 
