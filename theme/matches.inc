@@ -211,7 +211,6 @@ function _tourney_format_match_games($games) {
  */
 function theme_tourney_render_matches($vars) {
   $matches = $vars['matches'];
-  dpm($matches);
   $output  = "<div class=\"tournament\">";
   $output .= tourney_render_tournament($matches);
   $output .= "</div>";

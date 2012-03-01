@@ -60,7 +60,7 @@ class TourneyBuildMatches {
   private function save_match($matches) {
     static $round;
     static $bracket;
-    dpm($matches);
+    
     $identifiers = array('bracket', 'round');
     foreach ($matches as $key => $value) {
       foreach ($identifiers as $identifier) {
