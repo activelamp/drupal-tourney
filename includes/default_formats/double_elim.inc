@@ -154,9 +154,13 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
    * Replaces the loser paths in the top bracket with real locations in the 
    * bottom bracket.  The first loser from the top bracket should always to go 
    * position one in bottom bracket unless in round one.
+   * 
+   * This function is called after the bottom bracket was built.  The bottom
+   * bracket stores the alignment between the top bracket and bottom bracket
+   * in a property of the object called $this->bracket_alignment.
    */
   private function fix_top_loser_path(&$bracket) {
-    foreach ($bracket as $round_id => &$round) {
+    foreach ($bracket['bracket-top'] as $round_id => &$round) {
       // Need to increment match number every other match.
       $match_iterator = 1;
       
