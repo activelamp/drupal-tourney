@@ -15,7 +15,6 @@ $plugin = array(
   'weight' => 4,
   'total games' => 5,
   'builder controller' => 'Ladder', 
-  'completed controller' => 'LadderMatchComplete',
 );
 
 // Define any classes below to extend default functionality in the controllers.

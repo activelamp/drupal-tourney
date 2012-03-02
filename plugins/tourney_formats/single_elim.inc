@@ -15,7 +15,6 @@ $plugin = array(
   'weight' => 0,
   'total games' => 5,
   'builder controller' => 'SingleElimination', 
-  'completed controller' => 'SingleEliminationMatchComplete',
 );
 
 // Define any classes below to extend default functionality in the controllers.
