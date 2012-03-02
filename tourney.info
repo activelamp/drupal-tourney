@@ -11,7 +11,7 @@ dependencies[] = rules
 
 files[] = includes/tourney.admin.inc
 files[] = includes/tourney.controller.inc
-files[] = includes/default_formats/single_elim.inc
-files[] = includes/default_formats/double_elim.inc
-files[] = includes/default_formats/round_robin.inc
-files[] = includes/default_formats/ladder.inc
+files[] = plugins/tourney_formats/default_formats/single_elim.inc
+files[] = plugins/tourney_formats/default_formats/double_elim.inc
+files[] = plugins/tourney_formats/default_formats/round_robin.inc
+files[] = plugins/tourney_formats/default_formats/ladder.inc
