@@ -14,7 +14,7 @@ function tourney_menu() {
     'title' => 'Add a new tournament',
     'page callback' => 'entity_ui_get_form',
     'page arguments' => array('tourney_tournament', NULL, 'add'),
-    'access arguments' => array('access content'),
+    'access arguments' => array('create tourney'),
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'includes/tourney.tournament.inc',
   );
@@ -23,7 +23,7 @@ function tourney_menu() {
     'title arguments' => array(1),
     'page callback' => 'tourney_tournament_page_view',
     'page arguments' => array(1),
-    'access arguments' => array('access content'),
+    'access arguments' => array('access tourney'),
     'file' => 'includes/tourney.tournament.inc',
   );
   $items['tourney/%tourney_tournament/view'] = array(
@@ -35,7 +35,7 @@ function tourney_menu() {
     'title' => t('Edit'),
     'page callback' => 'tourney_tournament_edit',
     'page arguments' => array(1),
-    'access arguments' => array('access content'),
+    'access arguments' => array('edit tourney'),
     'file' => 'includes/tourney.tournament.inc',
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
@@ -46,7 +46,7 @@ function tourney_menu() {
     'title arguments' => array(2),
     'page callback' => 'tourney_match_page_view',
     'page arguments' => array(2),
-    'access arguments' => array('access content'),
+    'access arguments' => array('access tourney'),
     'file' => 'includes/tourney.match.inc',
   );
   $items['tourney/match/%tourney_match/view'] = array(
@@ -58,7 +58,7 @@ function tourney_menu() {
     'title' => t('Edit'),
     'page callback' => 'tourney_match_edit',
     'page arguments' => array(2),
-    'access arguments' => array('access content'),
+    'access arguments' => array('edit tourney'),
     'file' => 'includes/tourney.match.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -76,7 +76,7 @@ function tourney_menu() {
     'title arguments' => array(2),
     'page callback' => 'tourney_game_page_view',
     'page arguments' => array(2),
-    'access arguments' => array('access content'),
+    'access arguments' => array('access tourney'),
     'file' => 'includes/tourney.match.inc',
   );
   $items['tourney/game/%tourney_game/view'] = array(
@@ -88,7 +88,7 @@ function tourney_menu() {
     'title' => t('Edit'),
     'page callback' => 'tourney_game_edit',
     'page arguments' => array(2),
-    'access arguments' => array('access content'),
+    'access arguments' => array('edit tourney'),
     'file' => 'includes/tourney.match.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -96,14 +96,53 @@ function tourney_menu() {
   $items['admin/structure/tourney'] = array(
     'title' => t('Manage Tourney Entities'),
     'page callback' => 'tourney_overview_entities',
-    'access arguments' => array('access content'),
+    'access arguments' => array('administer tourney'),
     'description' => t('Manage Tournament entities.'),
     'file' => 'includes/tourney.tournament.inc',
     'type' => MENU_NORMAL_ITEM,
   );
+  // Relations listing.
+  $items['admin/content/tourney'] = array(
+    'title' => 'Tournaments',
+    'page callback' => 'tourney_admin_content',
+    'access arguments' => array('administer tourney'),
+    'description' => 'View all the tournaments on your site.',
+    'file' => 'includes/tourney.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
   
   return $items;
 }
+
+/**
+ * Implements hook_permission().
+ */
+function tourney_permission() {
+  return array(
+    'administer tourney' =>  array(
+      'title' => t('Administer Tournaments'),
+      'description' => t('Create, edit, delete, and perform administration for tournaments.'),
+    ),
+    'create tourney' =>  array(
+      'title' => t('Create Tournaments'),
+      'description' => t('Create new tournaments.'),
+    ),
+    'edit tourney' =>  array(
+      'title' => t('Edit Tournaments'),
+      'description' => t('Edit any tournaments.'),
+    ),
+    'delete tourney' =>  array(
+      'title' => t('Delete Tournaments'),
+      'description' => t('Delete any tournaments.'),
+    ),
+    'access tourney' =>  array(
+      'title' => t('View Tournaments'),
+      'description' => t('View any tournament.'),
+    ),
+  );
+}
+
+
 
 /**
  * Menu title callback.

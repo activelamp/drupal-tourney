@@ -6,21 +6,6 @@
  */
 
 /**
- * UI controller.
- */
-class TourneyTypeUIController extends EntityDefaultUIController {
-
-  /**
-   * Overrides hook_menu() defaults.
-   */
-  public function hook_menu() {
-    $items = parent::hook_menu();
-    $items[$this->path]['description'] = 'Manage profiles, including fields.';
-    return $items;
-  }
-}
-
-/**
  * Generates the profile type editing form.
  */
 function tourney_type_form($form, &$form_state, $tourney_type, $op = 'edit') {
@@ -83,4 +68,11 @@ function tourney_tournament_type_form_submit(&$form, &$form_state) {
  */
 function tourney_tournament_type_form_submit_delete(&$form, &$form_state) {
   $form_state['redirect'] = 'admin/structure/tournament/manage/' . $form_state['tourney_tournament_type']->type . '/delete';
+}
+
+/**
+ * Page callback.
+ */
+function tourney_admin_content() {
+  return 'Stub page for showing all tournaments';
 }

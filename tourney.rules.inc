@@ -120,7 +120,6 @@ function tourney_action_game_is_won($match, $quotient) {
 }
 
 function _tourney_move_next_round($match, $bracket, $round, $match_name, $contestant, $from = 'same') {
-  dpm(func_get_args());
   // Get the tournament object this match is in.
   $tournament = relation_get_related_entity('tourney_match', $match->id, 'has_match');
   
@@ -130,9 +129,7 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
         ->fieldCondition('round', 'value', $round)
         ->fieldCondition('bracket', 'value', $bracket);
   $results = $query->execute();
-  dpm($round);
-  dpm($bracket);
-  dpm($results);
+
   // Find the match the contestant should go to
   foreach ($results as $relation) {
     $r = relation_load($relation->rid);

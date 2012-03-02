@@ -15,7 +15,6 @@ $plugin = array(
   'weight' => 3,
   'total games' => 5,
   'builder controller' => 'RoundRobin', 
-  'completed controller' => 'RoundRobinMatchComplete',
 );
 
 // Define any classes below to extend default functionality in the controllers.
