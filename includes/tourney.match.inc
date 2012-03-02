@@ -23,6 +23,60 @@ function tourney_match_edit($match) {
   return drupal_get_form('tourney_match_form', $match);
 }
 
+function tourney_game_win($match, $game, $contestant) {
+  $game->winner = $contestant;
+  entity_save('tourney_game', $game);
+  drupal_goto("/tourney/match/" . $match->id);
+}
+
+function tourney_game_win_form_submit($form, &$form_state) {
+  $extra = $form_state['values']['extra'];
+  $contestant = $form_state['input']['contestant'];
+  $match = entity_load('tourney_match', array($extra['match']));
+    $match = array_pop($match);
+  $game = entity_load('tourney_game', array($extra['game']));
+    $game = array_pop($game);
+  tourney_game_win($match, $game, $contestant);
+}
+
+function tourney_game_win_form_js($form, &$form_state) {
+  // this is not working at all... .. .
+  exit;
+  $_POST = array();
+  $extra = $form['extra']['#value'];
+  $contestant = $form['contestant']['#value'];
+  $match = entity_load('tourney_match', array($extra['match']));
+  $match = array_shift($match);
+  
+  $output = theme('tourney_render_match', array('match' => $match));
+  ajax_deliver($output);
+  exit;  
+}
+
+function tourney_game_win_form($form, &$form_state, $extra) {
+  $form = array(
+    'extra' => array(
+      '#type' => 'value',
+      '#value' => $extra,
+    ),
+    'contestant' => array(
+      '#type' => 'hidden',
+      '#value' => $extra['contestant'],
+    ),
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => $extra['name'] . ' wins',
+      '#aajax' => array(
+        'callback' => 'tourney_game_win_form_js',
+        'wrapper' => 'game-list',
+        'method' => 'replace',
+        'effect' => 'fade',
+      ),
+    ),
+  );
+  return $form;
+}
+
 /**
  * The match form.
  */
@@ -275,3 +329,4 @@ function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en')
     '#markup' => $entity->winner,
   );
 }
+
