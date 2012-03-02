@@ -1,6 +1,7 @@
 .tournament {
   font-size: 12px;
   line-height: 14px;
+  overflow-x: scroll;
 }
 
 .tournament div.clear {

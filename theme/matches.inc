@@ -33,6 +33,16 @@ function tourney_render_style($attributes) {
   return " style=\"$t\"";
 }
 
+function tourney_tournament_style($items) {
+  if ( array_key_exists('bracket-bottom', $items) ) {
+    $rounds = max(count($items['bracket-bottom']), count($items['bracket-top'])) + count($items['bracket-champion']);
+    $width = $rounds;
+  }
+  else $width = count($items);
+  $attributes = array('width' => ( ($width+1) * TOURNEY_WIDTH ) . 'px');
+  return tourney_render_style($attributes);
+}
+
 /**
  * Based on bracket type, applies different inline styling
  * 
@@ -55,6 +65,8 @@ function tourney_bracket_style($bracket, $items) {
         'margin-top' => pow(2, floor($brounds/2)-1)*-TOURNEY_WIDTH-TOURNEY_HEIGHT .'px',
       );
     }
+    $rounds  = count($items["bracket-$bracket"]);
+    //$attributes['width'] = $rounds * TOURNEY_WIDTH . 'px';
   }
   return tourney_render_style($attributes);
 }
@@ -211,9 +223,9 @@ function _tourney_format_match_games($games) {
  */
 function theme_tourney_render_matches($vars) {
   $matches = $vars['matches'];
-  $output  = "<div class=\"tournament\">";
+  $output  = "<div class=\"tournament\"><div class=\"tournament-inner\"" . tourney_tournament_style($matches) . ">";
   $output .= tourney_render_tournament($matches);
-  $output .= "</div>";
+  $output .= "</div></div>";
   drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/bracket.css');  
   return $output;
 }
