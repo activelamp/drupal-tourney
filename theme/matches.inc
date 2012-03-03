@@ -33,12 +33,20 @@ function tourney_render_style($attributes) {
   return " style=\"$t\"";
 }
 
+/**
+ * Based on tournament type, applies different inline styling
+ * 
+ * @param $items
+ *   Full tournament.
+ * @return
+ *   Returns the rendered HTML style to be used for the current tournament.
+ */
 function tourney_tournament_style($items) {
   if ( array_key_exists('bracket-bottom', $items) ) {
     $rounds = max(count($items['bracket-bottom']), count($items['bracket-top'])) + count($items['bracket-champion']);
     $width = $rounds;
   }
-  else $width = count($items);
+  else $width = count($items['bracket-top']);
   $attributes = array('width' => ( ($width+1) * TOURNEY_WIDTH ) . 'px');
   return tourney_render_style($attributes);
 }

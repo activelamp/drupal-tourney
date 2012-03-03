@@ -356,6 +356,10 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'match.inc',
       'path' => $path .'/theme',
     ),
+    'tourney_admin_content' => array(
+      'variables' => array('tournaments' => NULL),
+      'file' => 'includes/tourney.admin.inc',
+    ),
   );
 }
 

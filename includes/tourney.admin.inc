@@ -74,5 +74,70 @@ function tourney_tournament_type_form_submit_delete(&$form, &$form_state) {
  * Page callback.
  */
 function tourney_admin_content() {
-  return 'Stub page for showing all tournaments';
+  $header = array(
+    'id' => array('data' => t('Id'), 'field' => 't.id', 'sort' => 'asc'),
+    'title' => array('data' => t('Title'), 'field' => 't.title'),
+    'format' => array('data' => t('Format'), 'field' => 't.format'),
+    'players' => array('data' => t('Players'), 'field' => 't.players'),
+    'winner' => array('data' => t('Winner'), 'field' => 't.winner'),
+    'operations' => array('data' => t('Operations'), 'colspan' => '3'),
+  );
+
+  // Grab all relations.
+  $query = db_select('tourney_tournament', 't')->extend('PagerDefault')->extend('TableSort');
+  $query->fields('t', array('id', 'title', 'format', 'players', 'winner'))
+    ->limit(50)
+    ->orderByHeader($header);
+  $tournaments = $query->execute();
+  
+  return theme('tourney_admin_content', array('tournaments' => $tournaments, 'header' => $header));
 }
+
+/**
+ * Generate a table of all tournaments on this site.
+ */
+function theme_tourney_admin_content($variables) {
+  $tournaments = $variables['tournaments'];
+  $header = $variables['header'];
+  
+  $rows = array();
+  if ( empty($tournaments) ) {
+    $message = t('There are currently no tournaments on your site.');
+
+    $rows[] = array(
+      array('data' => $message, 'colspan' => 8),
+    );
+  }
+  else foreach ( $tournaments as $tournament ) {
+    $rows[] = array(
+      l($tournament->id, 'tourney/' . $tournament->id),
+      l($tournament->title, 'tourney/' . $tournament->id),
+      $tournament->format,
+      $tournament->players,
+      $tournament->winner,
+      user_access('access content') ? l(t('View'), 'tourney/' . $tournament->id . '') : '',
+      user_access('access content') ? l(t('Edit'), 'tourney/' . $tournament->id . '/edit') : '',
+      //TODO : implement delete
+      user_access('access content') ? l(t('Delete'), 'tourney/' . $tournament->id . '/delete') : '',
+    );
+  }
+  
+  return theme('table', array('header' => $header, 'rows' => $rows)).theme('pager');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
