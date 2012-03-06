@@ -143,38 +143,40 @@ function tourney_match_form($form, &$form_state, $tourney) {
 function _tourney_match_contestant($tourney) {
   return array(
     '#type' => 'select',
-    '#options' => _tourney_match_users($tourney),
+    '#options' => _tourney_match_contestants($tourney),
     '#default_value' => '',
     '#required' => TRUE,
   );
 }
 
-/**
- * Return options of users to be used in a select list
- */
-function _tourney_match_users($tourney) {
-  $options = array('' => ' - Choose contestant - ');
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'user')
-    ->propertyCondition('uid', 1, '>');
-    
-  $result = $query->execute();
-  if (isset($result['user'])) {
-    $uids = array_keys($result['user']);
-    $users = entity_load('user', $uids);
-    foreach ($users as $uid => $user) {
-      $options[$uid] = $user->name;
-    }
-  }
-
-  // Find all users currently playing in this tournament and remove them from
-  // options array.
-  _tourney_match_users_santize($tourney, $options);
+function _tourney_match_contestants($tourney) {
+  $query = db_select('relation_bundles', 'rb');
+  $query->fields('rb', array('entity_type'))
+    ->distinct()
+    ->condition('relation_type', array('contestant_1', 'contestant_2'))
+    ->condition('r_index', 1);
+  $bundles = $query->execute();
   
+  $options = array('' => ' - Choose contestant -');
+  foreach ( $bundles as $bundle ) {
+    $bn = $bundle->entity_type;
+    $group = array();
+    $entities = entity_load($bn);
+    
+    if ( empty($entities) ) {
+      $group[] = ' - Empty - ';
+    }
+    else foreach ( $entities as $eid => $entity ) {
+      $title = !property_exists($entity, 'title') ? $entity->name : $entity->title;
+      $group["$bn.$eid"] = $title;
+    }
+    if ( !empty($group) ) $options[$bn] = $group;
+  }
+  _tourney_match_contestants_sanitize($tourney, $options);
   return $options;
 }
 
-function _tourney_match_users_santize($tourney, &$options) {
+function _tourney_match_contestants_sanitize($tourney, &$options) {
   // Get the tournament object this match is in.
   $tournament = relation_get_related_entity('tourney_match', $tourney->id, 'has_match');
   // Get all the matches in round 1 for this tournament
@@ -193,11 +195,16 @@ function _tourney_match_users_santize($tourney, &$options) {
   // Unset users in the options array that are already selected
   foreach ($matches as $match) {
     if (is_object($match->contestant1)) {
-      unset($options[$match->contestant1->uid]);
+      $et = $match->contestant1->_entity_type;
+      unset($options[$et]["$et.".$match->contestant1->_entity_id]);
     }
     if (is_object($match->contestant2)) {
-      unset($options[$match->contestant2->uid]);
+      $et = $match->contestant2->_entity_type;
+      unset($options[$et]["$et.".$match->contestant2->_entity_id]);
     }
+  }
+  if ( array_key_exists('user', $options) ) {
+    foreach ( $options['user'] as $id => $user ) if ( str_replace("user.", "", $id)  <= 1 ) unset($options['user'][$id]);
   }
 }
 
@@ -278,6 +285,8 @@ function tourney_game_form_submit($form, &$form_state) {
   drupal_set_message(t('Your game has been saved.'));
   
   $tourney = $form_state['tourney'];
+  krumo($tourney);
+  exit;
   entity_form_submit_build_entity('tourney_game', $tourney, $form, $form_state);
   tourney_game_save($tourney);
   

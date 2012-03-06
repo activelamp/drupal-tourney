@@ -248,20 +248,20 @@ function tourney_install() {
   $relation = new stdClass();
   $relation->relation_type = 'contestant_1';
   $relation->label = 'contestant 1';
-  $relation->directional = false;
+  $relation->directional = true;
   $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
-  $relation->source_bundles['user:*'] = 'user:*';
-  $relation->target_bundles['tourney_match:*'] = array();
+  $relation->target_bundles['user:*'] = 'user:*';
+  $relation->target_bundles['node:*'] = 'node:*';
   relation_type_save($relation);
   
   /** Creating the contestant relation. */
   $relation = new stdClass();
   $relation->relation_type = 'contestant_2';
   $relation->label = 'contestant 2';
-  $relation->directional = false;
+  $relation->directional = true;
   $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
-  $relation->source_bundles['user:*'] = 'user:*';
-  $relation->target_bundles['tourney_match:*'] = array();
+  $relation->target_bundles['user:*'] = 'user:*';
+  $relation->target_bundles['node:*'] = 'node:*';
   relation_type_save($relation);
   
   // Define fields for the tournament has match relation.

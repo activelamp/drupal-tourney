@@ -367,6 +367,11 @@ function tourney_theme($existing, $type, $theme, $path) {
  * Implements hook_entity_load().
  */
 function tourney_entity_load($entities, $type) {
+  foreach ( $entities as $id => $entity ) {
+    $entity->_entity_type = $type;
+    $entity->_entity_id   = $id;
+    $entity->_entity_name = !property_exists($entity, 'title') ? ( property_exists($entity, 'name') ? $entity->name : 'NONAME' ) : $entity->title;
+  }
   if ($type == 'tourney_match') {
     foreach ($entities as $entity) {
       // Get the contestants in this match.
@@ -386,10 +391,10 @@ function tourney_entity_load($entities, $type) {
       $match = relation_get_related_entity('tourney_game', $entity->id, 'has_game');
       $entity->match = $match;
       if (is_object($match) && is_object($match->contestant1)) {
-        $entity->contestants[$match->contestant1->uid] = $match->contestant1->name;
+        $entity->contestants[$match->contestant1->_entity_id] = $match->contestant1->_entity_name;
       }
       if (is_object($match) && is_object($match->contestant2)) {
-        $entity->contestants[$match->contestant2->uid] = $match->contestant2->name;
+        $entity->contestants[$match->contestant2->_entity_id] = $match->contestant2->_entity_name;
       }
     }
   }
@@ -567,7 +572,7 @@ function tourney_game_load($id = NULL, $reset = FALSE) {
   $ids = isset($id) ? array($id) : array();
   $conditions = array();
   $match = tourney_game_load_multiple($ids, $conditions, $reset);
-
+  
   return $match ? reset($match) : FALSE;
 }
 
@@ -625,22 +630,26 @@ function tourney_match_save(&$match) {
   // Save the relation for contestants if one exists.
   if (isset($match->contestant1) || isset($match->contestant2)) {
     // Check to see if the relation is already added.
-    $user1 = relation_get_related_entity('tourney_match', $match->id, 'contestant_1');
-    $user2 = relation_get_related_entity('tourney_match', $match->id, 'contestant_2');
+    $c1 = relation_get_related_entity('tourney_match', $match->id, 'contestant_1');
+    $c2 = relation_get_related_entity('tourney_match', $match->id, 'contestant_2');
     
     // Create the new relation.
-    if (!is_object($user1) && $match->contestant1) {
+    if (!is_object($c1) && $match->contestant1) {
+      $type = substr($match->contestant1, 0, strpos($match->contestant1, "."));
+      $id   = substr($match->contestant1, strpos($match->contestant1, ".")+1);
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
-        array('entity_type' => 'user', 'entity_id' => $match->contestant1),
+        array('entity_type' => $type, 'entity_id' => $id),
       );
       $rid = relation_insert('contestant_1', $entity_keys);
     }
     
-    if (!is_object($user2) && $match->contestant2) {
+    if (!is_object($c2) && $match->contestant2) {
+      $type = substr($match->contestant2, 0, strpos($match->contestant2, "."));
+      $id   = substr($match->contestant2, strpos($match->contestant2, ".")+1);
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
-        array('entity_type' => 'user', 'entity_id' => $match->contestant2),
+        array('entity_type' => $type, 'entity_id' => $id),
       );
       $rid = relation_insert('contestant_2', $entity_keys);
     }
