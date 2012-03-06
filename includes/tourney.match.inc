@@ -285,8 +285,6 @@ function tourney_game_form_submit($form, &$form_state) {
   drupal_set_message(t('Your game has been saved.'));
   
   $tourney = $form_state['tourney'];
-  krumo($tourney);
-  exit;
   entity_form_submit_build_entity('tourney_game', $tourney, $form, $form_state);
   tourney_game_save($tourney);
   

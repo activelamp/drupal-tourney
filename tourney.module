@@ -391,10 +391,10 @@ function tourney_entity_load($entities, $type) {
       $match = relation_get_related_entity('tourney_game', $entity->id, 'has_game');
       $entity->match = $match;
       if (is_object($match) && is_object($match->contestant1)) {
-        $entity->contestants[$match->contestant1->_entity_id] = $match->contestant1->_entity_name;
+        $entity->contestants[$match->contestant1->_entity_type.'.'.$match->contestant1->_entity_id] = $match->contestant1->_entity_name;
       }
       if (is_object($match) && is_object($match->contestant2)) {
-        $entity->contestants[$match->contestant2->_entity_id] = $match->contestant2->_entity_name;
+        $entity->contestants[$match->contestant2->_entity_type.'.'.$match->contestant2->_entity_id] = $match->contestant2->_entity_name;
       }
     }
   }
