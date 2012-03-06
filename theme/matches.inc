@@ -181,8 +181,8 @@ function tourney_render_tournament($items) {
         $suffix = "</ul>";
         break;
       case 'match':
-        $contestant1 = is_object($item->contestant1) ? $item->contestant1->name : 'team 1';
-        $contestant2 = is_object($item->contestant2) ? $item->contestant2->name : 'team 2';
+        $contestant1 = is_object($item->contestant1) ? $item->contestant1->_entity_name : 'team 1';
+        $contestant2 = is_object($item->contestant2) ? $item->contestant2->_entity_name : 'team 2';
         $title = $item->title .' '. $item->id;
         $c1 = "<span class=\"contestant\">$contestant1</span>";
         $c2 = "<span class=\"contestant last\"" . tourney_match_style($round, $bracket, $rounds) . ">$contestant2</span>";
