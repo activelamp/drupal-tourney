@@ -124,10 +124,9 @@ function tourney_action_game_is_won($match, $quotient) {
 function _tourney_set_match_winner($match) {
   $winners = _tourney_action_get_winner_counts($match);
   $winner = array_keys($winners, max($winners));
-  @list($type, $id) = tourney_cid_split($winner[0]);
+  list($type, $id) = explode(".", $winner[0]);
   $wobj = entity_load($type, array($id));
   $winner = array_pop($wobj); 
-  
   
   // @todo what do we do for a winner thing here... type.id or name or what? using name for now
   $match->winner = $winner->_entity_name;
@@ -183,10 +182,11 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
 function _tourney_action_get_winner_counts($match) {
   if (!$cache = cache_get('tourney_winner_count_'. $match->id)) {
     $games = array();
+    
     // Set up the default count array.
     $winners = array(
       $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id => 0,
-      $match->contestant2->_entity_type .'.'. $match->contestant1->_entity_id => 0,
+      $match->contestant2->_entity_type .'.'. $match->contestant2->_entity_id => 0,
     );
     
     foreach ($match->games_played as $entity_id) {
