@@ -41,14 +41,6 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => isset($tourney->players) ? $tourney->players : '',
   );
   
-  $form['winner'] = array(
-    '#type' => 'select',
-    '#title' => t('Winner'),
-    '#description' => t('The winner of this tournament.'),
-    '#options' => drupal_map_assoc(array('No Winner')),
-    '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
-  );
-  
   field_attach_form('tourney_tournament', $tourney, $form, $form_state);
   
   $form['actions'] = array('#type' => 'actions');
