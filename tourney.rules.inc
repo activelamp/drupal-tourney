@@ -154,15 +154,17 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
 
     if ($next_match->title == $match_name) {
       $winners = _tourney_action_get_winner_counts($match);
+      
       // Get the winner uid.
       $winner = array_keys($winners, max($winners));
-      $winner_uid = $winner[0];
+      $winner_contestant = $winner[0];
+
       // Get the loser uid.
       $loser = array_keys($winners, min($winners));
-      $loser_uid = $loser[0];
+      $loser_contestant = $loser[0];
       
       $contestant = str_replace('-', '', $contestant);
-      $next_match->$contestant = ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_uid : $winner_uid;
+      $next_match->$contestant = ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_contestant : $winner_contestant;
       
       tourney_match_save($next_match);
       break;
@@ -183,8 +185,8 @@ function _tourney_action_get_winner_counts($match) {
     $games = array();
     // Set up the default count array.
     $winners = array(
-      $match->contestant1->uid => 0, 
-      $match->contestant2->uid => 0
+      $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id => 0,
+      $match->contestant2->_entity_type .'.'. $match->contestant1->_entity_id => 0,
     );
     
     foreach ($match->games_played as $entity_id) {
