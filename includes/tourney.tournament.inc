@@ -171,13 +171,12 @@ function tourney_tournament_get_match_games($entity, $load_entity = TRUE) {
     $endpoints = field_get_items('relation', $relation, 'endpoints');
     
     if ($load_entity) {
-      $game = tourney_game_load($endpoints[1]['entity_id']);    
+      $game = tourney_game_load($endpoints[1]['entity_id']); 
       $games[$game->id] = $game;
     }
     else {
       $games[$endpoints[1]['entity_id']] = $endpoints[1]['entity_id'];
     }
-    
   }
   return $games;
 }

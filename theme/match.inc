@@ -12,7 +12,7 @@
  */
 function tourney_load_games($ids, $total) {
   $games = array();
-  $game_list = entity_load('tourney_game', $ids);
+  $game_list = tourney_game_load_multiple($ids);
   foreach ( $game_list as $game ) $games[] = $game;
   while ( count($games) < $total ) $games[] = null;
   while ( count($games) > $total ) array_pop($games);
