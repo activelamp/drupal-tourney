@@ -15,3 +15,6 @@ files[] = plugins/tourney_formats/default_formats/single_elim.inc
 files[] = plugins/tourney_formats/default_formats/double_elim.inc
 files[] = plugins/tourney_formats/default_formats/round_robin.inc
 files[] = plugins/tourney_formats/default_formats/ladder.inc
+
+; Views handlers
+files[] = views/tourney_handler_match_with_parents.inc

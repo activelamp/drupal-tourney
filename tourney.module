@@ -286,15 +286,20 @@ function tourney_field_extra_fields() {
       'contestant1' => array(
         'label' => t('Contestant 1'),
         'description' => t('The first contestant of the match'),
-        'weight' => 0,
+        'weight' => 1,
       ),
       'contestant2' => array(
         'label' => t('Contestant 2'),
         'description' => t('The second contestant of the match'),
-        'weight' => 0,
+        'weight' => 2,
       ),
     ),
     'display' => array(
+      'tournament' => array(
+        'label' => t('Tournament Link'),
+        'description' => t('A link to the tournament this match is in'),
+        'weight' => -10,
+      ),
       'match_winner' => array(
         'label' => t('Match Winner'),
         'description' => t('The winner of the match'),
@@ -303,12 +308,12 @@ function tourney_field_extra_fields() {
       'match_contestant1' => array(
         'label' => t('Contestant 1'),
         'description' => t('The first contestant of the match'),
-        'weight' => 0,
+        'weight' => 1,
       ),
       'match_contestant2' => array(
         'label' => t('Contestant 2'),
         'description' => t('The second contestant of the match'),
-        'weight' => 0,
+        'weight' => 2,
       ),
 			'match_table' => array(
 				'label' => t('Match Table'),
@@ -364,6 +369,7 @@ function tourney_theme($existing, $type, $theme, $path) {
  * Implements hook_entity_load().
  */
 function tourney_entity_load($entities, $type) {
+  // Need consistent properties about the entity loaded
   foreach ( $entities as $id => $entity ) {
     $entity->_entity_type = $type;
     $entity->_entity_id   = $id;
@@ -371,6 +377,10 @@ function tourney_entity_load($entities, $type) {
   }
   if ($type == 'tourney_match') {
     foreach ($entities as $entity) {
+      // Get the tournament this match is in
+      $tournament = relation_get_related_entity('tourney_match', $entity->id, 'has_match');
+      $entity->tournament = $tournament;
+      
       // Get the contestants in this match.
       $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
       $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
@@ -632,7 +642,9 @@ function tourney_match_save(&$match) {
     
     // Create the new relation.
     if (!is_object($c1) && $match->contestant1) {
-      @list($type, $id) = tourney_cid_split($match->contestant1);
+      // Get the entity and entity_id from contestant value
+      list($type, $id) = explode(".", $match->contestant1);
+      
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
         array('entity_type' => $type, 'entity_id' => $id),
@@ -641,7 +653,9 @@ function tourney_match_save(&$match) {
     }
     
     if (!is_object($c2) && $match->contestant2) {
-      @list($type, $id) = tourney_cid_split($match->contestant2);
+      // Get the entity and entity_id from contestant value
+      list($type, $id) = explode(".", $match->contestant2);
+      
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
         array('entity_type' => $type, 'entity_id' => $id),
@@ -738,7 +752,7 @@ function tourney_ctools_plugin_directory($module, $plugin) {
  */
 function tourney_views_api() {
   return array(
-    'api' => 2.0,
+    'api' => 3.0,
     'path' => drupal_get_path('module', 'tourney') . '/views',
   );
 }
