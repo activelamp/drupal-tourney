@@ -92,7 +92,7 @@ function tourney_match_form($form, &$form_state, $tourney) {
     ) + _tourney_match_contestant($tourney);
   }
   $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_2');
-  if (!is_object($contestant) || ($tourney->previous_match2 == 'manual' && !is_object($contestant))) 
+  if (!is_object($contestant) || ($tourney->previous_match2 == 'manual' && !is_object($contestant))) {
     $form['contestant2'] = array(
       '#title' => t('Contestant 2'),
       '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
