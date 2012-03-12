@@ -25,17 +25,15 @@ function tourney_match_edit($match) {
 
 function tourney_game_win($match, $game, $contestant) {
   $game->winner = $contestant;
-  entity_save('tourney_game', $game);
+  tourney_game_save($game);
   drupal_goto("/tourney/match/" . $match->id);
 }
 
 function tourney_game_win_form_submit($form, &$form_state) {
   $extra = $form_state['values']['extra'];
   $contestant = $form_state['input']['contestant'];
-  $match = entity_load('tourney_match', array($extra['match']));
-    $match = array_pop($match);
-  $game = entity_load('tourney_game', array($extra['game']));
-    $game = array_pop($game);
+  $match = tourney_match_load($extra['match']);
+  $game = tourney_game_load($extra['game']);
   tourney_game_win($match, $game, $contestant);
 }
 
@@ -45,8 +43,7 @@ function tourney_game_win_form_js($form, &$form_state) {
   $_POST = array();
   $extra = $form['extra']['#value'];
   $contestant = $form['contestant']['#value'];
-  $match = entity_load('tourney_match', array($extra['match']));
-  $match = array_shift($match);
+  $match = tourney_match_load($extra['match']);
   
   $output = theme('tourney_render_match', array('match' => $match));
   ajax_deliver($output);

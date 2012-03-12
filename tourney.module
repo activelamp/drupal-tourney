@@ -635,8 +635,7 @@ function tourney_match_save(&$match) {
     
     // Create the new relation.
     if (!is_object($c1) && $match->contestant1) {
-      $type = substr($match->contestant1, 0, strpos($match->contestant1, "."));
-      $id   = substr($match->contestant1, strpos($match->contestant1, ".")+1);
+      @list($type, $id) = tourney_cid_split($match->contestant1);
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
         array('entity_type' => $type, 'entity_id' => $id),
@@ -645,8 +644,7 @@ function tourney_match_save(&$match) {
     }
     
     if (!is_object($c2) && $match->contestant2) {
-      $type = substr($match->contestant2, 0, strpos($match->contestant2, "."));
-      $id   = substr($match->contestant2, strpos($match->contestant2, ".")+1);
+      @list($type, $id) = tourney_cid_split($match->contestant2);
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
         array('entity_type' => $type, 'entity_id' => $id),
@@ -738,6 +736,7 @@ function tourney_ctools_plugin_directory($module, $plugin) {
   }
 }
 
+<<<<<<< HEAD
 /**
  * Implements hook_views_api().
  */
@@ -748,6 +747,8 @@ function tourney_views_api() {
   );
 }
 
+=======
+>>>>>>> daf3c4b22f2d92a112f45fba5a0f2cc4895dfb87
 function tourney_cid_split($string) {
   return explode('.', $match->contestant1);
 }

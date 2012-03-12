@@ -111,12 +111,27 @@ function tourney_action_game_is_won($match, $quotient) {
       _tourney_move_next_round($lmatch_obj, $lbracket, $lround, $lmatch, $lcontestant, 'bracket-top');
     }
     
+    _tourney_set_match_winner($match);
+    
     $message = t('Players moved to next round');
   }
   
   return array(
     'action_message' => $message,
   );
+}
+
+function _tourney_set_match_winner($match) {
+  $winners = _tourney_action_get_winner_counts($match);
+  $winner = array_keys($winners, max($winners));
+  @list($type, $id) = tourney_cid_split($winner[0]);
+  $wobj = entity_load($type, array($id));
+  $winner = array_pop($wobj); 
+  
+  
+  // @todo what do we do for a winner thing here... type.id or name or what? using name for now
+  $match->winner = $winner->_entity_name;
+  tourney_match_save($match);
 }
 
 function _tourney_move_next_round($match, $bracket, $round, $match_name, $contestant, $from = 'same') {
