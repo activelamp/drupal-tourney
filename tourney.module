@@ -635,7 +635,9 @@ function tourney_match_save(&$match) {
     
     // Create the new relation.
     if (!is_object($c1) && $match->contestant1) {
-      @list($type, $id) = tourney_cid_split($match->contestant1);
+      // Get the entity and entity_id from contestant value
+      list($type, $id) = explode(".", $match->contestant1);
+      
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
         array('entity_type' => $type, 'entity_id' => $id),
@@ -644,7 +646,9 @@ function tourney_match_save(&$match) {
     }
     
     if (!is_object($c2) && $match->contestant2) {
-      @list($type, $id) = tourney_cid_split($match->contestant2);
+      // Get the entity and entity_id from contestant value
+      list($type, $id) = explode(".", $match->contestant2);
+      
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
         array('entity_type' => $type, 'entity_id' => $id),

@@ -82,22 +82,22 @@ function tourney_match_form($form, &$form_state, $tourney) {
   $form_state['tourney'] = $tourney;
   
   // @todo: It would be nice if these were field api fields
-  if ($tourney->previous_match1 == 'manual') {
-    $user = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_1');
+  $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_1');
+  if (!is_object($contestant) || ($tourney->previous_match1 == 'manual' && !is_object($contestant))) {
     $form['contestant1'] = array(
       '#title' => t('Contestant 1'),
-      '#default_value' => is_object($user) && $user->uid ? $user->uid : -1,
-      '#disabled' => is_object($user) && $user->uid ? TRUE : FALSE,
-      '#required' => is_object($user) && $user->uid ? FALSE : TRUE,
+      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
+      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
+      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
     ) + _tourney_match_contestant($tourney);
   }
-  if ($tourney->previous_match2 == 'manual') {
-    $user = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_2');
+  $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_2');
+  if (!is_object($contestant) || ($tourney->previous_match2 == 'manual' && !is_object($contestant))) {
     $form['contestant2'] = array(
       '#title' => t('Contestant 2'),
-      '#default_value' => is_object($user) && $user->uid ? $user->uid : -1,
-      '#disabled' => is_object($user) && $user->uid ? TRUE : FALSE,
-      '#required' => is_object($user) && $user->uid ? FALSE : TRUE,
+      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
+      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
+      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
     ) + _tourney_match_contestant($tourney);
   }
   
@@ -109,14 +109,6 @@ function tourney_match_form($form, &$form_state, $tourney) {
     '#maxlength' => 255,
     '#default_value' => $tourney->games,
     '#required' => TRUE,
-  );
-  
-  $form['winner'] = array(
-    '#type' => 'select',
-    '#title' => t('Winner'),
-    '#description' => t('The winner of this match.'),
-    '#options' => drupal_map_assoc(array('No Winner')),
-    '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
   );
 
   field_attach_form('tourney_match', $tourney, $form, $form_state);
