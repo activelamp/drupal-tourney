@@ -741,7 +741,7 @@ function tourney_ctools_plugin_directory($module, $plugin) {
  */
 function tourney_views_api() {
   return array(
-    'api' => 2.0,
+    'api' => 3.0,
     'path' => drupal_get_path('module', 'tourney') . '/views',
   );
 }
