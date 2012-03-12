@@ -63,14 +63,6 @@ function tourney_menu() {
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
-  $items['tourney/match/%tourney_match/win/%tourney_game/%'] = array(
-    'page callback' => 'tourney_game_win',
-    'page arguments' => array(2, 4, 5),
-    'access arguments' => array('access content'),
-    'file' => 'includes/tourney.match.inc',
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
   $items['tourney/game/%tourney_game'] = array(
     'title callback' => 'tourney_page_title',
     'title arguments' => array(2),
@@ -318,6 +310,11 @@ function tourney_field_extra_fields() {
         'description' => t('The second contestant of the match'),
         'weight' => 0,
       ),
+			'match_table' => array(
+				'label' => t('Match Table'),
+				'description' => t('Rendered display of games in the match'),
+				'weight' => 0,
+			),
     ),
   );
   

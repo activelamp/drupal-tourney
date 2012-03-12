@@ -4,7 +4,7 @@
  * @file
  * Tourney type editing UI.
  */
-
+ 
 /**
  * Generates the profile type editing form.
  */
@@ -74,7 +74,8 @@ function tourney_tournament_type_form_submit_delete(&$form, &$form_state) {
  * Page callback.
  */
 function tourney_admin_content() {
-  $header = array(
+  $output = '';
+	$header = array(
     'id' => array('data' => t('Id'), 'field' => 't.id', 'sort' => 'asc'),
     'title' => array('data' => t('Title'), 'field' => 't.title'),
     'format' => array('data' => t('Format'), 'field' => 't.format'),
@@ -90,7 +91,9 @@ function tourney_admin_content() {
     ->orderByHeader($header);
   $tournaments = $query->execute();
   
-  return theme('tourney_admin_content', array('tournaments' => $tournaments, 'header' => $header));
+	$output .= theme('item_list', array('items' => array(l('Add tournament', 'tourney/add')), 'attributes' => array('class' => 'action-links')));
+  $output .= theme('tourney_admin_content', array('tournaments' => $tournaments, 'header' => $header));
+	return $output;
 }
 
 /**
@@ -125,8 +128,9 @@ function theme_tourney_admin_content($variables) {
   return theme('table', array('header' => $header, 'rows' => $rows)).theme('pager');
 }
 
-
-
+function tourney_confirm_delete($form, &$form_state, $comment) {
+	
+}
 
 
 

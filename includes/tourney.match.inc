@@ -23,31 +23,14 @@ function tourney_match_edit($match) {
   return drupal_get_form('tourney_match_form', $match);
 }
 
-function tourney_game_win($match, $game, $contestant) {
-  $game->winner = $contestant;
-  tourney_game_save($game);
-  drupal_goto("/tourney/match/" . $match->id);
-}
-
 function tourney_game_win_form_submit($form, &$form_state) {
   $extra = $form_state['values']['extra'];
   $contestant = $form_state['input']['contestant'];
   $match = tourney_match_load($extra['match']);
   $game = tourney_game_load($extra['game']);
-  tourney_game_win($match, $game, $contestant);
-}
-
-function tourney_game_win_form_js($form, &$form_state) {
-  // this is not working at all... .. .
-  exit;
-  $_POST = array();
-  $extra = $form['extra']['#value'];
-  $contestant = $form['contestant']['#value'];
-  $match = tourney_match_load($extra['match']);
-  
-  $output = theme('tourney_render_match', array('match' => $match));
-  ajax_deliver($output);
-  exit;  
+	$game->winner = $contestant;
+  tourney_game_save($game);
+	$form_sate['redirect'] = 'tourney/match/' . $match->id;
 }
 
 function tourney_game_win_form($form, &$form_state, $extra) {
