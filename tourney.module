@@ -729,8 +729,29 @@ function tourney_ctools_plugin_type() {
   return $plugins;
 }
 
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
 function tourney_ctools_plugin_directory($module, $plugin) {
   if ($module == 'tourney' && $plugin == 'tourney_formats') {
     return 'plugins/tourney_formats';
   }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function tourney_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'tourney') . '/views',
+  );
+}
+
+function tourney_cid_split($string) {
+  return explode('.', $match->contestant1);
+}
+
+function tourney_cid($entity) {
+  return $entity->_entity_type . '.' . $entity->_entity_id;
 }
