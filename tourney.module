@@ -294,15 +294,20 @@ function tourney_field_extra_fields() {
       'contestant1' => array(
         'label' => t('Contestant 1'),
         'description' => t('The first contestant of the match'),
-        'weight' => 0,
+        'weight' => 1,
       ),
       'contestant2' => array(
         'label' => t('Contestant 2'),
         'description' => t('The second contestant of the match'),
-        'weight' => 0,
+        'weight' => 2,
       ),
     ),
     'display' => array(
+      'tournament' => array(
+        'label' => t('Tournament Link'),
+        'description' => t('A link to the tournament this match is in'),
+        'weight' => -10,
+      ),
       'match_winner' => array(
         'label' => t('Match Winner'),
         'description' => t('The winner of the match'),
@@ -311,12 +316,12 @@ function tourney_field_extra_fields() {
       'match_contestant1' => array(
         'label' => t('Contestant 1'),
         'description' => t('The first contestant of the match'),
-        'weight' => 0,
+        'weight' => 1,
       ),
       'match_contestant2' => array(
         'label' => t('Contestant 2'),
         'description' => t('The second contestant of the match'),
-        'weight' => 0,
+        'weight' => 2,
       ),
     ),
   );
@@ -367,6 +372,7 @@ function tourney_theme($existing, $type, $theme, $path) {
  * Implements hook_entity_load().
  */
 function tourney_entity_load($entities, $type) {
+  // Need consistent properties about the entity loaded
   foreach ( $entities as $id => $entity ) {
     $entity->_entity_type = $type;
     $entity->_entity_id   = $id;
@@ -374,6 +380,10 @@ function tourney_entity_load($entities, $type) {
   }
   if ($type == 'tourney_match') {
     foreach ($entities as $entity) {
+      // Get the tournament this match is in
+      $tournament = relation_get_related_entity('tourney_match', $entity->id, 'has_match');
+      $entity->tournament = $tournament;
+      
       // Get the contestants in this match.
       $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
       $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
