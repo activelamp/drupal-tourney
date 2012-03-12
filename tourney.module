@@ -736,7 +736,6 @@ function tourney_ctools_plugin_directory($module, $plugin) {
   }
 }
 
-<<<<<<< HEAD
 /**
  * Implements hook_views_api().
  */
@@ -747,8 +746,6 @@ function tourney_views_api() {
   );
 }
 
-=======
->>>>>>> daf3c4b22f2d92a112f45fba5a0f2cc4895dfb87
 function tourney_cid_split($string) {
   return explode('.', $match->contestant1);
 }
