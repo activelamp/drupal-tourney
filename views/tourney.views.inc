@@ -14,7 +14,7 @@ function tourney_views_data_alter(&$data) {
     ),
     'filter' => array(
       'real field' => 'title',
-      'handler' => 'views_handler_filter_string',
+      'handler' => 'tourney_handler_match_with_parents',
     ),
   );
 }
