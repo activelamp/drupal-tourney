@@ -36,7 +36,7 @@ function tourney_games_to_table($games) {
     else foreach ( $game->contestants as $id => $contestant ) {
       if ( !isset($rows[$id]) ) $rows[$id] = array($contestant);
       if ( $game->winner ) $rows[$id][] = $game->winner == $id ? 'W' : 'L';
-      else $rows[$id][] = drupal_render(drupal_get_form('tourney_game_win_form', 
+      else $rows[$id][] = count($game->contestants) < 2 ? '' : drupal_render(drupal_get_form('tourney_game_win_form', 
         array('match' => $game->match->id, 'game' => $game->id, 'contestant' => $id, 'name' => $contestant)));
     }
   }
