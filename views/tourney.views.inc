@@ -17,5 +17,18 @@ function tourney_views_data_alter(&$data) {
       'handler' => 'tourney_handler_match_with_parents',
     ),
   );
+  $data['tourney_match']['match_tree'] = array(
+    'title' => t('Match Tree'),
+    'help' => t('Match ID with depth'),
+    'field' => array(
+      'real field' => 'id',
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'argument' => array(
+      'real field' => 'id',
+      'handler' => 'tourney_handler_match_tree',
+    ),
+  );
 }
 

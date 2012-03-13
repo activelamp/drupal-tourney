@@ -7,7 +7,7 @@ class tourney_handler_match_with_parents extends views_handler_filter {
   function option_definition() {
     $options = parent::option_definition();
 
-    $options['operator']['default'] = 'specified_ancestors';
+    $options['operator']['default'] = '=';
     $options['value']['default'] = array();
     $options['expose']['contains']['reduce'] = array('default' => FALSE);
 
@@ -19,7 +19,7 @@ class tourney_handler_match_with_parents extends views_handler_filter {
    */
   function operator_options() {
     return array(
-      'specified_ancestors' => t('Specify generations up from'),
+      '=' => t('Specify generations up from'),
     );
   }
   

@@ -32,7 +32,8 @@ function tourney_games_to_table($games) {
   $rows   = array();
   foreach ( $games as $gn => $game ) {
     $header[] = "Game " . ( $gn + 1 ); //. ( $game ? " | " . $game->id : "" );
-    if ( $game == null ) foreach ( $rows as $k => $v ) $rows[$k][] = '-';
+    if ( $game == null || !property_exists($game, 'contestants') || count($game->contestants) < 1 ) 
+      foreach ( $rows as $k => $v ) $rows[$k][] = '-';
     else foreach ( $game->contestants as $id => $contestant ) {
       if ( !isset($rows[$id]) ) $rows[$id] = array($contestant);
       if ( $game->winner ) $rows[$id][] = $game->winner == $id ? 'W' : 'L';

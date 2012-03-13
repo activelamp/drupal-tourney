@@ -317,3 +317,34 @@ function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en')
   );
 }
 
+function tourney_match_get_parents($mid, $depth) {
+  $ids = array($mid);
+
+  $match = tourney_match_load($mid);
+  $tournament = $match->tournament;
+  $matches = _tourney_tournament_build_matches($tournament);
+
+  $names = array($match->previous_match1, $match->previous_match2);
+  while ( $depth-- > 0 ) {
+    $new_names = array();
+    foreach ( $names as $name ) {
+      $nmatch = tourney_match_get_by_name($matches, $name);
+      if ( !$nmatch ) continue;
+      $ids[] = $nmatch->id;
+      $new_names = array_merge($new_names, array($nmatch->previous_match1, $nmatch->previous_match2));
+    }
+    $names = $new_names;
+  }
+
+  return $ids;
+}
+
+function tourney_match_get_by_name($matches, $name) {
+  if ( $name == 'manual' ) return null;
+  $parts = explode('_', $name);
+  foreach ( $parts as $part ) if ( array_key_exists($part, $matches) ) $matches = $matches[$part];
+  @list(,$id) = explode('-', array_pop($parts));
+  while ( --$id > 0 ) array_shift($matches);
+  $match = array_shift($matches);
+  return $match['match'];
+}
