@@ -33,6 +33,7 @@ class SingleElimination implements TourneyMatchInterface {
     
     // Build all rounds
     $this->matches = $this->build_rounds($this->num_contestants);
+    dpm($this->matches);
     
     return $this->matches;
   }

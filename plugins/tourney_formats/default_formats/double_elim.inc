@@ -17,6 +17,9 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
   // the round.
   private $bracket_alignment = array();
   
+  private $top_bracket;
+  private $bottom_bracket;
+  
   
   /**
    * Figure out how many rounds there should be based on $num_contestants,
@@ -28,23 +31,23 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
    *   The matches array completely built out.
    */
   protected function build_rounds($num_contestants) {
-    $top_bracket = parent::build_rounds($num_contestants);
+    $this->top_bracket = parent::build_rounds($num_contestants);
     // Set a flag for building bottom bracket.
     $this->same_bracket = false;
-    $bottom_bracket = $this->build_bottom_rounds($num_contestants);
+    $this->bottom_bracket = $this->build_bottom_rounds($num_contestants);
     // Fix the loser path in top bracket, now that the bottom bracket has been
     // built.
-    $this->fix_top_loser_path($top_bracket);
+    $this->fix_top_loser_path($this->top_bracket);
     
     // The Champion bracket is the last round when both brackets converge. It
     // always looks the same.  Defining the bracket explicityly.
     $champion_match = $first_loss = array();
-    $this->build_round($champion_match, 2, 1);
-    $this->build_round($first_loss, 2, 2);
+    $this->build_round($champion_match, 2, 1, 'champion');
+    $this->build_round($first_loss, 2, 2, 'champion');
     
     return array(
-      'bracket-top' => $top_bracket, 
-      'bracket-bottom' => $bottom_bracket,
+      'bracket-top' => $this->top_bracket['bracket-top'], 
+      'bracket-bottom' => $this->bottom_bracket,
       'bracket-champion' => array_merge($champion_match, $first_loss),
     );
   }
@@ -69,9 +72,28 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
     // Previous Match number.
     $pm = $current_match * 2;
     $previous_match = $pm - 1;
-    $loser_bracket = ($bracket == 'top') ? 'bottom' : NULL;
-    $winner_bracket = ($bracket == 'bottom') ? 'top' : NULL;
     
+    // Champion bracket is always the same structure, hardcoding.
+    if ($bracket == 'champion') {
+      $top_last_round = count($this->top_bracket['bracket-top']);
+      $bottom_last_round = count($this->bottom_bracket);
+      
+      // Set the last round of top bracket
+      foreach ($this->top_bracket['bracket-top']['round-'. $top_last_round] as &$match_arr) {
+        $match_arr['next_match_winner'] = 'bracket-champion_round-1_match-1_contestant-1';
+        $match_arr['next_match_loser'] = 'bracket-bottom_round-'. $bottom_last_round .'_match-1_contestant-1';
+      }
+      
+      // Set the last round of bottom bracket
+      foreach ($this->bottom_bracket['round-'. $bottom_last_round] as &$match_arr) {
+        $match_arr['next_match_winner'] = 'bracket-champion_round-1_match-1_contestant-2';
+      }
+    }
+    
+    // If we're in the top bracket, set a variable to be used for loser destination
+    $loser_bracket = ($bracket == 'top') ? 'bottom' : NULL;
+    // If we're in the bottom bracket, set a variable to be used for previous destination.
+    $winner_bracket = ($bracket == 'bottom') ? 'top' : NULL;
     if (array_key_exists('round-'. $previous_round, $matches)) {      
       if ($this->same_bracket) {
         $matches['round-'. $previous_round]['match-'. $previous_match]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-1';
