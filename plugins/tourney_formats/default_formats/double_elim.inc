@@ -80,13 +80,13 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
       
       // Set the last round of top bracket
       foreach ($this->top_bracket['bracket-top']['round-'. $top_last_round] as &$match_arr) {
-        $match_arr['next_match_winner'] = 'bracket-champion_round-1_match-1_contestant-1';
-        $match_arr['next_match_loser'] = 'bracket-bottom_round-'. $bottom_last_round .'_match-1_contestant-1';
+        $match_arr['winner'] = 'bracket-champion_round-1_match-1_contestant-1';
+        $match_arr['loser'] = 'bracket-bottom_round-'. $bottom_last_round .'_match-1_contestant-1';
       }
       
       // Set the last round of bottom bracket
       foreach ($this->bottom_bracket['round-'. $bottom_last_round] as &$match_arr) {
-        $match_arr['next_match_winner'] = 'bracket-champion_round-1_match-1_contestant-2';
+        $match_arr['winner'] = 'bracket-champion_round-1_match-1_contestant-2';
       }
     }
     
