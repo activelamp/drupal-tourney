@@ -101,8 +101,9 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   // Add the matches for this tournament
   $entity->content['matches'] = array(
     '#prefix' => '<h2>Matches in this tournament</h2>',
-    '#theme' => 'tourney_render_matches',
-    '#matches' => _tourney_tournament_build_matches($entity),
+    '#theme' => 'tourney_render_tourney', // TODO matches
+    //'#matches' => _tourney_tournament_build_matches($entity),
+    '#tournament' => $entity,
   );
 }
 

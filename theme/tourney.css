@@ -1,1 +1,31 @@
 .field-label{font-weight:bold;}
+
+.tourney table,
+.tourney table tr,
+.tourney table tr td { 
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tourney .match {
+  width: 150px;
+  float: left;
+  border: none;
+}
+
+.tourney .contestant,
+.tourney div.spacer {
+  height: 2em;
+}
+
+.tourney .match td {
+  border: none;
+}
+
+/* SINGLE */
+
+.tourney-single .round {
+  width: 150px;
+  float: left;
+}
