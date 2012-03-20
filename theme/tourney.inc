@@ -16,44 +16,66 @@ function theme_tourney_render_tourney($vars) {
   return $output;
 }
 
-function tourney_render_theme($existing, $type, $theme, $path) {
-  return array(
-    'tourney_matchblock' => array(
-      'variables' => array('match' => NULL, 'spacing' => 0),
-      'file' => 'tourney.inc',
-      'path' => $path .'/theme'
-    ),
-    'tourney_spacer' => array(
-      'file' => 'tourney.inc',
-      'path' => $path .'/theme',
-    ),
-  );
+function tourney_flow_control($flows) {
+  if ( !$flows ) return;
+  $output = '<div class="flow"><div class="flow-control '
+        .  implode('"></div><div class="flow-control ', explode(' ', $flows))
+        .  '"></div></div>';  
+  return str_replace(',', ' ', $output);
 }
 
-function theme_tourney_matchblock($vars) {
-  $match = $vars['match']['match'];
-  $spacing = $vars['spacing'];
+function tourney_matchblock($match, $flow = FALSE) {
+  $editable = !(is_object($match->contestant1) && is_object($match->contestant2)) && 
+    ($match->previous_match1 == 'manual' || $match->previous_match1 == 'manual');
   $contestant1 = is_object($match->contestant1) ? $match->contestant1->_entity_name : 'team 1';
   $contestant2 = is_object($match->contestant2) ? $match->contestant2->_entity_name : 'team 2';
-  $title = $match->title .' '. $match->id;
+  $title       = $match->title . ' ' . $match->id;
 
-  $output  = '';
-  $output .= '<tr class="contestant"><td>' . $contestant1 . '</td></tr>';
-  if ( $spacing ) 
-    $output .= '<tr class="spacing"><td>' . theme('tourney_spacer', $spacing) . '</td></tr>';
-  $output .= '<tr class="contestant"><td>' . $contestant2 . '</td></tr>';
-
-  return tourney_table_wrap($output, 'match');
+  $output  = '<div class="match">';
+  $output .= tourney_flow_control($flow);
+  $output .= '<div class="contestant contestant-1">' . $contestant1 . ( $match->winner == $contestant1 ? ' ♔' : '' ) . '</div>';
+  $output .= '<div class="contestant contestant-2">' . $contestant2 . ( $match->winner == $contestant2 ? ' ♔' : '' ) . '</div>';
+  $output .= '</div>';
+  return l($output, "tourney/match/{$match->id}" . ( $editable ? "/edit" : ''), array(
+    'html' => TRUE, 
+    'attributes' => array('class' => 'match-link'), 
+    'query' => $editable ? array('destination' => "tourney/match/{$match->id}") : array()));
 }
 
-function theme_tourney_spacer($height) {
-  $output  = '';
-  for ( $i = 0; $i < $height; $i++ ) $output .= '<div class="spacer"></div>';
-  return tourney_table_wrap($output, 'spacer');
+function tourney_spacer($times = 1, $flow = FALSE, $small = FALSE, $y = 1) {
+  $div = '<div class="match match-' . ( $small ? 'half-' : '' ) . 'spacer">%s</div>';
+
+  if ( $times <= 0 ) return;
+  if ( $flow ) {
+    $half    = floor($times/2);
+    $normal  = sprintf($div, tourney_flow_control('vertical'));
+    $output  = $y == 0 ? sprintf($div, '') . str_repeat($normal, $half - 1 ) : str_repeat($normal, $half);
+    $output .= sprintf($div, is_string($flow) ? tourney_flow_control($flow) : ( $times % 2 ? tourney_flow_control('topright bottomright') : tourney_flow_control('evenright') ));
+    if ( !($times % 2) ) $half--;
+    $output .= str_repeat($normal, $half);
+  }
+  else
+    $output  = str_repeat(sprintf($div, ''), $times);
+  return $output; 
 }
 
-function tourney_table_wrap($content, $class = null) {
-  if ( is_array($content) || substr($content, 0, 3) !== '<tr' )
-    $content = '<tr><td>' . implode('</td></tr><tr><td>', is_array($content) ? $content : array($content)) . '</td></tr>';
-  return '<table border="0" cellpadding="0" cellspacing="0" class="'.$class.'">'.$content.'</table>';
+function tourney_single_tree($rounds, $small = FALSE) {
+  $output = '';
+  foreach ( $rounds as $r => $round ) {
+    $last = $r >= count($rounds) -1;
+    $top_pad = pow(2, $r)-1;
+    $mid_pad = $small ? $top_pad * 2 : pow(2, $r+1)-1;
+
+    $output .= '<div class="round round-' . $r . '">';
+    $output .= tourney_spacer($top_pad, null, $small);
+    foreach ( array_values($round) as $m => $match ) {
+      $output .= tourney_matchblock($match['match'], $last ? '' : ( $m % 2 ? ( $mid_pad == 0 ? 'topleft evenright,special' : 'topleft' ) : 'bottomleft' ) );
+      if ( $m == count($round) - 1 ) 
+        $output .= tourney_spacer($top_pad, null,  $small);
+      else
+        $output .= tourney_spacer($mid_pad, !($m%2), $small);
+    }
+    $output .= '</div>';
+  } 
+  return $output;
 }

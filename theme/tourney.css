@@ -1,31 +1,162 @@
 .field-label{font-weight:bold;}
 
-.tourney table,
-.tourney table tr,
-.tourney table tr td { 
-  border: none;
-  padding: 0;
-  margin: 0;
+.tourney .bracket {
+  float: left;
+}
+
+.tourney a.match-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tourney a.match-link:hover .contestant {
+  background: #F0F0F0;
 }
 
 .tourney .match {
-  width: 150px;
+  height: 4em;
+  width: 100%;
   float: left;
   border: none;
+  position: relative;
 }
 
-.tourney .contestant,
-.tourney div.spacer {
+.tourney .match-spacer {
+  height: 4em;
+}
+
+.tourney .match-half-spacer {
   height: 2em;
 }
 
-.tourney .match td {
-  border: none;
+.tourney .contestant {
+  width: 75%;
+  height: 50%;
+  float: left;
+  line-height: 200%;
+  background: #E0E0E0;
+  padding: 0 6%;
+}
+
+.tourney .contestant.contestant-1 {
+  border-radius: .5em .5em 0 0;
+}
+
+.tourney .contestant.contestant-2 {
+  border-top: 1px solid #888;
+  border-radius: 0 0 .5em .5em;
+}
+
+.tourney .contestant.contestant-spacer {
+  visibility: hidden;
+}
+
+.tourney .match .flow {
+  height: 100%;
+  width: 15%;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+}
+
+.tourney .match .flow .flow-control {
+  position: relative;
+  height: 50%;
+  width: 50%;
+  border: 0 solid #888;
+}
+
+.tourney .match .flow .flow-control.topleft {
+  border-width: 0 1px 1px 0;
+  border-radius: 0 0 .5em;
+}
+
+.tourney .match .flow .flow-control.bottomleft {
+  top: 50%;
+  border-width: 1px 1px 0 0;
+  border-radius: 0 .5em 0;
+  height: 50%;
+}
+
+.tourney .match .flow .flow-control.topright {
+  left: 50%;
+  border-width: 0 0 1px 1px;
+}
+
+.tourney .match .flow .flow-control.bottomright {
+  left: 50%;
+  border-width: 0 0 0 1px;
+}
+
+.tourney .match .flow .flow-control.evenright {
+  border-width: 1px 0 0 1px;
+  height: 100%;
+  left: 50%;
+}
+
+.tourney .match .flow .flow-control.special.evenright {
+  position: absolute;
+  top: 0px;
+  right: 1px;
+  border-width: 1px 0 0;
+  padding-left: 1px;
+  height: 50%;
+}
+
+.tourney .match .flow .flow-control.vertical {
+  height: 100%;
+  border-width: 0 1px 0 0;
+}
+
+.tourney .match .flow .flow-control.horizontal {
+  width: 100%;
+  border-width: 0 0 1px;
 }
 
 /* SINGLE */
 
 .tourney-single .round {
-  width: 150px;
+  width: 12em;
   float: left;
+}
+
+/* DOUBLE */
+
+.tourney-double .bracket-bottom {
+  clear: left;
+}
+
+.tourney-double .round-champion .flow .flow-control {
+  border-style: dashed;
+}
+
+.tourney-double .round {
+  width: 10em;
+  float: left;
+}
+
+/* ROUND ROBIN */
+
+.tourney-roundrobin .match {
+  width: 12em;
+}
+
+
+
+
+
+
+
+
+
+
+/* EXAMPLE THEMING */
+
+#page .contestant {
+  height: 21px;
+  line-height: 21px;
+}
+
+#page .contestant-1 {
+  margin-top: 5px;
 }
