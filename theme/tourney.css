@@ -10,7 +10,7 @@
 }
 
 .tourney a.match-link:hover .contestant {
-  background: #F0F0F0;
+  background: #E8E8E8;
 }
 
 .tourney .match {
@@ -22,10 +22,9 @@
 }
 
 .tourney .match-spacer {
-  height: 4em;
 }
 
-.tourney .match-half-spacer {
+.tourney .match-spacer.small {
   height: 2em;
 }
 
@@ -36,6 +35,10 @@
   line-height: 200%;
   background: #E0E0E0;
   padding: 0 6%;
+}
+
+.tourney a.match-link .match .contestant:hover {
+  background: #F0F0F0;
 }
 
 .tourney .contestant.contestant-1 {
@@ -159,4 +162,14 @@
 
 #page .contestant-1 {
   margin-top: 5px;
+}
+
+.match .match-title {
+  height: 1.5em;
+  text-align: center;
+  width: 87%;
+}
+
+.match.normal .flow {
+  padding-top: 1.5em;
 }

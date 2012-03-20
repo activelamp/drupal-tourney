@@ -25,7 +25,7 @@ function tourney_double_top_bracket($rounds, $players) {
     $output .= '<div class="round round-' . $r . '">';
     $output .= tourney_spacer($top_pad, null, 1);
     foreach ( array_values($round) as $m => $match ) {
-      $output .= tourney_matchblock($match['match'], $last ? 'bottomleft' : ( $m % 2 ? ( $mid_pad == 0 ? 'topleft evenright,special' : 'topleft' ) : 'bottomleft' ) );
+      $output .= tourney_matchblock($match['match'], $last ? 'bottomleft' : ( $m % 2 ? ( $mid_pad == 0 ? 'topleft evenright,special' : 'topleft' ) : 'bottomleft' ), 1);
       if ( $m == count($round) - 1 ) 
         if ( $r == count($rounds) -1 ) {
           $pads = pow(2, log($players/2,2)-1)-1;
@@ -60,7 +60,7 @@ function tourney_double_bottom_bracket($rounds) {
           $m % 2 ? ( 
             $mid_pad ? 'topleft' : 'topleft special,evenright' ) 
           : ( count($round) > 1 ? 'bottomleft' : 'topleft' ) ) 
-        : ( $top_pad > 1 ? 'topleft' : 'topleft special,evenright' ) );
+        : ( $top_pad > 1 ? 'topleft' : 'topleft special,evenright' ), 1);
       if ( $m == count($round) - 1 ) 
         $output .= tourney_spacer($top_pad, null,  $small);
       else
@@ -78,11 +78,11 @@ function tourney_double_champion_bracket($tournament, $rounds) {
   $output  = '';
   $output .= '<div class="round round-champion">';
   $output .= tourney_spacer(3 * ($tournament->players / 4)-1, null, 1);
-  $output .= tourney_matchblock($champ, 'horizontal');
+  $output .= tourney_matchblock($champ, 'horizontal', 1);
   $output .= '</div>';
   $output .= '<div class="round round-extra">';
   $output .= tourney_spacer(3 * ($tournament->players / 4)-1, null, 1);
-  $output .= tourney_matchblock($champ);
+  $output .= tourney_matchblock($champ, null, 1);
   $output .= '</div>';
   return $output;
 }
