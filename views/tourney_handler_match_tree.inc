@@ -23,6 +23,6 @@ class tourney_handler_match_tree extends views_handler_argument {
     $this->ensure_my_table();
     $ids = tourney_match_get_parents($this->argument, $this->options['depth']);
     $this->query->add_where(0, "$this->table_alias.$this->real_field", $ids);
-    dpm($this);
+    //dpm($this);
   }
 }

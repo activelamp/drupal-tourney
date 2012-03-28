@@ -110,6 +110,12 @@ function tourney_schema() {
         'length' => 128,
         'not null' => TRUE,
         'default' => ''),
+      'this_match' => array(
+        'description' => 'Name of this match.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => ''),
       ),
     'unique keys' => array(
       'id' => array('id'),

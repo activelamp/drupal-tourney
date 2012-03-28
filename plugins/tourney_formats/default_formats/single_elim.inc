@@ -74,6 +74,7 @@ class SingleElimination implements TourneyMatchInterface {
       $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-2';
       $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $previous_match;
       $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $pm;
+      $matches['round-'. $current_round]['match-'. $current_match]['this_match'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match;
     }
     return $matches;
   }

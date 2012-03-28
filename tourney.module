@@ -358,11 +358,6 @@ function tourney_field_extra_fields() {
  */
 function tourney_theme($existing, $type, $theme, $path) {
   return array(
-    'tourney_render_matches' => array(
-      'variables' => array('matches' => NULL),
-      'file' => 'matches.inc',
-      'path' => $path .'/theme'
-    ),
     'tourney_render_match' => array(
       'variables' => array('match' => NULL),
       'file' => 'match.inc',
@@ -377,17 +372,6 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'tourney.inc',
       'path' => $path .'/theme',
     ),
-    /*'tourney_view_tournament' => array(
-      'variables' => array(
-        'view' => NULL,
-        'options' => NULL,
-        'rows' => NULL,
-        'title' => NULL,
-      ),
-      'file' => 'tourney_plugin_display_tournament',
-      'path' => drupal_get_path('module', 'tourney') . '/views',
-      'template' => 'tourney-view-tournament'
-    ),*/
   );
 }
 
@@ -779,7 +763,6 @@ function tourney_ctools_plugin_directory($module, $plugin) {
 function tourney_views_api() {
   return array(
     'api' => 3.0,
-    'path' => drupal_get_path('module', 'tourney') . '/views',
   );
 }
 
