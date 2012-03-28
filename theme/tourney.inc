@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Theme function to return HTML output for a given tournament, pulls includes based on tournament type
+ * 
+ * @param $vars
+ *   Should be a single-key array containing the tournament
+ * @return
+ *   Tree in HTML output
+ */
 function theme_tourney_render_tourney($vars) {
   $types = array(
     'SingleElimination' => 'single',
@@ -16,6 +24,14 @@ function theme_tourney_render_tourney($vars) {
   return $output;
 }
 
+/**
+ * Makes making specific flow boxes easy by wrapping a list of them with HTML
+ * 
+ * @param $flows
+ *   List of flow types to wrap
+ * @return
+ *   Wrapped flow HTML 
+ */
 function tourney_flow_control($flows) {
   if ( !$flows ) return;
   $output = '<div class="flow"><div class="flow-control '
@@ -24,6 +40,18 @@ function tourney_flow_control($flows) {
   return str_replace(',', ' ', $output);
 }
 
+/**
+ * Renders a single match between two contestants
+ * 
+ * @param $match
+ *   Match object
+ * @param $flow
+ *   Flow paths to use (the lines that connect and show relations between matches in a tree)
+ * @param $small
+ *   Boolean to determine half-height matches
+ * @return
+ *   HTML link to either the edit or view match page
+ */
 function tourney_matchblock($match, $flow = FALSE, $small = 0) {
   $editable = !(is_object($match->contestant1) && is_object($match->contestant2)) && 
     ($match->previous_match1 == 'manual' || $match->previous_match1 == 'manual');
@@ -44,6 +72,20 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
     'query' => $editable ? array('destination' => "tourney/match/{$match->id}") : array()));
 }
 
+/**
+ * Helper function to render spacing divs
+ * 
+ * @param $times
+ *   Number of spacers to generate
+ * @param $flow
+ *   Either TRUE or String. If string, all flows are of the $flow type. If boolean, generate default flow
+ * @param $small
+ *   Boolean to determine half width spacers
+ * @param $y
+ *   Special argument that should be used as a 'Y-position', but is currently used to determine when a spacer is at the 0 Y-position for double elimination render purposes only
+ * @return
+ *   Rendered HTML spacer output 
+ */
 function tourney_spacer($times = 1, $flow = FALSE, $small = FALSE, $y = 1) {
   $div = '<div class="match match-spacer '. ( $small ? 'small' : 'normal' ) . '">%s</div>';
 

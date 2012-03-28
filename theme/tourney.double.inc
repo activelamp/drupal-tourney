@@ -28,7 +28,7 @@ function tourney_double_top_bracket($rounds, $players) {
       $output .= tourney_matchblock($match['match'], $last ? 'bottomleft' : ( $m % 2 ? ( $mid_pad == 0 ? 'topleft evenright,special' : 'topleft' ) : 'bottomleft' ), 1);
       if ( $m == count($round) - 1 ) 
         if ( $r == count($rounds) -1 ) {
-          $pads = pow(2, log($players/2,2)-1)-1;
+          $pads = $players/4-1;
           $output .= tourney_spacer($pads, 'vertical', 1);
           $output .= tourney_spacer(1, 'vertical evenright,special', 1);
           $output .= tourney_spacer($pads, 'vertical', 1);

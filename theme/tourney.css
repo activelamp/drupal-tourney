@@ -13,15 +13,18 @@
   background: #E8E8E8;
 }
 
+/*
+
+Match theming should update .match-spacer.small as well to exactly 50% of .match height
+
+*/
+
 .tourney .match {
   height: 4em;
   width: 100%;
   float: left;
   border: none;
   position: relative;
-}
-
-.tourney .match-spacer {
 }
 
 .tourney .match-spacer.small {
@@ -53,6 +56,12 @@
 .tourney .contestant.contestant-spacer {
   visibility: hidden;
 }
+
+/*
+
+Pretty sure this flow theming needs to be redone
+
+*/
 
 .tourney .match .flow {
   height: 100%;

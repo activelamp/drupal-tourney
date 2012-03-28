@@ -377,6 +377,17 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'tourney.inc',
       'path' => $path .'/theme',
     ),
+    /*'tourney_view_tournament' => array(
+      'variables' => array(
+        'view' => NULL,
+        'options' => NULL,
+        'rows' => NULL,
+        'title' => NULL,
+      ),
+      'file' => 'tourney_plugin_display_tournament',
+      'path' => drupal_get_path('module', 'tourney') . '/views',
+      'template' => 'tourney-view-tournament'
+    ),*/
   );
 }
 
