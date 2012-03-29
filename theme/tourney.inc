@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Theme function to return HTML output for a given tournament, pulls includes based on tournament type
+ * Theme function to return HTML output for a given tournament, pulls includes
+ * based on tournament type
  * 
  * @param $vars
  *   Should be a single-key array containing the tournament
@@ -49,7 +50,8 @@ function tourney_flow_control($flows) {
  * @param $match
  *   Match object
  * @param $flow
- *   Flow paths to use (the lines that connect and show relations between matches in a tree)
+ *   Flow paths to use (the lines that connect and show relations between 
+ *   matches in a tree)
  * @param $small
  *   Boolean to determine half-height matches
  * @return
@@ -81,11 +83,14 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
  * @param $times
  *   Number of spacers to generate
  * @param $flow
- *   Either TRUE or String. If string, all flows are of the $flow type. If boolean, generate default flow
+ *   Either TRUE or String. If string, all flows are of the $flow type. If 
+ *   boolean, generate default flow
  * @param $small
  *   Boolean to determine half width spacers
  * @param $y
- *   Special argument that should be used as a 'Y-position', but is currently used to determine when a spacer is at the 0 Y-position for double elimination render purposes only
+ *   Special argument that should be used as a 'Y-position', but is currently 
+ *   used to determine when a spacer is at the 0 Y-position for double 
+ *   elimination render purposes only
  * @return
  *   Rendered HTML spacer output 
  */

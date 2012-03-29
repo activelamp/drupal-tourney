@@ -49,12 +49,15 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#value' => t('Save'),
     '#weight' => 10,
   );
-  $form['actions']['delete'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-    '#weight' => 40,
-    '#submit' => array('tourney_tournament_delete_submit'),
-  );
+  
+  if (!empty($tourney->id)) {
+    $form['actions']['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete'),
+      '#weight' => 40,
+      '#submit' => array('tourney_tournament_delete_submit'),
+    );
+  }
   
   $form['#submit'][] = 'tourney_tournament_form_submit';
   
