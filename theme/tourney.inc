@@ -10,6 +10,7 @@
  *   Tree in HTML output
  */
 function theme_tourney_render_tourney($vars) {
+  module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $types = array(
     'SingleElimination' => 'single',
     'DoubleElimination' => 'double',
@@ -22,7 +23,7 @@ function theme_tourney_render_tourney($vars) {
   else
     $matches  =  _tourney_tournament_build_matches($tournament);
   $output     = "<div class='tourney tourney-$format'>";
-  module_load_include('inc', 'tourney', "theme/tourney.$format");
+  module_load_include('inc', 'tourney', "theme/type/$format");
   if ( function_exists($f = "tourney_render_tourney_$format") ) $output .= call_user_func_array($f, array($tournament, $matches));
   $output    .= "</div>";
   return $output;

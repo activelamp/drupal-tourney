@@ -10,11 +10,22 @@ function tourney_views_data_alter(&$data) {
     'field' => array(
       'real field' => 'id',
       'handler' => 'views_handler_field',
-      'click sortable' => TRUE,
     ),
     'argument' => array(
       'real field' => 'id',
       'handler' => 'tourney_handler_match_tree',
+    ),
+  );
+  $data['tourney_match']['match_tree_depth'] = array(
+    'title' => t('Match Tree Depth'),
+    'help' => t('Match ID custom depth filter'),
+    'field' => array(
+      'real field' => 'id',
+      'handler' => 'views_handler_field',
+    ),
+    'argument' => array(
+      'real field' => 'id',
+      'handler' => 'views_handler_argument',
     ),
   );
 }
@@ -26,13 +37,15 @@ function tourney_views_plugins() {
     'style' => array(
       'tourney' => array(
         'title' => 'Tournament Tree',
-        'path' => "$path/plugins",
+        'handler' => 'tourney_plugin_style_tournament',
+        'path' => "$path/includes",
         'theme' => 'tourney_tournament_view',
         'theme path' => "$path/theme",
         'theme file' => 'tourney_tournament_view.inc',
-        'handler' => 'tourney_plugin_style_tournament',
-        'uses fields' => TRUE,
+        'uses fields' => FALSE,
+        'uses row plugin' => FALSE,
         'type' => 'normal',
+        'even empty' => TRUE,
       ),
     ),
   );  

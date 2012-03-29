@@ -5,7 +5,7 @@ function tourney_preprocess_tourney_tournament_view(&$vars) {
   module_load_include('inc', 'tourney', 'theme/tourney');
 
   $matches = array();
-  foreach ( $vars['view']->result as $result ) $matches[] = tourney_match_load($result->tourney_match_tourney_tournament_id);
+  foreach ( $vars['view']->result as $result ) $matches[] = tourney_match_load($result);
 
   $rounds = array();
   foreach ( $matches as $match ) {
@@ -18,5 +18,4 @@ function tourney_preprocess_tourney_tournament_view(&$vars) {
       'bracket-' . tourney_get_name_part($matches[0]->this_match, 'bracket') => array_values($rounds),
     ),
   );
-  dpm($vars['theme_variables']);
 }
