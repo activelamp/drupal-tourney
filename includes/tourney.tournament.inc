@@ -82,6 +82,9 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney'). '/theme/tourney.css'
   );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney'). '/theme/tourney.js'
+  );
   $entity->content['tourney_format'] = array(
    '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
    '#suffix' => '</div>',

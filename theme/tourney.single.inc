@@ -16,7 +16,7 @@ function tourney_single_tree($rounds, $small = FALSE) {
     $output .= '<div class="round round-' . $r . '">';
     $output .= tourney_spacer($top_pad, null, $small);
     foreach ( array_values($round) as $m => $match ) {
-      $output .= tourney_matchblock($match['match'], $last ? '' : ( $m % 2 ? ( $mid_pad == 0 ? 'topleft evenright,special' : 'topleft' ) : 'bottomleft' ), $small);
+      $output .= tourney_matchblock($match['match'], $last ? '' : ( $m % 2 ? ( $mid_pad == 0 ? 'topleft evenright,special' : 'topleft' ) : ( $mid_pad == 0 ? 'bottomleft evenright,special,bottom' : 'bottomleft' ) ), $small);
       if ( $m == count($round) - 1 ) 
         $output .= tourney_spacer($top_pad, null,  $small);
       else
