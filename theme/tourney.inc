@@ -16,7 +16,10 @@ function theme_tourney_render_tourney($vars) {
   );
   $tournament = $vars['tournament'];
   $format     = $types[$tournament->format];
-  $matches    = _tourney_tournament_build_matches($tournament);
+  if ( array_key_exists('matches', $vars) )
+    $matches  = $vars['matches'];
+  else
+    $matches  =  _tourney_tournament_build_matches($tournament);
   $output     = "<div class='tourney tourney-$format'>";
   module_load_include('inc', 'tourney', "theme/tourney.$format");
   if ( function_exists($f = "tourney_render_tourney_$format") ) $output .= call_user_func_array($f, array($tournament, $matches));
