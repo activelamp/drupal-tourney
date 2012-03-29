@@ -12,7 +12,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   // Set the bundle name
   $tourney->type = 'tournament';
   $form_state['tourney'] = $tourney;
-  
+
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Tournament Name'),
@@ -47,12 +47,28 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
-    '#weight' => 40,
+    '#weight' => 10,
   );
-
+  $form['actions']['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete'),
+    '#weight' => 40,
+    '#submit' => array('tourney_tournament_delete_submit'),
+  );
+  
   $form['#submit'][] = 'tourney_tournament_form_submit';
   
   return $form;
+}
+
+function tourney_tournament_delete_submit($form, &$form_state) {
+  $destination = array();
+  if (isset($_GET['destination'])) {
+    $destination = drupal_get_destination();
+    unset($_GET['destination']);
+  }
+  $tourney = $form_state['tourney'];
+  $form_state['redirect'] = array('tourney/' . $tourney->id . '/delete', array('query' => $destination));
 }
 
 /**
