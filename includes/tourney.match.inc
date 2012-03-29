@@ -329,6 +329,7 @@ function tourney_match_get_parents($mid, $depth) {
   $match = tourney_match_load($mid);
   $tournament = $match->tournament;
   $matches = _tourney_tournament_build_matches($tournament);
+  $bracket = tourney_get_name_part($match->this_match, 'bracket');
 
   $names = array($match->previous_match1, $match->previous_match2);
   while ( $depth-- > 0 ) {
@@ -336,6 +337,7 @@ function tourney_match_get_parents($mid, $depth) {
     foreach ( $names as $name ) {
       $nmatch = tourney_match_get_by_name($matches, $name);
       if ( !$nmatch ) continue;
+      if ( tourney_get_name_part($nmatch->this_match, 'bracket') != $bracket ) continue;
       $ids[] = $nmatch->id;
       $new_names = array_merge($new_names, array($nmatch->previous_match1, $nmatch->previous_match2));
     }
@@ -353,4 +355,11 @@ function tourney_match_get_by_name($matches, $name) {
   while ( --$id > 0 ) array_shift($matches);
   $match = array_shift($matches);
   return $match['match'];
+}
+
+function tourney_get_name_part($name, $part) {
+  foreach ( explode('_', $name) as $sub ) {
+    $sub = explode('-', $sub);
+    if ( $sub[0] == $part ) return $sub[1];
+  }
 }

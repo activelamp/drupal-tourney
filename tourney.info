@@ -19,3 +19,4 @@ files[] = plugins/tourney_formats/default_formats/ladder.inc
 ; Views handlers
 files[] = views/tourney_handler_match_with_parents.inc
 files[] = views/tourney_handler_match_tree.inc
+files[] = includes/tourney_plugin_style_tournament.inc

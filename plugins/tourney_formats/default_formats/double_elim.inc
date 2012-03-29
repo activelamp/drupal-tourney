@@ -68,6 +68,8 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
    *   The current match number that is being build
    */
   protected function set_match_path($matches, $bracket, $current_round, $current_match) {
+    $matches['round-'. $current_round]['match-'. $current_match]['this_match'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match; //this was needed
+
     $previous_round = $current_round - 1;
     // Previous Match number.
     $pm = $current_match * 2;

@@ -1,11 +1,16 @@
 <?php
 
 function tourney_render_tourney_double($tournament, $matches) {
-  $output  = '<div class="bracket bracket-top">' 
+  $output = '';
+
+  if ( array_key_exists('bracket-top', $matches) )
+    $output  = '<div class="bracket bracket-top">' 
             . tourney_dummy_rounds(count($matches['bracket-bottom']) - count($matches['bracket-top']), $tournament->players)
             . tourney_double_top_bracket(array_values($matches['bracket-top']), $tournament->players) . '</div>';
-  $output .= '<div class="bracket bracket-champion">' . tourney_double_champion_bracket($tournament, array_values($matches['bracket-champion']), 1) . '</div>';
-  $output .= '<div class="bracket bracket-bottom">' . tourney_double_bottom_bracket(array_values($matches['bracket-bottom'])) . '</div>';
+  if ( array_key_exists('bracket-champion', $matches) )
+    $output .= '<div class="bracket bracket-champion">' . tourney_double_champion_bracket($tournament, array_values($matches['bracket-champion']), 1) . '</div>';
+  if ( array_key_exists('bracket-bottom', $matches) )
+    $output .= '<div class="bracket bracket-bottom">' . tourney_double_bottom_bracket(array_values($matches['bracket-bottom'])) . '</div>';
   return $output;
 }
 
