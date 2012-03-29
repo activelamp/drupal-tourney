@@ -66,7 +66,7 @@ function tourney_match_form($form, &$form_state, $tourney) {
   
   // @todo: It would be nice if these were field api fields
   $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_1');
-  if (!is_object($contestant) || ($tourney->previous_match1 == 'manual' && !is_object($contestant))) {
+  if (($tourney->previous_match1 == 'manual' && !is_object($contestant))) {
     $form['contestant1'] = array(
       '#title' => t('Contestant 1'),
       '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
@@ -75,7 +75,7 @@ function tourney_match_form($form, &$form_state, $tourney) {
     ) + _tourney_match_contestant($tourney);
   }
   $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_2');
-  if (!is_object($contestant) || ($tourney->previous_match2 == 'manual' && !is_object($contestant))) {
+  if (($tourney->previous_match2 == 'manual' && !is_object($contestant))) {
     $form['contestant2'] = array(
       '#title' => t('Contestant 2'),
       '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,

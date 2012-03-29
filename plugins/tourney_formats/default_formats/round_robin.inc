@@ -23,28 +23,23 @@ class RoundRobin implements TourneyMatchInterface {
   
   /**
    * Build an array with all possible matches.
+   * @see http://www.ehow.com/how_5796594_create-round_robin-schedule.html
    */
   public function build() {
+    // Ensure we have an even number of spots
+    $spots = $this->num_contestants % 2 ? $this->num_contestants + 1 : $this->num_contestants;
+    // Number of rounds is (n - 1), n being contestants
+    $rounds = $spots - 1;
+    
     $matches = array();
-    $i = 0;
-    // Loop through all contestants
-    for ($c=1;$c<$this->num_contestants;$c++) {
-      $next_c = $c + 1;
-      
-      /**
-       * Build Match for each contestant
-       * 
-       * Starting with the current contestant in this iteration of the current
-       * loop, create a match with all contestants after this one.
-       */
-      $next_contestant = $c + 1;
-      while ($next_contestant <= $this->num_contestants) {
-        $matches['match-'. ++$i] = array(
-          'contestant-'. $c => 'manual',
-          'contestant-'. $next_contestant++ => 'manual',
-        );
+    
+    for ($r=1;$r<=$rounds;$r++) {
+      for ($m=1;$m<=$spots/2;$m++) {
+        $matches['round-'. $r]['match-'. $m]['contestant-1'] = $r == 1 ? 'manual' : '';
+        $matches['round-'. $r]['match-'. $m]['contestant-2'] = $r == 1 ? 'manual' : '';
       }
     }
+    dpm($matches);
     $this->matches = $matches;
     return $this->matches;
   }
