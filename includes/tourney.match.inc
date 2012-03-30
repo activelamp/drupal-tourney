@@ -270,6 +270,9 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney'). '/theme/tourney.css'
   );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney'). '/theme/tourney.js'
+  );
   $entity->content['tournament'] = array(
     '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
     '#suffix' => '</div>',
@@ -309,6 +312,9 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
 function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en') {
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney'). '/theme/tourney.css'
+  );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney'). '/theme/tourney.js'
   );
   $entity->content['match_winner'] = array(
     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',

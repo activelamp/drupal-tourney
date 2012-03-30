@@ -30,7 +30,7 @@ function tourney_double_top_bracket($rounds, $players) {
     $output .= '<div class="round round-' . $r . '">';
     $output .= tourney_spacer($top_pad, null, 1);
     foreach ( array_values($round) as $m => $match ) {
-      $output .= tourney_matchblock($match['match'], $last ? 'bottomleft' : ( $m % 2 ? ( $mid_pad == 0 ? 'topleft evenright,special' : 'topleft' ) : 'bottomleft' ), 1);
+      $output .= tourney_matchblock($match['match'], $last ? 'bottomleft' : ( $m % 2 ? ( $mid_pad == 0 ? 'topleft evenright,special' : 'topleft' ) : ( $mid_pad == 0 ? 'bottomleft evenright,special,bottom' : 'bottomleft' ) ), 1);
       if ( $m == count($round) - 1 ) 
         if ( $r == count($rounds) -1 ) {
           $pads = $players/4-1;

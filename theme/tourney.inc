@@ -37,9 +37,12 @@ function theme_tourney_render_tourney($vars) {
  * @return
  *   Wrapped flow HTML 
  */
-function tourney_flow_control($flows) {
+function tourney_flow_control($flows, $options = array()) {
   if ( !$flows ) return;
-  $output = '<div class="flow"><div class="flow-control '
+  $attributes = (!empty($options['attributes']) ? $options['attributes'] : array());
+  $attributes['class'][] = 'flow';
+
+  $output = '<div ' . drupal_attributes($attributes) . '><div class="flow-control '
         .  implode('"></div><div class="flow-control ', explode(' ', $flows))
         .  '"></div></div>';  
   return str_replace(',', ' ', $output);
@@ -68,9 +71,19 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
   $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . '">';
   if ( !$small )
     $output .= '<div class="match-title">' . $title . '</div>';
-  $output .= tourney_flow_control($flow);
-  $output .= '<div class="contestant contestant-1">' . $contestant1 . ( $match->winner == $contestant1 ? ' ♔' : '' ) . '</div>';
-  $output .= '<div class="contestant contestant-2">' . $contestant2 . ( $match->winner == $contestant2 ? ' ♔' : '' ) . '</div>';
+
+  // Add extra classes to the contestant and flow containers to aid in highlighting
+  $contestant1_class = (!empty($match->contestant1) ? ' entity-' . $match->contestant1->_entity_type . '-' . $match->contestant1->_entity_id : '');
+  $contestant2_class = (!empty($match->contestant2) ? ' entity-' . $match->contestant2->_entity_type . '-' . $match->contestant2->_entity_id : '');
+  $winner_class = '';
+  if (!empty($match->winner)) {
+    if ($match->winner == $match->contestant1->name) $winner_class = $contestant1_class;
+    if ($match->winner == $match->contestant2->name) $winner_class = $contestant2_class;
+  }
+
+  $output .= tourney_flow_control($flow, array('attributes' => array('class' => array($winner_class))));
+  $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . ( $match->winner == $contestant1 ? ' ♔' : '' ) . '</div>';
+  $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . ( $match->winner == $contestant2 ? ' ♔' : '' ) . '</div>';
   $output .= '</div>';
   return l($output, "tourney/match/{$match->id}" . ( $editable ? "/edit" : ''), array(
     'html' => TRUE, 

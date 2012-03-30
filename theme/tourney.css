@@ -44,6 +44,15 @@ Match theming should update .match-spacer.small as well to exactly 50% of .match
   background: #F0F0F0;
 }
 
+.tourney a.match-link .match .contestant.bracket-highlight {
+  background: #ABAB2E;
+  
+}
+
+.tourney a.match-link .match .contestant.bracket-highlight:hover {
+  background: #BBBB3E;
+}
+
 .tourney .contestant.contestant-1 {
   border-radius: .5em .5em 0 0;
 }
@@ -76,6 +85,7 @@ Pretty sure this flow theming needs to be redone
   height: 50%;
   width: 50%;
   border: 0 solid #888;
+  z-index: 1;
 }
 
 .tourney .match .flow .flow-control.topleft {
@@ -115,6 +125,12 @@ Pretty sure this flow theming needs to be redone
   height: 50%;
 }
 
+.tourney .match .flow .flow-control.special.bottom.evenright {
+  bottom: -1px;
+  top: auto;
+  border-width: 0 0 1px;
+}
+
 .tourney .match .flow .flow-control.vertical {
   height: 100%;
   border-width: 0 1px 0 0;
@@ -123,6 +139,49 @@ Pretty sure this flow theming needs to be redone
 .tourney .match .flow .flow-control.horizontal {
   width: 100%;
   border-width: 0 0 1px;
+}
+
+/* FLOW HIGHLIGHT THEMING */
+
+.tourney .match .flow.bracket-highlight .flow-control {
+  border: 0 solid #ABAB2E;
+  z-index: 2;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.topleft {
+  border-width: 0 2px 2px 0;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.bottomleft {
+  border-width: 2px 2px 0 0;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.topright {
+  border-width: 0 0 2px 2px;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.bottomright {
+  border-width: 0 0 0 2px;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.evenright {
+  border-width: 2px 0 0 2px;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.special.evenright {
+  border-width: 2px 0 0;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.special.bottom.evenright {
+  border-width: 0 0 2px;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.vertical {
+  border-width: 0 2px 0 0;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.horizontal {
+  border-width: 0 0 2px;
 }
 
 /* SINGLE */
