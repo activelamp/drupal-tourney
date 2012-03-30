@@ -32,8 +32,6 @@ class RoundRobin implements TourneyMatchInterface {
    * 
    */
   public function build() {
-    $matches = array();
-    
     // Ensure we have an even number of spots
     $spots = $this->num_contestants % 2 ? $this->num_contestants + 1 : $this->num_contestants;
     $this->spots = $spots;
@@ -41,17 +39,19 @@ class RoundRobin implements TourneyMatchInterface {
     // Number of rounds is (n - 1), n being contestants
     $rounds = $spots - 1;
     
+    $matches = array();
+    
     for ($r=1;$r<=$rounds;$r++) {
       for ($m=1;$m<=$spots/2;$m++) {
-        $matches['bracket-roundrobin']['round-'. $r]['match-'. $m]['contestant-1'] = $r == 1 ? 'manual' : '';
-        $matches['bracket-roundrobin']['round-'. $r]['match-'. $m]['contestant-2'] = $r == 1 ? 'manual' : '';
+        $matches['round-'. $r]['match-'. $m]['contestant-1'] = $r == 1 ? 'manual' : '';
+        $matches['round-'. $r]['match-'. $m]['contestant-2'] = $r == 1 ? 'manual' : '';
         
         $matches = $this->set_match_path($matches, $r, $m);
       }
     }
-    return array(
-      'bracket-roundrobin' => $matches, 
-    );
+    dpm($matches);
+    $this->matches = $matches;
+    return $this->matches;
   }
   
   /**
@@ -106,8 +106,8 @@ class RoundRobin implements TourneyMatchInterface {
       $placeholders = $this->placeholders($this->spots);
       
         
-      $matches['bracket-roundrobin']['round-'. $current_round]['match-'. $current_match]['winner'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][0]);
-      $matches['bracket-roundrobin']['round-'. $current_round]['match-'. $current_match]['loser'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][1]);
+      $matches['round-'. $current_round]['match-'. $current_match]['winner'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][0]);
+      $matches['round-'. $current_round]['match-'. $current_match]['loser'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][1]);
     }
     return $matches;
   }
@@ -131,7 +131,7 @@ class RoundRobin implements TourneyMatchInterface {
         $r = $round + 1;
         $m = $key + 1;
         $c = $pos + 1;
-        return 'bracket-roundrobin_round-'. $r .'_match-'. $m .'_contestant-'. $c;
+        return 'round-'. $r .'_match-'. $m .'_contestant-'. $c;
       }
     }
   }

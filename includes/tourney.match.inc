@@ -4,7 +4,7 @@
  * @file
  * Defines the wrapper functions for Entity API CRUD specifically for the match
  * entity. To used these function make sure you module_load_include().
- *
+ * 
  */
 
 /**
@@ -19,7 +19,7 @@ function tourney_match_page_view($match) {
  */
 function tourney_match_edit($match) {
   drupal_set_title(t('Edit Match: @title', array('@title' => $match->title)));
-
+  
   return drupal_get_form('tourney_match_form', $match);
 }
 
@@ -28,9 +28,9 @@ function tourney_game_win_form_submit($form, &$form_state) {
   $contestant = $form_state['input']['contestant'];
   $match = tourney_match_load($extra['match']);
   $game = tourney_game_load($extra['game']);
-  $game->winner = $contestant;
+	$game->winner = $contestant;
   tourney_game_save($game);
-  $form_sate['redirect'] = 'tourney/match/' . $match->id;
+	$form_sate['redirect'] = 'tourney/match/' . $match->id;
 }
 
 function tourney_game_win_form($form, &$form_state, $extra) {
@@ -60,71 +60,41 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 /**
  * The match form.
  */
-function tourney_match_form($form, &$form_state, $match) {
-  $match->type = 'match';
-  $form_state['tourney'] = $match;
-  $games = tourney_tournament_get_match_games($match);
-
-  $contestant1 = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_1);
-  $contestant2 = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_2);
-
-  if ($tourney->previous_match2 == 'bye') {
-    // @todo: It would be nice if these were field api fields
-    if (($tourney->previous_match1 == 'manual' && !is_object($contestant1))) {
-      $form['contestant1'] = array(
-        '#title' => t('Contestant'),
-        '#default_value' => is_object($contestant1) && $contestant1->uid ? $contestant1->uid : -1,
-        '#disabled' => is_object($contestant1) && $contestant1->uid ? TRUE : FALSE,
-        '#required' => is_object($contestant1) && $contestant1->uid ? FALSE : TRUE,
-      ) + _tourney_match_contestant($tourney);
-    }
-
-    $form['description'] = array(
-      '#markup' => t('The selected contestant will receive a bye and automatically advance.'),
-      '#prefix' => '<div>',
-      '#suffix' => '</div>',
-    );
-
+function tourney_match_form($form, &$form_state, $tourney) {
+  $tourney->type = 'match';
+  $form_state['tourney'] = $tourney;
+  
+  // @todo: It would be nice if these were field api fields
+  $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_1');
+  if (($tourney->previous_match1 == 'manual' && !is_object($contestant))) {
+    $form['contestant1'] = array(
+      '#title' => t('Contestant 1'),
+      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
+      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
+      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
+    ) + _tourney_match_contestant($tourney);
+  }
+  $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_2');
+  if (($tourney->previous_match2 == 'manual' && !is_object($contestant))) {
     $form['contestant2'] = array(
-      '#type' => 'value',
-      '#value' => -1,
-    );
-    $form['games'] = array(
-      '#type' => 'value',
-      '#value' => 1,
-    );
+      '#title' => t('Contestant 2'),
+      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
+      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
+      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
+    ) + _tourney_match_contestant($tourney);
   }
-  else {
-    // @todo: It would be nice if these were field api fields
-    if (($tourney->previous_match1 == 'manual' && !is_object($contestant1))) {
-      $form['contestant1'] = array(
-        '#title' => t('Contestant 1'),
-        '#default_value' => is_object($contestant1) && $contestant1->uid ? $contestant1->uid : -1,
-        '#disabled' => is_object($contestant1) && $contestant1->uid ? TRUE : FALSE,
-        '#required' => is_object($contestant1) && $contestant1->uid ? FALSE : TRUE,
-      ) + _tourney_match_contestant($tourney);
-    }
-    if (($tourney->previous_match2 == 'manual' && !is_object($contestant2))) {
-      $form['contestant2'] = array(
-        '#title' => t('Contestant 2'),
-        '#default_value' => is_object($contestant2) && $contestant2->uid ? $contestant2->uid : -1,
-        '#disabled' => is_object($contestant2) && $contestant2->uid ? TRUE : FALSE,
-        '#required' => is_object($contestant2) && $contestant2->uid ? FALSE : TRUE,
-      ) + _tourney_match_contestant($tourney);
-    }
+  
+  $form['games'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Games'),
+    '#description' => t('Enter the number of games in this match'),
+    '#size' => 40,
+    '#maxlength' => 255,
+    '#default_value' => $tourney->games,
+    '#required' => TRUE,
+  );
 
-    $form['games'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Games'),
-      '#description' => t('Enter the number of games in this match'),
-      '#size' => 40,
-      '#maxlength' => 255,
-      '#default_value' => $tourney->games,
-      '#required' => TRUE,
-    );
-  }
-
-  field_attach_form('tourney_match', $match, $form, $form_state);
+  field_attach_form('tourney_match', $tourney, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -134,6 +104,7 @@ function tourney_match_form($form, &$form_state, $match) {
   );
 
   $form['#submit'][] = 'tourney_match_form_submit';
+  
 
   return $form;
 }
@@ -141,29 +112,29 @@ function tourney_match_form($form, &$form_state, $match) {
 /**
  * Create an entity field for contestants.
  */
-function _tourney_match_contestant($match) {
+function _tourney_match_contestant($tourney) {
   return array(
     '#type' => 'select',
-    '#options' => _tourney_match_contestants($match),
+    '#options' => _tourney_match_contestants($tourney),
     '#default_value' => '',
     '#required' => TRUE,
   );
 }
 
-function _tourney_match_contestants($match) {
+function _tourney_match_contestants($tourney) {
   $query = db_select('relation_bundles', 'rb');
   $query->fields('rb', array('entity_type'))
     ->distinct()
-    ->condition('relation_type', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2))
+    ->condition('relation_type', array('contestant_1', 'contestant_2'))
     ->condition('r_index', 1);
   $bundles = $query->execute();
-
+  
   $options = array('' => ' - Choose contestant -');
   foreach ( $bundles as $bundle ) {
     $bn = $bundle->entity_type;
     $group = array();
     $entities = entity_load($bn);
-
+    
     if ( empty($entities) ) {
       $group[] = ' - Empty - ';
     }
@@ -173,35 +144,35 @@ function _tourney_match_contestants($match) {
     }
     if ( !empty($group) ) $options[$bn] = $group;
   }
-  _tourney_match_contestants_sanitize($match, $options);
+  _tourney_match_contestants_sanitize($tourney, $options);
   return $options;
 }
 
-function _tourney_match_contestants_sanitize($main_match, &$options) {
+function _tourney_match_contestants_sanitize($tourney, &$options) {
   // Get the tournament object this match is in.
-  $tournament = relation_get_related_entity('tourney_match', $main_match->id, 'has_match');
+  $tournament = relation_get_related_entity('tourney_match', $tourney->id, 'has_match');
   // Get all the matches in round 1 for this tournament
   $query = relation_query('tourney_tournament', $tournament->id);
   $query->entityCondition('bundle', 'has_match')
         ->fieldCondition('round', 'value', 'round-1');
   $results = $query->execute();
-
+  
   $match_ids = array();
   foreach ($results as $relation) {
     $r = relation_load($relation->rid);
     $match_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
   }
   $matches = tourney_match_load_multiple($match_ids);
-
+  
   // Unset users in the options array that are already selected
   foreach ($matches as $match) {
     if (is_object($match->contestant1)) {
       $et = $match->contestant1->_entity_type;
-      unset($options[$et]["$et." . $match->contestant1->_entity_id]);
+      unset($options[$et]["$et.".$match->contestant1->_entity_id]);
     }
     if (is_object($match->contestant2)) {
       $et = $match->contestant2->_entity_type;
-      unset($options[$et]["$et." . $match->contestant2->_entity_id]);
+      unset($options[$et]["$et.".$match->contestant2->_entity_id]);
     }
   }
   if ( array_key_exists('user', $options) ) {
@@ -226,12 +197,12 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   drupal_set_message(t('Your match has been saved.'));
-
+  
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_match', $tourney, $form, $form_state);
   tourney_match_save($tourney);
-
-  $form_state['redirect'] = 'tourney/match/' . $tourney->id;
+  
+  $form_state['redirect'] = 'tourney/match/'. $tourney->id;
 }
 
 /**
@@ -246,7 +217,7 @@ function tourney_game_page_view($game) {
  */
 function tourney_game_edit($game) {
   drupal_set_title(t('Edit Game: @title', array('@title' => $game->title)));
-
+  
   return drupal_get_form('tourney_game_form', $game);
 }
 
@@ -255,7 +226,7 @@ function tourney_game_edit($game) {
  */
 function tourney_game_form($form, &$form_state, $tourney) {
   $tourney->type = 'game';
-  $form_state['tourney'] = $tourney;
+  $form_state['tourney'] = $tourney;  
   $form['winner'] = array(
     '#type' => 'select',
     '#title' => t('Winner'),
@@ -274,7 +245,7 @@ function tourney_game_form($form, &$form_state, $tourney) {
   );
 
   $form['#submit'][] = 'tourney_game_form_submit';
-
+  
 
   return $form;
 }
@@ -284,12 +255,12 @@ function tourney_game_form($form, &$form_state, $tourney) {
  */
 function tourney_game_form_submit($form, &$form_state) {
   drupal_set_message(t('Your game has been saved.'));
-
+  
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_game', $tourney, $form, $form_state);
   tourney_game_save($tourney);
-
-  $form_state['redirect'] = 'tourney/game/' . $tourney->id;
+  
+  $form_state['redirect'] = 'tourney/game/'. $tourney->id;
 }
 
 /**
@@ -297,17 +268,17 @@ function tourney_game_form_submit($form, &$form_state) {
  */
 function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en') {
   $entity->content['#attached']['css'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
+    drupal_get_path('module', 'tourney'). '/theme/tourney.css'
   );
   $entity->content['#attached']['js'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+    drupal_get_path('module', 'tourney'). '/theme/tourney.js'
   );
   $entity->content['tournament'] = array(
     '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#theme' => 'link',
-    '#text' => 'Go to tournament ' . $entity->tournament->title,
-    '#path' => 'tourney/' . $entity->tournament->id,
+    '#text' => 'Go to tournament '. $entity->tournament->title,
+    '#path' => 'tourney/'. $entity->tournament->id,
     '#options' => array('attributes' => array(), 'html' => FALSE),
   );
   $entity->content['match_winner'] = array(
@@ -315,26 +286,24 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#suffix' => '</div>',
     '#markup' => $entity->winner,
   );
-  $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
+  $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
   $entity->content['match_contestant1'] = is_object($contestant1) ? array(
     '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#markup' => $contestant1->name,
   ) : '';
-
-  $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
+  
+  $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
   $entity->content['match_contestant2'] = is_object($contestant2) ? array(
     '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#markup' => $contestant2->name,
   ) : '';
-
-  if ($entity->previous_match2 != 'bye') {
-    $entity->content['match_table'] = array(
-      '#theme' => 'tourney_render_match',
-      '#match' => $entity,
-    );
-  }
+  
+  $entity->content['match_table'] = array(
+    '#theme' => 'tourney_render_match',
+    '#match' => $entity,
+  );
 }
 
 /**
@@ -342,10 +311,10 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
  */
 function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en') {
   $entity->content['#attached']['css'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
+    drupal_get_path('module', 'tourney'). '/theme/tourney.css'
   );
   $entity->content['#attached']['js'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+    drupal_get_path('module', 'tourney'). '/theme/tourney.js'
   );
   $entity->content['match_winner'] = array(
     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
@@ -359,7 +328,7 @@ function tourney_match_get_parents($mid, $depth) {
 
   $match = tourney_match_load($mid);
   $tournament = $match->tournament;
-  $matches = tourney_tournament_build_matches($tournament);
+  $matches = _tourney_tournament_build_matches($tournament);
   $bracket = tourney_get_name_part($match->this_match, 'bracket');
 
   $names = array($match->previous_match1, $match->previous_match2);
@@ -379,10 +348,10 @@ function tourney_match_get_parents($mid, $depth) {
 }
 
 function tourney_match_get_by_name($matches, $name) {
-  if ( $name == 'manual' ) return NULL;
+  if ( $name == 'manual' ) return null;
   $parts = explode('_', $name);
   foreach ( $parts as $part ) if ( array_key_exists($part, $matches) ) $matches = $matches[$part];
-  @list(, $id) = explode('-', array_pop($parts));
+  @list(,$id) = explode('-', array_pop($parts));
   while ( --$id > 0 ) array_shift($matches);
   $match = array_shift($matches);
   return $match['match'];

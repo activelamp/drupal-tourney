@@ -9,8 +9,7 @@
 
         if (highlight) {
           // Highlight contestants
-          $('div.' + highlight).addClass('bracket-highlight')
-            .not(':last').closest('div.match-contestant').find('div.flow').addClass('bracket-highlight');
+          $('div.' + highlight).addClass('bracket-highlight');
         }
       },
       function() {
