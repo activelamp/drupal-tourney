@@ -52,12 +52,39 @@ class RoundRobin implements TourneyMatchInterface {
         $matches['round-'. $r]['match-'. $m]['contestant-1'] = $r == 1 ? 'manual' : '';
         $matches['round-'. $r]['match-'. $m]['contestant-2'] = $r == 1 ? 'manual' : '';
         
-        $matches = $this->set_match_path($matches, $round, $match);
+        $matches = $this->set_match_path($matches, $r, $m);
       }
     }
     dpm($matches);
     $this->matches = $matches;
     return $this->matches;
+  }
+  
+  /**
+   * Figure out where each team needs to go next based on standard round robin
+   * logic. Build the array that determines the spots.
+   */
+  private function placeholders() {
+    $num_rounds = $num_teams - 1; 
+    $rounds = array(); 
+
+    for($round = 0; $round < $num_rounds; $round++) {       
+      for ($index = 0; $index < $num_teams / 2; $index++) { 
+
+        // Create the ascending array value
+        $local_key = ($index != 0) * ($index - $round) + 
+          (($index != 0) && (($index != 0) * ($index - $round) <= 0)) * $num_rounds; 
+
+        // Create the descending array value
+        $away_key = $num_rounds - $index - $round + 
+          (($index != 0) && ($num_rounds - $index - $round <= 0)) * $num_rounds; 
+
+        // The home team and visitor team switch every other game
+        $rounds[$round][] = $round % 2 ? array($away_key, $local_key) : array($local_key, $away_key); 
+      } 
+    } 
+
+    $this->game_structure = $rounds;
   }
   
   protected function set_match_path($matches, $current_round, $current_match) {
