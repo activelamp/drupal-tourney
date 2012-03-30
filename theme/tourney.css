@@ -1,0 +1,244 @@
+.field-label{font-weight:bold;}
+
+.tourney .bracket {
+  float: left;
+}
+
+.tourney a.match-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tourney a.match-link:hover .contestant {
+  background: #E8E8E8;
+}
+
+/*
+
+Match theming should update .match-spacer.small as well to exactly 50% of .match height
+
+*/
+
+.tourney .match {
+  height: 4em;
+  width: 100%;
+  float: left;
+  border: none;
+  position: relative;
+}
+
+.tourney .match-spacer.small {
+  height: 2em;
+}
+
+.tourney .contestant {
+  width: 75%;
+  height: 50%;
+  float: left;
+  line-height: 200%;
+  background: #E0E0E0;
+  padding: 0 6%;
+}
+
+.tourney a.match-link .match .contestant:hover {
+  background: #F0F0F0;
+}
+
+.tourney a.match-link .match .contestant.bracket-highlight {
+  background: #ABAB2E;
+  
+}
+
+.tourney a.match-link .match .contestant.bracket-highlight:hover {
+  background: #BBBB3E;
+}
+
+.tourney .contestant.contestant-1 {
+  border-radius: .5em .5em 0 0;
+}
+
+.tourney .contestant.contestant-2 {
+  border-top: 1px solid #888;
+  border-radius: 0 0 .5em .5em;
+}
+
+.tourney .contestant.contestant-spacer {
+  visibility: hidden;
+}
+
+/*
+
+Pretty sure this flow theming needs to be redone
+
+*/
+
+.tourney .match .flow {
+  height: 100%;
+  width: 15%;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+}
+
+.tourney .match .flow .flow-control {
+  position: relative;
+  height: 50%;
+  width: 50%;
+  border: 0 solid #888;
+  z-index: 1;
+}
+
+.tourney .match .flow .flow-control.topleft {
+  border-width: 0 1px 1px 0;
+  border-radius: 0 0 .5em;
+}
+
+.tourney .match .flow .flow-control.bottomleft {
+  top: 50%;
+  border-width: 1px 1px 0 0;
+  border-radius: 0 .5em 0;
+  height: 50%;
+}
+
+.tourney .match .flow .flow-control.topright {
+  left: 50%;
+  border-width: 0 0 1px 1px;
+}
+
+.tourney .match .flow .flow-control.bottomright {
+  left: 50%;
+  border-width: 0 0 0 1px;
+}
+
+.tourney .match .flow .flow-control.evenright {
+  border-width: 1px 0 0 1px;
+  height: 100%;
+  left: 50%;
+}
+
+.tourney .match .flow .flow-control.special.evenright {
+  position: absolute;
+  top: 0px;
+  right: 1px;
+  border-width: 1px 0 0;
+  padding-left: 1px;
+  height: 50%;
+}
+
+.tourney .match .flow .flow-control.special.bottom.evenright {
+  bottom: -1px;
+  top: auto;
+  border-width: 0 0 1px;
+}
+
+.tourney .match .flow .flow-control.vertical {
+  height: 100%;
+  border-width: 0 1px 0 0;
+}
+
+.tourney .match .flow .flow-control.horizontal {
+  width: 100%;
+  border-width: 0 0 1px;
+}
+
+/* FLOW HIGHLIGHT THEMING */
+
+.tourney .match .flow.bracket-highlight .flow-control {
+  border: 0 solid #ABAB2E;
+  z-index: 2;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.topleft {
+  border-width: 0 2px 2px 0;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.bottomleft {
+  border-width: 2px 2px 0 0;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.topright {
+  border-width: 0 0 2px 2px;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.bottomright {
+  border-width: 0 0 0 2px;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.evenright {
+  border-width: 2px 0 0 2px;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.special.evenright {
+  border-width: 2px 0 0;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.special.bottom.evenright {
+  border-width: 0 0 2px;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.vertical {
+  border-width: 0 2px 0 0;
+}
+
+.tourney .match .flow.bracket-highlight .flow-control.horizontal {
+  border-width: 0 0 2px;
+}
+
+/* SINGLE */
+
+.tourney-single .round {
+  width: 12em;
+  float: left;
+}
+
+/* DOUBLE */
+
+.tourney-double .bracket-bottom {
+  clear: left;
+}
+
+.tourney-double .round-champion .flow .flow-control {
+  border-style: dashed;
+}
+
+.tourney-double .round {
+  width: 10em;
+  float: left;
+}
+
+/* ROUND ROBIN */
+
+.tourney-roundrobin .match {
+  width: 12em;
+  height: auto;
+}
+
+
+
+
+
+
+
+
+
+
+/* EXAMPLE THEMING */
+
+#page .contestant {
+  height: 21px;
+  line-height: 21px;
+}
+
+#page .contestant-1 {
+  margin-top: 5px;
+}
+
+.match .match-title {
+  height: 1.5em;
+  text-align: center;
+  width: 87%;
+}
+
+.match.normal .flow {
+  padding-top: 1.5em;
+}

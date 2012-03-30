@@ -1,0 +1,336 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for tournaments.
+ */
+ 
+/**
+ * Implements hook_schema().
+ */
+function tourney_schema() {
+  $schema['tourney_tournament'] = array(
+    'description' => 'The base table for tournaments.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The primary identifier for a tournament.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'type' => array(
+        'description' => 'The bundle.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      'title' => array(
+        'description' => 'The title of the tournament, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'format' => array(
+        'description' => 'The format of tournament play.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => ''),
+      'players' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The number of contestants in tournament.",),
+      'winner' => array(
+        'description' => 'Winner of the tournament.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'unique keys' => array(
+      'id' => array('id'),
+      ),
+    'primary key' => array('id'),
+  );
+  
+  $schema['tourney_match'] = array(
+    'description' => 'The base table for a match.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The primary identifier for a match.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'type' => array(
+        'description' => 'The bundle.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      'title' => array(
+        'description' => 'The title of a match, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'games' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The number of games in a match.",),
+      'winner' => array(
+        'description' => 'Winner of the match.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => ''),
+      'next_match_winner' => array(
+        'description' => 'Winners next match.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => ''),
+      'next_match_loser' => array(
+        'description' => 'Losers next match.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => ''),
+      'previous_match1' => array(
+        'description' => 'Contestant 1 previous match.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => ''),
+      'previous_match2' => array(
+        'description' => 'Contestant 2 previous match.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => ''),
+      'this_match' => array(
+        'description' => 'Name of this match.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'unique keys' => array(
+      'id' => array('id'),
+      ),
+    'primary key' => array('id'),
+  );
+  
+  $schema['tourney_game'] = array(
+    'description' => 'The base table for a match.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The primary identifier for a game.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'type' => array(
+        'description' => 'The bundle.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      'title' => array(
+        'description' => 'The title of a game, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'winner' => array(
+        'description' => 'Winner of the match.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'unique keys' => array(
+      'id' => array('id'),
+      ),
+    'primary key' => array('id'),
+  );
+  
+  // Defing the bundle schemas for all three entities
+  $schema['tourney_tournament_type'] =
+  $schema['tourney_match_type'] =
+  $schema['tourney_game_type'] = array(
+    'description' => 'Stores information about all defined types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique type ID.',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this type in relation to others.',
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this type.',
+        'merge' => TRUE,
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function tourney_install() {
+  /** Creating the tournament <=> match relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'has_match';
+  $relation->label = 'has match';
+  $relation->reverse_label = 'is match of';
+  $relation->directional = true;
+  $relation->source_bundles['tourney_tournament:*'] = 'tourney_tournament:*';
+  $relation->target_bundles['tourney_match:*'] = 'tourney_match:*';
+  relation_type_save($relation);
+  
+  /** Creating the match <=> game relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'has_game';
+  $relation->label = 'has game';
+  $relation->reverse_label = 'is game of';
+  $relation->directional = true;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
+  $relation->target_bundles['tourney_game:*'] = 'tourney_game:*';
+  relation_type_save($relation);
+  
+  /** Creating the contestant relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'contestant_1';
+  $relation->label = 'contestant 1';
+  $relation->directional = true;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
+  $relation->target_bundles['user:*'] = 'user:*';
+  $relation->target_bundles['node:*'] = 'node:*';
+  relation_type_save($relation);
+  
+  /** Creating the contestant relation. */
+  $relation = new stdClass();
+  $relation->relation_type = 'contestant_2';
+  $relation->label = 'contestant 2';
+  $relation->directional = true;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
+  $relation->target_bundles['user:*'] = 'user:*';
+  $relation->target_bundles['node:*'] = 'node:*';
+  relation_type_save($relation);
+  
+  // Define fields for the tournament has match relation.
+  $field = array(
+    'field_name' => 'bracket',
+    'cardinality' => 1,
+    'type' => 'text',
+  );
+  field_create_field($field);
+
+  $field_instance = array(
+    'entity_type' => 'relation',
+    'bundle' => 'has_match',
+    'field_name' => 'bracket',
+    'label' => t('Bracket'),
+  );
+  field_create_instance($field_instance);
+  
+  $field = array(
+    'field_name' => 'round',
+    'cardinality' => 1,
+    'type' => 'text',
+  );
+  field_create_field($field);
+
+  $field_instance = array(
+    'entity_type' => 'relation',
+    'bundle' => 'has_match',
+    'field_name' => 'round',
+    'label' => t('Round'),
+  );
+  field_create_instance($field_instance);
+  
+  // Create the default bundles for the tournaments
+  $type = entity_create('tourney_tournament_type', array(
+    'name' => 'tournament',
+    'label' => t('Tournament'),
+    'weight' => 0,
+  ));
+  $type->save();
+  $type = entity_create('tourney_match_type', array(
+    'name' => 'match',
+    'label' => t('Match'),
+    'weight' => 0,
+  ));
+  $type->save();
+  $type = entity_create('tourney_game_type', array(
+    'name' => 'game',
+    'label' => t('Game'),
+    'weight' => 0,
+  ));
+  $type->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function tourney_uninstall() {
+  relation_type_delete('has_match');
+  relation_type_delete('has_game');
+  relation_type_delete('contestant_1');
+  relation_type_delete('contestant_2');
+}
+
+
+
