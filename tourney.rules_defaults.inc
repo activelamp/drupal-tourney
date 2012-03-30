@@ -35,20 +35,5 @@ function tourney_default_rules_configuration() {
 
   $configs['rules_tourney_game_is_won'] = $rule;
   
-  $rule = rules_reaction_rule();
-  $rule->label = 'Set round robin paths';
-  $rule->active = TRUE;
-  $rule->event('tourney_match_update')
-       ->condition('data_is', array(
-         'data:select' => 'tourney-match:relation-has-match-tourney-tournament-reverse:0:format',
-         'value' => 'RoundRobin'
-       ))
-       ->action('tourney_action_set_all_matches', array(
-         'match:select' => 'tourney-match'
-       ))
-       ->action('drupal_message', array('message:select' => 'action-message'));;
-
-  $configs['rules_tourney_set_all_matches'] = $rule;
-
   return $configs;
 }
