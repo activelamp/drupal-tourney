@@ -12,6 +12,7 @@ class RoundRobin implements TourneyMatchInterface {
   
   protected $num_contestants;
   protected $matches;
+  protected $spots;
   
   /**
    * Constructor
@@ -29,19 +30,12 @@ class RoundRobin implements TourneyMatchInterface {
    *   HOME TEAM = 'contestant-1'
    *   AWAY TEAM = 'contestant-2'
    * 
-   * There is a specific order that the matches are played. The fields that
-   * track movement were initially built for winner path and loser path. In
-   * round robin tournaments the path the teams take in the tournament do not
-   * depend on who wins the match, it is already determined at the start of
-   * the tournament. To accomodate for this, assume the following is true:
-   *   CONTESTANT 1 NEXT GAME = next_match_winner
-   *   CONTESTANT 2 NEXT GAME = next_match_loser
-   * 
-   * @todo Fix the name of the paths so that they are named more generic.
    */
   public function build() {
     // Ensure we have an even number of spots
     $spots = $this->num_contestants % 2 ? $this->num_contestants + 1 : $this->num_contestants;
+    $this->spots = $spots;
+    
     // Number of rounds is (n - 1), n being contestants
     $rounds = $spots - 1;
     
@@ -62,45 +56,83 @@ class RoundRobin implements TourneyMatchInterface {
   
   /**
    * Figure out where each team needs to go next based on standard round robin
-   * logic. Build the array that determines the spots.
+   * logic. Build the array that determines the placeholder spots.
+   * 
+   * @param $spots
+   *   The (even) number of players in the tournament.
    */
-  private function placeholders() {
-    $num_rounds = $num_teams - 1; 
-    $rounds = array(); 
+  private function placeholders($spots) {
+    static $placeholders = array();
+    
+    if (empty($placeholders)) {
+      $num_rounds = $spots - 1; 
+      $rounds = array(); 
 
-    for($round = 0; $round < $num_rounds; $round++) {       
-      for ($index = 0; $index < $num_teams / 2; $index++) { 
+      for($round = 0; $round < $num_rounds; $round++) {       
+        for ($index = 0; $index < $spots / 2; $index++) { 
 
-        // Create the ascending array value
-        $local_key = ($index != 0) * ($index - $round) + 
-          (($index != 0) && (($index != 0) * ($index - $round) <= 0)) * $num_rounds; 
+          // Create the ascending array value
+          $local_key = ($index != 0) * ($index - $round) + 
+            (($index != 0) && (($index != 0) * ($index - $round) <= 0)) * $num_rounds; 
 
-        // Create the descending array value
-        $away_key = $num_rounds - $index - $round + 
-          (($index != 0) && ($num_rounds - $index - $round <= 0)) * $num_rounds; 
+          // Create the descending array value
+          $away_key = $num_rounds - $index - $round + 
+            (($index != 0) && ($num_rounds - $index - $round <= 0)) * $num_rounds; 
 
-        // The home team and visitor team switch every other game
-        $rounds[$round][] = $round % 2 ? array($away_key, $local_key) : array($local_key, $away_key); 
+          // The home team and visitor team switch every other game
+          $rounds[$round][] = $round % 2 ? array($away_key, $local_key) : array($local_key, $away_key); 
+        } 
       } 
-    } 
 
-    $this->game_structure = $rounds;
+      $placeholders = $rounds;
+    }
+    return $placeholders;
   }
   
+  /**
+   * There is a specific order that the matches are played. The fields that
+   * track movement were initially built for winner path and loser path. In
+   * round robin tournaments the path the teams take in the tournament do not
+   * depend on who wins the match, it is already determined at the start of
+   * the tournament. To accomodate for this, assume the following is true:
+   *   CONTESTANT 1 NEXT GAME = winner
+   *   CONTESTANT 2 NEXT GAME = loser
+   * 
+   * @todo Fix the name of the db column paths so that they are named more generic.
+   */
   protected function set_match_path($matches, $current_round, $current_match) {
-    // Set the winner path in the previous round
-    $previous_round = $current_round-1;
-    dpm($matches);
-    // if (array_key_exists('round-'. $previous_round, $matches)) {
-    //   // Previous Match number.
-    //   $pm = $current_match * 2;
-    //   $previous_match = $pm - 1;
-    //   $matches['round-'. $previous_round]['match-'. $previous_match]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-1';
-    //   $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-2';
-    //   $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $previous_match;
-    //   $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $pm;
-    //   $matches['round-'. $current_round]['match-'. $current_match]['this_match'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match;
-    // }
+    $rounds = $this->spots - 1;
+    if ($current_round < $rounds) {
+      $placeholders = $this->placeholders($this->spots);
+      
+        
+      $matches['round-'. $current_round]['match-'. $current_match]['winner'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][0]);
+      $matches['round-'. $current_round]['match-'. $current_match]['loser'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][1]);
+    }
     return $matches;
+  }
+  
+  /**
+   * Return the path of the next match based on the placeholder value passed
+   * in. This function looks for the place holder value in the next round.
+   * 
+   * @param $round
+   *   The round to find the placeholder value in.
+   * @param $placeholder_value
+   *   The number corresponding to the seed position in the tournament.
+   * @return
+   *   Returns a full path string to the next placement.
+   */
+  private function find_next($round, $placeholder_value) {
+    $placeholders = $this->placeholders($this->spots);
+    foreach ($placeholders[$round] as $key => $matches) {
+      $pos = array_search($placeholder_value, $matches);
+      if ($pos !== false) {
+        $r = $round + 1;
+        $m = $key + 1;
+        $c = $pos + 1;
+        return 'round-'. $r .'_match-'. $m .'_contestant-'. $c;
+      }
+    }
   }
 }
