@@ -66,6 +66,7 @@ class SingleElimination implements TourneyMatchInterface {
   protected function set_match_path($matches, $bracket, $current_round, $current_match) {
     // Set the winner path in the previous round
     $previous_round = $current_round-1;
+    $matches['round-'. $current_round]['match-'. $current_match]['this_match'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match;
     if (array_key_exists('round-'. $previous_round, $matches)) {
       // Previous Match number.
       $pm = $current_match * 2;
@@ -74,7 +75,6 @@ class SingleElimination implements TourneyMatchInterface {
       $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-2';
       $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $previous_match;
       $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $pm;
-      $matches['round-'. $current_round]['match-'. $current_match]['this_match'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match;
     }
     return $matches;
   }
