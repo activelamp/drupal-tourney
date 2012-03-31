@@ -37,7 +37,7 @@ function theme_tourney_render_tourney($vars) {
  * @return
  *   Wrapped flow HTML 
  */
-function tourney_flow_control($flows, $options = array()) {
+function tourney_flow_control($flows) {
   if ( !$flows ) return;
   $attributes = (!empty($options['attributes']) ? $options['attributes'] : array());
   $attributes['class'][] = 'flow';
@@ -81,7 +81,7 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
     if ($match->winner == $match->contestant2->name) $winner_class = $contestant2_class;
   }
 
-  $output .= tourney_flow_control($flow, array('attributes' => array('class' => array($winner_class))));
+  $output .= tourney_flow_control($flow);
   $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . ( $match->winner == $contestant1 ? ' ♔' : '' ) . '</div>';
   $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . ( $match->winner == $contestant2 ? ' ♔' : '' ) . '</div>';
   $output .= '</div>';
