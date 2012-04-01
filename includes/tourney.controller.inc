@@ -18,6 +18,7 @@ class TourneyBuildMatches {
   protected $matches;
   protected $tournament;
   protected $match_path = array();
+  protected $match_count = 0;
   
   /**
    * Constructor
@@ -51,10 +52,14 @@ class TourneyBuildMatches {
    * 
    * @param $tournament
    *   The entity object of the tournament the matches are being saved in.
+   * @return $match_count
+   *   Returns the number of matches saved by this tournament.
    */
   public function save($tournament) {
     $this->tournament = $tournament;
     $this->save_match($this->matches);
+    
+    return $this->match_count;
   }
   
   private function save_match($matches) {
@@ -83,6 +88,7 @@ class TourneyBuildMatches {
         $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : 'manual';
         $match->this_match = array_key_exists('this_match', $value) ? $value['this_match'] : '';
         tourney_match_save($match);
+        $this->match_count++;
         
         // Add the relationship to the tournament.
         $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $match->id);

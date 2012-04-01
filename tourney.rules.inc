@@ -133,6 +133,27 @@ function _tourney_set_match_winner($match) {
   tourney_match_save($match);
 }
 
+/**
+ * Search through all matches in the next round that has a match title that is 
+ * the same as the path for the next match. Save the match found with the new
+ * contestant for that match.
+ * 
+ * @param $match
+ *   The match object the game belongs to.
+ * @param $bracket
+ *   The bracket name as a string to search for the next match.
+ * @param $round
+ *   The round name as a string to search for the next match.
+ * @param $match_name
+ *   The match name as a string to search for the next match. This will look for
+ *   any matches with this match_name.
+ * @param $contestant
+ *   The contestant name as a string to search for the next match. Not the actual
+ *   contestant, just the string identifier (i.e. contestant-1, contestant-2).
+ * @param $from
+ *   A variable used to distinguish if this is being called for a loser path.
+ *   @see tourney_action_game_is_won()
+ */
 function _tourney_move_next_round($match, $bracket, $round, $match_name, $contestant, $from = 'same') {
   // Get the tournament object this match is in.
   $tournament = relation_get_related_entity('tourney_match', $match->id, 'has_match');
@@ -141,30 +162,41 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
   $query = relation_query('tourney_tournament', $tournament->id);
   $query->entityCondition('bundle', 'has_match')
         ->fieldCondition('round', 'value', $round)
-        ->fieldCondition('bracket', 'value', $bracket);
+        ->fieldCondition('bracket', 'value', $bracket)
+        ->range(0, $tournament->matches_created);
   $results = $query->execute();
 
-  // Find the match the contestant should go to
+  // Find the match the contestant should go to.
   foreach ($results as $relation) {
     $r = relation_load($relation->rid);
     $next_match = $r->endpoints[LANGUAGE_NONE][1]['entity_type'] == 'tourney_match'
       ? tourney_match_load($r->endpoints[LANGUAGE_NONE][1]['entity_id'])
       : NULL;
-
+    
+    // We have a match, lets do something with it.
     if ($next_match->title == $match_name) {
-      $winners = _tourney_action_get_winner_counts($match);
-      
-      // Get the winner uid.
-      $winner = array_keys($winners, max($winners));
-      $winner_contestant = $winner[0];
-
-      // Get the loser uid.
-      $loser = array_keys($winners, min($winners));
-      $loser_contestant = $loser[0];
-      
       $contestant = str_replace('-', '', $contestant);
-      $next_match->$contestant = ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_contestant : $winner_contestant;
       
+      // Set the contestant on the next match. Round robin does not care about
+      // winners or losers.
+      if ($bracket == 'bracket-roundrobin') {
+        $c1 = $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id;
+        $c2 = $match->contestant2->_entity_type .'.'. $match->contestant2->_entity_id;
+        $next_match->$contestant = ($from != 'same') ? $c2 : $c1;
+      }
+      else {
+        $winners = _tourney_action_get_winner_counts($match);
+
+        // Get the winner uid.
+        $winner = array_keys($winners, max($winners));
+        $winner_contestant = $winner[0];
+
+        // Get the loser uid.
+        $loser = array_keys($winners, min($winners));
+        $loser_contestant = $loser[0];
+        
+        $next_match->$contestant = ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_contestant : $winner_contestant;
+      }
       tourney_match_save($next_match);
       break;
     }
