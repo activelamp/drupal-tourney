@@ -70,6 +70,11 @@ function tourney_single_tree($rounds, $small = FALSE) {
           $output .= tourney_spacer(1, 'vertical evenright,special,bottom', TRUE);
         }
         $output .= '</div>'; // <!-- /match-contestant -->
+
+        if ($last) {
+          // Last round doesn't have a match pair, so close the match pair div.
+          $output .= '</div>'; // <!-- /match-pair -->
+        }
       }
       else {
         // This match is odd, so it's a "lower" match
