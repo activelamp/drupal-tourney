@@ -9,8 +9,12 @@
 
         if (highlight) {
           // Highlight contestants
-          $('div.' + highlight).addClass('bracket-highlight')
-            .not(':last').closest('div.match-contestant').find('div.flow').addClass('bracket-highlight');
+          // Highlight one bracket at a time to avoid highlighting loser paths
+          // in double elimination type tournaments
+          $('div.bracket').each(function() {
+            $('div.' + highlight, $(this)).addClass('bracket-highlight')
+              .not(':last').closest('div.match-contestant').find('div.flow').addClass('bracket-highlight');
+          });
         }
       },
       function() {
