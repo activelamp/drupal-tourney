@@ -17,15 +17,22 @@ function theme_tourney_render_tourney($vars) {
     'RoundRobin'        => 'roundrobin',
   );
   $tournament = $vars['tournament'];
-  $format     = $types[$tournament->format];
-  if ( array_key_exists('matches', $vars) )
-    $matches  = $vars['matches'];
-  else
-    $matches  =  _tourney_tournament_build_matches($tournament);
-  $output     = "<div class='tourney tourney-$format'>";
+  $format = $types[$tournament->format];
+  
+  if (array_key_exists('matches', $vars)) {
+    $matches = $vars['matches'];
+  }
+  else {
+    $matches = _tourney_tournament_build_matches($tournament);
+  }
+  
+  $output = "<div class='tourney tourney-$format'>";
   module_load_include('inc', 'tourney', "theme/type/$format");
-  if ( function_exists($f = "tourney_render_tourney_$format") ) $output .= call_user_func_array($f, array($tournament, $matches));
-  $output    .= "</div>";
+  if (function_exists($f = "tourney_render_tourney_$format")) {
+    $output .= call_user_func_array($f, array($tournament, $matches));
+  }
+  $output .= "</div>";
+  
   return $output;
 }
 
@@ -37,7 +44,7 @@ function theme_tourney_render_tourney($vars) {
  * @return
  *   Wrapped flow HTML 
  */
-function tourney_flow_control($flows, $options = array()) {
+function tourney_flow_control($flows) {
   if ( !$flows ) return;
   $attributes = (!empty($options['attributes']) ? $options['attributes'] : array());
   $attributes['class'][] = 'flow';
@@ -69,8 +76,9 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
   $title       = $match->title . ' ' . $match->id;
 
   $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . '">';
-  if ( !$small )
-    $output .= '<div class="match-title">' . $title . '</div>';
+  // if ( !$small ) {
+  //     $output .= '<div class="match-title">' . $title . '</div>';
+  //   }
 
   // Add extra classes to the contestant and flow containers to aid in highlighting
   $contestant1_class = (!empty($match->contestant1) ? ' entity-' . $match->contestant1->_entity_type . '-' . $match->contestant1->_entity_id : '');
@@ -81,14 +89,16 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
     if ($match->winner == $match->contestant2->name) $winner_class = $contestant2_class;
   }
 
-  $output .= tourney_flow_control($flow, array('attributes' => array('class' => array($winner_class))));
+  $output .= tourney_flow_control($flow);
   $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . ( $match->winner == $contestant1 ? ' ♔' : '' ) . '</div>';
   $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . ( $match->winner == $contestant2 ? ' ♔' : '' ) . '</div>';
   $output .= '</div>';
-  return l($output, "tourney/match/{$match->id}" . ( $editable ? "/edit" : ''), array(
+  
+  return l($output, "tourney/match/{$match->id}" . ($editable ? "/edit" : ''), array(
     'html' => TRUE, 
     'attributes' => array('class' => 'match-link'), 
-    'query' => $editable ? array('destination' => "tourney/match/{$match->id}") : array()));
+    'query' => $editable ? array('destination' => "tourney/match/{$match->id}") : array()
+  ));
 }
 
 /**

@@ -40,13 +40,19 @@ function tourney_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
         'default' => NULL,
-        'description' => "The number of contestants in tournament.",),
+        'description' => "The number of contestants in tournament."),
       'winner' => array(
         'description' => 'Winner of the tournament.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => TRUE,
         'default' => ''),
+      'matches_created' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The number of matches created in this tournament."),
       ),
     'unique keys' => array(
       'id' => array('id'),
