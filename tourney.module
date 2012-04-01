@@ -628,7 +628,11 @@ function tourney_entity_insert($entity, $entity_type) {
     $matches = new TourneyBuildMatches($entity->players, $entity->format);
     $matches->create();
     // Create the actual match entities and the first game.
-    $matches->save($entity);
+    $matches_created = $matches->save($entity);
+    
+    // Update the tournament with the number of matches created
+    $entity->matches_created = $matches_created;
+    drupal_write_record('tourney_tournament', $entity, 'id');
   }
 }
 

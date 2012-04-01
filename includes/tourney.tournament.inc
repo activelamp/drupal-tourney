@@ -129,10 +129,20 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   );
 }
 
+/**
+ * Helper function to return all the matches that have a relation 'has_match' with
+ * the passed in tournament object.
+ * 
+ * @param $entity
+ *   A tournament object to check the 'has_match' relation on.
+ * @return
+ *   An array of all the rounds and matches.
+ */
 function _tourney_tournament_build_matches($entity) {
   $query = relation_query('tourney_tournament', $entity->id);
-  $query->entityCondition('bundle', 'has_match');
-  $results = $query->execute();
+  $results = $query->entityCondition('bundle', 'has_match')
+                   ->range(0, $entity->matches_created)
+                   ->execute();
 
   $matches = array();
   foreach ($results as $id => $relation) {

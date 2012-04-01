@@ -17,7 +17,7 @@ class Ladder implements TourneyMatchInterface {
    * Constructor
    */
   public function __construct($num_contestants) {
-    drupal_set_message('Ladder match not implemented yet.');
+    drupal_set_message(t('Ladder match not implemented yet.'), 'warning');
     $this->num_contestants = $num_contestants;
   }
   
