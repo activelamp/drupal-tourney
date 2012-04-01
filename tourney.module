@@ -266,6 +266,11 @@ function tourney_field_extra_fields() {
         'description' => t('The number of players in the tournament'),
         'weight' => 0,
       ),
+      'matches' => array(
+        'label' => t('Tournament Matches'),
+        'description' => t('A rendered bracket of matches in tournament'),
+        'weight' => 1,
+      ),
     ),
     'display' => array(
       'tourney_format' => array(
@@ -282,6 +287,11 @@ function tourney_field_extra_fields() {
         'label' => t('Tournament Players'),
         'description' => t('The number of players in the tournament'),
         'weight' => 0,
+      ),
+      'matches' => array(
+        'label' => t('Tournament Matches'),
+        'description' => t('A rendered bracket of matches in tournament'),
+        'weight' => 1,
       ),
     ),
   );
@@ -371,6 +381,9 @@ function tourney_theme($existing, $type, $theme, $path) {
       'variables' => array('tournament' => NULL),
       'file' => 'tourney.inc',
       'path' => $path .'/theme',
+    ),
+    'tourney_roundrobin_standings' => array(
+      'variables' => array('tournament' => NULL, 'matches' => NULL),
     ),
   );
 }
@@ -687,6 +700,38 @@ function tourney_game_save(&$game) {
   if (isset($game->match) && is_object($game->match)) {
     cache_clear_all('tourney_winner_count_'. $game->match->id, 'cache');
   }
+}
+
+/**
+ * Get the contestants playing in the tournament by looking at all the relations
+ * to contestants from each match in the first round.
+ * 
+ * @param $tournament
+ *   The tournament object to get contestants for * 
+ * @return
+ *   Returns an array of all the objects participating ordered by seed rank.
+ */
+function tourney_get_contestants($tournament) {
+  $contestants = array();
+  
+  $matches = _tourney_tournament_build_matches($tournament);
+  // Shift off the rounds from the bracket
+  $rounds = array_shift($matches);
+  
+  // Build the contestants array in the order the contestants are seeded.
+  $reverse = array_reverse($rounds['round-1']);
+  foreach ($reverse as $match) {
+    if (is_object($match['match']->contestant1)) {
+      $contestants = array_reverse($contestants, true);
+      $contestants[$match['match']->contestant1->_entity_type .'.'. $match['match']->contestant1->_entity_id] = $match['match']->contestant1->_entity_name;
+      $contestants = array_reverse($contestants, true);
+    }
+    if (is_object($match['match']->contestant2)) {
+      $contestants[$match['match']->contestant2->_entity_type .'.'. $match['match']->contestant2->_entity_id] = $match['match']->contestant2->_entity_name;
+    }
+  }
+  
+  return $contestants;
 }
 
 /**
