@@ -1,6 +1,7 @@
 <?php
 
 function tourney_render_tourney_single($tournament, $matches) {
+  drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
   $rounds = array_values($matches['bracket-top']);
   $output = tourney_single_tree($rounds, $tournament->players > 8);
   return $output;
