@@ -30,12 +30,12 @@ function tourney_render_tourney_roundrobin($tournament, $matches) {
  */
 function theme_tourney_roundrobin_standings($vars) {
   $contestants = tourney_get_contestants($vars['tournament']);
+  $standings = tourney_get_standings($vars['tournament']);
   $table['header'] = array('Teams', 'Games Played', 'Wins', 'Losses');
   $table['rows'] = array();
-  dpm($vars);
-  dpm($contestants);
-  foreach ($contestants as $contestant) {
-    $table['rows'][] = array($contestant, 0, 0, 0);
+  
+  foreach ($contestants as $id => $contestant) {
+    $table['rows'][] = array($contestant, $standings[$id]['total'], $standings[$id]['wins'], $standings[$id]['losses']);
   }
 
   return theme('table', $table);

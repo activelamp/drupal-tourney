@@ -690,6 +690,7 @@ function tourney_match_save(&$match) {
       $rid = relation_insert('contestant_2', $entity_keys);
     }
   }
+  cache_clear_all('tourney_build_matches_'. $match->tournament->id, 'cache', TRUE);
 }
 
 /**
@@ -699,6 +700,7 @@ function tourney_game_save(&$game) {
   entity_save('tourney_game', $game);
   if (isset($game->match) && is_object($game->match)) {
     cache_clear_all('tourney_winner_count_'. $game->match->id, 'cache');
+    cache_clear_all('tourney_build_matches_'. $game->match->tournament->id, 'cache', TRUE);
   }
 }
 
@@ -714,7 +716,7 @@ function tourney_game_save(&$game) {
 function tourney_get_contestants($tournament) {
   $contestants = array();
   
-  $matches = _tourney_tournament_build_matches($tournament);
+  $matches = tourney_tournament_build_matches($tournament);
   // Shift off the rounds from the bracket
   $rounds = array_shift($matches);
   
@@ -732,6 +734,90 @@ function tourney_get_contestants($tournament) {
   }
   
   return $contestants;
+}
+
+/**
+ * Figure out how many games each contestant has won.
+ * 
+ * @param $match
+ *   The match object to check games on
+ * @param $reset
+ *   Boolean to reset the cache.
+ * @return
+ *   Returns an array keyed by uid with value being the number of won games.
+ */
+function tourney_get_winner_counts($match, $reset = FALSE) {
+  if ($reset || !$cache = cache_get('tourney_winner_count_'. $match->id)) {
+    $games = array();
+    
+    // If there aren't two contestants in the match return
+    if (empty($match->contestant1->_entity_type) || empty($match->contestant2->_entity_type)) {
+      return array();
+    }
+    
+    // Set up the default count array.
+    $winners = array(
+      $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id => 0,
+      $match->contestant2->_entity_type .'.'. $match->contestant2->_entity_id => 0,
+    );
+    
+    foreach ($match->games_played as $entity_id) {
+      $games[$entity_id] = tourney_game_load($entity_id); 
+      // Check to make sure the game has a winner
+      if ($games[$entity_id]->winner) {
+        // Tally up the winners in array keyed by uid
+        $winners[$games[$entity_id]->winner] = 
+          array_key_exists($games[$entity_id]->winner, $winners) 
+          ? ++$winners[$games[$entity_id]->winner] : 1; 
+      }
+    }
+    cache_set('tourney_winner_count_'. $match->id, $winners);
+    return $winners;
+  }
+  return !empty($cache->data) ? $cache->data : array();
+}
+
+/**
+ * Get the standings for a tournament
+ * 
+ * @param $tournament
+ *   A tournament object to get the standings for.
+ * @return
+ *   An associative array keyed with wins, losses, and total played games.
+ */
+function tourney_get_standings($tournament) {
+  $matches = tourney_tournament_build_matches($tournament, TRUE);
+  // Get the wins for each match
+  foreach ($matches as $match) {
+    $counts[] = tourney_get_winner_counts($match);
+  }
+  
+  $standings = array();
+  // Calculate the wins and losses for each match
+  foreach ($counts as $match_wins) {
+    $players = array_keys($match_wins);
+    
+    if (!empty($players)) {
+      // Initialize the players at zero
+      if (empty($standings[$players[0]]['wins'])) {
+        $standings[$players[0]]['wins'] = 0;
+        $standings[$players[1]]['wins'] = 0;
+        $standings[$players[0]]['losses'] = 0;
+        $standings[$players[1]]['losses'] = 0;
+        $standings[$players[0]]['total'] = 0;
+        $standings[$players[1]]['total'] = 0;
+      }
+      
+      $standings[$players[0]]['wins'] += $match_wins[$players[0]];
+      $standings[$players[0]]['losses'] += $match_wins[$players[1]];
+      $standings[$players[0]]['total'] += $match_wins[$players[1]] + $match_wins[$players[0]];
+
+      $standings[$players[1]]['wins'] += $match_wins[$players[1]];
+      $standings[$players[1]]['losses'] += $match_wins[$players[0]];
+      $standings[$players[1]]['total'] += $match_wins[$players[1]] + $match_wins[$players[0]];
+    }
+  }
+  return $standings;
 }
 
 /**

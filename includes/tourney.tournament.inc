@@ -124,55 +124,69 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   $entity->content['matches'] = array(
     '#prefix' => '<h2>Matches in this tournament</h2>',
     '#theme' => 'tourney_render_tourney', // TODO matches
-    //'#matches' => _tourney_tournament_build_matches($entity),
+    //'#matches' => tourney_tournament_build_matches($entity),
     '#tournament' => $entity,
   );
 }
 
 /**
- * Helper function to return all the matches that have a relation 'has_match' with
- * the passed in tournament object.
+ * Return all the matches that have a relation 'has_match' with the passed in
+ * tournament object.
  * 
  * @param $entity
  *   A tournament object to check the 'has_match' relation on.
+ * @param $raw
+ *   If set to true only return the matches, do not return brackets and rounds
+ *   with it.
+ * @param $reset
+ *   Boolean to reset the cache.
  * @return
  *   An array of all the rounds and matches.
  */
-function _tourney_tournament_build_matches($entity) {
-  $query = relation_query('tourney_tournament', $entity->id);
-  $results = $query->entityCondition('bundle', 'has_match')
-                   ->range(0, $entity->matches_created)
-                   ->execute();
+function tourney_tournament_build_matches($entity, $raw = FALSE, $reset = FALSE) {
+  if ($reset || !$cache = cache_get('tourney_build_matches_'. $entity->id)) {
+    $query = relation_query('tourney_tournament', $entity->id);
+    $results = $query->entityCondition('bundle', 'has_match')
+                     ->range(0, $entity->matches_created)
+                     ->execute();
 
-  $matches = array();
-  foreach ($results as $id => $relation) {
-    $relation = relation_load($id);
-    $bracket = field_get_items('relation', $relation, 'bracket');
-    $round = field_get_items('relation', $relation, 'round');
-    $endpoints = field_get_items('relation', $relation, 'endpoints');
+    $matches = $brackets = array();
+    foreach ($results as $id => $relation) {
+      $relation = relation_load($id);
+      $bracket = field_get_items('relation', $relation, 'bracket');
+      $round = field_get_items('relation', $relation, 'round');
+      $endpoints = field_get_items('relation', $relation, 'endpoints');
 
-    $match = tourney_match_load($endpoints[1]['entity_id']);
+      $match = tourney_match_load($endpoints[1]['entity_id']);
+      $matches[] = $match;
+      
+      if ($bracket[0]['safe_value'] && $round[0]['safe_value']) {
+        $brackets[$bracket[0]['safe_value']][$round[0]['safe_value']][$match->id] = array(
+          'match' => $match,
+          'games' => tourney_tournament_get_match_games($match),
+        );
+      }
+      else if ($round[0]['safe_value']) {
+        $brackets[$round[0]['safe_value']][$match->id] = array(
+          'match' => $match,
+          'games' => tourney_tournament_get_match_games($match),
+        );
+      }
+      else {
+        $brackets[$match->id] = array(
+          'match' => $match,
+          'games' => tourney_tournament_get_match_games($match),
+        );
+      }
+    }
     
-    if ($bracket[0]['safe_value'] && $round[0]['safe_value']) {
-      $matches[$bracket[0]['safe_value']][$round[0]['safe_value']][$match->id] = array(
-        'match' => $match,
-        'games' => tourney_tournament_get_match_games($match),
-      );
-    }
-    else if ($round[0]['safe_value']) {
-      $matches[$round[0]['safe_value']][$match->id] = array(
-        'match' => $match,
-        'games' => tourney_tournament_get_match_games($match),
-      );
-    }
-    else {
-      $matches[$match->id] = array(
-        'match' => $match,
-        'games' => tourney_tournament_get_match_games($match),
-      );
-    }
+    cache_set('tourney_build_matches_'. $entity->id .'_raw', $matches);
+    cache_set('tourney_build_matches_'. $entity->id, $brackets);
+    return $raw ? $matches : $brackets;
   }
-  return $matches;
+  $cache_raw = cache_get('tourney_build_matches_'. $entity->id. '_raw');
+  return $raw ? $cache_raw->data : $cache->data;
+  
 }
 
 /**

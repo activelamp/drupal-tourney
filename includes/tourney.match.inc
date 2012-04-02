@@ -328,7 +328,7 @@ function tourney_match_get_parents($mid, $depth) {
 
   $match = tourney_match_load($mid);
   $tournament = $match->tournament;
-  $matches = _tourney_tournament_build_matches($tournament);
+  $matches = tourney_tournament_build_matches($tournament);
   $bracket = tourney_get_name_part($match->this_match, 'bracket');
 
   $names = array($match->previous_match1, $match->previous_match2);

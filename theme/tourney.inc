@@ -23,7 +23,7 @@ function theme_tourney_render_tourney($vars) {
     $matches = $vars['matches'];
   }
   else {
-    $matches = _tourney_tournament_build_matches($tournament);
+    $matches = tourney_tournament_build_matches($tournament);
   }
   
   $output = "<div class='tourney tourney-$format'>";
