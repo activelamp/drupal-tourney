@@ -65,7 +65,7 @@ function tourney_match_form($form, &$form_state, $tourney) {
   $form_state['tourney'] = $tourney;
 
   // @todo: It would be nice if these were field api fields
-  $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_1');
+  $contestant = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_1);
   if (($tourney->previous_match1 == 'manual' && !is_object($contestant))) {
     $form['contestant1'] = array(
       '#title' => t('Contestant 1'),
@@ -74,7 +74,7 @@ function tourney_match_form($form, &$form_state, $tourney) {
       '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
     ) + _tourney_match_contestant($tourney);
   }
-  $contestant = relation_get_related_entity('tourney_match', $tourney->id, 'contestant_2');
+  $contestant = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_2);
   if (($tourney->previous_match2 == 'manual' && !is_object($contestant))) {
     $form['contestant2'] = array(
       '#title' => t('Contestant 2'),
@@ -125,7 +125,7 @@ function _tourney_match_contestants($tourney) {
   $query = db_select('relation_bundles', 'rb');
   $query->fields('rb', array('entity_type'))
     ->distinct()
-    ->condition('relation_type', array('contestant_1', 'contestant_2'))
+    ->condition('relation_type', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2))
     ->condition('r_index', 1);
   $bundles = $query->execute();
 
@@ -286,14 +286,14 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#suffix' => '</div>',
     '#markup' => $entity->winner,
   );
-  $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
+  $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
   $entity->content['match_contestant1'] = is_object($contestant1) ? array(
     '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#markup' => $contestant1->name,
   ) : '';
 
-  $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
+  $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
   $entity->content['match_contestant2'] = is_object($contestant2) ? array(
     '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
     '#suffix' => '</div>',

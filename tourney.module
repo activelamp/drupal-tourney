@@ -5,6 +5,11 @@
  * Create tournament, match, and game entities for creating tournaments.
  */
 
+define('TOURNEY_CONTESTANT_1',     'contestant_1');
+define('TOURNEY_CONTESTANT_1_LBL', 'contestant 1');
+define('TOURNEY_CONTESTANT_2',     'contestant_2');
+define('TOURNEY_CONTESTANT_2_LBL', 'contestant 2');
+
 /**
  * Implements hook_menu().
  */
@@ -113,6 +118,16 @@ function tourney_menu() {
     'file' => 'includes/tourney.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
+  // Config
+  $items['admin/config/tourney'] = array(
+    'title' => 'Tourney',
+    'description' => 'Configure Tournament module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tourney_configuration'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/tourney.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
 
   return $items;
 }
@@ -151,8 +166,6 @@ function tourney_permission() {
     ),
   );
 }
-
-
 
 /**
  * Menu title callback.
@@ -413,8 +426,8 @@ function tourney_entity_load($entities, $type) {
       $entity->tournament = $tournament;
 
       // Get the contestants in this match.
-      $contestant1 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_1');
-      $contestant2 = relation_get_related_entity('tourney_match', $entity->id, 'contestant_2');
+      $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
+      $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
       $entity->contestant1 = is_object($contestant1) ? $contestant1 : '';
       $entity->contestant2 = is_object($contestant2) ? $contestant2 : '';
 
@@ -437,8 +450,6 @@ function tourney_entity_load($entities, $type) {
     }
   }
 }
-
-
 
 /**
  * Defines the entities and their  default bundles for the entities created by
@@ -672,8 +683,8 @@ function tourney_match_save(&$match) {
   // Save the relation for contestants if one exists.
   if (isset($match->contestant1) || isset($match->contestant2)) {
     // Check to see if the relation is already added.
-    $c1 = relation_get_related_entity('tourney_match', $match->id, 'contestant_1');
-    $c2 = relation_get_related_entity('tourney_match', $match->id, 'contestant_2');
+    $c1 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
+    $c2 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
 
     // Create the new relation.
     if (!is_object($c1) && $match->contestant1) {
@@ -684,7 +695,7 @@ function tourney_match_save(&$match) {
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
         array('entity_type' => $type, 'entity_id' => $id),
       );
-      $rid = relation_insert('contestant_1', $entity_keys);
+      $rid = relation_insert(TOURNEY_CONTESTANT_1, $entity_keys);
     }
 
     if (!is_object($c2) && $match->contestant2) {
@@ -695,7 +706,7 @@ function tourney_match_save(&$match) {
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
         array('entity_type' => $type, 'entity_id' => $id),
       );
-      $rid = relation_insert('contestant_2', $entity_keys);
+      $rid = relation_insert(TOURNEY_CONTESTANT_2, $entity_keys);
     }
   }
   cache_clear_all('tourney_build_matches_' . $match->tournament->id, 'cache', TRUE);
