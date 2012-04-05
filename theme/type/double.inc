@@ -1,5 +1,9 @@
 <?php
 
+/*
+ * @file
+ */
+
 function tourney_render_tourney_double($tournament, $matches) {
   drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/double.js');
   $output = '';
@@ -33,12 +37,18 @@ function tourney_render_tourney_double($tournament, $matches) {
 }
 
 function tourney_dummy_rounds($count, $height, $small = 1) {
+  if ( $count <= 0 ) return '';
   $round = '<div class="round round-dummy">' . tourney_spacer($height, 0, $small) . '</div>';
   return str_repeat($round, $count);
 }
 
 
 function tourney_double_top_bracket($rounds) {
+  $round = reset($rounds);
+  $match = reset($round);
+  $views = FALSE;
+  if ( property_exists($match['match']->tournament, 'views') && $match['match']->tournament->views == TRUE ) $views = TRUE;
+
   // Note: copied with remarkable shamelessness from tourney_single_tree().
   // One alteration is rendering an extra flow line from the last round to
   // the championship bracket.
@@ -89,13 +99,14 @@ function tourney_double_top_bracket($rounds) {
         // This match is even, so it's an "upper" match
 
         // Render empty rows before this match
-        $output .= tourney_spacer($pad_rows, null, TRUE);
+        $output .= tourney_spacer($pad_rows, NULL, TRUE);
 
         // On even match, open the div. On odd, close it.
         $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
 
         // Render the match itself, and a flow tail coming off of it
         $match_flow_tail = ( $pad_rows == 0 ? 'bottomleft evenright,special,bottom' : 'bottomleft' );
+        if ( $last && $views ) $match_flow_tail = NULL;
         $output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
 
         if ($pad_rows) {
@@ -103,8 +114,14 @@ function tourney_double_top_bracket($rounds) {
           // The last padding row needs an evenright flow control, so we render
           // vertical flow rows up until the last one and then do one row with
           // the evenright.
-          $output .= tourney_spacer($pad_rows - 1, 'vertical', TRUE);
-          $output .= tourney_spacer(1, 'vertical evenright,special,bottom', TRUE);
+          if ( $last && $views ) { 
+            $output .= tourney_spacer($pad_rows - 1, NULL, TRUE);
+            $output .= tourney_spacer(1, NULL, TRUE);
+          }
+          else {
+            $output .= tourney_spacer($pad_rows - 1, 'vertical', TRUE);
+            $output .= tourney_spacer(1, 'vertical evenright,special,bottom', TRUE);
+          }
         }
         $output .= '</div>'; // <!-- /match-contestant -->
 
@@ -127,7 +144,10 @@ function tourney_double_top_bracket($rounds) {
 
         // Render the match, with a flow tail.
         if ($last) {
-          $match_flow_tail = ( $pad_rows == 0 ? 'topleft evenright,special,bottom' : 'topleft' );
+          if ( $views == TRUE )
+            $match_flow_tail = NULL;
+          else
+            $match_flow_tail = ( $pad_rows == 0 ? 'topleft evenright,special,bottom' : 'topleft' );
         }
         else {
           $match_flow_tail = ( $pad_rows == 0 ? 'topleft evenright,special' : 'topleft' );
@@ -138,7 +158,7 @@ function tourney_double_top_bracket($rounds) {
         $output .= '</div></div>';  // <!-- /match-contestant /match-pair -->
 
         // Empty padding to the bottom
-        $output .= tourney_spacer($pad_rows, null, TRUE);
+        $output .= tourney_spacer($pad_rows, NULL, TRUE);
       }
     }
     $output .= '</div>';
@@ -149,6 +169,12 @@ function tourney_double_top_bracket($rounds) {
 function tourney_double_bottom_bracket($rounds) {
   $small = TRUE;
   $output = '';
+  $views = FALSE;
+
+  $round = reset($rounds);
+  if ( !$round ) $round = next($rounds); 
+  $match = reset($round);
+  if ( property_exists($match['match']->tournament, 'views') && $match['match']->tournament->views == TRUE ) $views = TRUE;
 
   foreach ( $rounds as $r => $round ) {
     /*
@@ -186,7 +212,6 @@ function tourney_double_bottom_bracket($rounds) {
     $feed_round = ($r % 2 == 0);
     $clast = $cr >= floor((count($rounds) - 1) / 2);  // is this the last round?
     $last = $r >= count($rounds) - 1;  // is this the absolute last round?
-    
 
     $pad_rows = pow(2, $cr)-1;
     $top_pad = 1 + $pad_rows - $cr;
@@ -205,29 +230,41 @@ function tourney_double_bottom_bracket($rounds) {
           // If this is the first match of the round, use the top padding
           // number to render padding
           if ($top_pad && !$last) {
-            $output .= tourney_spacer($top_pad, null, TRUE);
+            $output .= tourney_spacer($top_pad, NULL, TRUE);
           }
         }
         else {
           // Render empty rows before this match
-          $output .= tourney_spacer($pad_rows, null, TRUE);
+          $output .= tourney_spacer($pad_rows, NULL, TRUE);
         }
 
         // On even match, open the div. On odd, close it.
         $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
 
-        if ($top_pad && $last) {
+        if ($top_pad && $last ) {
           // Use flow lines if this is the last round
-          $output .= tourney_spacer(1, 'vertical evenright,special', TRUE);
-          $output .= tourney_spacer($top_pad - 1, 'vertical', TRUE);
+          if ( $views == TRUE ) {
+            $output .= tourney_spacer(1, NULL, TRUE);
+            $output .= tourney_spacer($top_pad - 1, NULL, TRUE);
+          }
+          else {
+            $output .= tourney_spacer(1, 'vertical evenright,special', TRUE);
+            $output .= tourney_spacer($top_pad - 1, 'vertical', TRUE);
+          }
         }
 
         // Render the match itself, and a flow tail coming off of it
         if ($feed_round) {
-          $match_flow_tail = 'topleft evenright,special';
+          if ( $views && $last )
+            $match_flow_tail = NULL;
+          else
+            $match_flow_tail = 'topleft evenright,special';
         }
         elseif ($last) {
-          $match_flow_tail = ( $pad_rows == 0 ? 'topleft evenright,special' : 'topleft' );
+          if ( $views )
+            $match_flow_tail = NULL;
+          else
+            $match_flow_tail = ( $pad_rows == 0 ? 'topleft evenright,special' : 'topleft' );
         }
         else {
           $match_flow_tail = ( $pad_rows == 0 ? 'bottomleft evenright,special,bottom' : 'bottomleft' );
@@ -238,7 +275,7 @@ function tourney_double_bottom_bracket($rounds) {
             // On feed rounds (rounds that feed into a round with the same
             // number of contestants), we still need padding, but we want
             // blank space instead of flow lines.
-            $output .= tourney_spacer($pad_rows, null, TRUE);
+            $output .= tourney_spacer($pad_rows, NULL, TRUE);
           }
           else {
             // Render padding rows. These rows have flow lines in them.
@@ -266,7 +303,7 @@ function tourney_double_bottom_bracket($rounds) {
             // On feed rounds (rounds that feed into a round with the same
             // number of contestants), we still need padding, but we want
             // blank space instead of flow lines.
-            $output .= tourney_spacer($pad_rows, null, TRUE);
+            $output .= tourney_spacer($pad_rows, NULL, TRUE);
           }
           else {
             // Render padding rows with flow controls. Needs to start with 1
@@ -289,7 +326,7 @@ function tourney_double_bottom_bracket($rounds) {
         $output .= '</div></div>';  // <!-- /match-contestant /match-pair -->
 
         // Empty padding to the bottom
-        $output .= tourney_spacer($pad_rows, null, TRUE);
+        $output .= tourney_spacer($pad_rows, NULL, TRUE);
       }
     }
     $output .= '</div>';
@@ -298,8 +335,12 @@ function tourney_double_bottom_bracket($rounds) {
 }
 
 function tourney_double_champion_bracket($tournament, $rounds) {
+  if ( property_exists($tournament, 'views') &&  $tournament->views == TRUE ) $tournament->players = 1;
+
   $champ = array_pop($rounds[0]);
   $champ = $champ['match'];
+  $extra = array_pop($rounds[1]);
+  $extra = $extra['match'];
 
   // Top padding is number of players minus one. We want to line this up at the
   // bottom of the top bracket, so we add padding the height of the top bracket.
@@ -308,14 +349,14 @@ function tourney_double_champion_bracket($tournament, $rounds) {
   // bracket.
   $output  = '';
   $output .= '<div class="round round-champion">';
-  $output .= tourney_spacer($tournament->players - 1, null, 1);
+  $output .= tourney_spacer($tournament->players - 1, NULL, 1);
   $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
   $output .= tourney_matchblock($champ, 'horizontal', 1);
   $output .= '</div></div></div>';
   $output .= '<div class="round round-extra">';
-  $output .= tourney_spacer($tournament->players - 1, null, 1);
+  $output .= tourney_spacer($tournament->players - 1, NULL, 1);
   $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
-  $output .= tourney_matchblock($champ, null, 1);
+  $output .= tourney_matchblock($extra, NULL, 1);
   $output .= '</div></div>';
   return $output;
 }

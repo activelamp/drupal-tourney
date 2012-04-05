@@ -1,6 +1,8 @@
 <?php
 
 /**
+ * @file
+ *
  * Renders the html for each round of a round robin tournament
  * 
  * @param $tournament
@@ -16,13 +18,25 @@ function tourney_render_tourney_roundrobin($tournament, $matches) {
   ));
   
   foreach ($matches['bracket-roundrobin'] as $machine_name => $round) {
-    $output .= "<h3 id='$machine_name'>". str_replace('-', ' ', ucfirst($machine_name)) ."</h3>";
+    $output .= "<h3 id='$machine_name'>" . str_replace('-', ' ', ucfirst($machine_name)) . "</h3>";
     foreach ($round as $match) {
       $output .= tourney_matchblock($match['match']);
     } 
     $output .= '<div class="clearfix"></div>';
   }
   return $output;
+}
+
+function tourney_roundrobin_standings_sort($a, $b) {
+  if ( $a['wins'] != $b['wins'] ) {
+    return $a['wins'] < $b['wins'] ? 1 : -1;
+  }
+  elseif ( $a['losses'] != $b['losses'] ) {
+    return $a['losses'] < $b['losses'] ? 1 : -1;
+  }
+  else {
+    return $a['first'] < $b['first'] ? 1 : -1;
+  }
 }
 
 /**
@@ -34,8 +48,10 @@ function theme_tourney_roundrobin_standings($vars) {
   $table['header'] = array('Teams', 'Games Played', 'Wins', 'Losses');
   $table['rows'] = array();
   
-  foreach ($contestants as $id => $contestant) {
-    $table['rows'][] = array($contestant, $standings[$id]['total'], $standings[$id]['wins'], $standings[$id]['losses']);
+  uasort($standings, 'tourney_roundrobin_standings_sort');
+
+  foreach ( $standings as $id => $standing ) {
+    $table['rows'][] = array($contestants[$id], $standing['total'], $standing['wins'], $standing['losses']);
   }
 
   return theme('table', $table);
