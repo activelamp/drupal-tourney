@@ -269,7 +269,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
     drupal_set_message(t('Configuration settings have been saved.'), 'status');
   }
   catch (Exception $e) {
-    drupal_set_message(t('Configuration settings not saved: @msg', array('@msg' => $e->getMessage), 'error');
+    drupal_set_message(t('Configuration settings not saved: @msg', array('@msg' => $e->getMessage)), 'error');
   }
 
   return;
@@ -292,7 +292,7 @@ function tourney_configuration_defaults_submit($form, &$form_state) {
     drupal_set_message(t('Default values have been restored.'), 'status');
   }
   catch (Exception $e) {
-    drupal_set_message(t('Default values can not be restored: @msg', array('@ms' => $e->getMessage), 'error');
+    drupal_set_message(t('Default values can not be restored: @msg', array('@ms' => $e->getMessage)), 'error');
   }
 
   return $form;
