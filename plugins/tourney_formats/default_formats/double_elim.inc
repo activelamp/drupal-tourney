@@ -209,7 +209,7 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
             // Every other match needs to increment so we don't have two teams
             // in the same slot.
             if ($match_iterator != 1) {
-              $match_num = drupal_substr($loser_parts[2], 6);
+              $match_num = substr($loser_parts[2], 6);
               $match_incrementer = $match_iterator - $match_num;
               // Put the loser string back together.
               $new_match = $match_num + $match_incrementer;

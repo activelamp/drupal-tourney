@@ -236,9 +236,9 @@ function tourney_tournament_delete_multiple(array $ids) {
 function tourney_overview_entities() {
   foreach (tourney_entities() as $entity_name => $entity_type) {
     // Entity name minus the tourney_ prefix
-    $entity_short = drupal_substr($entity_name, 8);
+    $entity_short = substr($entity_name, 8);
 
-    $label = t('Manage @entity', array('@entity' => drupal_ucfirst($entity_short)));
+    $label = t('Manage @entity', array('@entity' => ucfirst($entity_short)));
     $items[] = l($label, 'admin/structure/tourney/' . $entity_short);
   }
   return theme('item_list', array('items' => $items));

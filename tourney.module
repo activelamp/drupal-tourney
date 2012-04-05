@@ -158,7 +158,7 @@ function tourney_permission() {
  * Menu title callback.
  */
 function tourney_page_title($tourney) {
-  return drupal_ucfirst($tourney->label());
+  return ucfirst($tourney->label());
 }
 
 /**
@@ -169,7 +169,7 @@ function tourney_entity_info() {
   $entities = tourney_entities();
   foreach ($entities as $entity_name => $bundle) {
     // Entity name minus the tourney_ prefix
-    $entity_short = drupal_substr($entity_name, 8);
+    $entity_short = substr($entity_name, 8);
 
     $return[$entity_name] = array(
       'label' => $entity_name,
@@ -215,8 +215,8 @@ function tourney_entity_info() {
     }
 
     $return[$entity_name . '_type'] = array(
-      'label' => t('@entity type', array('@entity' => drupal_ucfirst($entity_short))),
-      'plural label' => t('@entity types', array('@entity' => drupal_ucfirst($entity_short))),
+      'label' => t('@entity type', array('@entity' => ucfirst($entity_short))),
+      'plural label' => t('@entity types', array('@entity' => ucfirst($entity_short))),
       'entity class' => 'Entity',
       'controller class' => 'EntityAPIControllerExportable',
       'base table' => $entity_name . '_type',
