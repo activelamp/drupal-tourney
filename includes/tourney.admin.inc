@@ -4,7 +4,7 @@
  * @file
  * Tourney type editing UI.
  */
- 
+
 /**
  * Generates the profile type editing form.
  */
@@ -28,7 +28,7 @@ function tourney_type_form($form, &$form_state, $tourney_type, $op = 'edit') {
     '#default_value' => isset($tourney_type->type) ? $tourney_type->type : '',
     '#maxlength' => 32,
     '#machine_name' => array(
-      'exists' => $form_state['entity_type'] .'_get_types',
+      'exists' => $form_state['entity_type'] . '_get_types',
       'source' => array('label'),
     ),
   );
@@ -39,7 +39,7 @@ function tourney_type_form($form, &$form_state, $tourney_type, $op = 'edit') {
     '#value' => t('Save tournament type'),
     '#weight' => 40,
   );
-  
+
   if ($op != 'add' && $op != 'clone') {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
@@ -75,7 +75,7 @@ function tourney_tournament_type_form_submit_delete(&$form, &$form_state) {
  */
 function tourney_admin_content() {
   $output = '';
-	$header = array(
+  $header = array(
     'id' => array('data' => t('Id'), 'field' => 't.id', 'sort' => 'asc'),
     'title' => array('data' => t('Title'), 'field' => 't.title'),
     'format' => array('data' => t('Format'), 'field' => 't.format'),
@@ -90,10 +90,10 @@ function tourney_admin_content() {
     ->limit(50)
     ->orderByHeader($header);
   $tournaments = $query->execute();
-  
-	$output .= theme('item_list', array('items' => array(l('Add tournament', 'tourney/add')), 'attributes' => array('class' => 'action-links')));
+
+  $output .= theme('item_list', array('items' => array(l(t('Add tournament'), 'tourney/add')), 'attributes' => array('class' => 'action-links')));
   $output .= theme('tourney_admin_content', array('tournaments' => $tournaments, 'header' => $header));
-	return $output;
+  return $output;
 }
 
 /**
@@ -102,7 +102,7 @@ function tourney_admin_content() {
 function theme_tourney_admin_content($variables) {
   $tournaments = $variables['tournaments'];
   $header = $variables['header'];
-  
+
   $rows = array();
   if ( empty($tournaments) ) {
     $message = t('There are currently no tournaments on your site.');
@@ -124,8 +124,8 @@ function theme_tourney_admin_content($variables) {
       user_access('access content') ? l(t('Delete'), 'tourney/' . $tournament->id . '/delete') : '',
     );
   }
-  
-  return theme('table', array('header' => $header, 'rows' => $rows)).theme('pager');
+
+  return theme('table', array('header' => $header, 'rows' => $rows)) . theme('pager');
 }
 
 function tourney_confirm_delete_page($tournament) {
@@ -150,27 +150,27 @@ function tourney_confirm_delete($form, &$form_state, $tournament) {
 
 function tourney_confirm_delete_submit($form, &$form_state) {
   $tournament = $form['#tournament'];
-  $deletes = array('tourney_tournament.'.$tournament->id);
+  $deletes = array('tourney_tournament.' . $tournament->id);
   $mquery = relation_query('tourney_tournament', $tournament->id)->entityCondition('bundle', 'has_match');
   $matches = $mquery->execute();
   foreach ( $matches as $mrid => $mrv ) {
     $mrelation = relation_load($mrid);
     $match = tourney_match_load($mrelation->endpoints['und'][1]['entity_id']);
-    $deletes[] = 'relation.'.$mrid;
-    $deletes[] = 'tourney_match.'.$match->id;
+    $deletes[] = 'relation.' . $mrid;
+    $deletes[] = 'tourney_match.' . $match->id;
     $crids = array();
     $c1q = relation_query('tourney_match', $match->id)->entityCondition('bundle', 'contestant_1');
     $crids += $c1q->execute();
     $c2q = relation_query('tourney_match', $match->id)->entityCondition('bundle', 'contestant_2');
     $crids += $c2q->execute();
-    foreach ( $crids as $crid => $crv ) $deletes[] = 'relation.'.$crid;
+    foreach ( $crids as $crid => $crv ) $deletes[] = 'relation.' . $crid;
     $gquery = relation_query('tourney_match', $match->id)->entityCondition('bundle', 'has_game');
     $games = $gquery->execute();
     foreach ( $games as $grid => $grv ) {
       $grelation = relation_load($grid);
       $game = tourney_game_load($grelation->endpoints['und'][1]['entity_id']);
-      $deletes[] = 'relation.'.$grid;
-      $deletes[] = 'tourney_game.'.$game->id;
+      $deletes[] = 'relation.' . $grid;
+      $deletes[] = 'tourney_game.' . $game->id;
     }
   }
   foreach ( $deletes as $delete ) {
@@ -178,7 +178,7 @@ function tourney_confirm_delete_submit($form, &$form_state) {
     if ( $type == 'relation' ) relation_delete($id);
     else entity_delete($type, $id);
     watchdog('content', 'Deleted @type #@id.', array('@type' => $type, '@id' => $id));
-  }   
+  }
   drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
   $form_state['redirect'] = "admin/content/tourney";
 }

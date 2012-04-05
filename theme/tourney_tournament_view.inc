@@ -1,7 +1,11 @@
 <?php
 
+/*
+ * @file
+ */
+
 function tourney_preprocess_tourney_tournament_view(&$vars) {
-  drupal_add_css(drupal_get_path('module', 'tourney').'/theme/tourney.css');
+  drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/tourney.css');
   module_load_include('inc', 'tourney', 'theme/tourney');
 
   $matches = array();

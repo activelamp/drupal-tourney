@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @file
+ */
+
 class tourney_handler_match_tree extends views_handler_argument {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);

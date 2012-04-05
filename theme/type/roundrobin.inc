@@ -1,6 +1,8 @@
 <?php
 
 /**
+ * @file
+ *
  * Renders the html for each round of a round robin tournament
  * 
  * @param $tournament
@@ -16,7 +18,7 @@ function tourney_render_tourney_roundrobin($tournament, $matches) {
   ));
   
   foreach ($matches['bracket-roundrobin'] as $machine_name => $round) {
-    $output .= "<h3 id='$machine_name'>". str_replace('-', ' ', ucfirst($machine_name)) ."</h3>";
+    $output .= "<h3 id='$machine_name'>" . drupal_str_replace('-', ' ', drupal_ucfirst($machine_name)) . "</h3>";
     foreach ($round as $match) {
       $output .= tourney_matchblock($match['match']);
     } 

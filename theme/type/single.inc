@@ -1,5 +1,9 @@
 <?php
 
+/*
+ * @file
+ */
+
 function tourney_render_tourney_single($tournament, $matches) {
   drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
   $rounds = array_values($matches['bracket-top']);
@@ -53,7 +57,7 @@ function tourney_single_tree($rounds, $small = FALSE) {
         // This match is even, so it's an "upper" match
 
         // Render empty rows before this match
-        $output .= tourney_spacer($pad_rows, null, TRUE);
+        $output .= tourney_spacer($pad_rows, NULL, TRUE);
 
         // On even match, open the div. On odd, close it.
         $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
@@ -97,7 +101,7 @@ function tourney_single_tree($rounds, $small = FALSE) {
         $output .= '</div></div>';  // <!-- /match-contestant /match-pair -->
 
         // Empty padding to the bottom
-        $output .= tourney_spacer($pad_rows, null, TRUE);
+        $output .= tourney_spacer($pad_rows, NULL, TRUE);
       }
     }
     $output .= '</div>';
