@@ -42,6 +42,7 @@ function tourney_dummy_rounds($count, $height, $small = 1) {
 function tourney_double_top_bracket($rounds) {
   $round = reset($rounds);
   $match = reset($round);
+  $views = FALSE;
   if ( property_exists($match['match']->tournament, 'views') && $match['match']->tournament->views == TRUE ) $views = TRUE;
 
   // Note: copied with remarkable shamelessness from tourney_single_tree().

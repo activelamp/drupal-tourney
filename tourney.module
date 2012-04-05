@@ -68,6 +68,7 @@ function tourney_menu() {
     'title' => t('Edit'),
     'page callback' => 'tourney_match_edit',
     'page arguments' => array(2),
+    'access callback' => 'tourney_match_edit_access',
     'access arguments' => array('edit tourney'),
     'file' => 'includes/tourney.match.inc',
     'type' => MENU_LOCAL_TASK,
@@ -114,6 +115,13 @@ function tourney_menu() {
   );
   
   return $items;
+}
+
+function tourney_match_edit_access($string, $account = NULL) {
+  if ( !user_access($string, $account) ) return FALSE;
+  $mid = arg(2);
+  $match = tourney_match_load($mid);
+  return count($match->games_played) <= 1;
 }
 
 /**
@@ -788,34 +796,30 @@ function tourney_get_winner_counts($match, $reset = FALSE) {
 function tourney_get_standings($tournament) {
   $matches = tourney_tournament_build_matches($tournament, TRUE);
   // Get the wins for each match
-  foreach ($matches as $match) {
-    $counts[] = tourney_get_winner_counts($match);
-  }
-  
-  $standings = array();
-  // Calculate the wins and losses for each match
-  foreach ($counts as $match_wins) {
-    $players = array_keys($match_wins);
-    
-    if (!empty($players)) {
-      // Initialize the players at zero
-      if (empty($standings[$players[0]]['wins'])) {
-        $standings[$players[0]]['wins'] = 0;
-        $standings[$players[1]]['wins'] = 0;
-        $standings[$players[0]]['losses'] = 0;
-        $standings[$players[1]]['losses'] = 0;
-        $standings[$players[0]]['total'] = 0;
-        $standings[$players[1]]['total'] = 0;
-      }
-      
-      $standings[$players[0]]['wins'] += $match_wins[$players[0]];
-      $standings[$players[0]]['losses'] += $match_wins[$players[1]];
-      $standings[$players[0]]['total'] += $match_wins[$players[1]] + $match_wins[$players[0]];
 
-      $standings[$players[1]]['wins'] += $match_wins[$players[1]];
-      $standings[$players[1]]['losses'] += $match_wins[$players[0]];
-      $standings[$players[1]]['total'] += $match_wins[$players[1]] + $match_wins[$players[0]];
+  $standings = array();
+  $i = 0;
+
+  foreach ($matches as $match) {
+    if ( $match->winner == '' ) continue;
+    $c1 = $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id;
+    $c2 = $match->contestant2->_entity_type .'.'. $match->contestant2->_entity_id;
+    if ( !array_key_exists($c1, $standings) ) 
+      $standings[$c1] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
+    if ( !array_key_exists($c2, $standings) ) 
+      $standings[$c2] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
+    if ( $match->winner == $match->contestant1->_entity_name ) {
+      $standings[$c1]['wins']++;
+      $standings[$c2]['losses']++;
+      if ( $standings[$c1]['first'] == -1 ) $standings[$c1]['first'] = $i++;
     }
+    else {
+      $standings[$c2]['wins']++;
+      $standings[$c1]['losses']++;
+      if ( $standings[$c2]['first'] == -1 ) $standings[$c2]['first'] = $i++;
+    }
+    $standings[$c1]['total']++;
+    $standings[$c2]['total']++;
   }
   return $standings;
 }
