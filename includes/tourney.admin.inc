@@ -201,11 +201,20 @@ function tourney_configuration($form, &$form_state) {
   );
 
   $form['tourney_header'] = array(
-    '#markup' => t('Choose the bundle objects that can compete.'),
     '#prefix' => '<h3>' . t('Tournament Module Configuration') . '</h3><div>',
     '#suffix' => '</div>',
   );
+  $form['tourney_games'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Games'),
+    '#description' => t('Number of games per match'),
+    '#default_value' => variable_get('tourney_games_all', TOURNEY_GAMES),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#required' => TRUE,
+  );
   $form['tourney'] = array(
+    '#prefix' => t('Select the entity bundles that can compete.'),
     '#type' => 'vertical_tabs',
   );
   $form['tourney']['#attached']['css'] = array(
@@ -256,6 +265,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
   $targets = array();
 
   try {
+    variable_set('tourney_games_all', $form_state['values']['tourney_games']);
     tourney_relation_type_untarget($relation_types);
     foreach ($entities as $key => $entity) {
       foreach ($entity['bundles'] as $b_key => $bundle) {
@@ -269,7 +279,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
     drupal_set_message(t('Configuration settings have been saved.'), 'status');
   }
   catch (Exception $e) {
-    drupal_set_message(t('Configuration settings not saved: @msg', array('@msg' => $e->getMessage)), 'error');
+    drupal_set_message(t('Configuration settings not saved: @msg', array('@msg' => $e->getMessage())), 'error');
   }
 
   return;
@@ -289,10 +299,11 @@ function tourney_configuration_defaults_submit($form, &$form_state) {
     tourney_relation_type_untarget($relation_types);
     tourney_relation_type_target($relation_types, 'user', '*');
     tourney_relation_type_target($relation_types, 'node', '*');
+    variable_set('tourney_games_all', TOURNEY_GAMES);
     drupal_set_message(t('Default values have been restored.'), 'status');
   }
   catch (Exception $e) {
-    drupal_set_message(t('Default values can not be restored: @msg', array('@ms' => $e->getMessage)), 'error');
+    drupal_set_message(t('Default values can not be restored: @msg', array('@ms' => $e->getMessage())), 'error');
   }
 
   return $form;

@@ -81,7 +81,7 @@ class TourneyBuildMatches {
         $match = new stdClass();
         $match->type = 'match';
         $match->title = $key;
-        $match->games = 5;
+        $match->games = variable_get('tourney_games_all', TOURNEY_GAMES);
         $match->next_match_winner = array_key_exists('winner', $value) ? $value['winner'] : '';
         $match->next_match_loser = array_key_exists('loser', $value) ? $value['loser'] : '';
         $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : 'manual';
