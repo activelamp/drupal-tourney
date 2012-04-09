@@ -74,7 +74,6 @@ function tourney_menu() {
     'title' => 'Edit',
     'page callback' => 'tourney_match_edit',
     'page arguments' => array(2),
-    'access callback' => 'tourney_match_edit_access',
     'access arguments' => array('edit tourney'),
     'file' => 'includes/tourney.match.inc',
     'type' => MENU_LOCAL_TASK,
@@ -131,13 +130,6 @@ function tourney_menu() {
   );
 
   return $items;
-}
-
-function tourney_match_edit_access($string, $account = NULL) {
-  if ( !user_access($string, $account) ) return FALSE;
-  $mid = arg(2);
-  $match = tourney_match_load($mid);
-  return count($match->games_played) <= 1;
 }
 
 /**

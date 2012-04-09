@@ -60,28 +60,29 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 /**
  * The match form.
  */
-function tourney_match_form($form, &$form_state, $tourney) {
-  $tourney->type = 'match';
-  $form_state['tourney'] = $tourney;
+function tourney_match_form($form, &$form_state, $match) {
+  $match->type = 'match';
+  $form_state['tourney'] = $match;
+  $games = tourney_tournament_get_match_games($match);
 
   // @todo: It would be nice if these were field api fields
-  $contestant = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_1);
-  if (($tourney->previous_match1 == 'manual' && !is_object($contestant))) {
+  $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
+  if (($match->previous_match1 == 'manual' && !is_object($contestant))) {
     $form['contestant1'] = array(
       '#title' => t('Contestant 1'),
       '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
       '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
       '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
-    ) + _tourney_match_contestant($tourney);
+    ) + _tourney_match_contestant($match);
   }
-  $contestant = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_2);
-  if (($tourney->previous_match2 == 'manual' && !is_object($contestant))) {
+  $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
+  if (($match->previous_match2 == 'manual' && !is_object($contestant))) {
     $form['contestant2'] = array(
       '#title' => t('Contestant 2'),
       '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
       '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
       '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
-    ) + _tourney_match_contestant($tourney);
+    ) + _tourney_match_contestant($match);
   }
 
   $form['games'] = array(
@@ -90,11 +91,12 @@ function tourney_match_form($form, &$form_state, $tourney) {
     '#description' => t('Enter the number of games in this match'),
     '#size' => 40,
     '#maxlength' => 255,
-    '#default_value' => $tourney->games,
+    '#default_value' => $match->games,
     '#required' => TRUE,
+    '#disabled' => count($games) > 1,
   );
 
-  field_attach_form('tourney_match', $tourney, $form, $form_state);
+  field_attach_form('tourney_match', $match, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -105,23 +107,22 @@ function tourney_match_form($form, &$form_state, $tourney) {
 
   $form['#submit'][] = 'tourney_match_form_submit';
 
-
   return $form;
 }
 
 /**
  * Create an entity field for contestants.
  */
-function _tourney_match_contestant($tourney) {
+function _tourney_match_contestant($match) {
   return array(
     '#type' => 'select',
-    '#options' => _tourney_match_contestants($tourney),
+    '#options' => _tourney_match_contestants($match),
     '#default_value' => '',
     '#required' => TRUE,
   );
 }
 
-function _tourney_match_contestants($tourney) {
+function _tourney_match_contestants($match) {
   $query = db_select('relation_bundles', 'rb');
   $query->fields('rb', array('entity_type'))
     ->distinct()
@@ -144,13 +145,13 @@ function _tourney_match_contestants($tourney) {
     }
     if ( !empty($group) ) $options[$bn] = $group;
   }
-  _tourney_match_contestants_sanitize($tourney, $options);
+  _tourney_match_contestants_sanitize($match, $options);
   return $options;
 }
 
-function _tourney_match_contestants_sanitize($tourney, &$options) {
+function _tourney_match_contestants_sanitize($main_match, &$options) {
   // Get the tournament object this match is in.
-  $tournament = relation_get_related_entity('tourney_match', $tourney->id, 'has_match');
+  $tournament = relation_get_related_entity('tourney_match', $main_match->id, 'has_match');
   // Get all the matches in round 1 for this tournament
   $query = relation_query('tourney_tournament', $tournament->id);
   $query->entityCondition('bundle', 'has_match')
