@@ -64,35 +64,64 @@ function tourney_match_form($form, &$form_state, $tourney) {
   $tourney->type = 'match';
   $form_state['tourney'] = $tourney;
 
-  // @todo: It would be nice if these were field api fields
-  $contestant = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_1);
-  if (($tourney->previous_match1 == 'manual' && !is_object($contestant))) {
-    $form['contestant1'] = array(
-      '#title' => t('Contestant 1'),
-      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
-      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
-      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
-    ) + _tourney_match_contestant($tourney);
-  }
-  $contestant = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_2);
-  if (($tourney->previous_match2 == 'manual' && !is_object($contestant))) {
-    $form['contestant2'] = array(
-      '#title' => t('Contestant 2'),
-      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
-      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
-      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
-    ) + _tourney_match_contestant($tourney);
-  }
+  $contestant1 = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_1);
+  $contestant2 = relation_get_related_entity('tourney_match', $tourney->id, TOURNEY_CONTESTANT_2);
 
-  $form['games'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Games'),
-    '#description' => t('Enter the number of games in this match'),
-    '#size' => 40,
-    '#maxlength' => 255,
-    '#default_value' => $tourney->games,
-    '#required' => TRUE,
-  );
+  if ($tourney->previous_match2 == 'bye') {
+    // @todo: It would be nice if these were field api fields
+    if (($tourney->previous_match1 == 'manual' && !is_object($contestant1))) {
+      $form['contestant1'] = array(
+        '#title' => t('Contestant'),
+        '#default_value' => is_object($contestant1) && $contestant1->uid ? $contestant1->uid : -1,
+        '#disabled' => is_object($contestant1) && $contestant1->uid ? TRUE : FALSE,
+        '#required' => is_object($contestant1) && $contestant1->uid ? FALSE : TRUE,
+      ) + _tourney_match_contestant($tourney);
+    }
+
+    $form['description'] = array(
+      '#markup' => t('The selected contestant will receive a bye and automatically advance.'),
+      '#prefix' => '<div>',
+      '#suffix' => '</div>',
+    );
+
+    $form['contestant2'] = array(
+      '#type' => 'value',
+      '#value' => -1,
+    );
+    $form['games'] = array(
+      '#type' => 'value',
+      '#value' => 1,
+    );
+  }
+  else {
+    // @todo: It would be nice if these were field api fields
+    if (($tourney->previous_match1 == 'manual' && !is_object($contestant1))) {
+      $form['contestant1'] = array(
+        '#title' => t('Contestant 1'),
+        '#default_value' => is_object($contestant1) && $contestant1->uid ? $contestant1->uid : -1,
+        '#disabled' => is_object($contestant1) && $contestant1->uid ? TRUE : FALSE,
+        '#required' => is_object($contestant1) && $contestant1->uid ? FALSE : TRUE,
+      ) + _tourney_match_contestant($tourney);
+    }
+    if (($tourney->previous_match2 == 'manual' && !is_object($contestant2))) {
+      $form['contestant2'] = array(
+        '#title' => t('Contestant 2'),
+        '#default_value' => is_object($contestant2) && $contestant2->uid ? $contestant2->uid : -1,
+        '#disabled' => is_object($contestant2) && $contestant2->uid ? TRUE : FALSE,
+        '#required' => is_object($contestant2) && $contestant2->uid ? FALSE : TRUE,
+      ) + _tourney_match_contestant($tourney);
+    }
+
+    $form['games'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Games'),
+      '#description' => t('Enter the number of games in this match'),
+      '#size' => 40,
+      '#maxlength' => 255,
+      '#default_value' => $tourney->games,
+      '#required' => TRUE,
+    );
+  }
 
   field_attach_form('tourney_match', $tourney, $form, $form_state);
 
@@ -300,10 +329,12 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#markup' => $contestant2->name,
   ) : '';
 
-  $entity->content['match_table'] = array(
-    '#theme' => 'tourney_render_match',
-    '#match' => $entity,
-  );
+  if ($entity->previous_match2 != 'bye') {
+    $entity->content['match_table'] = array(
+      '#theme' => 'tourney_render_match',
+      '#match' => $entity,
+    );
+  }
 }
 
 /**
