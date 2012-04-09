@@ -50,16 +50,37 @@ class SingleElimination implements TourneyMatchInterface {
     $matches = array();
     $this->calculate_rounds($num_contestants);
     $num_rounds = $this->num_rounds;
+    $num_contestants = $this->num_contestants;
 
-    for ($r=1;$r<=$num_rounds;$r++) {
-      $matches['round-' . $r] = array();
-      $this->build_round($matches, $num_contestants, $r);
+    foreach (range(1, $num_rounds) as $round) {
+      $positions = $this::calculate_seed_positions($num_contestants);
+      $matches['round-'. $round] = array();
+
+      foreach ($positions as $match => $position) {
+        if ($round == 1) {
+          $matches['round-'. $round]['match-'. ($match + 1)] = array(
+            'contestant-1' => (empty($position[0]) ? 'bye' : 'manual'),
+            'contestant-2' => (empty($position[1]) ? 'bye' : 'manual'),
+          );
+        }
+        else {
+          $matches['round-'. $round]['match-'. ($match + 1)] = array(
+            'contestant-1' => '',
+            'contestant-2' => '',
+          );
+        }
+        $matches = $this->set_match_path($matches, 'top', $round, ($match + 1));
+      }
 
       $num_contestants /= 2;
     }
     return array(
       'bracket-top' => $matches,
     );
+
+    $this->matches = $this->set_bye_manuals($this->matches, 'top', 2);
+
+    return $this->matches;
   }
 
   protected function set_match_path($matches, $bracket, $current_round, $current_match) {
@@ -74,6 +95,37 @@ class SingleElimination implements TourneyMatchInterface {
       $matches['round-' . $previous_round]['match-' . $pm]['winner'] = 'bracket-' . $bracket . '_round-' . $current_round . '_match-' . $current_match . '_contestant-2';
       $matches['round-' . $current_round]['match-' . $current_match]['previous-1'] = 'bracket-' . $bracket . '_round-' . $previous_round . '_match-' . $previous_match;
       $matches['round-' . $current_round]['match-' . $current_match]['previous-2'] = 'bracket-' . $bracket . '_round-' . $previous_round . '_match-' . $pm;
+    }
+
+    return $matches;
+  }
+
+  /**
+   * Determine if byes in the previous round create manual slots in this round
+   */
+  protected function set_bye_manuals($matches, $bracket = 'top', $round = 2) {
+    foreach ($matches['bracket-'. $bracket]['round-'. $round] as $m => $match) {
+      // Look at each match in this round
+
+      foreach (array('previous-1', 'previous-2') as $previous) {
+        // set_match_path() gave us a path to follow back to the matches that
+        // fed into this one.
+
+        // Navigate to the previous match. $child will be the previous match.
+        $parents = explode('_', $match[$previous]);
+        $child = $matches;
+        while ($parent = array_shift($parents)) {
+          $child = $child[$parent];
+        }
+
+        if ($child['contestant-2'] == 'bye') {
+          // Only contestant 2 can be a bye. If this match was a bye, set the
+          // current contestant to manual select
+
+          $current_contestant = ($previous == 'previous-1' ? 'contestant-1' : 'contestant-2');
+          $matches['bracket-'. $bracket]['round-'. $round][$m][$current_contestant] = 'manual';
+        }
+      }
     }
     return $matches;
   }
