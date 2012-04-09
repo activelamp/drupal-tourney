@@ -710,7 +710,8 @@ function tourney_match_save(&$match) {
       $rid = relation_insert(TOURNEY_CONTESTANT_2, $entity_keys);
     }
   }
-  cache_clear_all('tourney_build_matches_' . $match->tournament->id, 'cache', TRUE);
+  if ( property_exists($match, 'tournament') )
+    cache_clear_all('tourney_build_matches_' . $match->tournament->id, 'cache_tourney', TRUE);
 }
 
 /**
@@ -719,8 +720,9 @@ function tourney_match_save(&$match) {
 function tourney_game_save(&$game) {
   entity_save('tourney_game', $game);
   if (isset($game->match) && is_object($game->match)) {
-    cache_clear_all('tourney_winner_count_' . $game->match->id, 'cache');
-    cache_clear_all('tourney_build_matches_' . $game->match->tournament->id, 'cache', TRUE);
+    cache_clear_all('tourney_winner_count_' . $game->match->id, 'cache_tourney');
+    cache_clear_all('tourney_match_games_' . $game->match->id, 'cache_tourney', TRUE);
+    cache_clear_all('tourney_build_matches_' . $game->match->tournament->id, 'cache_tourney', TRUE);
   }
 }
 
@@ -767,7 +769,7 @@ function tourney_get_contestants($tournament) {
  *   Returns an array keyed by uid with value being the number of won games.
  */
 function tourney_get_winner_counts($match, $reset = FALSE) {
-  if ($reset || !$cache = cache_get('tourney_winner_count_' . $match->id)) {
+  if ($reset || !$cache = cache_get('tourney_winner_count_' . $match->id, 'tourney_cache')) {
     $games = array();
 
     // If there aren't two contestants in the match return
@@ -791,7 +793,7 @@ function tourney_get_winner_counts($match, $reset = FALSE) {
           ? ++$winners[$games[$entity_id]->winner] : 1;
       }
     }
-    cache_set('tourney_winner_count_' . $match->id, $winners);
+    cache_set('tourney_winner_count_' . $match->id, $winners, 'tourney_cache');
     return $winners;
   }
   return !empty($cache->data) ? $cache->data : array();
