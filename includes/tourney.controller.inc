@@ -112,4 +112,9 @@ interface TourneyMatchInterface {
    * Builds the array structure for all matches to be created.
    */
   public function build();
+  
+  /**
+   * Determins which contestant is the winner.
+   */
+  public function determin_winner($tournament);
 }

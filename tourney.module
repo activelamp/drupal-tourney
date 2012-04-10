@@ -735,6 +735,15 @@ function tourney_tournament_save(&$tourney) {
  */
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
+  // Set the tournament winner if this was the last match.
+  if ($match->winner) {
+    $winner = tourney_tournament_calc_winner($match->tournament);
+    if (array_key_exists($match->tournament->id, $winner)) {
+      $match->tournament->winner = $winner[$match->tournament->id];
+      $match->tournament->save();
+      drupal_set_message(t('Tournament is complete.'), 'status');
+    }
+  }
   // Save the relation for contestants if one exists.
   if (isset($match->contestant1) || isset($match->contestant2)) {
     // Check to see if the relation is already added.
@@ -782,6 +791,85 @@ function tourney_game_save(&$game) {
     cache_clear_all('tourney_match_games_' . $game->match->id, 'cache_tourney', TRUE);
     cache_clear_all('tourney_build_matches_' . $game->match->tournament->id, 'cache_tourney', TRUE);
   }
+}
+
+/**
+ * Reports the winner of a tournament.
+ *
+ */
+function tourney_tournament_calc_winner($tournaments, &$winners = array()) {
+  if (is_array($tournaments)) {
+    foreach ($tournaments as $tournament) {
+      tourney_tournament_calc_winner($tournament, $winners);
+    }
+    return $winners;
+  }
+  elseif (!isset($tournaments) || (!is_int($tournaments) && !is_object($tournaments))) {
+    throw new Exception(t('Required parameter is missing or invalid'));
+  }
+  $tournament = is_int($tournaments) ? tourney_tournament_load($tournaments) : $tournaments;
+  $finished = tourney_tournament_count_finished($tournament);
+  $id = $tournament->id;
+
+  if ($tournament->matches_created == $finished[$id]) {
+    // Load plugin to determine winner.
+    if (!class_exists($match_style = $tournament->format)) {
+      throw new Exception(t('No such claass'));
+    }
+    $interfaces = class_implements($match_style);
+    if (!isset($interfaces['TourneyMatchInterface'])) {
+      throw new Exception(t('Wrong implementation.'));
+    }
+  
+    $tourneyPlugin = new $match_style($tournament->players);
+    // May not call static method with class as variable until php5.3
+    $win = $tourneyPlugin->determin_winner($tournament);
+    if (is_array($win)) {
+      $winners[$id] = $win[0] . '.' . $win[1];
+    }
+  }
+    
+  return $winners;
+}
+
+/**
+ * Report how many matches have been finished in a tournament
+ *
+ * @todo Remove excessive error checks for production.
+ *
+ * @param array|object|int $tournaments
+ *   Tournament entity object or tournament entity id or an array containing
+ *   them (mixed, and recursive, but why would you want to?).
+ *
+ * @return array
+ *   An array of integers describing the count of finished matches keyed by 
+ *   tournament entity id.
+ */
+function tourney_tournament_count_finished($tournaments, &$finished = array()) {
+  if (is_array($tournaments)) {
+    foreach ($tournaments as $tournament) {
+      tourney_tournament_count_finished($tournament, $finished);
+    }
+    return $finished;
+  }
+  elseif (!isset($tournaments) || (!is_int($tournaments) && !is_object($tournaments))) {
+    throw new Exception(t('Required parameter is missing or invalid'));
+  }
+
+  try {
+    $tournament = is_int($tournaments) ? tourney_tournament_load($tournaments) : $tournaments;
+    $matches = tourney_tournament_build_matches($tournament, TRUE, TRUE);
+  }
+  catch (Exception $e) {
+    throw new Exception(t('Can not load matches for tournament') . ': ' . $e->getMessage(), 'error');  
+  }
+
+  $finished[$tournament->id] = 0;
+  foreach ($matches as $match) {
+    $finished[$tournament->id] += (strlen($match->winner) > 0);
+  }
+
+  return $finished;
 }
 
 /**
