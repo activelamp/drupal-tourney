@@ -20,7 +20,7 @@ function tourney_render_tourney_roundrobin($tournament, $matches) {
   foreach ($matches['bracket-roundrobin'] as $machine_name => $round) {
     $output .= "<h3 id='$machine_name'>" . str_replace('-', ' ', ucfirst($machine_name)) . "</h3>";
     foreach ($round as $match) {
-      $output .= tourney_matchblock($match['match']);
+      $output .= theme('tourney_matchblock', array('match' => $match['match']));
     } 
     $output .= '<div class="clearfix"></div>';
   }
