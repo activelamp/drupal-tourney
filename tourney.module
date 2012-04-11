@@ -186,9 +186,14 @@ function tourney_entity_info() {
     // Entity name minus the tourney_ prefix
     $entity_short = substr($entity_name, 8);
 
+    $entity_class = 'Entity';
+    $entity_class = ($entity_short == 'tournament') ? 'TourneyTournament' : $entity_class;
+    $entity_class = ($entity_short == 'match') ? 'TourneyMatch' : $entity_class;
+    $entity_class = ($entity_short == 'game') ? 'TourneyGame' : $entity_class;
+    
     $return[$entity_name] = array(
       'label' => $entity_name,
-      'entity class' => 'Entity',
+      'entity class' => $entity_class,
       'controller class' => 'EntityAPIController',
       'base table' => $entity_name,
       'fieldable' => TRUE,
