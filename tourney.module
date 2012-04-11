@@ -764,9 +764,12 @@ function tourney_match_save(&$match) {
       );
       $rid = relation_insert(TOURNEY_CONTESTANT_2, $entity_keys);
     }
+    // Clear the match cache now to get the new contestants
+    cache_clear_all('tourney_match_games_' . $match->id, 'cache_tourney', TRUE);
   }
-  if ( property_exists($match, 'tournament') )
+  if (property_exists($match, 'tournament')) {
     cache_clear_all('tourney_build_matches_' . $match->tournament->id, 'cache_tourney', TRUE);
+  }
 }
 
 /**
