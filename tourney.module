@@ -5,11 +5,11 @@
  * Create tournament, match, and game entities for creating tournaments.
  */
 
-define('TOURNEY_CONTESTANT_1',     'contestant_1');
-define('TOURNEY_CONTESTANT_1_LBL', 'contestant 1');
-define('TOURNEY_CONTESTANT_2',     'contestant_2');
-define('TOURNEY_CONTESTANT_2_LBL', 'contestant 2');
-define('TOURNEY_GAMES',            5);
+define('TOURNEY_CONTESTANT_1', 'contestant_1');
+define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
+define('TOURNEY_CONTESTANT_2', 'contestant_2');
+define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
+define('TOURNEY_GAMES', 5);
 
 /**
  * Implements hook_menu().
