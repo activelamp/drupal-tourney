@@ -80,6 +80,15 @@ function tourney_menu() {
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
+  $items['tourney/match/%tourney_match/fix'] = array(
+    'title' => 'Fix',
+    'page callback' => 'tourney_match_fix',
+    'page arguments' => array(2),
+    'access arguments' => array('edit tourney'),
+    'file' => 'includes/tourney.match.inc',
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
   $items['tourney/game/%tourney_game'] = array(
     'title callback' => 'tourney_page_title',
     'title arguments' => array(2),
@@ -256,6 +265,44 @@ function tourney_entity_info() {
 }
 
 /**
+ * Implements hook_entity_delete().
+ */
+
+function tourney_entity_delete($entity, $type) {
+  if ( $type == 'tourney_tournament' ) {
+    $mquery = relation_query('tourney_tournament', $entity->id)->entityCondition('bundle', 'has_match');
+    $matches = $mquery->execute();
+    foreach ( $matches as $mrid => $mrv ) {
+      $mrelation = relation_load($mrid);
+      $match = tourney_match_load($mrelation->endpoints['und'][1]['entity_id']);
+      $deletes[] = 'relation.' . $mrid;
+      $deletes[] = 'tourney_match.' . $match->id;
+      $crids = array();
+      $c1q = relation_query('tourney_match', $match->id)->entityCondition('bundle', TOURNEY_CONTESTANT_1);
+      $crids += $c1q->execute();
+      $c2q = relation_query('tourney_match', $match->id)->entityCondition('bundle', TOURNEY_CONTESTANT_2);
+      $crids += $c2q->execute();
+      foreach ( $crids as $crid => $crv ) $deletes[] = 'relation.' . $crid;
+      $gquery = relation_query('tourney_match', $match->id)->entityCondition('bundle', 'has_game');
+      $games = $gquery->execute();
+      foreach ( $games as $grid => $grv ) {
+        $grelation = relation_load($grid);
+        $game = tourney_game_load($grelation->endpoints['und'][1]['entity_id']);
+        $deletes[] = 'relation.' . $grid;
+        $deletes[] = 'tourney_game.' . $game->id;
+      }
+    }
+    foreach ( $deletes as $delete ) {
+      @list($type, $id) = tourney_cid_split($delete);
+      if ( $type == 'relation' ) relation_delete($id);
+      else entity_delete($type, $id);
+      watchdog('content', 'Deleted @type #@id.', array('@type' => $type, '@id' => $id));
+    }
+    drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
+  }
+}
+
+/**
  * Implements hook_forms().
  */
 function tourney_forms($form_id, $args) {
@@ -406,6 +453,22 @@ function tourney_theme($existing, $type, $theme, $path) {
     ),
     'tourney_roundrobin_standings' => array(
       'variables' => array('tournament' => NULL, 'matches' => NULL),
+    ),
+
+    'tourney_matchblock' => array(
+      'variables' => array('match' => NULL, 'flow' => FALSE, 'small' => 0),
+      'file' => 'tourney.inc',
+      'path' => $path . '/theme',
+    ),
+    'tourney_spacer' => array(
+      'variables' => array('height' => 1, 'flow' => FALSE, 'small' => TRUE, 'y' => 1),
+      'file' => 'tourney.inc',
+      'path' => $path . '/theme',
+    ),
+    'tourney_flow_control' => array(
+      'variables' => array('flows' => ''),
+      'file' => 'tourney.inc',
+      'path' => $path . '/theme',
     ),
   );
 }

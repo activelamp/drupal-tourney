@@ -1,10 +1,20 @@
 <?php
 
-function tourney_render_tourney_roundrobin($tournament, $rounds) {
+/**
+ * Renders the html for each round of a round robin tournament
+ * 
+ * @param $tournament
+ *   The tournament object
+ * @param $matches
+ *   An array of all the rounds and matches in a tournament.
+ */
+function tourney_render_tourney_roundrobin($tournament, $matches) {
   $output = '';
-  foreach ( $rounds as $k => $round ) {
-    $output .= "<h3 id='round-$k'>Round " . ($k+1) . "</h3>";
-    foreach ( $round as $match ) $output .= tourney_matchblock($match['match']);
+  foreach ($matches['bracket-roundrobin'] as $machine_name => $round) {
+    $output .= "<h3 id='$machine_name'>". str_replace('-', ' ', ucfirst($machine_name)) ."</h3>";
+    foreach ($round as $match) {
+      $output .= theme('tourney_matchblock', array('match' => $match['match']));
+    } 
     $output .= '<div class="clearfix"></div>';
   }
   return $output;
