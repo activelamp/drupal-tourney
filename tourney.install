@@ -260,7 +260,7 @@ function tourney_install() {
   /** Creating the contestant relation. */
   $relation = new stdClass();
   $relation->relation_type = TOURNEY_CONTESTANT_1;
-  $relation->label = TOURNEY_CONTESTANT_1_LBL;
+  $relation->label = TOURNEY_CONTESTANT_1_LABEL;
   $relation->directional = TRUE;
   $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
   $relation->target_bundles['user:*'] = 'user:*';
@@ -270,7 +270,7 @@ function tourney_install() {
   /** Creating the contestant relation. */
   $relation = new stdClass();
   $relation->relation_type = TOURNEY_CONTESTANT_2;
-  $relation->label = TOURNEY_CONTESTANT_2_LBL;
+  $relation->label = TOURNEY_CONTESTANT_2_LABEL;
   $relation->directional = TRUE;
   $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
   $relation->target_bundles['user:*'] = 'user:*';
