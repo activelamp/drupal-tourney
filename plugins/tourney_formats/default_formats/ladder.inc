@@ -27,4 +27,19 @@ class Ladder implements TourneyMatchInterface {
   public function build() {
 
   }
+
+  /**
+   *
+   */
+  public function determine_winner($tournament) {
+    $ranks = $tournament->fetchRanks();
+
+dpm($ranks);
+//  $tournament->winner = 'user:1';
+//  $tournament->save();
+drupal_set_message(t('Tournament ' . $tournament->format. ' is complete!.'), 'status');
+
+    return $this;
+  }
+
 }

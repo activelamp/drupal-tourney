@@ -5,11 +5,20 @@
  * Create tournament, match, and game entities for creating tournaments.
  */
 
+<<<<<<< HEAD
 define('TOURNEY_CONTESTANT_1', 'contestant_1');
 define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
 define('TOURNEY_CONTESTANT_2', 'contestant_2');
 define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
 define('TOURNEY_GAMES', 5);
+=======
+define('TOURNEY_CONTESTANT_1',     'contestant_1');
+define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
+define('TOURNEY_CONTESTANT_2',     'contestant_2');
+define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
+define('TOURNEY_GAMES',            5);
+define('TOURNEY_DEBUG_EXTENDS', FALSE);
+>>>>>>> Extended entities now ready to determine winner.
 
 /**
  * Implements hook_menu().
@@ -739,13 +748,13 @@ function tourney_tournament_save(&$tourney) {
  */
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
+dpr($match);
   // Set the tournament winner if this was the last match.
-  if ($match->winner) {
-    $winner = tourney_tournament_calc_winner($match->tournament);
-    if (array_key_exists($match->tournament->id, $winner)) {
-      $match->tournament->winner = $winner[$match->tournament->id];
-      $match->tournament->save();
-      drupal_set_message(t('Tournament is complete.'), 'status');
+  if (method_exists($match, 'isFinished') && $match->isFinished()) {
+    if ($match->tournament->isFinished()) {
+      if (!$match->tournament->winner) {
+        $match->tournament->determineWinner();
+      }
     }
   }
   // Save the relation for contestants if one exists.
