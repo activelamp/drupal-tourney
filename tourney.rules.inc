@@ -128,11 +128,13 @@ function tourney_action_game_is_won($match, $quotient) {
       $lmatch_obj = clone $match;
       _tourney_move_next_round($lmatch_obj, $lbracket, $lround, $lmatch, $lcontestant, 'bracket-top');
     }
-
     _tourney_set_match_winner($match);
 
     $message = t('Players moved to next round');
-  }        
+  }
+  else {
+    _tourney_set_match_winner($match);
+  }
 
   return array(
     'action_message' => $message,
