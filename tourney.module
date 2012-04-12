@@ -641,7 +641,6 @@ function tourney_match_load($id = NULL, $reset = FALSE) {
   $ids = isset($id) ? array($id) : array();
   $conditions = array();
   $match = tourney_match_load_multiple($ids, $conditions, $reset);
-
   return $match ? reset($match) : FALSE;
 }
 
@@ -742,9 +741,11 @@ function tourney_match_save(&$match) {
     $c2 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
 
     // Create the new relation.
-    if (!is_object($c1) && $match->contestant1) {
+    if (!is_object($c1) && !empty($match->contestant1)) {
       // Get the entity and entity_id from contestant value
-      list($type, $id) = explode(".", $match->contestant1);
+      list($type, $id) = explode(".", is_object($match->contestant1) 
+        ? $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id
+        : $match->contestant1);
 
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
@@ -753,9 +754,11 @@ function tourney_match_save(&$match) {
       $rid = relation_insert(TOURNEY_CONTESTANT_1, $entity_keys);
     }
 
-    if (!is_object($c2) && $match->contestant2) {
+    if (!is_object($c2) && !empty($match->contestant2)) { 
       // Get the entity and entity_id from contestant value
-      list($type, $id) = explode(".", $match->contestant2);
+      list($type, $id) = explode(".", is_object($match->contestant2) 
+        ? $match->contestant2->_entity_type .'.'. $match->contestant2->_entity_id
+        : $match->contestant2);
 
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
