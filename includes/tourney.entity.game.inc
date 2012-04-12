@@ -34,7 +34,7 @@ class TourneyGame extends Entity {
     if (property_exists($this, 'id')) {
       // Game must be saved before a relationship will exist.
       if ($this->fillEntitySaved() == TRUE) {
-        $this->fillMatchId()->fillTournamentId()->fillFinished();
+        $this->fillProperties();
       }
     }
   }
@@ -124,55 +124,49 @@ class TourneyGame extends Entity {
   }
 
   /**
-   * Fill property.
+   * Sets property values during instantiation.
+   *
+   * This function is only called by the constructor after our entity has
+   * been saved to the database; relations will exist.
    *
    * @return TourneyGame
    *   TourneyGame object for chaining.
    */
-  private function fillMatchId() {
+  private function fillProperties() {
+    // Retrieve associated match_id.
     $this->matchId = TourneyGame::fetchMatchId($this->id);
-
-    return $this;
-  }
-  
-  /**
-   * Fill property.
-   *
-   * @return TourneyGame
-   *   TourneyGame object for chaining.
-   */
-  private function fillTournamentId() {
-    // Passing a valid match_id quickens response.
+    // Passing an existing match_id quickens response.
     $this->tournamentId = TourneyGame::fetchTournamentId($this->id, $this->matchId);
-
-    return $this;
-  }
-  
-  /**
-   * Fill property.
-   *
-   * @return TourneyGame
-   *   TourneyGame object for chaining.
-   */
-  private function fillFinished() {
     $this->finished = strlen($this->winner) ? TRUE : FALSE;
 
     return $this;
   }
-  
+
   /**
    * Retrieve property.
    */
   public function getFinished() {
     return $this->finished;
   }
-  
+
   /**
-   *
+   * Retrieve property. Property created by hook_entity_load().
+   */
+  public function getWinner() {
+    return $this->winner;
+  }
+
+  /**
+   * Determine if a game is finshed (when $this->winner has value).
    */
   public function isFinished() {
-    $this->finished = strlen($this->winner) ? TRUE : FALSE;
-    
+    $this->finished = strlen($this->getWinner()) ? TRUE : FALSE;
+
+    if (TOURNEY_DEBUG_EXTENDS) {
+      $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS...';
+      dpr('GAME ' . $this->id . ': ' . $output);
+    }
+
     return $this->getFinished();
   }
 }

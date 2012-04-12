@@ -11,7 +11,6 @@
  * Show the tournament page.
  */
 function tourney_match_page_view($match) {
-$match->isFinished();
   return $match->view('full', NULL, TRUE);
 }
 
@@ -19,7 +18,6 @@ $match->isFinished();
  * Page callback. Edit a match.
  */
 function tourney_match_edit($match) {
-$match->isFinished();
   drupal_set_title(t('Edit Match: @title', array('@title' => $match->title)));
 
   return drupal_get_form('tourney_match_form', $match);

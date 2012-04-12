@@ -116,5 +116,5 @@ interface TourneyMatchInterface {
   /**
    * Determins which contestant is the winner.
    */
-  public function determin_winner($tournament);
+  public function determine_winner($tournament);
 }

@@ -140,29 +140,14 @@ class SingleElimination implements TourneyMatchInterface {
     }
   }
   
-  public function determin_winner($tournament) {
-//dpm($tournament);
-    $query = relation_query('tourney_tournament', $tournament->id);
-    $query->entityCondition('bundle', 'has_match');
-    $results = $query->execute();
+  public function determine_winner($tournament) {
+    $ranks = $tournament->fetchRanks();
 
-    $match_ids = array();
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $match_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-    }
-    $matches = tourney_match_load_multiple($match_ids);
+dpm($ranks);
+//  $tournament->winner = 'user:1';
+//  $tournament->save();
+drupal_set_message(t('Tournament ' . $tournament->format. ' is complete!.'), 'status');
 
-    $wins = array();
-    foreach($matches as $match) {
-      $wins[$match->winner] += 1;
-    }
-    asort($wins);
-    reset($wins);
-    $winner_name = key($wins);
-dpm($wins);
-dpm($winner_name);
-    //$wins[0]
-    return array('user', 1);
+    return $this;
   }
 }
