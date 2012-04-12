@@ -144,7 +144,7 @@ Pretty sure this flow theming needs to be redone
 /* FLOW HIGHLIGHT THEMING */
 
 .tourney .match .flow.bracket-highlight .flow-control {
-  border: 0 solid #AAAA00;
+  border-color: #AAAA00;
   z-index: 2;
 }
 
@@ -154,6 +154,7 @@ Pretty sure this flow theming needs to be redone
 
 .tourney .match .flow.bracket-highlight .flow-control.bottomleft {
   border-width: 4px 4px 0 0;
+  height: 40%;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.topright {
@@ -182,6 +183,10 @@ Pretty sure this flow theming needs to be redone
 
 .tourney .match .flow.bracket-highlight .flow-control.horizontal {
   border-width: 0 0 4px;
+}
+
+.tourney-double .round-champion .flow.bracket-highlight .flow-control {
+  border-style: dotted;
 }
 
 /* SINGLE */

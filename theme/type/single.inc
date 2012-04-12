@@ -1,6 +1,11 @@
 <?php
 
+/*
+ * @file
+ */
+
 function tourney_render_tourney_single($tournament, $matches) {
+  drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
   $rounds = array_values($matches['bracket-top']);
   $output = tourney_single_tree($rounds, $tournament->players > 8);
   return $output;
@@ -52,24 +57,30 @@ function tourney_single_tree($rounds, $small = FALSE) {
         // This match is even, so it's an "upper" match
 
         // Render empty rows before this match
-        $output .= tourney_spacer($pad_rows, null, TRUE);
+        $output .= theme('tourney_spacer', array('height' => $pad_rows));
 
         // On even match, open the div. On odd, close it.
         $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
 
         // Render the match itself, and a flow tail coming off of it
         $match_flow_tail = ( $last ? '' : ( $pad_rows == 0 ? 'bottomleft evenright,special,bottom' : 'bottomleft' ) );
-        $output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        $output .= theme('tourney_matchblock', array('match' => $match['match'], 'flow' => $match_flow_tail, 'small' => $small));
 
         if ($pad_rows && !$last) {
           // Render padding rows. These rows have flow lines in them.
           // The last padding row needs an evenright flow control, so we render
           // vertical flow rows up until the last one and then do one row with
           // the evenright.
-          $output .= tourney_spacer($pad_rows - 1, 'vertical', TRUE);
-          $output .= tourney_spacer(1, 'vertical evenright,special,bottom', TRUE);
+
+          $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
+          $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special,bottom'));
         }
         $output .= '</div>'; // <!-- /match-contestant -->
+
+        if ($last) {
+          // Last round doesn't have a match pair, so close the match pair div.
+          $output .= '</div>'; // <!-- /match-pair -->
+        }
       }
       else {
         // This match is odd, so it's a "lower" match
@@ -79,19 +90,19 @@ function tourney_single_tree($rounds, $small = FALSE) {
         if ($pad_rows && !$last) {
           // Render padding rows with flow controls. Needs to start with 1
           // evenright, and then render the rest of the padding rows.
-          $output .= tourney_spacer(1, 'vertical evenright,special', TRUE);
-          $output .= tourney_spacer($pad_rows - 1, 'vertical', TRUE);
+          $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special'));
+          $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
         }
 
         // Render the match, with a flow tail.
         $match_flow_tail = ( $last ? '' : ( $pad_rows == 0 ? 'topleft evenright,special' : 'topleft' ) );
-        $output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        $output .= theme('tourney_matchblock', array('match' => $match['match'], 'flow' => $match_flow_tail, 'small' => $small));
 
         // Close match pair div
         $output .= '</div></div>';  // <!-- /match-contestant /match-pair -->
 
         // Empty padding to the bottom
-        $output .= tourney_spacer($pad_rows, null, TRUE);
+        $output .= theme('tourney_spacer', array('height' => $pad_rows));
       }
     }
     $output .= '</div>';
