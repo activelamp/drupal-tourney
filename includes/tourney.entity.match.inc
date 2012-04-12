@@ -7,62 +7,78 @@
 
 class TourneyMatch extends Entity {
 
-  private $finished = FALSE;
-  private $gameIds = array();
-  private $gameCount = 0;
-
-//  public  $games = array();
+  private $matchFinished = NULL;
+  private $matchGameIds = array();
+  private $matchTournamentId = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
 
     if (property_exists($this, 'id')) {
-      $this->fillGameIds()->fillGames()->fillFinished();
+      $this->fillGameIds();
     }
+  }
+
+  /**
+   * Report the game entity_ids related to a match.
+   *
+   * @param integer $match_id
+   *   The match entity id to search for games with.
+   *
+   * @return array
+   *   game entity ids if found, empty array if not found.
+   */
+  public static function fetchGameIds($match_id) {
+    $game_ids = array();
+
+    $query = relation_query('tourney_match', $match_id);
+    $query->entityCondition('bundle', 'has_game');
+    $results = $query->execute();
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $game_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+    }
+
+    return $game_ids;
   }
 
   /**
    * Fill property
    */
   private function fillGameIds() {
-    $query = relation_query('tourney_match', $this->id);
-    $query->entityCondition('bundle', 'has_game');
-    $results = $query->execute();
-
-    $game_ids = array();
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $game_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-    }
-
-    $this->gameIds = $game_ids;
+    $this->matchGameIds = TourneyMatch::fetchGameIds($this->id);
 
     return $this;
   }
 
   /**
-   * Fill $this->games array with instantiated TourneyMatch children.
+   * Report property.
    */
-  private function fillGames() {
-    //tourney_entity_load()#445 is causing infinite recursion.
-    //tourney_game_load_multiple($this->gameIds);
-
-    return $this;
-  }
-
-  /**
-   * Determine if tournament is finished.
-   */
-  private function fillFinished() {
-    $this->finished = FALSE;
-
-    return $this;
+  public function getGameIds() {
+    return $this->matchGameIds;
   }
   
   /**
    * Report property.
    */
-  public function getGameIds() {
-    return $gameIds;
+  public function getFinished() {
+    return $this->matchFinished;
   }
+
+  /**
+   * Determine if tournament is finished.
+   */
+  public function isFinished() {
+    $games = TourneyGame::loadTourneyGame($this->getGameIds());
+
+    if (!empty($games)) {
+      foreach ($games as $game) {
+        dpr($game);
+      }
+    }
+    $this->matchFinished = FALSE;
+
+    return $this->getFinished();
+  }
+
 }
