@@ -22,7 +22,6 @@ function theme_tourney_render_tourney($vars) {
   );
   $tournament = $vars['tournament'];
   $format = $types[$tournament->format];
-
   if (array_key_exists('matches', $vars)) {
     $matches = $vars['matches'];
   }
@@ -36,7 +35,6 @@ function theme_tourney_render_tourney($vars) {
     $output .= call_user_func_array($f, array($tournament, $matches));
   }
   $output .= "</div>";
-
   return $output;
 }
 
@@ -48,7 +46,8 @@ function theme_tourney_render_tourney($vars) {
  * @return
  *   Wrapped flow HTML
  */
-function tourney_flow_control($flows) {
+function theme_tourney_flow_control($vars) {
+  $flows = $vars['flows'];
   if ( !$flows ) return;
   $attributes = (!empty($options['attributes']) ? $options['attributes'] : array());
   $attributes['class'][] = 'flow';
@@ -72,7 +71,8 @@ function tourney_flow_control($flows) {
  * @return
  *   HTML link to either the edit or view match page
  */
-function tourney_matchblock($match, $flow = FALSE, $small = 0) {
+function theme_tourney_matchblock($vars) {
+  extract($vars);
   $editable = !(is_object($match->contestant1) && is_object($match->contestant2)) &&
     ($match->previous_match1 == 'manual' || $match->previous_match1 == 'manual');
   $contestant1 = is_object($match->contestant1) ? $match->contestant1->_entity_name : 'team 1';
@@ -93,7 +93,7 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
     if ($match->winner == $match->contestant2->name) $winner_class = $contestant2_class;
   }
 
-  $output .= tourney_flow_control($flow);
+  $output .= theme('tourney_flow_control', array('flows' => $flow));
   $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . ( $match->winner == $contestant1 ? ' ♔' : '' ) . '</div>';
   $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . ( $match->winner == $contestant2 ? ' ♔' : '' ) . '</div>';
   $output .= '</div>';
@@ -108,7 +108,7 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
 /**
  * Helper function to render spacing divs
  *
- * @param $times
+ * @param $height
  *   Number of spacers to generate
  * @param $flow
  *   Either TRUE or String. If string, all flows are of the $flow type. If
@@ -122,19 +122,23 @@ function tourney_matchblock($match, $flow = FALSE, $small = 0) {
  * @return
  *   Rendered HTML spacer output
  */
-function tourney_spacer($times = 1, $flow = FALSE, $small = FALSE, $y = 1) {
+function theme_tourney_spacer($vars) {
+  extract($vars);
   $div = '<div class="match match-spacer ' . ( $small ? 'small' : 'normal' ) . '">%s</div>';
-
-  if ( $times <= 0 ) return;
+  if ( $height <= 0 ) return;
   if ( $flow ) {
-    $half    = floor($times/2);
-    $normal  = sprintf($div, tourney_flow_control('vertical'));
+    $half    = floor($height/2);
+    $normal  = sprintf($div, theme('tourney_flow_control', array('flows' => 'vertical')));
     $output  = $y == 0 ? sprintf($div, '') . str_repeat($normal, $half - 1 ) : str_repeat($normal, $half);
-    $output .= sprintf($div, is_string($flow) ? tourney_flow_control($flow) : ( $times % 2 ? tourney_flow_control('topright bottomright') : tourney_flow_control('evenright') ));
-    if ( !($times % 2) ) $half--;
+    $output .= sprintf($div, is_string($flow) ? 
+      theme('tourney_flow_control', array('flows' => $flow)) : 
+      ( $height % 2 ? 
+        theme('tourney_flow_control', array('flows' => 'topright bottomright')) : 
+        theme('tourney_flow_control', array('flows' => 'evenright')) ));
+    if ( !($height % 2) ) $half--;
     $output .= str_repeat($normal, $half);
   }
   else
-    $output  = str_repeat(sprintf($div, ''), $times);
+    $output  = str_repeat(sprintf($div, ''), $height);
   return $output;
 }

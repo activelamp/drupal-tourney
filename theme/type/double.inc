@@ -38,7 +38,7 @@ function tourney_render_tourney_double($tournament, $matches) {
 
 function tourney_dummy_rounds($count, $height, $small = 1) {
   if ( $count <= 0 ) return '';
-  $round = '<div class="round round-dummy">' . tourney_spacer($height, 0, $small) . '</div>';
+  $round = '<div class="round round-dummy">' . theme('tourney_spacer', array('height' => $height, 'flow' => 0, 'small' => $small)) . '</div>';
   return str_repeat($round, $count);
 }
 
@@ -99,7 +99,7 @@ function tourney_double_top_bracket($rounds) {
         // This match is even, so it's an "upper" match
 
         // Render empty rows before this match
-        $output .= tourney_spacer($pad_rows, NULL, TRUE);
+        $output .= theme('tourney_spacer', array('height' => $pad_rows));
 
         // On even match, open the div. On odd, close it.
         $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
@@ -107,7 +107,12 @@ function tourney_double_top_bracket($rounds) {
         // Render the match itself, and a flow tail coming off of it
         $match_flow_tail = ( $pad_rows == 0 ? 'bottomleft evenright,special,bottom' : 'bottomleft' );
         if ( $last && $views ) $match_flow_tail = NULL;
-        $output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        $output .= theme('tourney_matchblock', array(
+          'match' => $match['match'],
+          'flow' => $match_flow_tail,
+          'small' => $small,
+        ));
 
         if ($pad_rows) {
           // Render padding rows. These rows have flow lines in them.
@@ -115,12 +120,12 @@ function tourney_double_top_bracket($rounds) {
           // vertical flow rows up until the last one and then do one row with
           // the evenright.
           if ( $last && $views ) { 
-            $output .= tourney_spacer($pad_rows - 1, NULL, TRUE);
-            $output .= tourney_spacer(1, NULL, TRUE);
+            $output .= theme('tourney_spacer', array('height' => $pad_rows - 1));
+            $output .= theme('tourney_spacer');
           }
           else {
-            $output .= tourney_spacer($pad_rows - 1, 'vertical', TRUE);
-            $output .= tourney_spacer(1, 'vertical evenright,special,bottom', TRUE);
+            $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
+            $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special,bottom'));
           }
         }
         $output .= '</div>'; // <!-- /match-contestant -->
@@ -138,8 +143,8 @@ function tourney_double_top_bracket($rounds) {
         if ($pad_rows) {
           // Render padding rows with flow controls. Needs to start with 1
           // evenright, and then render the rest of the padding rows.
-          $output .= tourney_spacer(1, 'vertical evenright,special', TRUE);
-          $output .= tourney_spacer($pad_rows - 1, 'vertical', TRUE);
+          $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special'));
+          $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
         }
 
         // Render the match, with a flow tail.
@@ -152,13 +157,17 @@ function tourney_double_top_bracket($rounds) {
         else {
           $match_flow_tail = ( $pad_rows == 0 ? 'topleft evenright,special' : 'topleft' );
         }
-        $output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
-
+        //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        $output .= theme('tourney_matchblock', array(
+          'match' => $match['match'],
+          'flow' => $match_flow_tail,
+          'small' => $small,
+        ));
         // Close match pair div
         $output .= '</div></div>';  // <!-- /match-contestant /match-pair -->
 
         // Empty padding to the bottom
-        $output .= tourney_spacer($pad_rows, NULL, TRUE);
+        $output .= theme('tourney_spacer', array('height' => $pad_rows));
       }
     }
     $output .= '</div>';
@@ -230,12 +239,12 @@ function tourney_double_bottom_bracket($rounds) {
           // If this is the first match of the round, use the top padding
           // number to render padding
           if ($top_pad && !$last) {
-            $output .= tourney_spacer($top_pad, NULL, TRUE);
+            $output .= theme('tourney_spacer', array('height' => $top_pad));
           }
         }
         else {
           // Render empty rows before this match
-          $output .= tourney_spacer($pad_rows, NULL, TRUE);
+          $output .= theme('tourney_spacer', array('height' => $pad_rows));
         }
 
         // On even match, open the div. On odd, close it.
@@ -244,12 +253,12 @@ function tourney_double_bottom_bracket($rounds) {
         if ($top_pad && $last ) {
           // Use flow lines if this is the last round
           if ( $views == TRUE ) {
-            $output .= tourney_spacer(1, NULL, TRUE);
-            $output .= tourney_spacer($top_pad - 1, NULL, TRUE);
+            $output .= theme('tourney_spacer');
+            $output .= theme('tourney_spacer', array('height' => $top_pad - 1));
           }
           else {
-            $output .= tourney_spacer(1, 'vertical evenright,special', TRUE);
-            $output .= tourney_spacer($top_pad - 1, 'vertical', TRUE);
+            $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special'));
+            $output .= theme('tourney_spacer', array('height' => $top_pad - 1, 'flow' => 'vertical'));
           }
         }
 
@@ -269,21 +278,26 @@ function tourney_double_bottom_bracket($rounds) {
         else {
           $match_flow_tail = ( $pad_rows == 0 ? 'bottomleft evenright,special,bottom' : 'bottomleft' );
         }
-        $output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        $output .= theme('tourney_matchblock', array(
+          'match' => $match['match'],
+          'flow' => $match_flow_tail,
+          'small' => $small,
+        ));
         if ($pad_rows && !$last) {
           if ($feed_round) {
             // On feed rounds (rounds that feed into a round with the same
             // number of contestants), we still need padding, but we want
             // blank space instead of flow lines.
-            $output .= tourney_spacer($pad_rows, NULL, TRUE);
+            $output .= theme('tourney_spacer', array('height' => $pad_rows));
           }
           else {
             // Render padding rows. These rows have flow lines in them.
             // The last padding row needs an evenright flow control, so we render
             // vertical flow rows up until the last one and then do one row with
             // the evenright.
-            $output .= tourney_spacer($pad_rows - 1, 'vertical', TRUE);
-            $output .= tourney_spacer(1, 'vertical evenright,special,bottom', TRUE);
+            $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
+            $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special,bottom'));
           }
         }
         $output .= '</div>'; // <!-- /match-contestant -->
@@ -303,13 +317,13 @@ function tourney_double_bottom_bracket($rounds) {
             // On feed rounds (rounds that feed into a round with the same
             // number of contestants), we still need padding, but we want
             // blank space instead of flow lines.
-            $output .= tourney_spacer($pad_rows, NULL, TRUE);
+            $output .= theme('tourney_spacer', array('height' => $pad_rows));
           }
           else {
             // Render padding rows with flow controls. Needs to start with 1
             // evenright, and then render the rest of the padding rows.
-            $output .= tourney_spacer(1, 'vertical evenright,special', TRUE);
-            $output .= tourney_spacer($pad_rows - 1, 'vertical', TRUE);
+            $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special'));
+            $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
           }
         }
 
@@ -320,13 +334,18 @@ function tourney_double_bottom_bracket($rounds) {
         else {
           $match_flow_tail = ( $pad_rows == 0 ? 'topleft evenright,special' : 'topleft' );
         }
-        $output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
+        $output .= theme('tourney_matchblock', array(
+          'match' => $match['match'],
+          'flow' => $match_flow_tail,
+          'small' => $small,
+        ));
 
         // Close match pair div
         $output .= '</div></div>';  // <!-- /match-contestant /match-pair -->
 
         // Empty padding to the bottom
-        $output .= tourney_spacer($pad_rows, NULL, TRUE);
+        $output .= theme('tourney_spacer', array('height' => $pad_rows));
       }
     }
     $output .= '</div>';
@@ -349,14 +368,23 @@ function tourney_double_champion_bracket($tournament, $rounds) {
   // bracket.
   $output  = '';
   $output .= '<div class="round round-champion">';
-  $output .= tourney_spacer($tournament->players - 1, NULL, 1);
+  $output .= theme('tourney_spacer', array('height' => $tournament->players - 1));
   $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
-  $output .= tourney_matchblock($champ, 'horizontal', 1);
+  //$output .= tourney_matchblock($champ, 'horizontal', 1);
+  $output .= theme('tourney_matchblock', array(
+    'match' => $champ,
+    'flow' => 'horizontal',
+    'small' => 1,
+  ));
   $output .= '</div></div></div>';
   $output .= '<div class="round round-extra">';
-  $output .= tourney_spacer($tournament->players - 1, NULL, 1);
+  $output .= theme('tourney_spacer', array('height' => $tournament->players - 1));
   $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
-  $output .= tourney_matchblock($extra, NULL, 1);
+  //$output .= tourney_matchblock($extra, NULL, 1);
+  $output .= theme('tourney_matchblock', array(
+    'match' => $extra,
+    'small' => 1,
+  ));
   $output .= '</div></div>';
   return $output;
 }

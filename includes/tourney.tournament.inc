@@ -144,7 +144,7 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
  *   An array of all the rounds and matches.
  */
 function tourney_tournament_build_matches($entity, $raw = FALSE, $reset = FALSE) {
-  if ($reset || !$cache = cache_get('tourney_build_matches_' . $entity->id)) {
+  if ($reset || !$cache = cache_get('tourney_build_matches_' . $entity->id, 'tourney_cache')) {
     $query = relation_query('tourney_tournament', $entity->id);
     $results = $query->entityCondition('bundle', 'has_match')
                       ->range(0, $entity->matches_created)
@@ -180,11 +180,11 @@ function tourney_tournament_build_matches($entity, $raw = FALSE, $reset = FALSE)
       }
     }
 
-    cache_set('tourney_build_matches_' . $entity->id . '_raw', $matches);
-    cache_set('tourney_build_matches_' . $entity->id, $brackets);
+    cache_set('tourney_build_matches_' . $entity->id . '_raw', $matches, 'cache_tourney');
+    cache_set('tourney_build_matches_' . $entity->id, $brackets, 'cache_tourney');
     return $raw ? $matches : $brackets;
   }
-  $cache_raw = cache_get('tourney_build_matches_' . $entity->id . '_raw');
+  $cache_raw = cache_get('tourney_build_matches_' . $entity->id . '_raw', 'cache_tourney');
   return $raw ? $cache_raw->data : $cache->data;
 
 }
@@ -199,25 +199,30 @@ function tourney_tournament_build_matches($entity, $raw = FALSE, $reset = FALSE)
  * @return $games
  *   Returns an array of game objects.
  */
-function tourney_tournament_get_match_games($entity, $load_entity = TRUE) {
-  $query = relation_query('tourney_match', $entity->id);
-  $query->entityCondition('bundle', 'has_game');
-  $results = $query->execute();
+function tourney_tournament_get_match_games($entity, $load_entity = TRUE, $reset = FALSE) {
+  $cache_name = 'tourney_match_games_' . $entity->id . ( $load_entity ? '_entity' : '' );
+  if ($reset || !$cache = cache_get($cache_name, 'cache_tourney')) {
+    $query = relation_query('tourney_match', $entity->id);
+    $query->entityCondition('bundle', 'has_game');
+    $results = $query->execute();
 
-  $games = array();
-  foreach ($results as $id => $relation) {
-    $relation = relation_load($id);
-    $endpoints = field_get_items('relation', $relation, 'endpoints');
+    $games = array();
+    foreach ($results as $id => $relation) {
+      $relation = relation_load($id);
+      $endpoints = field_get_items('relation', $relation, 'endpoints');
 
-    if ($load_entity) {
-      $game = tourney_game_load($endpoints[1]['entity_id']);
-      $games[$game->id] = $game;
+      if ($load_entity) {
+        $game = tourney_game_load($endpoints[1]['entity_id']);
+        $games[$game->id] = $game;
+      }
+      else {
+        $games[$endpoints[1]['entity_id']] = $endpoints[1]['entity_id'];
+      }
     }
-    else {
-      $games[$endpoints[1]['entity_id']] = $endpoints[1]['entity_id'];
-    }
+    cache_set($cache_name, $games, 'cache_tourney');
+    return $games;
   }
-  return $games;
+  return !empty($cache->data) ? $cache->data : array();
 }
 
 /**
