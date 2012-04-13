@@ -145,10 +145,26 @@ class SingleElimination implements TourneyMatchInterface {
    */
   public function determine_winner($tournament) {
     $ranks = $tournament->fetchRanks();
+    $contestants = tourney_get_contestants($tournament);
+    $standings = tourney_get_standings($tournament);
 
-    dpm($ranks);
-    //$tournament->winner = 'user:1';
-    //$tournament->save();
+    // todo : remove quick hack, implement custom uasort callback.
+    foreach ($standings as $key => $standing) {
+      $winners[$key] = $standing['wins'];
+    }
+    arsort($winners);
+
+    if (TOURNEY_DEBUG_EXTENDS) {
+      dpm($contestants);
+      dpm($standings);
+      dpm($ranks);
+      dpm($winners);
+    }
+
+    $keys = array_keys($winners);
+    $tournament->winner = $keys[0];
+    //$tournament->tournamentWinner = $keys[0]; (is private);
+    $tournament->save();
     drupal_set_message(t('Tournament ' . $tournament->format. ' is complete!.'), 'status');
 
     return $this;
