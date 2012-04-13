@@ -229,7 +229,6 @@ function tourney_schema() {
       'name' => array('name'),
     ),
   );
-  $schema['cache_tourney'] = drupal_get_schema_unprocessed('system', 'cache');
   return $schema;
 }
 

@@ -136,6 +136,9 @@ class RoundRobin implements TourneyMatchInterface {
     }
   }
 
+  /**
+   *
+   */
   public function determine_winner($tournament) {
     $ranks = $tournament->fetchRanks();
 
