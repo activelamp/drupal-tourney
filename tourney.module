@@ -5,20 +5,12 @@
  * Create tournament, match, and game entities for creating tournaments.
  */
 
-<<<<<<< HEAD
 define('TOURNEY_CONTESTANT_1', 'contestant_1');
 define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
 define('TOURNEY_CONTESTANT_2', 'contestant_2');
 define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
 define('TOURNEY_GAMES', 5);
-=======
-define('TOURNEY_CONTESTANT_1',     'contestant_1');
-define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
-define('TOURNEY_CONTESTANT_2',     'contestant_2');
-define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
-define('TOURNEY_GAMES',            5);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
->>>>>>> Extended entities now ready to determine winner.
 
 /**
  * Implements hook_menu().
@@ -199,7 +191,7 @@ function tourney_entity_info() {
     $entity_class = ($entity_short == 'tournament') ? 'TourneyTournament' : $entity_class;
     $entity_class = ($entity_short == 'match') ? 'TourneyMatch' : $entity_class;
     $entity_class = ($entity_short == 'game') ? 'TourneyGame' : $entity_class;
-    
+
     $return[$entity_name] = array(
       'label' => $entity_name,
       'entity class' => $entity_class,
@@ -748,7 +740,6 @@ function tourney_tournament_save(&$tourney) {
  */
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
-dpr($match);
   // Set the tournament winner if this was the last match.
   if (method_exists($match, 'isFinished') && $match->isFinished()) {
     if ($match->tournament->isFinished()) {
