@@ -138,12 +138,22 @@ class RoundRobin implements TourneyMatchInterface {
    *
    */
   public function determine_winner($tournament) {
+    module_load_include('inc', 'tourney', 'theme/type/roundrobin');
     $ranks = $tournament->fetchRanks();
+    $contestants = tourney_get_contestants($tournament);
+    $standings = tourney_get_standings($tournament);
+    uasort($standings, 'tourney_roundrobin_standings_sort');
 
-dpm($ranks);
-//  $tournament->winner = 'user:1';
-//  $tournament->save();
-drupal_set_message(t('Tournament ' . $tournament->format. ' is complete!.'), 'status');
+    if (TOURNEY_DEBUG_EXTENDS) {
+      dpm($contestants);
+      dpm($standings);
+      dpm($ranks);
+    }
+
+    $keys = array_keys($standings);
+    $tournament->winner = $keys[0];
+    $tournament->save();
+    drupal_set_message(t('Tournament ' . $tournament->format. ' is complete!.'), 'status');
 
     return $this;
   }
