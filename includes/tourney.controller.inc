@@ -114,7 +114,12 @@ interface TourneyMatchInterface {
   public function build();
   
   /**
-   * Determins which contestant is the winner.
+   * Determines which contestant is the winner.
    */
   public function determine_winner($tournament);
+  
+  /**
+   * Determines if the tournament is finished.
+   */
+  public function is_finished($tournament);
 }

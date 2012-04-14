@@ -14,7 +14,6 @@ class TourneyMatch extends Entity {
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-
     if (property_exists($this, 'id')) {
       $this->fillProperties();
     }

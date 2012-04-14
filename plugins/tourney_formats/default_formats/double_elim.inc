@@ -224,4 +224,34 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
       }
     }
   }
+
+  /**
+   * Overrides SingleElemination::is_finished()
+   *
+   * @todo Determine if we need the tie-breaker match.
+   */
+  public function is_finished($tournament) {
+    $finished = parent::is_finished($tournament);
+    $finished_count = 0;
+
+    // Parent is authoritative if it reports tournament as already finished.
+    if (!$finished) {
+      // Sum all completed matches.
+      $matches_total = $tournament->matches_created;
+      $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
+      $finish_count = 0;
+      if (!empty($matches)) {
+        foreach($matches as $match) {
+          $finish_count += $match->isFinished();
+        }
+      }
+      // If completed matches are one less than total matches then tournament
+      // may be finished if no tie-breaker is required.
+      if (($matches_total - $finished_count) == 1) {
+        // TODO : Determine if we need the tie-breaker match.
+      }
+    }
+
+    return $finished;
+  }
 }

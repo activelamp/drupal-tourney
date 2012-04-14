@@ -18,7 +18,6 @@
 
 class TourneyGame extends Entity {
 
-  // I can't help myself. Must... line... up... Resistance... Futile...
   private $entitySaved  = NULL;
   private $finished     = NULL;
   private $tournamentId = NULL;
