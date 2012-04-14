@@ -41,7 +41,7 @@ function tourney_games_to_table($games) {
     else foreach ( $game->contestants as $id => $contestant ) {
       if ( !isset($rows[$id]) ) $rows[$id] = array($contestant);
       if ( $game->winner ) $rows[$id][] = $game->winner == $id ? 'W' : 'L';
-      else $rows[$id][] = count($game->contestants) < 2 ? '-' : drupal_render(drupal_get_form('tourney_game_win_form',
+      else $rows[$id][] = count($game->contestants) < 2 || $game->match->winner ? '-' : drupal_render(drupal_get_form('tourney_game_win_form',
         array('match' => $game->match->id, 'game' => $game->id, 'contestant' => $id, 'name' => $contestant)));
     }
   }
@@ -67,6 +67,7 @@ function tourney_games_to_table($games) {
  */
 function theme_tourney_render_match($vars) {
   $match = $vars['match'];
+
   $games = tourney_load_games($match->games_played, $match->games);
   $table = tourney_games_to_table($games);
   return $table;

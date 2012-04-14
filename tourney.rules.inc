@@ -75,6 +75,7 @@ function tourney_action_get_game_count($match) {
 function tourney_action_game_is_won($match, $quotient) {
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
+    dpm("making new game");
     // Default action to create a new game.
     $create_new_game = TRUE;
 
@@ -124,12 +125,18 @@ function tourney_action_game_is_won($match, $quotient) {
 function _tourney_set_match_winner($match) {
   $winners = tourney_get_winner_counts($match);
   $winner = array_keys($winners, max($winners));
-  list($type, $id) = explode(".", $winner[0]);
-  $wobj = entity_load($type, array($id));
-  $winner = array_pop($wobj);
+  if ( $winners[$winner[0]] > $match->games / 2 ) {
+    list($type, $id) = explode(".", $winner[0]);
+    $wobj = entity_load($type, array($id));
+    $winner = array_pop($wobj);
 
-  // @todo what do we do for a winner thing here... type.id or name or what? using name for now
-  $match->winner = $winner->_entity_name;
+    // @todo what do we do for a winner thing here... type.id or name or what? using name for now
+    $match->winner = $winner->_entity_name;
+  }
+  else {
+    $match->winner = '';
+  }
+  dpm($match);
   tourney_match_save($match);
 }
 
@@ -197,6 +204,7 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
 
         $next_match->$contestant = ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_contestant : $winner_contestant;
       }
+      dpm($next_match);
       tourney_match_save($next_match);
       break;
     }

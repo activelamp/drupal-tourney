@@ -62,7 +62,7 @@ function tourney_game_win_form($form, &$form_state, $extra) {
  */
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
-  $form_state['tourney'] = $match;
+  $form_state['match'] = $match;
   $games = tourney_tournament_get_match_games($match);
 
   // @todo: It would be nice if these were field api fields
@@ -95,6 +95,22 @@ function tourney_match_form($form, &$form_state, $match) {
     '#required' => TRUE,
     '#disabled' => count($games) > 1,
   );
+
+  if ( count($match->games_played) > 1 ) {
+    $form['fix_games'] = array(
+      '#theme' => 'tourney_match_fix',
+      '#games' => $match->games,
+    );
+
+    foreach ( $games as $id => $game ) {
+      $form['fix_games']['game.' . $id] = array(
+        '#type' => 'radios',
+        '#title' => t('Game @id', array('@id' => $id)),
+        '#default_value' => $game->winner,
+        '#options' => $game->contestants,
+      );
+    }
+  }
 
   field_attach_form('tourney_match', $match, $form, $form_state);
 
@@ -199,11 +215,23 @@ function tourney_match_form_validate($form, &$form_state) {
 function tourney_match_form_submit($form, &$form_state) {
   drupal_set_message(t('Your match has been saved.'));
 
-  $tourney = $form_state['tourney'];
-  entity_form_submit_build_entity('tourney_match', $tourney, $form, $form_state);
-  tourney_match_save($tourney);
+  foreach ( $form_state['input'] as $id => $value ) {
+    if ( !$value || substr($id, 0, 5) != 'game_' ) continue;
+    $parts = explode('_', $id);
+    $game = tourney_game_load($parts[1]);
+    if ( $game->winner != $value ) {
+      $game->winner = $value;
+      tourney_game_save($game);
+    }
+  }
 
-  $form_state['redirect'] = 'tourney/match/' . $tourney->id;
+  $match = $form_state['match'];
+  entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
+  tourney_match_save($match);
+  if ( function_exists('_tourney_set_match_winner') ) 
+    _tourney_set_match_winner($match);
+
+  $form_state['redirect'] = 'tourney/match/' . $match->id;
 }
 
 /**
@@ -225,18 +253,18 @@ function tourney_game_edit($game) {
 /**
  * The match form.
  */
-function tourney_game_form($form, &$form_state, $tourney) {
-  $tourney->type = 'game';
-  $form_state['tourney'] = $tourney;
+function tourney_game_form($form, &$form_state, $game) {
+  $game->type = 'game';
+  $form_state['game'] = $game;
   $form['winner'] = array(
     '#type' => 'select',
     '#title' => t('Winner'),
     '#description' => t('The winner of this game.'),
-    '#options' => isset($tourney->contestants) ? array('' => t('- Choose Winner -')) + $tourney->contestants : array(),
-    '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
+    '#options' => isset($game->contestants) ? array('' => t('- Choose Winner -')) + $game->contestants : array(),
+    '#default_value' => isset($game->winner) ? $game->winner : -1,
   );
 
-  field_attach_form('tourney_game', $tourney, $form, $form_state);
+  field_attach_form('tourney_game', $game, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -257,11 +285,11 @@ function tourney_game_form($form, &$form_state, $tourney) {
 function tourney_game_form_submit($form, &$form_state) {
   drupal_set_message(t('Your game has been saved.'));
 
-  $tourney = $form_state['tourney'];
-  entity_form_submit_build_entity('tourney_game', $tourney, $form, $form_state);
-  tourney_game_save($tourney);
+  $game = $form_state['game'];
+  entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
+  tourney_game_save($game);
 
-  $form_state['redirect'] = 'tourney/game/' . $tourney->id;
+  $form_state['redirect'] = 'tourney/game/' . $game->id;
 }
 
 /**
