@@ -246,7 +246,6 @@ function tourney_match_form_submit($form, &$form_state) {
   tourney_match_save($match);
   if ( function_exists('_tourney_set_match_winner') ) 
     _tourney_set_match_winner($match);
-
   $form_state['redirect'] = 'tourney/match/' . $match->id;
 }
 

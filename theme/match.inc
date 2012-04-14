@@ -67,6 +67,7 @@ function tourney_games_to_table($games) {
  */
 function theme_tourney_render_match($vars) {
   $match = $vars['match'];
+
   $games = tourney_load_games($match->games_played, $match->games);
   $table = tourney_games_to_table($games);
   return $table;
