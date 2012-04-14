@@ -37,6 +37,35 @@ class TourneyTournament extends Entity {
   }
 
   /**
+   * Reports if a tournament exists or not.
+   *
+   * The actual content of the passed parameter should throw no errors. If
+   * there is anything wrong the reported value will be FALSE.
+   *
+   * @todo Logic for direct database query.
+   *
+   * @param integer $tournament_id
+   *
+   * @return bool $exists
+   *   Will return TRUE if $tournament_id exists in the database, FALSE if
+   *   the parameter can not be confirmed as a tournament_id.
+   */
+  public static function exists($tournament_id = NULL) {
+    $exists = FALSE;
+
+    $tournament_id = is_string($tournament_id) ? intval($tournament_id) : 0;    
+    if (is_integer($tournament_id) && $tournament_id > 0) {
+      // TODO : Direct database query.
+      $query = TRUE;
+      if ($query) {
+        $exists = TRUE;
+      }
+    }
+
+    return $exists;
+  }
+
+  /**
    * Sets property values during instantiation.
    *
    * This function _should_ only called by the constructor after our entity 
@@ -99,15 +128,7 @@ class TourneyTournament extends Entity {
    *   $this
    */
   public function isFinished() {
-    $matches = TourneyMatch::loadTourneyMatch($this->getMatchIds());
-
-    $finished = FALSE;
-    if (!empty($matches)) {
-      $finished = TRUE;
-      foreach ($matches as $match) {
-        $finished = ($finished) ? $match->isFinished() : FALSE;
-      }
-    }
+    $finished = $this->tournamentPlugin->is_finished($this);
     $this->tournamentFinished = $finished;
 
     if (TOURNEY_DEBUG_EXTENDS) {

@@ -168,4 +168,30 @@ class SingleElimination implements TourneyMatchInterface {
 
     return $this;
   }
+
+  /**
+   * Report if a tournament is finished.
+   *
+   * @param TourneyTournament $tournament
+   *
+   * @return bool $finished
+   *   Will report TRUE if the tournament is finished, FALSE if not.
+   */
+  function is_finished($tournament) {
+    if (!property_exists($tournament, 'id') || !TourneyTournament::exists($tournament->id)) {
+      throw new Exception(t('Required parameter is not correct.'));
+    }
+
+    $finished = FALSE;
+
+    $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
+    if (!empty($matches)) {
+      $finished = TRUE;
+      foreach ($matches as $match) {
+        $finished = ($finished) ? $match->isFinished() : FALSE;
+      }
+    }
+
+    return $finished;
+  }
 }
