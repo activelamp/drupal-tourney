@@ -152,37 +152,7 @@ function tourney_confirm_delete($form, &$form_state, $tournament) {
  * Submit handler after confirming deletion.
  */
 function tourney_confirm_delete_submit($form, &$form_state) {
-  $tournament = $form['#tournament'];
-  $deletes = array('tourney_tournament.' . $tournament->id);
-  $mquery = relation_query('tourney_tournament', $tournament->id)->entityCondition('bundle', 'has_match');
-  $matches = $mquery->execute();
-  foreach ( $matches as $mrid => $mrv ) {
-    $mrelation = relation_load($mrid);
-    $match = tourney_match_load($mrelation->endpoints['und'][1]['entity_id']);
-    $deletes[] = 'relation.' . $mrid;
-    $deletes[] = 'tourney_match.' . $match->id;
-    $crids = array();
-    $c1q = relation_query('tourney_match', $match->id)->entityCondition('bundle', TOURNEY_CONTESTANT_1);
-    $crids += $c1q->execute();
-    $c2q = relation_query('tourney_match', $match->id)->entityCondition('bundle', TOURNEY_CONTESTANT_2);
-    $crids += $c2q->execute();
-    foreach ( $crids as $crid => $crv ) $deletes[] = 'relation.' . $crid;
-    $gquery = relation_query('tourney_match', $match->id)->entityCondition('bundle', 'has_game');
-    $games = $gquery->execute();
-    foreach ( $games as $grid => $grv ) {
-      $grelation = relation_load($grid);
-      $game = tourney_game_load($grelation->endpoints['und'][1]['entity_id']);
-      $deletes[] = 'relation.' . $grid;
-      $deletes[] = 'tourney_game.' . $game->id;
-    }
-  }
-  foreach ( $deletes as $delete ) {
-    @list($type, $id) = tourney_cid_split($delete);
-    if ( $type == 'relation' ) relation_delete($id);
-    else entity_delete($type, $id);
-    watchdog('content', 'Deleted @type #@id.', array('@type' => $type, '@id' => $id));
-  }
-  drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
+  entity_delete('tourney_tournament', $form['#tournament']->id);
   $form_state['redirect'] = "admin/content/tourney";
 }
 
