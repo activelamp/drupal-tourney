@@ -79,15 +79,6 @@ function tourney_menu() {
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
-  $items['tourney/match/%tourney_match/fix'] = array(
-    'title' => 'Fix',
-    'page callback' => 'tourney_match_fix',
-    'page arguments' => array(2),
-    'access arguments' => array('edit tourney'),
-    'file' => 'includes/tourney.match.inc',
-    'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
   $items['tourney/game/%tourney_game'] = array(
     'title callback' => 'tourney_page_title',
     'title arguments' => array(2),
@@ -461,6 +452,11 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'tourney.inc',
       'path' => $path . '/theme',
     ),
+    'tourney_match_fix' => array(
+      'template' => 'tourney-match-fix',
+      'render element' => 'element',
+      'path' => $path . '/theme',
+    ),
   );
 }
 
@@ -741,13 +737,13 @@ function tourney_match_save(&$match) {
     $c1 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
     $c2 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
 
-    // if ( ( is_object($c1) && $match->contestant1 ) && ( tourney_cid($c1) != $match->contestant1 ) ) {
-    //   $query = relation_query('tourney_match', $match->id);
-    //   $query->entityCondition('bundle', TOURNEY_CONTESTANT_1);
-    //   $results = $query->execute();
-    //   relation_delete(array_pop($results)->rid);
-    //   $c1 = FALSE;
-    // }
+    if ( $match->contestant1 && gettype($match->contestant1) == 'string' && $c1 && tourney_cid($c1) != $match->contestant1 ) {
+      $query = relation_query('tourney_match', $match->id);
+      $query->entityCondition('bundle', TOURNEY_CONTESTANT_1);
+      $results = $query->execute();
+      relation_delete(array_pop($results)->rid);
+      $c1 = FALSE;
+    }
     // Create the new relation.
     if (!is_object($c1) && $match->contestant1) {
       // Get the entity and entity_id from contestant value
@@ -760,14 +756,13 @@ function tourney_match_save(&$match) {
       $rid = relation_insert(TOURNEY_CONTESTANT_1, $entity_keys);
     }
     
-    // if ( ( is_object($c2) && $match->contestant2 ) && ( tourney_cid($c2) != $match->contestant2 ) ) {
-    //   $query = relation_query('tourney_match', $match->id);
-    //   $query->entityCondition('bundle', TOURNEY_CONTESTANT_2);
-    //   $results = $query->execute();
-    //   relation_delete(array_pop($results)->rid);
-    //   $c2 = FALSE;
-    // }
-
+    if ( $match->contestant2 && gettype($match->contestant2) == 'string' && $c2 && tourney_cid($c2) != $match->contestant2 ) {
+      $query = relation_query('tourney_match', $match->id);
+      $query->entityCondition('bundle', TOURNEY_CONTESTANT_2);
+      $results = $query->execute();
+      relation_delete(array_pop($results)->rid);
+      $c2 = FALSE;
+    }
     if (!is_object($c2) && $match->contestant2) {
       // Get the entity and entity_id from contestant value
       list($type, $id) = explode(".", $match->contestant2);

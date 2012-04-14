@@ -75,7 +75,6 @@ function tourney_action_get_game_count($match) {
 function tourney_action_game_is_won($match, $quotient) {
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
-    dpm("making new game");
     // Default action to create a new game.
     $create_new_game = TRUE;
 
@@ -136,7 +135,6 @@ function _tourney_set_match_winner($match) {
   else {
     $match->winner = '';
   }
-  dpm($match);
   tourney_match_save($match);
 }
 
@@ -204,7 +202,6 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
 
         $next_match->$contestant = ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_contestant : $winner_contestant;
       }
-      dpm($next_match);
       tourney_match_save($next_match);
       break;
     }

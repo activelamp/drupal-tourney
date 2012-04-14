@@ -96,7 +96,23 @@ function tourney_match_form($form, &$form_state, $match) {
     '#disabled' => count($games) > 1,
   );
 
-  if ( count($match->games_played) > 1 ) {
+  $matches = tourney_tournament_build_matches($match->tournament);
+  $next_matches = array();
+  if ( $match->next_match_winner )
+    $next_matches[] = tourney_get_match_by_name($matches, $match->next_match_winner);
+  if ( $match->next_match_loser )
+    $next_matches[] = tourney_get_match_by_name($matches, $match->next_match_loser);
+
+  $locked = FALSE;
+  foreach ( $next_matches as $next_match )
+    if ( count($next_match->games_played) > 1 ) $locked = TRUE;
+
+  if ( $locked ) {
+    $form['fix_games'] = array(
+      '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
+    );
+  }
+  elseif ( count($match->games_played) > 1 ) {
     $form['fix_games'] = array(
       '#theme' => 'tourney_match_fix',
       '#games' => $match->games,
@@ -364,7 +380,7 @@ function tourney_match_get_parents($mid, $depth) {
   while ( $depth-- > 0 ) {
     $new_names = array();
     foreach ( $names as $name ) {
-      $nmatch = tourney_match_get_by_name($matches, $name);
+      $nmatch = tourney_get_match_by_name($matches, $name);
       if ( !$nmatch ) continue;
       if ( tourney_get_name_part($nmatch->this_match, 'bracket') != $bracket ) continue;
       $ids[] = $nmatch->id;
@@ -376,9 +392,10 @@ function tourney_match_get_parents($mid, $depth) {
   return $ids;
 }
 
-function tourney_match_get_by_name($matches, $name) {
+function tourney_get_match_by_name($matches, $name) {
   if ( $name == 'manual' ) return NULL;
   $parts = explode('_', $name);
+  if ( substr(end($parts), 0, 10) == 'contestant' ) array_pop($parts);
   foreach ( $parts as $part ) if ( array_key_exists($part, $matches) ) $matches = $matches[$part];
   @list(, $id) = explode('-', array_pop($parts));
   while ( --$id > 0 ) array_shift($matches);
