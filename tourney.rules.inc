@@ -48,6 +48,22 @@ function tourney_rules_action_info() {
         ),
       ),
     ),
+    'tourney_action_set_all_matches' => array(
+      'label' => t('Set contestant in all matches for Round Robin.'),
+      'group' => t('Tourney Rules'),
+      'parameter' => array(
+        'match' => array(
+          'type' => 'tourney_match',
+          'label' => t('The match this game belongs in'),
+        ),
+      ),
+      'provides' => array(
+        'action_message' => array(
+          'type' => 'text',
+          'label' => t('Action successful message'),
+        ),
+      ),
+    ),
   );
 
   return $actions;
@@ -64,6 +80,7 @@ function tourney_action_get_game_count($match) {
     'number_of_won_games' => max($winners),
   );
 }
+
 /**
  * Action to either create a new game, or move the winners to new match
  *
@@ -73,6 +90,7 @@ function tourney_action_get_game_count($match) {
  *   The number of games won by leader divided by total games in match.
  */
 function tourney_action_game_is_won($match, $quotient) {
+  $message = '';
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
     // Default action to create a new game.
@@ -99,7 +117,7 @@ function tourney_action_game_is_won($match, $quotient) {
       $message = t('A new game has been created: !game', array('!game' => l($game->title, 'tourney/game/' . $game->id)));
     }
   }
-  else {
+  else if ($match->tournament->format != 'RoundRobin') {
     // Get the winner and loser locations into variables.
     @list($wbracket, $wround, $wmatch, $wcontestant) = explode("_", $match->next_match_winner);
     @list($lbracket, $lround, $lmatch, $lcontestant) = explode("_", $match->next_match_loser);
@@ -110,12 +128,41 @@ function tourney_action_game_is_won($match, $quotient) {
       $lmatch_obj = clone $match;
       _tourney_move_next_round($lmatch_obj, $lbracket, $lround, $lmatch, $lcontestant, 'bracket-top');
     }
-
     _tourney_set_match_winner($match);
 
     $message = t('Players moved to next round');
   }
+  else {
+    _tourney_set_match_winner($match);
+  }
 
+  return array(
+    'action_message' => $message,
+  );
+} 
+
+/**
+ * Recursive function that sets players in a RoundRobin tournament in all their
+ * matches once the first round has been setup.
+ *
+ * @param $match (object)
+ *   The match the game belongs to
+ */
+function tourney_action_set_all_matches($match) {
+  @list($wbracket, $wround, $wmatch, $wcontestant) = explode("_", $match->next_match_winner);
+  @list($lbracket, $lround, $lmatch, $lcontestant) = explode("_", $match->next_match_loser);
+  
+  if ($match->next_match_winner) {
+    $new_match1 = _tourney_move_next_round($match, $wbracket, $wround, $wmatch, $wcontestant);
+    tourney_action_set_all_matches($new_match1);
+  }
+  if ($match->next_match_loser) {
+    $lmatch_obj = clone $match;
+    $new_match2 = _tourney_move_next_round($lmatch_obj, $lbracket, $lround, $lmatch, $lcontestant, 'bracket-top');
+    tourney_action_set_all_matches($new_match2);
+  }
+  $message = 'Players added to all rounds';
+  
   return array(
     'action_message' => $message,
   );
@@ -146,14 +193,14 @@ function _tourney_set_match_winner($match) {
  * @param $match
  *   The match object the game belongs to.
  * @param $bracket
- *   The bracket name as a string to search for the next match.
+ *   The bracket name as a string to search for the **next match**.
  * @param $round
- *   The round name as a string to search for the next match.
+ *   The round name as a string to search for the **next match**.
  * @param $match_name
- *   The match name as a string to search for the next match. This will look for
+ *   The match name as a string to search for the **next match**. This will look for
  *   any matches with this match_name.
  * @param $contestant
- *   The contestant name as a string to search for the next match. Not the actual
+ *   The contestant name as a string to search for the **next match**. Not the actual
  *   contestant, just the string identifier (i.e. contestant-1, contestant-2).
  * @param $from
  *   A variable used to distinguish if this is being called for a loser path.
@@ -179,31 +226,36 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
       : NULL;
 
     // We have a match, lets do something with it.
-    if ($next_match->title == $match_name) {
+    if ($next_match->title == $match_name && empty($next_match->$contestant)) {
       $contestant = str_replace('-', '', $contestant);
-
-      // Set the contestant on the next match. Round robin does not care about
-      // winners or losers.
-      if ($bracket == 'bracket-roundrobin') {
-        $c1 = $match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id;
-        $c2 = $match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id;
-        $next_match->$contestant = ($from != 'same') ? $c2 : $c1;
-      }
-      else {
-        $winners = tourney_get_winner_counts($match);
-
-        // Get the winner uid.
-        $winner = array_keys($winners, max($winners));
-        $winner_contestant = $winner[0];
-
-        // Get the loser uid.
-        $loser = array_keys($winners, min($winners));
-        $loser_contestant = $loser[0];
-
-        $next_match->$contestant = ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_contestant : $winner_contestant;
-      }
+    
+      $next_match->$contestant = _tourney_move_next_round_contestant($bracket, $match, $from);
       tourney_match_save($next_match);
-      break;
+      return $next_match;
     }
+  }
+}
+
+/**
+ * Figure out who the contestant is for the contestant spot passed in.
+ */
+function _tourney_move_next_round_contestant($bracket, $match, $from) {
+  // Set the contestant on the next match. Round robin does not care about
+  // winners or losers.
+  if ($match->tournament->format == 'RoundRobin') {
+    return ($from != 'same') ? $match->contestant2 : $match->contestant1;
+  }
+  else {
+    $winners = tourney_get_winner_counts($match);
+
+    // Get the winner uid.
+    $winner = array_keys($winners, max($winners));
+    $winner_contestant = $winner[0];
+
+    // Get the loser uid.
+    $loser = array_keys($winners, min($winners));
+    $loser_contestant = $loser[0];
+
+    return ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_contestant : $winner_contestant;
   }
 }

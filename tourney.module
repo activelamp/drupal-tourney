@@ -5,11 +5,11 @@
  * Create tournament, match, and game entities for creating tournaments.
  */
 
-define('TOURNEY_CONTESTANT_1',     'contestant_1');
-define('TOURNEY_CONTESTANT_1_LBL', 'contestant 1');
-define('TOURNEY_CONTESTANT_2',     'contestant_2');
-define('TOURNEY_CONTESTANT_2_LBL', 'contestant 2');
-define('TOURNEY_GAMES',            5);
+define('TOURNEY_CONTESTANT_1', 'contestant_1');
+define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
+define('TOURNEY_CONTESTANT_2', 'contestant_2');
+define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
+define('TOURNEY_GAMES', 5);
 
 /**
  * Implements hook_menu().
@@ -636,7 +636,6 @@ function tourney_match_load($id = NULL, $reset = FALSE) {
   $ids = isset($id) ? array($id) : array();
   $conditions = array();
   $match = tourney_match_load_multiple($ids, $conditions, $reset);
-
   return $match ? reset($match) : FALSE;
 }
 
@@ -712,7 +711,6 @@ function tourney_entity_insert($entity, $entity_type) {
     $matches->create();
     // Create the actual match entities and the first game.
     $matches_created = $matches->save($entity);
-
     // Update the tournament with the number of matches created
     $entity->matches_created = $matches_created;
     drupal_write_record('tourney_tournament', $entity, 'id');
@@ -745,9 +743,11 @@ function tourney_match_save(&$match) {
       $c1 = FALSE;
     }
     // Create the new relation.
-    if (!is_object($c1) && $match->contestant1) {
+    if (!is_object($c1) && !empty($match->contestant1)) {
       // Get the entity and entity_id from contestant value
-      list($type, $id) = explode(".", $match->contestant1);
+      list($type, $id) = explode(".", is_object($match->contestant1) 
+        ? $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id
+        : $match->contestant1);
 
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
@@ -755,7 +755,6 @@ function tourney_match_save(&$match) {
       );
       $rid = relation_insert(TOURNEY_CONTESTANT_1, $entity_keys);
     }
-    
     if ( $match->contestant2 && gettype($match->contestant2) == 'string' && $c2 && tourney_cid($c2) != $match->contestant2 ) {
       $query = relation_query('tourney_match', $match->id);
       $query->entityCondition('bundle', TOURNEY_CONTESTANT_2);
@@ -765,7 +764,9 @@ function tourney_match_save(&$match) {
     }
     if (!is_object($c2) && $match->contestant2) {
       // Get the entity and entity_id from contestant value
-      list($type, $id) = explode(".", $match->contestant2);
+      list($type, $id) = explode(".", is_object($match->contestant2) 
+        ? $match->contestant2->_entity_type .'.'. $match->contestant2->_entity_id
+        : $match->contestant2);
 
       $entity_keys = array(
         array('entity_type' => 'tourney_match', 'entity_id' => $match->id),

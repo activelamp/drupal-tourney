@@ -71,6 +71,7 @@ function tourney_single_tree($rounds, $small = FALSE) {
           // The last padding row needs an evenright flow control, so we render
           // vertical flow rows up until the last one and then do one row with
           // the evenright.
+
           $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
           $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special,bottom'));
         }

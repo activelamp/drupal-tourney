@@ -58,7 +58,6 @@ class TourneyBuildMatches {
   public function save($tournament) {
     $this->tournament = $tournament;
     $this->save_match($this->matches);
-
     return $this->match_count;
   }
 

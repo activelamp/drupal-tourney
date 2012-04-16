@@ -33,7 +33,6 @@ class RoundRobin implements TourneyMatchInterface {
    */
   public function build() {
     $matches = array();
-
     // Ensure we have an even number of spots
     $spots = $this->num_contestants % 2 ? $this->num_contestants + 1 : $this->num_contestants;
     $this->spots = $spots;
@@ -104,7 +103,6 @@ class RoundRobin implements TourneyMatchInterface {
     $rounds = $this->spots - 1;
     if ($current_round < $rounds) {
       $placeholders = $this->placeholders($this->spots);
-
 
       $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['winner'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][0]);
       $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['loser'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][1]);

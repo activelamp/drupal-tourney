@@ -2,7 +2,9 @@
 
 /**
  * @file
- *
+ */
+ 
+/**
  * Renders the html for each round of a round robin tournament
  * 
  * @param $tournament
@@ -11,6 +13,7 @@
  *   An array of all the rounds and matches in a tournament.
  */
 function tourney_render_tourney_roundrobin($tournament, $matches) {
+  drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
   // Render the standings table.
   $output = theme('tourney_roundrobin_standings', array(
     'tournament' => $tournament,
