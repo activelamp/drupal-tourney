@@ -73,10 +73,12 @@ function theme_tourney_flow_control($vars) {
  */
 function theme_tourney_matchblock($vars) {
   extract($vars);
-  $editable = !(is_object($match->contestant1) && is_object($match->contestant2)) &&
-    ($match->previous_match1 == 'manual' || $match->previous_match1 == 'manual');
+  $editable = ($match->previous_match1 == 'manual' && !is_object($match->contestant1)) ||
+    ($match->previous_match2 == 'manual' && !is_object($match->contestant2));
+  $bye = ($match->previous_match2 == 'bye');
+
   $contestant1 = is_object($match->contestant1) ? $match->contestant1->_entity_name : 'team 1';
-  $contestant2 = is_object($match->contestant2) ? $match->contestant2->_entity_name : 'team 2';
+  $contestant2 = is_object($match->contestant2) ? $match->contestant2->_entity_name : ($bye ? '' : 'team 2');
   $title       = $match->title . ' ' . $match->id;
 
   $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . '">';
@@ -86,16 +88,16 @@ function theme_tourney_matchblock($vars) {
 
   // Add extra classes to the contestant and flow containers to aid in highlighting
   $contestant1_class = (!empty($match->contestant1) ? ' entity-' . $match->contestant1->_entity_type . '-' . $match->contestant1->_entity_id : '');
-  $contestant2_class = (!empty($match->contestant2) ? ' entity-' . $match->contestant2->_entity_type . '-' . $match->contestant2->_entity_id : '');
+  $contestant2_class = (!empty($match->contestant2) ? ' entity-' . $match->contestant2->_entity_type . '-' . $match->contestant2->_entity_id : ($bye ? 'bye' : ''));
   $winner_class = '';
   if (!empty($match->winner)) {
-    if ($match->winner == $match->contestant1->name) $winner_class = $contestant1_class;
-    if ($match->winner == $match->contestant2->name) $winner_class = $contestant2_class;
+    if ($match->contestant1 && $match->winner == $match->contestant1->name) $winner_class = $contestant1_class;
+    if ($match->contestant2 && $match->winner == $match->contestant2->name) $winner_class = $contestant2_class;
   }
 
   $output .= theme('tourney_flow_control', array('flows' => $flow));
-  $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . ( $match->winner == $contestant1 ? ' ♔' : '' ) . '</div>';
-  $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . ( $match->winner == $contestant2 ? ' ♔' : '' ) . '</div>';
+  $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . ( ($contestant1 && $match->winner == $contestant1) ? ' ♔' : '' ) . '</div>';
+  $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . ( ($contestant2 && $match->winner == $contestant2) ? ' ♔' : '' ) . '</div>';
   $output .= '</div>';
 
   return l($output, "tourney/match/{$match->id}" . ($editable ? "/edit" : ''), array(

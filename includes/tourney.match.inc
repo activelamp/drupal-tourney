@@ -96,6 +96,21 @@ function tourney_match_form($form, &$form_state, $match) {
     '#disabled' => count($games) > 1,
   );
 
+  if ($match->previous_match2 == 'bye') {
+    $form['contestant1']['#title'] = t('Contestant');
+    $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
+
+    $form['contestant2'] = array(
+      '#type' => 'value',
+      '#value' => 0,
+    );
+
+    $form['games'] = array(
+      '#type' => 'value',
+      '#value' => 1,
+    );
+  }
+
   field_attach_form('tourney_match', $match, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
@@ -188,7 +203,7 @@ function tourney_match_form_validate($form, &$form_state) {
   if (!is_int($form_state['values']['games']) && $form_state['values']['games'] % 2 === 0) {
     form_set_error('games', t('The number of games must be an odd number'));
   }
-  if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] == $form_state['values']['contestant2']) {
+  if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] === $form_state['values']['contestant2']) {
     form_set_error('contestant1', t('Contestant 1 and Contestant 2 cannot be the same person.'));
   }
 }
@@ -301,10 +316,12 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#markup' => $contestant2->name,
   ) : '';
 
-  $entity->content['match_table'] = array(
-    '#theme' => 'tourney_render_match',
-    '#match' => $entity,
-  );
+  if ($entity->previous_match2 != 'bye') {
+    $entity->content['match_table'] = array(
+      '#theme' => 'tourney_render_match',
+      '#match' => $entity,
+    );
+  }
 }
 
 /**

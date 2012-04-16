@@ -927,7 +927,9 @@ function tourney_get_winner_counts($match, $reset = FALSE) {
 
     // If there aren't two contestants in the match return
     if (empty($match->contestant1->_entity_type) || empty($match->contestant2->_entity_type)) {
-      return array();
+      return array(
+        $match->contestant1 => 0,
+      );
     }
 
     // Set up the default count array.

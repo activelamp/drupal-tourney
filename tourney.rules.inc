@@ -251,6 +251,14 @@ function _tourney_move_next_round_contestant($bracket, $match, $from) {
     $loser = array_keys($winners, min($winners));
     $loser_contestant = $loser[0];
 
-    return ($bracket == 'bracket-bottom' && $from != 'same') ? $loser_contestant : $winner_contestant;
+    if ($bracket == 'bracket-bottom' && $match->previous_match2 == 'bye') {
+      return 0;
+    }
+    elseif ($bracket == 'bracket-bottom' && $from != 'same') {
+      return $loser_contestant;
+    }
+    else {
+      return $winner_contestant;
+    }
   }
 }

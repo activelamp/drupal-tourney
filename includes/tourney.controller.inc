@@ -83,8 +83,8 @@ class TourneyBuildMatches {
         $match->games = variable_get('tourney_games_all', TOURNEY_GAMES);
         $match->next_match_winner = array_key_exists('winner', $value) ? $value['winner'] : '';
         $match->next_match_loser = array_key_exists('loser', $value) ? $value['loser'] : '';
-        $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : 'manual';
-        $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : 'manual';
+        $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : $value['contestant-1'];
+        $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : $value['contestant-2'];
         $match->this_match = array_key_exists('this_match', $value) ? $value['this_match'] : '';
         tourney_match_save($match);
         $this->match_count++;
