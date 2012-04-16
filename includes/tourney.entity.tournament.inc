@@ -80,7 +80,7 @@ class TourneyTournament extends Entity {
     }
 
     $this->tournamentMatchIds = TourneyTournament::fetchMatchIds($this->id);
-    $this->tournamentPlugin = new $this->format(0);
+    $this->tournamentPlugin = new $this->format($this->players);
 
     return $this;
   }

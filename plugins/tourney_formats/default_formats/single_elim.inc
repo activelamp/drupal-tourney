@@ -15,6 +15,106 @@ class SingleElimination implements TourneyMatchInterface {
   protected $matches;
 
   /**
+   * Constructor
+   */
+  public function __construct($num_contestants) {
+    $this->set_num_contestants($num_contestants);
+    $this->set_message();
+  }
+
+  /**
+   * Build the nested matches array with all possible matches.
+   *
+   * @return $matches
+   *   The matches array completely built out.
+   */
+  public function build() {
+    $matches = array();
+
+    // Build all rounds
+    $this->matches = $this->build_rounds($this->num_contestants);
+    return $this->matches;
+  }
+
+  /**
+   * Figure out how many rounds there should be based on $num_contestants,
+   * then loop through and build all rounds.
+   *
+   * @param $num_contestants
+   *   The number of contestants in the first round.
+   * @return $matches
+   *   The matches array completely built out.
+   */
+  protected function build_rounds($num_contestants) {
+    $matches = array();
+    $this->set_num_contestants($num_contestants);
+    $num_rounds = $this->num_rounds;
+
+    for ($r=1;$r<=$num_rounds;$r++) {
+      $matches['round-' . $r] = array();
+      $this->build_round($matches, $num_contestants, $r);
+
+      // Bump the number of contestants down to the next level in the tournament
+      $num_contestants = pow(2, $num_rounds - $r);
+    }
+
+    $this->matches = array(
+      'bracket-top' => $matches,
+    );
+
+    $this->matches = $this->set_bye_manuals($this->matches, 'top', 2);
+
+    return $this->matches;
+  }
+
+  protected function set_match_path($matches, $bracket, $current_round, $current_match) {
+    // Set the winner path in the previous round
+    $previous_round = $current_round-1;
+    $matches['round-' . $current_round]['match-' . $current_match]['this_match'] = 'bracket-' . $bracket . '_round-' . $current_round . '_match-' . $current_match;
+    if (array_key_exists('round-' . $previous_round, $matches)) {
+      // Previous Match number.
+      $pm = $current_match * 2;
+      $previous_match = $pm - 1;
+      $matches['round-' . $previous_round]['match-' . $previous_match]['winner'] = 'bracket-' . $bracket . '_round-' . $current_round . '_match-' . $current_match . '_contestant-1';
+      $matches['round-' . $previous_round]['match-' . $pm]['winner'] = 'bracket-' . $bracket . '_round-' . $current_round . '_match-' . $current_match . '_contestant-2';
+      $matches['round-' . $current_round]['match-' . $current_match]['previous-1'] = 'bracket-' . $bracket . '_round-' . $previous_round . '_match-' . $previous_match;
+      $matches['round-' . $current_round]['match-' . $current_match]['previous-2'] = 'bracket-' . $bracket . '_round-' . $previous_round . '_match-' . $pm;
+    }
+    return $matches;
+  }
+
+  /**
+   * Getter for the number of contestants
+   */
+  protected function get_num_contestants() {
+    return $this->num_contestants;
+  }
+
+  protected function set_message() {
+    drupal_set_message(check_plain(get_class($this) . ' with ' . $this->num_contestants . ' contestants and ' . $this->num_rounds . ' rounds.'));
+  }
+
+  protected function build_round(&$matches, $contestants, $round, $bracket = 'top') {
+    $positions = $this::calculate_seed_positions($contestants);
+    foreach ($positions as $match => $position) {
+      $match += 1;
+      if ($round == 1) {
+        $matches['round-'. $round]['match-'. $match] = array(
+          'contestant-1' => (empty($position[0]) ? 'bye' : 'manual'),
+          'contestant-2' => (empty($position[1]) ? 'bye' : 'manual'),
+        );
+      }
+      else {
+        $matches['round-'. $round]['match-'. $match] = array(
+          'contestant-1' => '',
+          'contestant-2' => '',
+        );
+      }
+      $matches = $this->set_match_path($matches, $bracket, $round, $match);
+    }
+  }
+
+  /**
    * Calculate number of rounds given a number of contestants
    */
   public static function calculate_rounds($num_contestants) {
@@ -56,19 +156,6 @@ class SingleElimination implements TourneyMatchInterface {
   }
 
   /**
-   * Constructor
-   */
-  public function __construct($num_contestants = NULL) {
-    if ($num_contestants) {
-      $this->set_num_contestants($num_contestants);
-      drupal_set_message(get_class($this) .' with '. $this->num_contestants .' contestants and '. $this->num_rounds .' rounds.');
-    }
-    else {
-      drupal_set_message(get_class($this) .' with no contestants. Remember to set number of contestants.');
-    }
-  }
-
-  /**
    * Set the number of contestants
    */
   public function set_num_contestants($num_contestants) {
@@ -84,51 +171,7 @@ class SingleElimination implements TourneyMatchInterface {
   }
 
   /**
-   * Build the nested matches array with all possible matches.
    *
-   * @return $matches
-   *   The matches array completely built out.
-   */
-  public function build() {
-    $matches = array();
-    $num_rounds = $this->num_rounds;
-    $num_contestants = $this->num_contestants;
-
-    foreach (range(1, $num_rounds) as $round) {
-      $positions = $this::calculate_seed_positions($num_contestants);
-      $matches['round-'. $round] = array();
-
-      foreach ($positions as $match => $position) {
-        if ($round == 1) {
-          $matches['round-'. $round]['match-'. ($match + 1)] = array(
-            'contestant-1' => (empty($position[0]) ? 'bye' : 'manual'),
-            'contestant-2' => (empty($position[1]) ? 'bye' : 'manual'),
-          );
-        }
-        else {
-          $matches['round-'. $round]['match-'. ($match + 1)] = array(
-            'contestant-1' => '',
-            'contestant-2' => '',
-          );
-        }
-        $matches = $this->set_match_path($matches, 'top', $round, ($match + 1));
-      }
-
-      // Bump the number of contestants down to the next level in the tournament
-      $num_contestants = pow(2, $num_rounds - $round);
-    }
-
-    $this->matches = array(
-      'bracket-top' => $matches,
-    );
-
-    $this->matches = $this->set_bye_manuals($this->matches, 'top', 2);
-
-    return $this->matches;
-  }
-
-  /**
-   * 
    */
   public function determine_winner($tournament) {
     $ranks = $tournament->fetchRanks();
@@ -181,22 +224,6 @@ class SingleElimination implements TourneyMatchInterface {
     }
 
     return $finished;
-  }
-
-  protected function set_match_path($matches, $bracket, $current_round, $current_match) {
-    // Set the winner path in the previous round
-    $previous_round = $current_round-1;
-    $matches['round-'. $current_round]['match-'. $current_match]['this_match'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match;
-    if (array_key_exists('round-'. $previous_round, $matches)) {
-      // Previous Match number.
-      $pm = $current_match * 2;
-      $previous_match = $pm - 1;
-      $matches['round-'. $previous_round]['match-'. $previous_match]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-1';
-      $matches['round-'. $previous_round]['match-'. $pm]['winner'] = 'bracket-'. $bracket .'_round-'. $current_round .'_match-'. $current_match . '_contestant-2';
-      $matches['round-'. $current_round]['match-'. $current_match]['previous-1'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $previous_match;
-      $matches['round-'. $current_round]['match-'. $current_match]['previous-2'] = 'bracket-'. $bracket .'_round-'. $previous_round .'_match-'. $pm;
-    }
-    return $matches;
   }
 
   /**
