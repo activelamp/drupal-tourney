@@ -97,12 +97,16 @@ class TourneyMatch extends Entity {
   }
 
   /**
-   * Report current win rankings for this match.
+   * Report current winner rankings for this match.
+   *
+   * @return array
+   *   Array is keyed by winner and sorted by descending value.
    *
    * @see tourney_get_winner_counts()
    */
   public function fetchRanks() {
     $ranks = tourney_get_winner_counts($this);
+    arsort($ranks);
 
     return $ranks;
   }
