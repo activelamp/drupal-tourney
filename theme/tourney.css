@@ -144,44 +144,49 @@ Pretty sure this flow theming needs to be redone
 /* FLOW HIGHLIGHT THEMING */
 
 .tourney .match .flow.bracket-highlight .flow-control {
-  border: 0 solid #ABAB2E;
+  border-color: #AAAA00;
   z-index: 2;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.topleft {
-  border-width: 0 2px 2px 0;
+  border-width: 0 4px 4px 0;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.bottomleft {
-  border-width: 2px 2px 0 0;
+  border-width: 4px 4px 0 0;
+  height: 40%;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.topright {
-  border-width: 0 0 2px 2px;
+  border-width: 0 0 4px 4px;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.bottomright {
-  border-width: 0 0 0 2px;
+  border-width: 0 0 0 4px;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.evenright {
-  border-width: 2px 0 0 2px;
+  border-width: 4px 0 0 4px;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.special.evenright {
-  border-width: 2px 0 0;
+  border-width: 4px 0 0;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.special.bottom.evenright {
-  border-width: 0 0 2px;
+  border-width: 0 0 4px;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.vertical {
-  border-width: 0 2px 0 0;
+  border-width: 0 4px 0 0;
 }
 
 .tourney .match .flow.bracket-highlight .flow-control.horizontal {
-  border-width: 0 0 2px;
+  border-width: 0 0 4px;
+}
+
+.tourney-double .round-champion .flow.bracket-highlight .flow-control {
+  border-style: dotted;
 }
 
 /* SINGLE */
@@ -234,11 +239,9 @@ Pretty sure this flow theming needs to be redone
 }
 
 .match .match-title {
-  height: 1.5em;
+  left: 0;
+  position: absolute;
   text-align: center;
+  top: -1.5em;
   width: 87%;
-}
-
-.match.normal .flow {
-  padding-top: 1.5em;
 }

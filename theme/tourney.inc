@@ -22,7 +22,6 @@ function theme_tourney_render_tourney($vars) {
   );
   $tournament = $vars['tournament'];
   $format = $types[$tournament->format];
-
   if (array_key_exists('matches', $vars)) {
     $matches = $vars['matches'];
   }
@@ -36,7 +35,6 @@ function theme_tourney_render_tourney($vars) {
     $output .= call_user_func_array($f, array($tournament, $matches));
   }
   $output .= "</div>";
-
   return $output;
 }
 

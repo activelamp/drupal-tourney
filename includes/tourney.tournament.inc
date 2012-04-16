@@ -91,6 +91,9 @@ function tourney_tournament_form_submit($form, &$form_state) {
  * Show the tournament page.
  */
 function tourney_tournament_page_view($tourney) {
+  if  (TOURNEY_DEBUG_EXTENDS) {
+    $tourney->determineWinner();
+  }
   return $tourney->view('full', NULL, TRUE);
 }
 
@@ -200,7 +203,8 @@ function tourney_tournament_build_matches($entity, $raw = FALSE, $reset = FALSE)
  *   Returns an array of game objects.
  */
 function tourney_tournament_get_match_games($entity, $load_entity = TRUE, $reset = FALSE) {
-  if ($reset || !$cache = cache_get('tourney_match_games_' . $entity->id, 'cache_tourney')) {
+  $cache_name = 'tourney_match_games_' . $entity->id . ( $load_entity ? '_entity' : '' );
+  if ($reset || !$cache = cache_get($cache_name, 'cache_tourney')) {
     $query = relation_query('tourney_match', $entity->id);
     $query->entityCondition('bundle', 'has_game');
     $results = $query->execute();
@@ -218,7 +222,7 @@ function tourney_tournament_get_match_games($entity, $load_entity = TRUE, $reset
         $games[$endpoints[1]['entity_id']] = $endpoints[1]['entity_id'];
       }
     }
-    cache_set('tourney_match_games_' . $entity->id, $games, 'cache_tourney');
+    cache_set($cache_name, $games, 'cache_tourney');
     return $games;
   }
   return !empty($cache->data) ? $cache->data : array();

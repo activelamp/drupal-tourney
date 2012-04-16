@@ -83,8 +83,8 @@ class TourneyBuildMatches {
         $match->games = variable_get('tourney_games_all', TOURNEY_GAMES);
         $match->next_match_winner = array_key_exists('winner', $value) ? $value['winner'] : '';
         $match->next_match_loser = array_key_exists('loser', $value) ? $value['loser'] : '';
-        $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : $value['contestant-1'];
-        $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : $value['contestant-2'];
+        $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : 'manual';
+        $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : 'manual';
         $match->this_match = array_key_exists('this_match', $value) ? $value['this_match'] : '';
         tourney_match_save($match);
         $this->match_count++;
@@ -96,16 +96,14 @@ class TourneyBuildMatches {
         $relation->round[LANGUAGE_NONE][0]['value'] = $round;
         relation_save($relation);
 
-        if ($match->previous_match2 != 'bye') {
-          // Create the first game of the match
-          $game = new stdClass();
-          $game->type = 'game';
-          $game->title = 'game-1';
-          tourney_game_save($game);
+        // Create the first game of the match
+        $game = new stdClass();
+        $game->type = 'game';
+        $game->title = 'game-1';
+        tourney_game_save($game);
 
-          // Add the relationship to the game.
-          $rid = tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
-        }
+        // Add the relationship to the game.
+        $rid = tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
       }
     }
   }
@@ -119,4 +117,14 @@ interface TourneyMatchInterface {
    * Builds the array structure for all matches to be created.
    */
   public function build();
+  
+  /**
+   * Determines which contestant is the winner.
+   */
+  public function determine_winner($tournament);
+  
+  /**
+   * Determines if the tournament is finished.
+   */
+  public function is_finished($tournament);
 }

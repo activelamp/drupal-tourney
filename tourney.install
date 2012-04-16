@@ -4,7 +4,7 @@
  * @file
  * Install, update and uninstall functions for tournaments.
  */
- 
+
 /**
  * Implements hook_schema().
  */
@@ -40,20 +40,26 @@ function tourney_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
         'default' => NULL,
-        'description' => "The number of contestants in tournament.",),
+        'description' => "The number of contestants in tournament."),
       'winner' => array(
         'description' => 'Winner of the tournament.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => TRUE,
         'default' => ''),
+      'matches_created' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => "The number of matches created in this tournament."),
       ),
     'unique keys' => array(
       'id' => array('id'),
       ),
     'primary key' => array('id'),
   );
-  
+
   $schema['tourney_match'] = array(
     'description' => 'The base table for a match.',
     'fields' => array(
@@ -79,7 +85,7 @@ function tourney_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
         'default' => NULL,
-        'description' => "The number of games in a match.",),
+        'description' => "The number of games in a match."),
       'winner' => array(
         'description' => 'Winner of the match.',
         'type' => 'varchar',
@@ -122,7 +128,7 @@ function tourney_schema() {
       ),
     'primary key' => array('id'),
   );
-  
+
   $schema['tourney_game'] = array(
     'description' => 'The base table for a match.',
     'fields' => array(
@@ -155,7 +161,7 @@ function tourney_schema() {
       ),
     'primary key' => array('id'),
   );
-  
+
   // Defing the bundle schemas for all three entities
   $schema['tourney_tournament_type'] =
   $schema['tourney_match_type'] =
@@ -236,41 +242,41 @@ function tourney_install() {
   $relation->relation_type = 'has_match';
   $relation->label = 'has match';
   $relation->reverse_label = 'is match of';
-  $relation->directional = true;
+  $relation->directional = TRUE;
   $relation->source_bundles['tourney_tournament:*'] = 'tourney_tournament:*';
   $relation->target_bundles['tourney_match:*'] = 'tourney_match:*';
   relation_type_save($relation);
-  
+
   /** Creating the match <=> game relation. */
   $relation = new stdClass();
   $relation->relation_type = 'has_game';
   $relation->label = 'has game';
   $relation->reverse_label = 'is game of';
-  $relation->directional = true;
+  $relation->directional = TRUE;
   $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
   $relation->target_bundles['tourney_game:*'] = 'tourney_game:*';
   relation_type_save($relation);
-  
+
   /** Creating the contestant relation. */
   $relation = new stdClass();
-  $relation->relation_type = 'contestant_1';
-  $relation->label = 'contestant 1';
-  $relation->directional = true;
+  $relation->relation_type = TOURNEY_CONTESTANT_1;
+  $relation->label = TOURNEY_CONTESTANT_1_LABEL;
+  $relation->directional = TRUE;
   $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
   $relation->target_bundles['user:*'] = 'user:*';
   $relation->target_bundles['node:*'] = 'node:*';
   relation_type_save($relation);
-  
+
   /** Creating the contestant relation. */
   $relation = new stdClass();
-  $relation->relation_type = 'contestant_2';
-  $relation->label = 'contestant 2';
-  $relation->directional = true;
+  $relation->relation_type = TOURNEY_CONTESTANT_2;
+  $relation->label = TOURNEY_CONTESTANT_2_LABEL;
+  $relation->directional = TRUE;
   $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
   $relation->target_bundles['user:*'] = 'user:*';
   $relation->target_bundles['node:*'] = 'node:*';
   relation_type_save($relation);
-  
+
   // Define fields for the tournament has match relation.
   $field = array(
     'field_name' => 'bracket',
@@ -283,10 +289,10 @@ function tourney_install() {
     'entity_type' => 'relation',
     'bundle' => 'has_match',
     'field_name' => 'bracket',
-    'label' => t('Bracket'),
+    'label' => st('Bracket'),
   );
   field_create_instance($field_instance);
-  
+
   $field = array(
     'field_name' => 'round',
     'cardinality' => 1,
@@ -298,26 +304,26 @@ function tourney_install() {
     'entity_type' => 'relation',
     'bundle' => 'has_match',
     'field_name' => 'round',
-    'label' => t('Round'),
+    'label' => st('Round'),
   );
   field_create_instance($field_instance);
-  
+
   // Create the default bundles for the tournaments
   $type = entity_create('tourney_tournament_type', array(
     'name' => 'tournament',
-    'label' => t('Tournament'),
+    'label' => st('Tournament'),
     'weight' => 0,
   ));
   $type->save();
   $type = entity_create('tourney_match_type', array(
     'name' => 'match',
-    'label' => t('Match'),
+    'label' => st('Match'),
     'weight' => 0,
   ));
   $type->save();
   $type = entity_create('tourney_game_type', array(
     'name' => 'game',
-    'label' => t('Game'),
+    'label' => st('Game'),
     'weight' => 0,
   ));
   $type->save();
@@ -329,8 +335,8 @@ function tourney_install() {
 function tourney_uninstall() {
   relation_type_delete('has_match');
   relation_type_delete('has_game');
-  relation_type_delete('contestant_1');
-  relation_type_delete('contestant_2');
+  relation_type_delete(TOURNEY_CONTESTANT_1);
+  relation_type_delete(TOURNEY_CONTESTANT_2);
 }
 
 
