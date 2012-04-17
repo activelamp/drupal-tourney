@@ -23,20 +23,22 @@ class TourneyGame extends Entity {
   private $matchId      = NULL;
   private $gameFinished = NULL;
   private $gameStarted  = NULL;
+  private $tournament = NULL;
+  private $match = NULL;
 
   /**
    * Constructor.
    */
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-
+dpr($this);
     // Game entity may only exist in memory if created during our runtime.
-    if (property_exists($this, 'id')) {
+//    if (property_exists($this, 'id')) {
       // Game must be saved before a relationship will exist.
       if ($this->fillGameSaved() == TRUE) {
         $this->fillProperties();
       }
-    }
+//    }
   }
 
   /**
@@ -64,17 +66,19 @@ class TourneyGame extends Entity {
    *   match entity id if found, 0 if no associated match exists.
    */
   public static function fetchMatchId($game_id) {
-    $match_id = 0;
+    $match = NULL;
 
-    $query = relation_query('tourney_game', $game_id);
-    $query->entityCondition('bundle', 'has_game');
-    $results = $query->execute();
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $match_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
-    }
+    $match = relation_get_related_entity('tourney_game', $game_id, 'has_game');
+    
+    // $query = relation_query('tourney_game', $game_id);
+    // $query->entityCondition('bundle', 'has_game');
+    // $results = $query->execute();
+    // foreach ($results as $relation) {
+    //   $r = relation_load($relation->rid);
+    //   $match_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+    // }
 
-    return $match_id;
+    return $match->id;
   }
 
   /**
@@ -168,8 +172,10 @@ class TourneyGame extends Entity {
   private function fillProperties() {
     // Retrieve associated match_id.
     $this->matchId = TourneyGame::fetchMatchId($this->id);
+    $this->match = TourneyMatch::loadTourneyMatch($this->matchId);
     // Passing an existing match_id quickens response.
     $this->tournamentId = TourneyGame::fetchTournamentId($this->id, $this->matchId);
+    $this->tournament = TourneyMatch::loadTourneyTournament($this->tournamentId);
     $this->gameStarted  = $this->isStarted();
     $this->gameFinished = $this->isFinished();
 
