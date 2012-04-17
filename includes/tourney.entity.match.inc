@@ -7,18 +7,18 @@
 
 class TourneyMatch extends Entity {
 
-  private $matchGameIds = array();
+  private $matchGameIds = NULL;
   private $matchTournamentId = NULL;
   private $matchStarted = NULL;
   private $matchFinished = NULL;
   private $matchWinner = NULL;
   private $matchSetup = NULL;
+  
+  public $matchGames = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-    if (property_exists($this, 'id')) {
-      //$this->fillProperties();
-    }
+    $this->setup();
   }
 
   /**
@@ -48,7 +48,7 @@ class TourneyMatch extends Entity {
    * @return array
    *   game entity ids if found, empty array if not found.
    */
-  public static function fetchGameIds($match_id) {
+  public static function fetchGameId($match_id) {
     $game_ids = array();
 
     $query = relation_query('tourney_match', $match_id);
@@ -63,6 +63,40 @@ class TourneyMatch extends Entity {
   }
 
   /**
+   * Report the tournament entity_id related to a match.
+   *
+   * @param integer|array $match_ids
+   *   The match entity id to search for games with.
+   *
+   * @return array $tournament_ids
+   *   game entity ids if found, empty array if not found.
+   */
+  public static function fetchTournamentId($match_ids, &$tournament_ids = array()) {
+    if (is_array($match_ids)) {
+      foreach($match_ids as $match_id) {
+        $tournament_ids = TourneyMatch::fetchTournamentIds($match_id, $tournament_ids);
+      }
+    }
+    else {
+      // todo : Integrity check.
+      //if (!is_integer($match_ids)) {
+      //  throw new Exception(t('Required parameter is invalid: ') . $match_ids);
+      //}
+    }
+    $match_id = $match_ids;
+
+    $query = relation_query('tourney_match', $match_id);
+    $query->entityCondition('bundle', 'has_match');
+    $results = $query->execute();
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $tournament_ids[$match_id] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+    }
+
+    return $tournament_ids;
+  }
+
+  /**
    * Sets property values during instantiation.
    *
    * Do not call this from the constructor, or from any other method that
@@ -74,13 +108,17 @@ class TourneyMatch extends Entity {
    * @return TourneyMatch
    *   TourneyMatch object for chaining.
    */
-  private function setupProperties() {
-    $this->matchSetup = TRUE;
-    $this->matchGameIds = TourneyMatch::fetchGameIds($this->id);
-    $this->matchTournamentId = TourneyMatch::
-    $this->matchStarted = $this->isStarted();
-    $this->matchFinished = $this->isFinished();
-    $this->matchWinner = $this->determineWinner();
+  public function setup() {
+    if (!$this->getSetup()) {
+      $this->matchSetup = TRUE;
+      $this->matchGameIds = TourneyMatch::fetchGameId($this->id);
+      $this->matchTournamentId = TourneyMatch::fetchTournamentId($this->id);
+      $this->matchStarted = $this->isStarted();
+      $this->matchFinished = $this->isFinished();
+      $this->matchWinner = $this->determineWinner();
+      
+      $this->matchGames = TourneyGame::loadTourneyGame($this->getGameIds());
+    }
 
     return $this;
   }

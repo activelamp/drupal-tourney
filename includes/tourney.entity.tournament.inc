@@ -8,15 +8,14 @@
 class TourneyTournament extends Entity {
 
   private $tournamentMatchIds = array();
+  private $tournamentStarted  = NULL;
   private $tournamentFinished = NULL;
-  private $tournamentWinner   = NULL;
-  private $tournamentPlugin   = NULL;
+  private $tournamentWinner = NULL;
+  private $tournamentPlugin = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-    if (property_exists($this, 'id')) {
-      $this->fillProperties();
-    }
+    $this->setup();
   }
 
   /**
@@ -68,13 +67,10 @@ class TourneyTournament extends Entity {
   /**
    * Sets property values during instantiation.
    *
-   * This function _should_ only called by the constructor after our entity 
-   * has been saved to the database; relations will exist.
-   *
    * @return TourneyTournament
    *   TourneyTournament object for chaining.
    */
-  private function fillProperties() {
+  private function setup() {
     if (!class_exists($this->format)) {
       throw new Exception(t('Plugin does not exist'));
     }
@@ -151,10 +147,6 @@ class TourneyTournament extends Entity {
 
   /**
    * Determine if a tournament is finished (when all matches are finished).
-   *
-   * Do not call this from the constructor, or from any other method that
-   * fires during instantiation. If called during instantiation infinite
-   * recursion will occur.
    *
    * @return TourneyTournament $this
    *   $this

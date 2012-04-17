@@ -4,41 +4,28 @@
  * @file
  * Tournament game class.
  *
- * Check the status of $this->entitySaved before doing anything important.
- * It is possible a method may be called while the entity object still does
- * not have an id assigned or does not have any relationships defined. Our
- * object will not have an id if it was just created during the current
- * runtime. Our object will not fill (assign values during construction)
- * all properties unless it has been previously saved to the database at
- * least once. 
- *
  * @todo
  * Error checking and naming convention.
  */
 
 class TourneyGame extends Entity {
 
-  private $gameSaved  = NULL;
-  private $tournamentId = NULL;
-  private $matchId      = NULL;
+  private $gameSetup = NULL;
+  private $gameStarted = NULL;
   private $gameFinished = NULL;
-  private $gameStarted  = NULL;
-  private $tournament = NULL;
-  private $match = NULL;
+  private $gameTournamentId = NULL;
+  private $gameContestantIds = NULL;
+  private $gameMatchId = NULL;
+  private $gameWinner = NULL;
+  
+  public $gameContestants = NULL;
 
   /**
    * Constructor.
    */
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-dpr($this);
-    // Game entity may only exist in memory if created during our runtime.
-//    if (property_exists($this, 'id')) {
-      // Game must be saved before a relationship will exist.
-      if ($this->fillGameSaved() == TRUE) {
-        $this->fillProperties();
-      }
-//    }
+    $this->setup();
   }
 
   /**
@@ -52,7 +39,7 @@ dpr($this);
    *   A newly instantiated game entity.
    */
    public static function loadTourneyGame($game_ids = array()) {
-     $game_ids = (is_array($game_ids)) ? $game_ids : array();
+     $game_ids = (is_array($game_ids)) ? $game_ids : array($game_ids);
 
      $new_game = entity_load('tourney_game', $game_ids);
 
@@ -66,19 +53,17 @@ dpr($this);
    *   match entity id if found, 0 if no associated match exists.
    */
   public static function fetchMatchId($game_id) {
-    $match = NULL;
+    $match_id = NULL;
 
-    $match = relation_get_related_entity('tourney_game', $game_id, 'has_game');
-    
-    // $query = relation_query('tourney_game', $game_id);
-    // $query->entityCondition('bundle', 'has_game');
-    // $results = $query->execute();
-    // foreach ($results as $relation) {
-    //   $r = relation_load($relation->rid);
-    //   $match_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
-    // }
+    $query = relation_query('tourney_game', $game_id);
+    $query->entityCondition('bundle', 'has_game');
+    $results = $query->execute();
+    foreach ($results as $relation) {
+       $r = relation_load($relation->rid);
+       $match_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+    }
 
-    return $match->id;
+    return $match_id;
   }
 
   /**
@@ -119,6 +104,7 @@ dpr($this);
    *   - contestant: An array of entity type concatenated with entity id:
    *     - type: String denoting the entity type.
    *     - id: Integer denoting the specific entity id.
+   *     - object: Contestant object.
    */
   public static function fetchContestantIds($game_id, $match_id = NULL) {
     $contestants = array();
@@ -130,9 +116,11 @@ dpr($this);
       $results = $query->execute();
       foreach ($results as $relation) {
         $r = relation_load($relation->rid);
-        $contestants[] = array(
-          $r->endpoints[LANGUAGE_NONE][1]['entity_type'],
-          $r->endpoints[LANGUAGE_NONE][1]['entity_id'],
+        $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
+        $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+        $contestants[$type . $id] = array(
+          'type' => $type,
+          'id' => $id,
         );
       }
     }
@@ -141,52 +129,39 @@ dpr($this);
   }
 
   /**
-   * Fill property during object load. Entity is expected to have been
-   * previously saved. All fill methods are similar and may normally be
-   * chained.
-   *
-   * Uses TourneyGame::getMatchID() to fill.
-   *
-   * @todo Why retrieve match_id and throw it away?
-   *
-   * @return bool
-   *   TRUE if the game has been saved subsequent to creation, FALSE if it
-   *   exists in memory only. Do not chain this method.
-   */
-  private function fillGameSaved() {
-    $this->gameSaved = (TourneyGame::fetchMatchId($this->id)) ? TRUE : FALSE;
-
-    // No chaining!
-    return $this->getSaved();
-  }
-
-  /**
-   * Sets property values during instantiation.
-   *
-   * This function is only called by the constructor after our entity has
-   * been saved to the database; relations will exist.
+   * Fetches and assigns property values.
    *
    * @return TourneyGame
    *   TourneyGame object for chaining.
    */
-  private function fillProperties() {
-    // Retrieve associated match_id.
-    $this->matchId = TourneyGame::fetchMatchId($this->id);
-    $this->match = TourneyMatch::loadTourneyMatch($this->matchId);
-    // Passing an existing match_id quickens response.
-    $this->tournamentId = TourneyGame::fetchTournamentId($this->id, $this->matchId);
-    $this->tournament = TourneyMatch::loadTourneyTournament($this->tournamentId);
-    $this->gameStarted  = $this->isStarted();
-    $this->gameFinished = $this->isFinished();
+  public function setup() {
+    // Don't waste resources if properties have already been loaded.
+    if (!$this->getSetup()) {
+      $this->gameSetup = TRUE;
+      $this->gameMatchId = TourneyGame::fetchMatchId($this->id);
+      $this->gameTournamentId = TourneyGame::fetchTournamentId($this->id, $this->getMatchId());
+      $this->gameContestantIds = TourneyGame::fetchContestantIds($this->id, $this->getMatchId());
+      $this->gameStarted  = $this->isStarted();
+      $this->gameFinished = $this->isFinished();
+      $this->gameWinner = $this->winner;
+      
+      foreach($this->getContestantIds() as $c_id) {
+        $this->gameContestants = entity_load($c_id['type'], $c_id['id']);
+      }
+    }
 
     return $this;
   }
 
   /**
    * Retrieve property.
+   *
+   * Do not call setup() as this will result in recursion. All setup()
+   * recursion prevention measures may be removed once possible collisions 
+   * with structured code have been resolved.
    */
-  public function getSaved() {
-    return $this->gameSaved;
+  public function getSetup() {
+    return $this->gameSetup;
   }
 
   /**
@@ -199,43 +174,59 @@ dpr($this);
   /**
    * Retrieve property.
    */
+  public function getMatchId() {
+    return $this->gameMatchId;
+  }
+
+  /**
+   * Retrieve property.
+   */
   public function getStarted() {
     return $this->gameStarted;
+  }
+
+  /**
+   * Retrieve property.
+   */
+  public function getContestantIds() {
+    return $this->gameContestantIds;
   }
 
   /**
    * Retrieve property. Property created by hook_entity_load().
    */
   public function getWinner() {
-    return $this->winner;
+    return $this->gameWinner;
   }
 
   /**
-   * Determine if a game has started (contestant relations have been setup).
-   *
-   * Records result to class property.
+   * Determine if a game has started (contestant relationships exist).
    */
   public function isStarted() {
-    $contestants = TourneyGame::fetchContestantIds($this->id);
-
-    $this->gameStarted = empty($contestants) ? FALSE : TRUE;
-
-    return $this->getStarted();
-  }
-
-  /**
-   * Determine if a game is finshed (when $this->winner has value).
-   *
-   * Records result to class property.
-   */
-  public function isFinished() {
-    $this->gameFinished = strlen($this->getWinner()) ? TRUE : FALSE;
-
+    $started = !empty($this->getContestantId) ? TRUE : FALSE;
+    
     if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS...';
+      $output = ($this->getStarted()) ? 'STARTED' : 'NOT STARTED (CLASS SETUP?)';
       dpr('GAME ' . $this->id . ': ' . $output);
     }
 
-    return $this->getFinished();
+    return $started;
+  }
+
+  /**
+   * Determine if a game is finshed (if a winner exists).
+   *
+   * First time method is called debug code will always show game in progress.
+   * This is because the setup() function uses this method.
+   */
+  public function isFinished() {
+    $finished = strlen($this->getWinner()) ? TRUE : FALSE;
+
+    if (TOURNEY_DEBUG_EXTENDS) {
+      $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS... (NO WINNER)';
+      dpr('GAME ' . $this->id . ': ' . $output);
+    }
+
+    return $finished;
   }
 }

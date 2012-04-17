@@ -12,8 +12,9 @@
  */
 function tourney_match_page_view($match) {
   if  (TOURNEY_DEBUG_EXTENDS) {
-//   $match->isStarted();
-//    $match->determineWinner();
+    $match->setupProperties();
+    $match->isStarted();
+    $match->determineWinner();
   }
   return $match->view('full', NULL, TRUE);
 }
@@ -67,9 +68,8 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['tourney'] = $match;
-  $games = tourney_tournament_get_match_games($match);
+  $match->setup();
   $match_started = $match->isStarted();
-  $tournament_finished = $match->tournament->isFinished();
 
   // @todo: It would be nice if these were field api fields
   $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
@@ -77,8 +77,8 @@ function tourney_match_form($form, &$form_state, $match) {
   $form['contestant1'] = array(
     '#title' => t('Contestant 1'),
     '#default_value' => $c_1_uid,
-    '#disabled' => ($match_finished) ? TRUE : FALSE,
-    '#required' => ($match_finished) ? FALSE : TRUE,
+    '#disabled' => ($match_started) ? TRUE : FALSE,
+    '#required' => ($match_started) ? FALSE : TRUE,
   ) + _tourney_match_contestant($match);
 
   $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
@@ -99,7 +99,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#maxlength' => 255,
     '#default_value' => $match->games,
     '#required' => TRUE,
-    '#disabled' => (count($games) > 1) || $tournament_finished,
+    '#disabled' => (count($match->getGameIds()) > 1) || $tournament_finished,
   );
 
   field_attach_form('tourney_match', $match, $form, $form_state);
