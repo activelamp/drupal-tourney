@@ -50,5 +50,21 @@ function tourney_default_rules_configuration() {
 
   $configs['rules_tourney_set_all_matches'] = $rule;
 
+  $rule = rules_reaction_rule();
+  $rule->label = 'Tourney bye is created';
+  $rule->active = TRUE;
+  $rule->event('tourney_match_update')
+       ->condition('data_is', array(
+         'data:select' => 'tourney-match:previous-match2',
+         'value' => 'bye'
+       ))
+       ->action('tourney_action_game_is_won', array(
+         'match:select' => 'tourney-match',
+         'quotient' => '1',
+       ))
+       ->action('drupal_message', array('message:select' => 'action-message'));;
+
+  $configs['rules_tourney_bye_is_created'] = $rule;
+
   return $configs;
 }
