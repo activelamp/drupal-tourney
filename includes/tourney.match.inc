@@ -11,6 +11,10 @@
  * Show the tournament page.
  */
 function tourney_match_page_view($match) {
+  if  (TOURNEY_DEBUG_EXTENDS) {
+    $match->isStarted();
+    $match->determineWinner();
+  }
   return $match->view('full', NULL, TRUE);
 }
 
@@ -64,17 +68,19 @@ function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['tourney'] = $match;
   $games = tourney_tournament_get_match_games($match);
+  $match_started = $match->isStarted();
+  $tournament_finished = $match->tournament->isFinished();
 
   // @todo: It would be nice if these were field api fields
   $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
-  if (($match->previous_match1 == 'manual' && !is_object($contestant))) {
-    $form['contestant1'] = array(
-      '#title' => t('Contestant 1'),
-      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
-      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
-      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
-    ) + _tourney_match_contestant($match);
-  }
+  $c_1_uid = (is_object($contestant) && ($contestant->uid > 0)) ? $contestant->uid : -1;
+  $form['contestant1'] = array(
+    '#title' => t('Contestant 1'),
+    '#default_value' => $c_1_uid,
+    '#disabled' => ($match_finished) ? TRUE : FALSE,
+    '#required' => ($match_finished) ? FALSE : TRUE,
+  ) + _tourney_match_contestant($match);
+
   $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
   if (($match->previous_match2 == 'manual' && !is_object($contestant))) {
     $form['contestant2'] = array(
@@ -93,7 +99,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#maxlength' => 255,
     '#default_value' => $match->games,
     '#required' => TRUE,
-    '#disabled' => count($games) > 1,
+    '#disabled' => (count($games) > 1) || $tournament_finished,
   );
 
   field_attach_form('tourney_match', $match, $form, $form_state);
@@ -103,6 +109,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#type' => 'submit',
     '#value' => t('Save'),
     '#weight' => 40,
+    '#disabled' => $tournament_finished
   );
 
   $form['#submit'][] = 'tourney_match_form_submit';
@@ -197,13 +204,18 @@ function tourney_match_form_validate($form, &$form_state) {
  * Match form submit handler.
  */
 function tourney_match_form_submit($form, &$form_state) {
-  drupal_set_message(t('Your match has been saved.'));
+  $match = $form_state['tourney'];
 
-  $tourney = $form_state['tourney'];
-  entity_form_submit_build_entity('tourney_match', $tourney, $form, $form_state);
-  tourney_match_save($tourney);
+  if (!$match->tournament->isFinished()) {
+    drupal_set_message(t('Your match has been saved.'));
+    entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
+    tourney_match_save($match);
+  }
+  else {
+    drupal_set_message(t('Tournament is already finished. Match not saved.'), 'error');
+  }
 
-  $form_state['redirect'] = 'tourney/match/' . $tourney->id;
+  $form_state['redirect'] = 'tourney/match/' . $match->id;
 }
 
 /**

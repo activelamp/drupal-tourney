@@ -18,10 +18,11 @@
 
 class TourneyGame extends Entity {
 
-  private $entitySaved  = NULL;
-  private $finished     = NULL;
+  private $gameSaved  = NULL;
   private $tournamentId = NULL;
   private $matchId      = NULL;
+  private $gameFinished = NULL;
+  private $gameStarted  = NULL;
 
   /**
    * Constructor.
@@ -32,7 +33,7 @@ class TourneyGame extends Entity {
     // Game entity may only exist in memory if created during our runtime.
     if (property_exists($this, 'id')) {
       // Game must be saved before a relationship will exist.
-      if ($this->fillEntitySaved() == TRUE) {
+      if ($this->fillGameSaved() == TRUE) {
         $this->fillProperties();
       }
     }
@@ -75,7 +76,7 @@ class TourneyGame extends Entity {
 
     return $match_id;
   }
-  
+
   /**
    * Report the tournament entity_id related to a game.
    *
@@ -103,6 +104,39 @@ class TourneyGame extends Entity {
   }
 
   /**
+   * Report the contestants related to a game.
+   *
+   * @param integer $game_id
+   * @param integer $match_id
+   *   (optional) If provided will eliminate some work.
+   *
+   * @return array $contestants
+   *   An associative array containing:
+   *   - contestant: An array of entity type concatenated with entity id:
+   *     - type: String denoting the entity type.
+   *     - id: Integer denoting the specific entity id.
+   */
+  public static function fetchContestantIds($game_id, $match_id = NULL) {
+    $contestants = array();
+    $match_id = ($match_id) ? $match_id : TourneyGame::fetchMatchId($game_id);
+
+    if ($match_id) {
+      $query = relation_query('tourney_match', $match_id);
+      $query->entityCondition('bundle', TOURNEY_CONTESTANT_1);
+      $results = $query->execute();
+      foreach ($results as $relation) {
+        $r = relation_load($relation->rid);
+        $contestants[] = array(
+          $r->endpoints[LANGUAGE_NONE][1]['entity_type'],
+          $r->endpoints[LANGUAGE_NONE][1]['entity_id'],
+        );
+      }
+    }
+
+    return $contestants;
+  }
+
+  /**
    * Fill property during object load. Entity is expected to have been
    * previously saved. All fill methods are similar and may normally be
    * chained.
@@ -115,11 +149,11 @@ class TourneyGame extends Entity {
    *   TRUE if the game has been saved subsequent to creation, FALSE if it
    *   exists in memory only. Do not chain this method.
    */
-  private function fillEntitySaved() {
-    $this->entitySaved = (TourneyGame::fetchMatchId($this->id)) ? TRUE : FALSE;
+  private function fillGameSaved() {
+    $this->gameSaved = (TourneyGame::fetchMatchId($this->id)) ? TRUE : FALSE;
 
     // No chaining!
-    return $this->entitySaved;
+    return $this->getSaved();
   }
 
   /**
@@ -136,7 +170,8 @@ class TourneyGame extends Entity {
     $this->matchId = TourneyGame::fetchMatchId($this->id);
     // Passing an existing match_id quickens response.
     $this->tournamentId = TourneyGame::fetchTournamentId($this->id, $this->matchId);
-    $this->finished = strlen($this->winner) ? TRUE : FALSE;
+    $this->gameStarted  = $this->isStarted();
+    $this->gameFinished = $this->isFinished();
 
     return $this;
   }
@@ -144,8 +179,22 @@ class TourneyGame extends Entity {
   /**
    * Retrieve property.
    */
+  public function getSaved() {
+    return $this->gameSaved;
+  }
+
+  /**
+   * Retrieve property.
+   */
   public function getFinished() {
-    return $this->finished;
+    return $this->gameFinished;
+  }
+
+  /**
+   * Retrieve property.
+   */
+  public function getStarted() {
+    return $this->gameStarted;
   }
 
   /**
@@ -156,10 +205,25 @@ class TourneyGame extends Entity {
   }
 
   /**
+   * Determine if a game has started (contestant relations have been setup).
+   *
+   * Records result to class property.
+   */
+  public function isStarted() {
+    $contestants = TourneyGame::fetchContestantIds($this->id);
+
+    $this->gameStarted = empty($contestants) ? FALSE : TRUE;
+
+    return $this->getStarted();
+  }
+
+  /**
    * Determine if a game is finshed (when $this->winner has value).
+   *
+   * Records result to class property.
    */
   public function isFinished() {
-    $this->finished = strlen($this->getWinner()) ? TRUE : FALSE;
+    $this->gameFinished = strlen($this->getWinner()) ? TRUE : FALSE;
 
     if (TOURNEY_DEBUG_EXTENDS) {
       $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS...';

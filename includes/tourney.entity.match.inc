@@ -9,13 +9,15 @@ class TourneyMatch extends Entity {
 
   private $matchGameIds = array();
   private $matchTournamentId = NULL;
+  private $matchStarted = NULL;
   private $matchFinished = NULL;
   private $matchWinner = NULL;
+  private $matchSetup = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
     if (property_exists($this, 'id')) {
-      $this->fillProperties();
+      //$this->fillProperties();
     }
   }
 
@@ -63,14 +65,22 @@ class TourneyMatch extends Entity {
   /**
    * Sets property values during instantiation.
    *
-   * This function _should_ only called by the constructor after our entity 
-   * has been saved to the database; relations will exist.
+   * Do not call this from the constructor, or from any other method that
+   * fires during instantiation. If called during instantiation infinite
+   * recursion may occur.
+   * @see TourneyMatch::isStarted()
+   * @see TourneyMatch::isFinished()
    *
    * @return TourneyMatch
    *   TourneyMatch object for chaining.
    */
-  private function fillProperties() {
+  private function setupProperties() {
+    $this->matchSetup = TRUE;
     $this->matchGameIds = TourneyMatch::fetchGameIds($this->id);
+    $this->matchTournamentId = TourneyMatch::
+    $this->matchStarted = $this->isStarted();
+    $this->matchFinished = $this->isFinished();
+    $this->matchWinner = $this->determineWinner();
 
     return $this;
   }
@@ -90,10 +100,24 @@ class TourneyMatch extends Entity {
   }
   
   /**
-   * Retrieve property. Property created by hook_entity_load().
+   * Retrieve property.
    */
   public function getWinner() {
     return $this->matchWinner;
+  }
+
+  /**
+   * Retrieve property
+   */
+  public function getStarted() {
+    return $this->matchStarted;
+  }
+
+  /**
+   * Retrieve property
+   */
+  public function getSetup() {
+    return $this->matchSetup;
   }
 
   /**
@@ -112,13 +136,44 @@ class TourneyMatch extends Entity {
   }
 
   /**
+   * Determine if match is started (when any relationship is defined).
+   *
+   * Do not call this from the constructor, or from any other method that
+   * fires during instantiation. If called during instantiation infinite
+   * recursion may occur.
+   *
+   * @return bool
+   */
+  public function isStarted() {
+    if (!$this->getSetup()) {
+      throw new Exception(t('Match entity must first be setup before use.'));
+    }
+
+    $games = TourneyGame::loadTourneyGame($this->getGameIds());
+    $started = FALSE;
+
+    if (!empty($games)) {
+      foreach ($games as $game) {
+        $started = ($started) ? TRUE : $game->isStarted();
+      }
+    }
+
+    if (TOURNEY_DEBUG_EXTENDS) {
+      $output = ($this->getStarted()) ? 'STARTED.' : 'NOT STARTED...';
+      dpr('MATCH ' . $this->id . ': ' . $output);
+    }
+
+    return $started;
+  }
+
+  /**
    * Determine if match is finished (when all games are finished).
    *
    * Do not call this from the constructor, or from any other method that
    * fires during instantiation. If called during instantiation infinite
-   * recursion will occur.
+   * recursion may occur.
    *
-   * @return string
+   * @return bool
    */
   public function isFinished() {
     $games = TourneyGame::loadTourneyGame($this->getGameIds());
@@ -131,14 +186,13 @@ class TourneyMatch extends Entity {
         $finished = ($finished) ? $game->isFinished() : FALSE;
       }
     }
-    $this->matchFinished = $finished;
 
     if (TOURNEY_DEBUG_EXTENDS) {
       $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS...';
       dpr('MATCH ' . $this->id . ': ' . $output);
     }
 
-    return $this->getFinished();
+    return $finished;
   }
 
   /**
