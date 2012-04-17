@@ -27,6 +27,10 @@ Match theming should update .match-spacer.small as well to exactly 50% of .match
   position: relative;
 }
 
+.hide-byes .match-bye {
+  visibility: hidden;
+}
+
 .tourney .match-spacer.small {
   height: 2em;
 }

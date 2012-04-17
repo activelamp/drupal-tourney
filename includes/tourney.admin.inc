@@ -213,6 +213,13 @@ function tourney_configuration($form, &$form_state) {
     '#maxlength' => 2,
     '#required' => TRUE,
   );
+  $form['tourney_hide_byes'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide byes'),
+    '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
+    '#default_value' => variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES),
+  );
+  
   $form['tourney'] = array(
     '#prefix' => t('Select the entity bundles that can compete.'),
     '#type' => 'vertical_tabs',
@@ -266,6 +273,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
 
   try {
     variable_set('tourney_games_all', $form_state['values']['tourney_games']);
+    variable_set('tourney_hide_byes', $form_state['values']['tourney_hide_byes']);
     tourney_relation_type_untarget($relation_types);
     foreach ($entities as $key => $entity) {
       foreach ($entity['bundles'] as $b_key => $bundle) {
@@ -300,6 +308,7 @@ function tourney_configuration_defaults_submit($form, &$form_state) {
     tourney_relation_type_target($relation_types, 'user', '*');
     tourney_relation_type_target($relation_types, 'node', '*');
     variable_set('tourney_games_all', TOURNEY_GAMES);
+    variable_set('tourney_hide_byes', TOURNEY_HIDE_BYES);
     drupal_set_message(t('Default values have been restored.'), 'status');
   }
   catch (Exception $e) {

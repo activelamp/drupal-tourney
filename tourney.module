@@ -10,6 +10,7 @@ define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
 define('TOURNEY_CONTESTANT_2', 'contestant_2');
 define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
 define('TOURNEY_GAMES', 5);
+define('TOURNEY_HIDE_BYES', FALSE);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
 /**

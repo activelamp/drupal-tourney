@@ -29,7 +29,7 @@ function theme_tourney_render_tourney($vars) {
     $matches = tourney_tournament_build_matches($tournament);
   }
 
-  $output = "<div class='tourney tourney-$format'>";
+  $output = "<div class='tourney tourney-$format " . (variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES) ? 'hide-byes' : '') . "'>";
   module_load_include('inc', 'tourney', "theme/type/$format");
   if (function_exists($f = "tourney_render_tourney_$format")) {
     $output .= call_user_func_array($f, array($tournament, $matches));
@@ -81,14 +81,14 @@ function theme_tourney_matchblock($vars) {
   $contestant2 = is_object($match->contestant2) ? $match->contestant2->_entity_name : ($bye ? '' : 'team 2');
   $title       = $match->title . ' ' . $match->id;
 
-  $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . '">';
+  $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . ' ' . ($bye ? 'match-bye' : '') . '">';
   // if ( !$small ) {
   //     $output .= '<div class="match-title">' . $title . '</div>';
   //   }
 
   // Add extra classes to the contestant and flow containers to aid in highlighting
   $contestant1_class = (!empty($match->contestant1) ? ' entity-' . $match->contestant1->_entity_type . '-' . $match->contestant1->_entity_id : '');
-  $contestant2_class = (!empty($match->contestant2) ? ' entity-' . $match->contestant2->_entity_type . '-' . $match->contestant2->_entity_id : ($bye ? 'bye' : ''));
+  $contestant2_class = (!empty($match->contestant2) ? ' entity-' . $match->contestant2->_entity_type . '-' . $match->contestant2->_entity_id : ($bye ? 'contestant-bye' : ''));
   $winner_class = '';
   if (!empty($match->winner)) {
     if ($match->contestant1 && $match->winner == $match->contestant1->name) $winner_class = $contestant1_class;
