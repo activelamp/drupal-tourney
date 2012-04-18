@@ -22,24 +22,6 @@ class TourneyMatch extends Entity {
   }
 
   /**
-   * Instantiate a match entity class properly via entity_load().
-   *
-   * Instantiating the class manually without envoking entity_load() will
-   * not allow other modules to hook. Use this static method to create all
-   * instances.
-   *
-   * @return TourneyMatch
-   *   A newly instantiated match entity.
-   */
-   public static function loadTourneyMatch($match_ids = array()) {
-     $match_ids = (is_array($match_ids)) ? $match_ids : array();
-
-     $new_match = entity_load('tourney_match', $match_ids);
-
-     return $new_match;
-   }
-
-  /**
    * Report the game entity_ids related to a match.
    *
    * @param integer $match_id
@@ -109,16 +91,17 @@ class TourneyMatch extends Entity {
    *   TourneyMatch object for chaining.
    */
   public function setup() {
-    if (!$this->getSetup()) {
-      $this->matchSetup = TRUE;
-      $this->matchGameIds = TourneyMatch::fetchGameId($this->id);
-      $this->matchTournamentId = TourneyMatch::fetchTournamentId($this->id);
-      $this->matchStarted = $this->isStarted();
-      $this->matchFinished = $this->isFinished();
-      $this->matchWinner = $this->determineWinner();
-      
-      $this->matchGames = TourneyGame::loadTourneyGame($this->getGameIds());
-    }
+    // No setup for newly created entities that haven't been saved yet.
+    if (empty($this->id)) {
+      return;                                                                 
+    }                                                                         
+    // @todo: this all needs to be lazy loaded.   
+    // $this->matchGameIds = TourneyMatch::fetchGameId($this->id);
+    // $this->matchTournamentId = TourneyMatch::fetchTournamentId($this->id);
+    // $this->matchStarted = $this->isStarted();
+    // $this->matchFinished = $this->isFinished();
+    // $this->matchWinner = $this->determineWinner();
+    //$this->matchGames = TourneyGame::loadTourneyGame($this->getGameIds());
 
     return $this;
   }
@@ -152,13 +135,6 @@ class TourneyMatch extends Entity {
   }
 
   /**
-   * Retrieve property
-   */
-  public function getSetup() {
-    return $this->matchSetup;
-  }
-
-  /**
    * Report current winner rankings for this match.
    *
    * @return array
@@ -179,11 +155,11 @@ class TourneyMatch extends Entity {
    * @return bool
    */
   public function isStarted() {
-    if (!$this->getSetup()) {
+    if (!$this->id) {
       throw new Exception(t('Match entity must first be setup before use.'));
     }
 
-    $games = TourneyGame::loadTourneyGame($this->getGameIds());
+    $games = tourney_game_load_multiple($this->getGameIds());
     $started = FALSE;
 
     if (!empty($games)) {

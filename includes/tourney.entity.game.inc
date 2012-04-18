@@ -36,7 +36,7 @@ class TourneyGame extends Entity {
    * instances.
    *
    * @return TourneyGame
-   *   A newly instantiated game entity.
+   *   A array of newly instantiated game entities.
    */
    public static function loadTourneyGame($game_ids = array()) {
      $game_ids = (is_array($game_ids)) ? $game_ids : array($game_ids);
@@ -77,7 +77,7 @@ class TourneyGame extends Entity {
    */
   public static function fetchTournamentId($game_id, $match_id = NULL) {
     $tournament_id = 0;
-    $match_id = ($match_id) ? $match_id : TourneyGame::getMatchId($game_id);
+    $match_id = ($match_id) ? $match_id : TourneyGame::fetchMatchId($game_id);
 
     if ($match_id) {
       $query = relation_query('tourney_match', $match_id);
@@ -112,19 +112,19 @@ class TourneyGame extends Entity {
 
     if ($match_id) {
       $query = relation_query('tourney_match', $match_id);
-      $query->entityCondition('bundle', TOURNEY_CONTESTANT_1);
+      $query->entityCondition('bundle', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2), 'IN');
       $results = $query->execute();
       foreach ($results as $relation) {
         $r = relation_load($relation->rid);
         $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
         $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-        $contestants[$type . $id] = array(
+        $contestants[$type .'.'. $id] = array(
           'type' => $type,
           'id' => $id,
         );
       }
     }
-
+    
     return $contestants;
   }
 
@@ -135,33 +135,22 @@ class TourneyGame extends Entity {
    *   TourneyGame object for chaining.
    */
   public function setup() {
-    // Don't waste resources if properties have already been loaded.
-    if (!$this->getSetup()) {
-      $this->gameSetup = TRUE;
-      $this->gameMatchId = TourneyGame::fetchMatchId($this->id);
-      $this->gameTournamentId = TourneyGame::fetchTournamentId($this->id, $this->getMatchId());
-      $this->gameContestantIds = TourneyGame::fetchContestantIds($this->id, $this->getMatchId());
-      $this->gameStarted  = $this->isStarted();
-      $this->gameFinished = $this->isFinished();
-      $this->gameWinner = $this->winner;
-      
-      foreach($this->getContestantIds() as $c_id) {
-        $this->gameContestants = entity_load($c_id['type'], $c_id['id']);
-      }
+    // No setup for newly created entities that haven't been saved yet.
+    if (empty($this->id)) {
+      return;
+    }  
+    $this->gameMatchId = TourneyGame::fetchMatchId($this->id);
+    $this->gameTournamentId = TourneyGame::fetchTournamentId($this->id, $this->getMatchId());
+    $this->gameContestantIds = TourneyGame::fetchContestantIds($this->id, $this->getMatchId());
+    $this->gameStarted  = $this->isStarted();
+    $this->gameFinished = $this->isFinished();
+    $this->gameWinner = $this->winner;
+    
+    foreach($this->getContestantIds() as $c_id) {
+      $this->gameContestants[] = entity_load($c_id['type'], array($c_id['id']));
     }
 
     return $this;
-  }
-
-  /**
-   * Retrieve property.
-   *
-   * Do not call setup() as this will result in recursion. All setup()
-   * recursion prevention measures may be removed once possible collisions 
-   * with structured code have been resolved.
-   */
-  public function getSetup() {
-    return $this->gameSetup;
   }
 
   /**

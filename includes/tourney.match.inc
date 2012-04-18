@@ -12,9 +12,8 @@
  */
 function tourney_match_page_view($match) {
   if  (TOURNEY_DEBUG_EXTENDS) {
-    $match->setupProperties();
-    $match->isStarted();
-    $match->determineWinner();
+    // $match->isStarted();
+    // $match->determineWinner();
   }
   return $match->view('full', NULL, TRUE);
 }
@@ -51,12 +50,6 @@ function tourney_game_win_form($form, &$form_state, $extra) {
     'submit' => array(
       '#type' => 'submit',
       '#value' => $extra['name'] . ' wins',
-      '#aajax' => array(
-        'callback' => 'tourney_game_win_form_js',
-        'wrapper' => 'game-list',
-        'method' => 'replace',
-        'effect' => 'fade',
-      ),
     ),
   );
   return $form;
@@ -68,7 +61,6 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['tourney'] = $match;
-  $match->setup();
   $match_started = $match->isStarted();
 
   // @todo: It would be nice if these were field api fields
@@ -206,9 +198,14 @@ function tourney_match_form_validate($form, &$form_state) {
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['tourney'];
  
-  drupal_set_message(t('Your match has been saved.'));
-  entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
-  tourney_match_save($match);
+  if (!$match->tournament->isFinished()) {
+    drupal_set_message(t('Your match has been saved.'));
+    entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
+    tourney_match_save($match);
+  }
+  else {
+    drupal_set_message(t('Tournament is already finished. Match not saved.'), 'error');
+  }
 
   $form_state['redirect'] = 'tourney/match/' . $match->id;
 }

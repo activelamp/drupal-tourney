@@ -174,7 +174,7 @@ class RoundRobin implements TourneyMatchInterface {
     $finished = FALSE;
 
     // If all matches are finished then the tournament is finished.
-    $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
+    $matches = tourney_match_load_multiple($tournament->getMatchIds());
     if (!empty($matches)) {
       $finished = TRUE;
       foreach ($matches as $match) {

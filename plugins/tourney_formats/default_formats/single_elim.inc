@@ -183,7 +183,7 @@ class SingleElimination implements TourneyMatchInterface {
    *   Will report TRUE if the tournament is finished, FALSE if not.
    */
   function is_finished($tournament) {
-    $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
+    $matches = tourney_match_load_multiple($tournament->getMatchIds());
     if (!empty($matches)) {
       foreach ($matches as $match) {
         // Delegate the checking to the match to see if each match is finished
