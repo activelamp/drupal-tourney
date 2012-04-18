@@ -16,10 +16,15 @@ class SingleElimination implements TourneyMatchInterface {
 
   /**
    * Constructor
+   * 
+   * @todo The methods in this constuctor should be moved out and called
+   *   explicitly when building tournaments.
    */
-  public function __construct($num_contestants) {
-    $this->calculate_rounds($num_contestants);
-    $this->set_message();
+  public function __construct($num_contestants = 0) {
+    if ($num_contestants > 0) {
+      $this->calculate_rounds($num_contestants);
+      $this->set_message();
+    }
   }
 
   /**
@@ -178,20 +183,16 @@ class SingleElimination implements TourneyMatchInterface {
    *   Will report TRUE if the tournament is finished, FALSE if not.
    */
   function is_finished($tournament) {
-    if (!property_exists($tournament, 'id') || !TourneyTournament::exists($tournament->id)) {
-      throw new Exception(t('Required parameter is not correct.'));
-    }
-
-    $finished = FALSE;
-
     $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
     if (!empty($matches)) {
-      $finished = TRUE;
       foreach ($matches as $match) {
-        $finished = ($finished) ? $match->isFinished() : FALSE;
+        // Delegate the checking to the match to see if each match is finished
+        if (!$match->isFinished()) {
+          return FALSE;
+        }
       }
+      return TRUE;
     }
-
-    return $finished;
+    throw new Exception(t('There are no matches for this tournament'));
   }
 }

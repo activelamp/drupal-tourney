@@ -205,15 +205,10 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['tourney'];
-
-  if (!$match->tournament->isFinished()) {
-    drupal_set_message(t('Your match has been saved.'));
-    entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
-    tourney_match_save($match);
-  }
-  else {
-    drupal_set_message(t('Tournament is already finished. Match not saved.'), 'error');
-  }
+ 
+  drupal_set_message(t('Your match has been saved.'));
+  entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
+  tourney_match_save($match);
 
   $form_state['redirect'] = 'tourney/match/' . $match->id;
 }

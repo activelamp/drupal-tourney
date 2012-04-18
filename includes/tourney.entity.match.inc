@@ -176,10 +176,6 @@ class TourneyMatch extends Entity {
   /**
    * Determine if match is started (when any relationship is defined).
    *
-   * Do not call this from the constructor, or from any other method that
-   * fires during instantiation. If called during instantiation infinite
-   * recursion may occur.
-   *
    * @return bool
    */
   public function isStarted() {

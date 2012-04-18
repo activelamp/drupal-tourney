@@ -167,7 +167,7 @@ class RoundRobin implements TourneyMatchInterface {
    *   Will report TRUE if the tournament is finished, FALSE if not.
    */
   function is_finished($tournament) {
-    if (!property_exists($tournament, 'id') || !TourneyTournament::exists($tournament->id)) {
+    if (!property_exists($tournament, 'id')) {
       throw new Exception(t('Required parameter is not correct.'));
     }
 
