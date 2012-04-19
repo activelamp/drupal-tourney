@@ -133,4 +133,55 @@ class RoundRobin implements TourneyMatchInterface {
       }
     }
   }
+
+  /**
+   *
+   */
+  public function determine_winner($tournament) {
+    module_load_include('inc', 'tourney', 'theme/type/roundrobin');
+    $ranks = $tournament->fetchRanks();
+    $contestants = tourney_get_contestants($tournament);
+    $standings = tourney_get_standings($tournament);
+    uasort($standings, 'tourney_roundrobin_standings_sort');
+
+    if (TOURNEY_DEBUG_EXTENDS) {
+      dpm($contestants);
+      dpm($standings);
+      dpm($ranks);
+    }
+
+    $keys = array_keys($standings);
+    $tournament->winner = $keys[0];
+    $tournament->save();
+    drupal_set_message(t('Tournament ' . $tournament->format. ' is complete!.'), 'status');
+
+    return $this;
+  }
+
+  /**
+   * Report if a tournament is finished.
+   *
+   * @param TourneyTournament $tournament
+   *
+   * @return bool $finished
+   *   Will report TRUE if the tournament is finished, FALSE if not.
+   */
+  function is_finished($tournament) {
+    if (!property_exists($tournament, 'id') || !TourneyTournament::exists($tournament->id)) {
+      throw new Exception(t('Required parameter is not correct.'));
+    }
+
+    $finished = FALSE;
+
+    // If all matches are finished then the tournament is finished.
+    $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
+    if (!empty($matches)) {
+      $finished = TRUE;
+      foreach ($matches as $match) {
+        $finished = ($finished) ? $match->isFinished() : FALSE;
+      }
+    }
+
+    return $finished;
+  }
 }

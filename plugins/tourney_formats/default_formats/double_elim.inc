@@ -224,4 +224,32 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
       }
     }
   }
+
+  /**
+   * Overrides SingleElemination::is_finished().
+   *
+   * If the top two ranking contestants are not tied in their number of wins
+   * then we do not require the final match to be finished.
+   *
+   * @see SingleElimination::is_finished().
+   */
+  public function is_finished($tournament) {
+    $finished = parent::is_finished($tournament);
+
+    // Parent is authoritative if it reports tournament as already finished.
+    if (!$finished) {
+      $ranks = $tournament->fetchRanks();
+      // If we have one outstanding match, tournament may be finished if no 
+      // tie-breaker is required.
+      if ((array_key_exists('NA', $ranks['match_wins'])) && ($ranks['match_wins']['NA'] == 1)) {
+        $keys = array_keys($ranks['match_wins']);
+        // If first and second place contestants do not report same win count.
+        if ($ranks['match_wins'][$keys[0]] != $ranks['match_wins'][$keys[1]]) {
+          $finished = TRUE;
+        }
+      }
+    }
+
+    return $finished;
+  }
 }
