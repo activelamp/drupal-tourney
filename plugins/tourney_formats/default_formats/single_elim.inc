@@ -145,11 +145,18 @@ class SingleElimination implements TourneyMatchInterface {
   }
 
   /**
+   * Sets the winner property and saves tournament.
    *
+   * Retrieves rankings and sorts the list by total number of winnings. Sets
+   * winner to the first contestant in the ranking list.
+   *
+   * @param TourneyTournament $tournament
+   *
+   * @return TourneyTournament $this
+   *   Returns $this for chaining.
    */
   public function determine_winner($tournament) {
     $ranks = $tournament->fetchRanks();
-    $contestants = tourney_get_contestants($tournament);
     $standings = tourney_get_standings($tournament);
 
     // todo : remove quick hack, implement custom uasort callback.
@@ -159,9 +166,8 @@ class SingleElimination implements TourneyMatchInterface {
     arsort($winners);
 
     if (TOURNEY_DEBUG_EXTENDS) {
-      dpm($contestants);
-      dpm($standings);
       dpm($ranks);
+      dpm($standings);
       dpm($winners);
     }
 
@@ -183,7 +189,7 @@ class SingleElimination implements TourneyMatchInterface {
    *   Will report TRUE if the tournament is finished, FALSE if not.
    */
   function is_finished($tournament) {
-    $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
+    $matches = tourney_match_load_multiple($tournament->getMatchIds());
     if (!empty($matches)) {
       foreach ($matches as $match) {
         // Delegate the checking to the match to see if each match is finished

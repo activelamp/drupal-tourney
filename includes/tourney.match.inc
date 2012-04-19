@@ -12,7 +12,6 @@
  */
 function tourney_match_page_view($match) {
   if  (TOURNEY_DEBUG_EXTENDS) {
-    $match->setupProperties();
     $match->isStarted();
     $match->determineWinner();
   }
@@ -68,18 +67,18 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['tourney'] = $match;
-  $match->setup();
-  $match_started = $match->isStarted();
+  $m_finished = $match->isFinished();
 
   // @todo: It would be nice if these were field api fields
   $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
-  $c_1_uid = (is_object($contestant) && ($contestant->uid > 0)) ? $contestant->uid : -1;
-  $form['contestant1'] = array(
-    '#title' => t('Contestant 1'),
-    '#default_value' => $c_1_uid,
-    '#disabled' => ($match_started) ? TRUE : FALSE,
-    '#required' => ($match_started) ? FALSE : TRUE,
-  ) + _tourney_match_contestant($match);
+  if (($match->previous_match1 == 'manual' && !is_object($contestant))) {
+    $form['contestant1'] = array(
+      '#title' => t('Contestant 1'),
+      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
+      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
+      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
+    ) + _tourney_match_contestant($match);
+  }
 
   $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
   if (($match->previous_match2 == 'manual' && !is_object($contestant))) {
@@ -99,7 +98,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#maxlength' => 255,
     '#default_value' => $match->games,
     '#required' => TRUE,
-    '#disabled' => (count($match->getGameIds()) > 1) || $tournament_finished,
+    '#disabled' => $m_finished,
   );
 
   field_attach_form('tourney_match', $match, $form, $form_state);
@@ -109,7 +108,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#type' => 'submit',
     '#value' => t('Save'),
     '#weight' => 40,
-    '#disabled' => $tournament_finished
+    '#disabled' => $m_finished
   );
 
   $form['#submit'][] = 'tourney_match_form_submit';

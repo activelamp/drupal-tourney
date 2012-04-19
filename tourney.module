@@ -482,34 +482,34 @@ function tourney_entity_load($entities, $type) {
     $entity->_entity_name = !property_exists($entity, 'title') ? ( property_exists($entity, 'name') ? $entity->name : 'NONAME' ) : $entity->title;
   }
   if ($type == 'tourney_match') {
-    // foreach ($entities as $entity) {
-    //   // Get the tournament this match is in
-    //   $tournament = relation_get_related_entity('tourney_match', $entity->id, 'has_match');
-    //   $entity->tournament = $tournament;
-    // 
-    //   // Get the contestants in this match.
-    //   $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
-    //   $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
-    //   $entity->contestant1 = is_object($contestant1) ? $contestant1 : '';
-    //   $entity->contestant2 = is_object($contestant2) ? $contestant2 : '';
-    // 
-    //   // Get all the games in this match.
-    //   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
-    //   $entity->games_played = tourney_tournament_get_match_games($entity, FALSE);
-    // }
+    foreach ($entities as $entity) {
+      // Get the tournament this match is in
+      $tournament = relation_get_related_entity('tourney_match', $entity->id, 'has_match');
+      $entity->tournament = $tournament;
+
+      // Get the contestants in this match.
+      $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
+      $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
+      $entity->contestant1 = is_object($contestant1) ? $contestant1 : '';
+      $entity->contestant2 = is_object($contestant2) ? $contestant2 : '';
+
+      // Get all the games in this match.
+      module_load_include('inc', 'tourney', 'includes/tourney.tournament');
+      $entity->games_played = tourney_tournament_get_match_games($entity, FALSE);
+    }
   }
   if ($type == 'tourney_game') {
-    // foreach ($entities as $entity) {
-    //   // Set the parent match on the game entity.
-    //   $match = relation_get_related_entity('tourney_game', $entity->id, 'has_game');
-    //   $entity->match = $match;
-    //   if (is_object($match) && is_object($match->contestant1)) {
-    //     $entity->contestants[$match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id] = $match->contestant1->_entity_name;
-    //   }
-    //   if (is_object($match) && is_object($match->contestant2)) {
-    //     $entity->contestants[$match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id] = $match->contestant2->_entity_name;
-    //   }
-    // }
+    foreach ($entities as $entity) {
+      // Set the parent match on the game entity.
+      $match = relation_get_related_entity('tourney_game', $entity->id, 'has_game');
+      $entity->match = $match;
+      if (is_object($match) && is_object($match->contestant1)) {
+        $entity->contestants[$match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id] = $match->contestant1->_entity_name;
+      }
+      if (is_object($match) && is_object($match->contestant2)) {
+        $entity->contestants[$match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id] = $match->contestant2->_entity_name;
+      }
+    }
   }
 }
 

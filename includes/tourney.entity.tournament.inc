@@ -7,15 +7,27 @@
 
 class TourneyTournament extends Entity {
 
-  private $tournamentMatchIds = array();
+  private $tournamentMatchIds = NULL;
   private $tournamentStarted  = NULL;
   private $tournamentFinished = NULL;
   private $tournamentWinner = NULL;
+  private $tournamentMatches = NULL;
+
   public $tournamentFormatPlugin = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-    $this->setup();
+    // Instantiate the plugin, but only if our entity has been created
+    // via entity_load(). If our entity has been constructed by another
+    // means, like entity_create(), required properties will not yet be
+    // available.
+    // @todo : Lazy load this?
+    if (!empty($this->players)) {
+      if (!class_exists($this->format)) {
+        throw new Exception(t('Tourney format plugin does not exist'));
+      }   
+      $this->tournamentFormatPlugin = new $this->format($this->players);
+    }
   }
 
   /**
@@ -28,7 +40,6 @@ class TourneyTournament extends Entity {
    *   An array of match entity ids.
    */
   public static function fetchMatchIds($tournament_id) {
-    
     $query = relation_query('tourney_tournament', $tournament_id);
     $query->entityCondition('bundle', 'has_match');
     $results = $query->execute();
@@ -40,25 +51,6 @@ class TourneyTournament extends Entity {
     }
 
     return $match_ids;
-  }
-
-  /**
-   * Expose the Tourney Format Builder plugin to the object.
-   *
-   * @return TourneyTournament
-   *   TourneyTournament object for chaining.
-   */
-  protected function setup() {
-    // No setup for newly created entities that haven't been saved yet.
-    if (!empty($this->is_new)) {
-      return;
-    }
-    
-    // Make sure we have a valid tourney format plugin for this tournament.
-    if (!class_exists($this->format)) {
-      throw new Exception(t('Tourney format plugin does not exist'));
-    }   
-    $this->tournamentFormatPlugin = new $this->format($this->players);
   }
 
   /**
@@ -88,7 +80,7 @@ class TourneyTournament extends Entity {
     $ranks['contestants'] = array();
 
     // Load all the matches in this tournament.
-    $matches = TourneyMatch::loadTourneyMatch($this->getMatchIds());
+    $matches = tourney_match_load_multiple($this->getMatchIds());
 
     if (!empty($matches)) {
       foreach ($matches as $match) {

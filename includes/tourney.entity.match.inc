@@ -14,30 +14,11 @@ class TourneyMatch extends Entity {
   private $matchWinner = NULL;
   private $matchSetup = NULL;
   
-  public $matchGames = NULL;
+  private $matchGames = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-    $this->setup();
   }
-
-  /**
-   * Instantiate a match entity class properly via entity_load().
-   *
-   * Instantiating the class manually without envoking entity_load() will
-   * not allow other modules to hook. Use this static method to create all
-   * instances.
-   *
-   * @return TourneyMatch
-   *   A newly instantiated match entity.
-   */
-   public static function loadTourneyMatch($match_ids = array()) {
-     $match_ids = (is_array($match_ids)) ? $match_ids : array();
-
-     $new_match = entity_load('tourney_match', $match_ids);
-
-     return $new_match;
-   }
 
   /**
    * Report the game entity_ids related to a match.
@@ -48,7 +29,7 @@ class TourneyMatch extends Entity {
    * @return array
    *   game entity ids if found, empty array if not found.
    */
-  public static function fetchGameId($match_id) {
+  public static function fetchGameIds($match_id) {
     $game_ids = array();
 
     $query = relation_query('tourney_match', $match_id);
@@ -69,19 +50,13 @@ class TourneyMatch extends Entity {
    *   The match entity id to search for games with.
    *
    * @return array $tournament_ids
-   *   game entity ids if found, empty array if not found.
+   *   tournament entity id if found, empty array if not found.
    */
   public static function fetchTournamentId($match_ids, &$tournament_ids = array()) {
     if (is_array($match_ids)) {
       foreach($match_ids as $match_id) {
         $tournament_ids = TourneyMatch::fetchTournamentIds($match_id, $tournament_ids);
       }
-    }
-    else {
-      // todo : Integrity check.
-      //if (!is_integer($match_ids)) {
-      //  throw new Exception(t('Required parameter is invalid: ') . $match_ids);
-      //}
     }
     $match_id = $match_ids;
 
@@ -97,65 +72,76 @@ class TourneyMatch extends Entity {
   }
 
   /**
-   * Sets property values during instantiation.
+   * Retrieve property. (Lazy load TourneyGame entities).
    *
-   * Do not call this from the constructor, or from any other method that
-   * fires during instantiation. If called during instantiation infinite
-   * recursion may occur.
-   * @see TourneyMatch::isStarted()
-   * @see TourneyMatch::isFinished()
+   * @example
+   *   $games47_50 = $match->getGames();
+   *   $game47     = $match->getGames('game.47');
+   *   $game47     = $match->getGames(0);
+   *   $game48     = $match->getGames(1);
+   *   $game48_id  = $match->getGames(1)->id;
    *
-   * @return TourneyMatch
-   *   TourneyMatch object for chaining.
+   * @param string|integer|NULL $key
+   *   (optional) Associated key index, or simple integer offset index.
+   *
+   * @return array|TourneyGame $game
+   *   If the $key paramater was NULL then an array of all games keyed by
+   *   ['game'.$game_id]. If $key parameter was string then only the
+   *   element [$key] of all games is returned. If $key parameter is an
+   *   integer then only the element at offset [$key] is returned.
    */
-  public function setup() {
-    if (!$this->getSetup()) {
-      $this->matchSetup = TRUE;
-      $this->matchGameIds = TourneyMatch::fetchGameId($this->id);
-      $this->matchTournamentId = TourneyMatch::fetchTournamentId($this->id);
-      $this->matchStarted = $this->isStarted();
-      $this->matchFinished = $this->isFinished();
-      $this->matchWinner = $this->determineWinner();
-      
-      $this->matchGames = TourneyGame::loadTourneyGame($this->getGameIds());
+  function getGames($key = NULL) {
+    if (is_null($this->matchGames)) {
+      foreach($this->getMatchIds() as $matchId)
+      $this->matchGames['match.' . $matchId] = tourney_match_load($matchId);
     }
 
-    return $this;
+    // When the parameter is of the type integer then we will just report
+    // the element contained in the array at the integer offset.
+    if (is_integer($key)) {
+      $keys = array_keys($this->matchGames);
+      $key = $keys[$key];
+    }
+
+    // If a key was specified only report that array element, otherwise
+    // report the entire array.
+    $game = ($key) ? $this->matchGames[$key] : $this->matchGames;
+
+    return $game;
+  } 
+
+  /**
+   * Report property.
+   *
+   */
+  public function getTournamentId() {
+    if (is_null($this->matchTournamentId)) {
+      $this->matchTournamentId = TourneyMatch::fetchTournamentId($this->id);
+    }
+
+    return $this->matchTournamentId;
   }
 
   /**
    * Report property.
    */
   public function getGameIds() {
+    if (is_null($this->matchGameIds)) {
+      $this->matchGameIds = TourneyMatch::fetchGAmeIds($this->id);
+    }
+
     return $this->matchGameIds;
   }
 
   /**
-   * Report property.
-   */
-  public function getFinished() {
-    return $this->matchFinished;
-  }
-  
-  /**
    * Retrieve property.
    */
   public function getWinner() {
+    if (is_null($this->matchWinner)) {
+      $this->matchWinner = $this->determineWinner();
+    }
+
     return $this->matchWinner;
-  }
-
-  /**
-   * Retrieve property
-   */
-  public function getStarted() {
-    return $this->matchStarted;
-  }
-
-  /**
-   * Retrieve property
-   */
-  public function getSetup() {
-    return $this->matchSetup;
   }
 
   /**
@@ -179,11 +165,7 @@ class TourneyMatch extends Entity {
    * @return bool
    */
   public function isStarted() {
-    if (!$this->getSetup()) {
-      throw new Exception(t('Match entity must first be setup before use.'));
-    }
-
-    $games = TourneyGame::loadTourneyGame($this->getGameIds());
+    $games = tourney_game_load_multiple($this->getGameIds());
     $started = FALSE;
 
     if (!empty($games)) {
@@ -210,7 +192,7 @@ class TourneyMatch extends Entity {
    * @return bool
    */
   public function isFinished() {
-    $games = TourneyGame::loadTourneyGame($this->getGameIds());
+    $games = tourney_game_load_multiple($this->getGameIds());
 
     // todo don't like logic that defaults to true.
     $finished = FALSE;
