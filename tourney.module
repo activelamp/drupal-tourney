@@ -542,7 +542,7 @@ function tourney_entities() {
  */
 function tourney_uri($tourney) {
   return array(
-    'path' => 'tourney/1',
+    'path' => 'tourney/' . $tourney->type . '/' . $tourney->id,
   );
 }
 
@@ -756,7 +756,7 @@ function tourney_match_save(&$match) {
     // Create the new relation.
     if (!is_object($c1) && !empty($match->contestant1)) {
       // Get the entity and entity_id from contestant value
-      list($type, $id) = explode(".", is_object($match->contestant1) 
+      list($type, $id) = explode(".", is_object($match->contestant1)
         ? $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id
         : $match->contestant1);
 
@@ -767,9 +767,9 @@ function tourney_match_save(&$match) {
       $rid = relation_insert(TOURNEY_CONTESTANT_1, $entity_keys);
     }
 
-    if (!is_object($c2) && !empty($match->contestant2)) { 
+    if (!is_object($c2) && !empty($match->contestant2)) {
       // Get the entity and entity_id from contestant value
-      list($type, $id) = explode(".", is_object($match->contestant2) 
+      list($type, $id) = explode(".", is_object($match->contestant2)
         ? $match->contestant2->_entity_type .'.'. $match->contestant2->_entity_id
         : $match->contestant2);
 
@@ -826,7 +826,7 @@ function tourney_tournament_calc_winner($tournaments, &$winners = array()) {
     if (!isset($interfaces['TourneyMatchInterface'])) {
       throw new Exception(t('Wrong implementation.'));
     }
-  
+
     $tourneyPlugin = new $match_style($tournament->players);
     // May not call static method with class as variable until php5.3
     $win = $tourneyPlugin->determin_winner($tournament);
@@ -834,7 +834,7 @@ function tourney_tournament_calc_winner($tournaments, &$winners = array()) {
       $winners[$id] = $win[0] . '.' . $win[1];
     }
   }
-    
+
   return $winners;
 }
 
@@ -848,7 +848,7 @@ function tourney_tournament_calc_winner($tournaments, &$winners = array()) {
  *   them (mixed, and recursive, but why would you want to?).
  *
  * @return array
- *   An array of integers describing the count of finished matches keyed by 
+ *   An array of integers describing the count of finished matches keyed by
  *   tournament entity id.
  */
 function tourney_tournament_count_finished($tournaments, &$finished = array()) {
@@ -867,7 +867,7 @@ function tourney_tournament_count_finished($tournaments, &$finished = array()) {
     $matches = tourney_tournament_build_matches($tournament, TRUE, TRUE);
   }
   catch (Exception $e) {
-    throw new Exception(t('Can not load matches for tournament') . ': ' . $e->getMessage(), 'error');  
+    throw new Exception(t('Can not load matches for tournament') . ': ' . $e->getMessage(), 'error');
   }
 
   $finished[$tournament->id] = 0;
