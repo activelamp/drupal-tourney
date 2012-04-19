@@ -19,7 +19,6 @@ class SingleElimination implements TourneyMatchInterface {
    */
   public function __construct($num_contestants) {
     $this->calculate_rounds($num_contestants);
-    $this->set_message();
   }
 
   /**
