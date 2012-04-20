@@ -1143,6 +1143,9 @@ function tourney_update_alias($entity, $op, array $options = array()) {
   // Skip processing if the node has no pattern.
   //if (!pathauto_pattern_load_by_entity($entity->_entity_type, $entity->_entity_type, $options['language'])) {
   if (!pathauto_pattern_load_by_entity($entity_type, $entity_type)) {
+    // Remove the alias if a pattern is no longer given.
+    $uri = tourney_uri($entity);
+    pathauto_entity_path_delete_all($entity_type, $entity, $uri);
     return;
   }
 
