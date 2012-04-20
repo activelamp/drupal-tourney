@@ -124,26 +124,46 @@ function _tourney_match_contestant($match) {
 
 function _tourney_match_contestants($match) {
   $query = db_select('relation_bundles', 'rb');
-  $query->fields('rb', array('entity_type'))
+  $query->fields('rb', array('entity_type', 'bundle'))
     ->distinct()
     ->condition('relation_type', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2))
     ->condition('r_index', 1);
-  $bundles = $query->execute();
+  $results = $query->execute()->fetchAll();
 
   $options = array('' => ' - Choose contestant -');
-  foreach ( $bundles as $bundle ) {
-    $bn = $bundle->entity_type;
+  foreach ($results as $row) {
+    $entity_type = $row->entity_type;
     $group = array();
-    $entities = entity_load($bn);
 
-    if ( empty($entities) ) {
+    if ($row->bundle === '*') {
+      $entities = entity_load($entity_type);
+    }
+    else {
+      $query = new EntityFieldQuery();
+      $query->entityCondition('entity_type', $entity_type, '=')
+        ->propertyCondition('type', $row->bundle, '=');
+      $result = $query->execute();
+
+      $entities = array();
+      if (isset($result[$entity_type])) {
+        $ids = array_keys($result[$entity_type]);
+        $entities = entity_load($entity_type, $ids);
+      }
+    }
+
+    if (empty($entities)) {
       $group[] = ' - Empty - ';
     }
-    else foreach ( $entities as $eid => $entity ) {
-      $title = !property_exists($entity, 'title') ? $entity->name : $entity->title;
-      $group["$bn.$eid"] = $title;
+    else {
+      foreach ($entities as $eid => $entity) {
+        $title = !property_exists($entity, 'title') ? $entity->name : $entity->title;
+        $group["$entity_type.$eid"] = $title;
+      }
     }
-    if ( !empty($group) ) $options[$bn] = $group;
+    if (!empty($group)) {
+      $group_name = $row->bundle !== '*' ? $entity_type . ' - ' . $row->bundle : $entity_type;
+      $options[$group_name] = $group;
+    }
   }
   _tourney_match_contestants_sanitize($match, $options);
   return $options;
@@ -291,14 +311,14 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['match_contestant1'] = is_object($contestant1) ? array(
     '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
     '#suffix' => '</div>',
-    '#markup' => $contestant1->name,
+    '#markup' => $contestant1->title,
   ) : '';
 
   $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
   $entity->content['match_contestant2'] = is_object($contestant2) ? array(
     '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
     '#suffix' => '</div>',
-    '#markup' => $contestant2->name,
+    '#markup' => $contestant2->title,
   ) : '';
 
   $entity->content['match_table'] = array(
