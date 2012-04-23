@@ -9,7 +9,7 @@ define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
 define('TOURNEY_CONTESTANT_2', 'contestant_2');
 define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
 define('TOURNEY_GAMES', 5);
-define('TOURNEY_DEBUG_EXTENDS', FALSE);
+define('TOURNEY_DEBUG_EXTENDS', variable_get('tourney_debug', FALSE));
 
 /**
  * Implements hook_menu().
@@ -197,7 +197,7 @@ function tourney_entity_info() {
   foreach ($entities as $entity_name => $bundle) {
     // Entity name minus the tourney_ prefix
     $entity_short = substr($entity_name, 8);
-
+    
     $entity_class = 'Entity';
     $entity_class = ($entity_short == 'tournament') ? 'TourneyTournament' : $entity_class;
     $entity_class = ($entity_short == 'match') ? 'TourneyMatch' : $entity_class;
@@ -460,13 +460,11 @@ function tourney_entity_load($entities, $type) {
       // Get the tournament this match is in
       $tournament = relation_get_related_entity('tourney_match', $entity->id, 'has_match');
       $entity->tournament = $tournament;
-
       // Get the contestants in this match.
       $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
       $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
       $entity->contestant1 = is_object($contestant1) ? $contestant1 : '';
       $entity->contestant2 = is_object($contestant2) ? $contestant2 : '';
-
       // Get all the games in this match.
       module_load_include('inc', 'tourney', 'includes/tourney.tournament');
       $entity->games_played = tourney_tournament_get_match_games($entity, FALSE);

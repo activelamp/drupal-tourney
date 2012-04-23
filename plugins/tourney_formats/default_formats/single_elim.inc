@@ -16,9 +16,14 @@ class SingleElimination implements TourneyMatchInterface {
 
   /**
    * Constructor
+   * 
+   * @todo The methods in this constuctor should be moved out and called
+   *   explicitly when building tournaments.
    */
-  public function __construct($num_contestants) {
-    $this->calculate_rounds($num_contestants);
+  public function __construct($num_contestants = 0) {
+    if ($num_contestants > 0) {
+      $this->calculate_rounds($num_contestants);
+    }
   }
 
   /**
@@ -139,11 +144,18 @@ class SingleElimination implements TourneyMatchInterface {
   }
 
   /**
+   * Sets the winner property and saves tournament.
    *
+   * Retrieves rankings and sorts the list by total number of winnings. Sets
+   * winner to the first contestant in the ranking list.
+   *
+   * @param TourneyTournament $tournament
+   *
+   * @return TourneyTournament $this
+   *   Returns $this for chaining.
    */
   public function determine_winner($tournament) {
     $ranks = $tournament->fetchRanks();
-    $contestants = tourney_get_contestants($tournament);
     $standings = tourney_get_standings($tournament);
 
     // todo : remove quick hack, implement custom uasort callback.
@@ -153,9 +165,8 @@ class SingleElimination implements TourneyMatchInterface {
     arsort($winners);
 
     if (TOURNEY_DEBUG_EXTENDS) {
-      dpm($contestants);
-      dpm($standings);
       dpm($ranks);
+      dpm($standings);
       dpm($winners);
     }
 
@@ -177,20 +188,16 @@ class SingleElimination implements TourneyMatchInterface {
    *   Will report TRUE if the tournament is finished, FALSE if not.
    */
   function is_finished($tournament) {
-    if (!property_exists($tournament, 'id') || !TourneyTournament::exists($tournament->id)) {
-      throw new Exception(t('Required parameter is not correct.'));
-    }
-
-    $finished = FALSE;
-
-    $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
+    $matches = tourney_match_load_multiple($tournament->getMatchIds());
     if (!empty($matches)) {
-      $finished = TRUE;
       foreach ($matches as $match) {
-        $finished = ($finished) ? $match->isFinished() : FALSE;
+        // Delegate the checking to the match to see if each match is finished
+        if (!$match->isFinished()) {
+          return FALSE;
+        }
       }
+      return TRUE;
     }
-
-    return $finished;
+    throw new Exception(t('There are no matches for this tournament'));
   }
 }

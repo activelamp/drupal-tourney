@@ -7,20 +7,37 @@
 
 class TourneyTournament extends Entity {
 
-  private $tournamentMatchIds = array();
+  private $tournamentMatchIds = NULL;
+  private $tournamentStarted  = NULL;
   private $tournamentFinished = NULL;
-  private $tournamentWinner   = NULL;
-  private $tournamentPlugin   = NULL;
+  private $tournamentWinner = NULL;
+  private $tournamentMatches = NULL;
+
+  public $tournamentFormatPlugin = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-    if (property_exists($this, 'id')) {
-      $this->fillProperties();
+    // Instantiate the plugin, but only if our entity has been created
+    // via entity_load(). If our entity has been constructed by another
+    // means, like entity_create(), required properties will not yet be
+    // available.
+    // @todo : Lazy load this?
+    if (!empty($this->players)) {
+      if (!class_exists($this->format)) {
+        throw new Exception(t('Tourney format plugin does not exist'));
+      }   
+      $this->tournamentFormatPlugin = new $this->format($this->players);
     }
   }
 
   /**
-   * STATIC
+   * Static function that returns an array of match ids for that passed in 
+   * tournament id.
+   * 
+   * @param $tournament_id
+   *   The tournament entity id to find matches on.
+   * @return array
+   *   An array of match entity ids.
    */
   public static function fetchMatchIds($tournament_id) {
     $query = relation_query('tourney_tournament', $tournament_id);
@@ -37,66 +54,14 @@ class TourneyTournament extends Entity {
   }
 
   /**
-   * Reports if a tournament exists or not.
-   *
-   * The actual content of the passed parameter should throw no errors. If
-   * there is anything wrong the reported value will be FALSE.
-   *
-   * @todo Logic for direct database query.
-   *
-   * @param integer $tournament_id
-   *
-   * @return bool $exists
-   *   Will return TRUE if $tournament_id exists in the database, FALSE if
-   *   the parameter can not be confirmed as a tournament_id.
-   */
-  public static function exists($tournament_id = NULL) {
-    $exists = FALSE;
-
-    $tournament_id = is_string($tournament_id) ? intval($tournament_id) : 0;    
-    if (is_integer($tournament_id) && $tournament_id > 0) {
-      // TODO : Direct database query.
-      $query = TRUE;
-      if ($query) {
-        $exists = TRUE;
-      }
-    }
-
-    return $exists;
-  }
-
-  /**
-   * Sets property values during instantiation.
-   *
-   * This function _should_ only called by the constructor after our entity 
-   * has been saved to the database; relations will exist.
-   *
-   * @return TourneyTournament
-   *   TourneyTournament object for chaining.
-   */
-  private function fillProperties() {
-    if (!class_exists($this->format)) {
-      throw new Exception(t('Plugin does not exist'));
-    }
-
-    $this->tournamentMatchIds = TourneyTournament::fetchMatchIds($this->id);
-    $this->tournamentPlugin = new $this->format(0);
-
-    return $this;
-  }
-
-  /**
-   * Report property.
+   * Lazy load all the match ids for this tournament. Once the matches have 
+   * been loaded for the tournament, it will return the 'cached' copy.
    */
   public function getMatchIds() {
+    if (empty($this->tournamentMatchIds)) {
+      $this->tournamentMatchIds = TourneyTournament::fetchMatchIds($this->id); 
+    }
     return $this->tournamentMatchIds;
-  }
-
-  /**
-   * Report property.
-   */
-  public function getFinished() {
-    return $this->tournamentFinished;
   }
 
   /**
@@ -114,7 +79,8 @@ class TourneyTournament extends Entity {
     $ranks['match_loss'] = array();
     $ranks['contestants'] = array();
 
-    $matches = TourneyMatch::loadTourneyMatch($this->getMatchIds());
+    // Load all the matches in this tournament.
+    $matches = tourney_match_load_multiple($this->getMatchIds());
 
     if (!empty($matches)) {
       foreach ($matches as $match) {
@@ -152,23 +118,20 @@ class TourneyTournament extends Entity {
   /**
    * Determine if a tournament is finished (when all matches are finished).
    *
-   * Do not call this from the constructor, or from any other method that
-   * fires during instantiation. If called during instantiation infinite
-   * recursion will occur.
-   *
-   * @return TourneyTournament $this
-   *   $this
+   * @return bool
+   *   Return TRUE if the tournament is finished.
    */
   public function isFinished() {
-    $finished = $this->tournamentPlugin->is_finished($this);
-    $this->tournamentFinished = $finished;
+    if (is_null($this->tournamentFinished)) {
+      $this->tournamentFinished = $this->tournamentFormatPlugin->is_finished($this);
+    }
 
     if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->getFinished()) ? 'FINISHED!' : 'IN PROGRESS...';
+      $output = ($this->tournamentFinished) ? 'FINISHED!' : 'IN PROGRESS...';
       dpr('TOURNAMENT ' . $this->id . ': ' . $output);
     }
 
-    return $this->getFinished();
+    return $this->tournamentFinished;
   }
 
   /**
@@ -176,7 +139,7 @@ class TourneyTournament extends Entity {
    */
   public function determineWinner() {
     if ($this->isFinished()) {
-      $this->tournamentPlugin->determine_winner($this);
+      $this->tournamentFormatPlugin->determine_winner($this);
     }
 
     return $this;

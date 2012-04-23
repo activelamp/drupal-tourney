@@ -7,35 +7,18 @@
 
 class TourneyMatch extends Entity {
 
-  private $matchGameIds = array();
+  private $matchGameIds = NULL;
   private $matchTournamentId = NULL;
+  private $matchStarted = NULL;
   private $matchFinished = NULL;
   private $matchWinner = NULL;
+  private $matchSetup = NULL;
+  
+  private $matchGames = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-    if (property_exists($this, 'id')) {
-      $this->fillProperties();
-    }
   }
-
-  /**
-   * Instantiate a match entity class properly via entity_load().
-   *
-   * Instantiating the class manually without envoking entity_load() will
-   * not allow other modules to hook. Use this static method to create all
-   * instances.
-   *
-   * @return TourneyMatch
-   *   A newly instantiated match entity.
-   */
-   public static function loadTourneyMatch($match_ids = array()) {
-     $match_ids = (is_array($match_ids)) ? $match_ids : array();
-
-     $new_match = entity_load('tourney_match', $match_ids);
-
-     return $new_match;
-   }
 
   /**
    * Report the game entity_ids related to a match.
@@ -61,38 +44,103 @@ class TourneyMatch extends Entity {
   }
 
   /**
-   * Sets property values during instantiation.
+   * Report the tournament entity_id related to a match.
    *
-   * This function _should_ only called by the constructor after our entity 
-   * has been saved to the database; relations will exist.
+   * @param integer|array $match_ids
+   *   The match entity id to search for games with.
    *
-   * @return TourneyMatch
-   *   TourneyMatch object for chaining.
+   * @return array $tournament_ids
+   *   tournament entity id if found, empty array if not found.
    */
-  private function fillProperties() {
-    $this->matchGameIds = TourneyMatch::fetchGameIds($this->id);
+  public static function fetchTournamentId($match_ids, &$tournament_ids = array()) {
+    if (is_array($match_ids)) {
+      foreach($match_ids as $match_id) {
+        $tournament_ids = TourneyMatch::fetchTournamentIds($match_id, $tournament_ids);
+      }
+    }
+    $match_id = $match_ids;
 
-    return $this;
+    $query = relation_query('tourney_match', $match_id);
+    $query->entityCondition('bundle', 'has_match');
+    $results = $query->execute();
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $tournament_ids[$match_id] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+    }
+
+    return $tournament_ids;
+  }
+
+  /**
+   * Retrieve property. (Lazy load TourneyGame entities).
+   *
+   * @example
+   *   $games47_50 = $match->getGames();
+   *   $game47     = $match->getGames('game.47');
+   *   $game47     = $match->getGames(0);
+   *   $game48     = $match->getGames(1);
+   *   $game48_id  = $match->getGames(1)->id;
+   *
+   * @param string|integer|NULL $key
+   *   (optional) Associated key index, or simple integer offset index.
+   *
+   * @return array|TourneyGame $game
+   *   If the $key paramater was NULL then an array of all games keyed by
+   *   ['game'.$game_id]. If $key parameter was string then only the
+   *   element [$key] of all games is returned. If $key parameter is an
+   *   integer then only the element at offset [$key] is returned.
+   */
+  function getGames($key = NULL) {
+    if (is_null($this->matchGames)) {
+      foreach($this->getMatchIds() as $matchId)
+      $this->matchGames['match.' . $matchId] = tourney_match_load($matchId);
+    }
+
+    // When the parameter is of the type integer then we will just report
+    // the element contained in the array at the integer offset.
+    if (is_integer($key)) {
+      $keys = array_keys($this->matchGames);
+      $key = $keys[$key];
+    }
+
+    // If a key was specified only report that array element, otherwise
+    // report the entire array.
+    $game = ($key) ? $this->matchGames[$key] : $this->matchGames;
+
+    return $game;
+  } 
+
+  /**
+   * Report property.
+   *
+   */
+  public function getTournamentId() {
+    if (is_null($this->matchTournamentId)) {
+      $this->matchTournamentId = TourneyMatch::fetchTournamentId($this->id);
+    }
+
+    return $this->matchTournamentId;
   }
 
   /**
    * Report property.
    */
   public function getGameIds() {
+    if (is_null($this->matchGameIds)) {
+      $this->matchGameIds = TourneyMatch::fetchGAmeIds($this->id);
+    }
+
     return $this->matchGameIds;
   }
 
   /**
-   * Report property.
-   */
-  public function getFinished() {
-    return $this->matchFinished;
-  }
-  
-  /**
-   * Retrieve property. Property created by hook_entity_load().
+   * Retrieve property.
    */
   public function getWinner() {
+    if (is_null($this->matchWinner)) {
+      $this->matchWinner = $this->determineWinner();
+    }
+
     return $this->matchWinner;
   }
 
@@ -112,16 +160,43 @@ class TourneyMatch extends Entity {
   }
 
   /**
+   * Determine if match is started (when any relationship is defined).
+   *
+   * @return bool
+   */
+  public function isStarted() {
+    if (!$this->id) {
+      throw new Exception(t('Match entity must first be setup before use.'));
+    }
+
+    $games = tourney_game_load_multiple($this->getGameIds());
+    $started = FALSE;
+
+    if (!empty($games)) {
+      foreach ($games as $game) {
+        $started = ($started) ? TRUE : $game->isStarted();
+      }
+    }
+
+    if (TOURNEY_DEBUG_EXTENDS) {
+      $output = ($this->getStarted()) ? 'STARTED.' : 'NOT STARTED...';
+      dpr('MATCH ' . $this->id . ': ' . $output);
+    }
+
+    return $started;
+  }
+
+  /**
    * Determine if match is finished (when all games are finished).
    *
    * Do not call this from the constructor, or from any other method that
    * fires during instantiation. If called during instantiation infinite
-   * recursion will occur.
+   * recursion may occur.
    *
-   * @return string
+   * @return bool
    */
   public function isFinished() {
-    $games = TourneyGame::loadTourneyGame($this->getGameIds());
+    $games = tourney_game_load_multiple($this->getGameIds());
 
     // todo don't like logic that defaults to true.
     $finished = FALSE;
@@ -131,14 +206,13 @@ class TourneyMatch extends Entity {
         $finished = ($finished) ? $game->isFinished() : FALSE;
       }
     }
-    $this->matchFinished = $finished;
 
     if (TOURNEY_DEBUG_EXTENDS) {
       $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS...';
       dpr('MATCH ' . $this->id . ': ' . $output);
     }
 
-    return $this->getFinished();
+    return $finished;
   }
 
   /**
