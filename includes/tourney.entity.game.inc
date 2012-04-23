@@ -34,6 +34,19 @@ class TourneyGame extends Entity {
    * @endcode
    *
    * @param array|integer $game_ids
+   * @return TourneyGame
+   *   A array of newly instantiated game entities.
+   */
+   public static function loadTourneyGame($game_ids = array()) {
+     $game_ids = (is_array($game_ids)) ? $game_ids : array($game_ids);
+
+     $new_game = entity_load('tourney_game', $game_ids);
+
+     return $new_game;
+   }
+
+  /**
+   * Report the match entity_id related to a game.
    *
    * @return array $match_ids
    *   An associative array, keyed by TourneyGame id, of TourneyMatch ids.
@@ -116,7 +129,7 @@ class TourneyGame extends Entity {
         );
       }
     }
-
+    
     return $contestants;
   }
 

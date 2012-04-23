@@ -165,6 +165,10 @@ class TourneyMatch extends Entity {
    * @return bool
    */
   public function isStarted() {
+    if (!$this->id) {
+      throw new Exception(t('Match entity must first be setup before use.'));
+    }
+
     $games = tourney_game_load_multiple($this->getGameIds());
     $started = FALSE;
 
