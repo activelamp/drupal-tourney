@@ -17,9 +17,19 @@
 function tourney_load_games($ids, $total) {
   $games = array();
   $game_list = tourney_game_load_multiple($ids);
-  foreach ( $game_list as $game ) $games[] = $game;
-  while ( count($games) < $total ) $games[] = NULL;
-  while ( count($games) > $total ) array_pop($games);
+
+  foreach ($game_list as $game) {
+    $games[] = $game;
+  }
+
+  while (count($games) < $total) {
+    $games[] = NULL;
+  }
+
+  while (count($games) > $total) {
+    array_pop($games);
+  }
+
   return $games;
 }
 
@@ -34,15 +44,38 @@ function tourney_load_games($ids, $total) {
 function tourney_games_to_table($games) {
   $header = array('Team Name');
   $rows   = array();
-  foreach ( $games as $gn => $game ) {
-    $header[] = "Game " . ( $gn + 1 ); //. ( $game ? " | " . $game->id : "" );
-    if ( $game == NULL || !property_exists($game, 'contestants') || count($game->contestants) < 1 )
-      foreach ( $rows as $k => $v ) $rows[$k][] = '-';
-    else foreach ( $game->contestants as $id => $contestant ) {
-      if ( !isset($rows[$id]) ) $rows[$id] = array($contestant);
-      if ( $game->winner ) $rows[$id][] = $game->winner == $id ? 'W' : 'L';
-      else $rows[$id][] = count($game->contestants) < 2 ? '-' : drupal_render(drupal_get_form('tourney_game_win_form',
-        array('match' => $game->match->id, 'game' => $game->id, 'contestant' => $id, 'name' => $contestant)));
+
+  foreach ($games as $gn => $game) {
+    $header[] = 'Game ' . ($gn + 1);
+    if ($game == NULL || !property_exists($game, 'contestants') || count($game->contestants) < 1) {
+      foreach ($rows as $k => $v) {
+        $rows[$k][] = '-';
+      }
+    }
+    else {
+      foreach ($game->contestants as $id => $contestant) {
+        if (!isset($rows[$id])) {
+          $rows[$id] = array($contestant);
+        }
+        if ($game->winner) {
+          $rows[$id][] = $game->winner == $id ? 'W' : 'L';
+        }
+        else {
+          if (count($game->contestants) < 2 || !user_access('administer tourney')) {
+            $rows[$id][] = '-';
+          }
+          else {
+            $form_options = array(
+              'match' => $game->match->id,
+              'game' => $game->id,
+              'contestant' => $id,
+              'name' => $contestant
+            );
+            $form = drupal_get_form('tourney_game_win_form', $form_options);
+            $rows[$id][] = drupal_render($form);
+          }
+        }
+      }
     }
   }
   $header[] = "Results";
