@@ -791,7 +791,6 @@ function tourney_match_save(&$match) {
  */
 function tourney_game_save(&$game) {
   entity_save('tourney_game', $game);
-  dpm($game);
   if (isset($game->match) && is_object($game->match)) {
     cache_clear_all('tourney_winner_count_' . $game->match->id, 'cache_tourney');
     cache_clear_all('tourney_match_games_' . $game->match->id, 'cache_tourney', TRUE);
