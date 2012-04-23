@@ -1128,7 +1128,7 @@ function tourney_update_alias($entity, $op, array $options = array()) {
   $entity_type = $entity->_entity_type;
 
   // Skip processing if the user has disabled pathauto for the node.
-  if (isset($node->path['pathauto']) && empty($node->path['pathauto'])) {
+  if (!module_exists('pathauto') || isset($node->path['pathauto']) && empty($node->path['pathauto'])) {
     return;
   }
 
