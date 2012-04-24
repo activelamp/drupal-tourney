@@ -100,18 +100,50 @@ class TourneyTournament extends Entity {
   }
 
   /**
-   * Report current win rankings for this match.
+   * Report current winner rankings for this tournament.
    *
-   * @see tourney_get_winner_counts()
+   * @return array
+   *   associative array.
+   *
+   * @see TourneyMatch::fetchRanks()
    */
   public function fetchRanks() {
     $ranks = array();
+    $ranks['game_wins'] = array();
+    $ranks['match_wins'] = array();
+    $ranks['match_loss'] = array();
+    $ranks['contestants'] = array();
+
     $matches = TourneyMatch::loadTourneyMatch($this->getMatchIds());
 
     if (!empty($matches)) {
       foreach ($matches as $match) {
-        $ranks[] = $match->fetchRanks();
+        // Compile array of game wins keyed by [match_id][contestant].
+        $ranks['game_wins'][$match->id] = $match->fetchRanks();
+        // Compile array of all contestants in this tournament.
+        $ranks['contestants'] = array_merge($ranks['contestants'], $ranks['game_wins'][$match->id]);
       }
+      $ranks['contestants'] = array_keys($ranks['contestants']);
+    }
+    
+    if (!empty($matches)) {
+      foreach ($ranks['contestants'] as $contestant) {
+        // Initialize all array keys to 0. Avoiding php notices further down.
+        $ranks['match_wins'][$contestant] = 0;
+        $ranks['match_loss'][$contestant] = 0;
+      }
+      $ranks['match_wins']['NA'] = 0;
+      $ranks['match_loss']['NA'] = 0;
+      foreach ($matches as $match) {
+        // Sum total number of wins and losses keyed by contestant.
+        $keys = array_keys($ranks['game_wins'][$match->id]);
+        $keys = (empty($keys)) ? array('NA', 'NA') : $keys;
+        $ranks['match_wins'][$keys[0]] += 1;
+        $ranks['match_loss'][$keys[1]] += 1;
+      }
+      // Sort the arrays by descending values.
+      arsort($ranks['match_wins']);
+      arsort($ranks['match_loss']);
     }
 
     return $ranks;

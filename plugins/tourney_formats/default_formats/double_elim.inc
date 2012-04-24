@@ -226,29 +226,27 @@ class DoubleElimination extends SingleElimination implements TourneyMatchInterfa
   }
 
   /**
-   * Overrides SingleElemination::is_finished()
+   * Overrides SingleElemination::is_finished().
    *
-   * @todo Determine if we need the tie-breaker match.
+   * If the top two ranking contestants are not tied in their number of wins
+   * then we do not require the final match to be finished.
+   *
+   * @see SingleElimination::is_finished().
    */
   public function is_finished($tournament) {
     $finished = parent::is_finished($tournament);
-    $finished_count = 0;
 
     // Parent is authoritative if it reports tournament as already finished.
     if (!$finished) {
-      // Sum all completed matches.
-      $matches_total = $tournament->matches_created;
-      $matches = TourneyMatch::loadTourneyMatch($tournament->getMatchIds());
-      $finish_count = 0;
-      if (!empty($matches)) {
-        foreach($matches as $match) {
-          $finish_count += $match->isFinished();
+      $ranks = $tournament->fetchRanks();
+      // If we have one outstanding match, tournament may be finished if no 
+      // tie-breaker is required.
+      if ((array_key_exists('NA', $ranks['match_wins'])) && ($ranks['match_wins']['NA'] == 1)) {
+        $keys = array_keys($ranks['match_wins']);
+        // If first and second place contestants do not report same win count.
+        if ($ranks['match_wins'][$keys[0]] != $ranks['match_wins'][$keys[1]]) {
+          $finished = TRUE;
         }
-      }
-      // If completed matches are one less than total matches then tournament
-      // may be finished if no tie-breaker is required.
-      if (($matches_total - $finished_count) == 1) {
-        // TODO : Determine if we need the tie-breaker match.
       }
     }
 
