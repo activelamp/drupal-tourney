@@ -60,9 +60,8 @@ function tourney_game_win_form($form, &$form_state, $extra) {
  */
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
-  $form_state['tourney'] = $match;
-  $m_finished = $match->isFinished();
-  $match_started = $match->isStarted();
+  $form_state['match'] = $match;
+  $games = tourney_tournament_get_match_games($match);
 
   // @todo: It would be nice if these were field api fields
   $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
@@ -95,6 +94,38 @@ function tourney_match_form($form, &$form_state, $match) {
     '#required' => TRUE,
     '#disabled' => $m_finished,
   );
+
+  $matches = tourney_tournament_build_matches($match->tournament);
+  $next_matches = array();
+  if ( $match->next_match_winner )
+    $next_matches[] = tourney_get_match_by_name($matches, $match->next_match_winner);
+  if ( $match->next_match_loser )
+    $next_matches[] = tourney_get_match_by_name($matches, $match->next_match_loser);
+
+  $locked = FALSE;
+  foreach ( $next_matches as $next_match )
+    if ( count($next_match->games_played) > 1 ) $locked = TRUE;
+
+  if ( $locked ) {
+    $form['fix_games'] = array(
+      '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
+    );
+  }
+  elseif ( count($match->games_played) > 1 ) {
+    $form['fix_games'] = array(
+      '#theme' => 'tourney_match_fix',
+      '#games' => $match->games,
+    );
+
+    foreach ( $games as $id => $game ) {
+      $form['fix_games']['game.' . $id] = array(
+        '#type' => 'radios',
+        '#title' => t('Game @id', array('@id' => $id)),
+        '#default_value' => $game->winner,
+        '#options' => $game->contestants,
+      );
+    }
+  }
 
   field_attach_form('tourney_match', $match, $form, $form_state);
 
@@ -218,17 +249,25 @@ function tourney_match_form_validate($form, &$form_state) {
  * Match form submit handler.
  */
 function tourney_match_form_submit($form, &$form_state) {
-  $match = $form_state['tourney'];
- 
-  if (!$match->tournament->isFinished()) {
-    drupal_set_message(t('Your match has been saved.'));
-    entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
-    tourney_match_save($match);
-  }
-  else {
-    drupal_set_message(t('Tournament is already finished. Match not saved.'), 'error');
+  drupal_set_message(t('Your match has been saved.'));
+
+  foreach ( $form_state['input'] as $id => $value ) {
+    if ( !$value || substr($id, 0, 5) != 'game_' ) continue;
+    $parts = explode('_', $id);
+    $game = tourney_game_load($parts[1]);
+    if ( $game->winner != $value ) {
+      $game->winner = $value;
+      tourney_game_save($game);
+    }
   }
 
+  $match = $form_state['match'];
+  entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
+  tourney_match_save($match);
+  if (function_exists('_tourney_set_match_winner')) {
+    _tourney_set_match_winner($match);
+  }
+  
   $form_state['redirect'] = 'tourney/match/' . $match->id;
 }
 
@@ -251,18 +290,18 @@ function tourney_game_edit($game) {
 /**
  * The match form.
  */
-function tourney_game_form($form, &$form_state, $tourney) {
-  $tourney->type = 'game';
-  $form_state['tourney'] = $tourney;
+function tourney_game_form($form, &$form_state, $game) {
+  $game->type = 'game';
+  $form_state['game'] = $game;
   $form['winner'] = array(
     '#type' => 'select',
     '#title' => t('Winner'),
     '#description' => t('The winner of this game.'),
-    '#options' => isset($tourney->contestants) ? array('' => t('- Choose Winner -')) + $tourney->contestants : array(),
-    '#default_value' => isset($tourney->winner) ? $tourney->winner : -1,
+    '#options' => isset($game->contestants) ? array('' => t('- Choose Winner -')) + $game->contestants : array(),
+    '#default_value' => isset($game->winner) ? $game->winner : -1,
   );
 
-  field_attach_form('tourney_game', $tourney, $form, $form_state);
+  field_attach_form('tourney_game', $game, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -283,11 +322,11 @@ function tourney_game_form($form, &$form_state, $tourney) {
 function tourney_game_form_submit($form, &$form_state) {
   drupal_set_message(t('Your game has been saved.'));
 
-  $tourney = $form_state['tourney'];
-  entity_form_submit_build_entity('tourney_game', $tourney, $form, $form_state);
-  tourney_game_save($tourney);
+  $game = $form_state['game'];
+  entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
+  tourney_game_save($game);
 
-  $form_state['redirect'] = 'tourney/game/' . $tourney->id;
+  $form_state['redirect'] = 'tourney/game/' . $game->id;
 }
 
 /**
@@ -362,7 +401,7 @@ function tourney_match_get_parents($mid, $depth) {
   while ( $depth-- > 0 ) {
     $new_names = array();
     foreach ( $names as $name ) {
-      $nmatch = tourney_match_get_by_name($matches, $name);
+      $nmatch = tourney_get_match_by_name($matches, $name);
       if ( !$nmatch ) continue;
       if ( tourney_get_name_part($nmatch->this_match, 'bracket') != $bracket ) continue;
       $ids[] = $nmatch->id;
@@ -374,9 +413,10 @@ function tourney_match_get_parents($mid, $depth) {
   return $ids;
 }
 
-function tourney_match_get_by_name($matches, $name) {
+function tourney_get_match_by_name($matches, $name) {
   if ( $name == 'manual' ) return NULL;
   $parts = explode('_', $name);
+  if ( substr(end($parts), 0, 10) == 'contestant' ) array_pop($parts);
   foreach ( $parts as $part ) if ( array_key_exists($part, $matches) ) $matches = $matches[$part];
   @list(, $id) = explode('-', array_pop($parts));
   while ( --$id > 0 ) array_shift($matches);

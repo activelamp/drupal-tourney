@@ -171,12 +171,17 @@ function tourney_action_set_all_matches($match) {
 function _tourney_set_match_winner($match) {
   $winners = tourney_get_winner_counts($match);
   $winner = array_keys($winners, max($winners));
-  list($type, $id) = explode(".", $winner[0]);
-  $wobj = entity_load($type, array($id));
-  $winner = array_pop($wobj);
+  if ( $winners[$winner[0]] > $match->games / 2 ) {
+    list($type, $id) = explode(".", $winner[0]);
+    $wobj = entity_load($type, array($id));
+    $winner = array_pop($wobj);
 
-  // @todo what do we do for a winner thing here... type.id or name or what? using name for now
-  $match->winner = $winner->_entity_name;
+    // @todo what do we do for a winner thing here... type.id or name or what? using name for now
+    $match->winner = $winner->_entity_name;
+  }
+  else {
+    $match->winner = '';
+  }
   tourney_match_save($match);
 }
 
