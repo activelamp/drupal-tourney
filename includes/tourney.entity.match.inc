@@ -8,7 +8,7 @@
 class TourneyMatch extends Entity {
 
   private $matchGameIds = NULL;
-  private $matchTournamentId = NULL;
+  private $matchTournament = NULL;
   private $matchStarted = NULL;
   private $matchFinished = NULL;
   private $matchWinner = NULL;
@@ -111,15 +111,14 @@ class TourneyMatch extends Entity {
   } 
 
   /**
-   * Report property.
-   *
+   * Lazy load a tournament object this match belongs to.
    */
-  public function getTournamentId() {
-    if (is_null($this->matchTournamentId)) {
-      $this->matchTournamentId = TourneyMatch::fetchTournamentId($this->id);
+  public function getTournament() {
+    if (is_null($this->matchTournament)) {
+      $this->matchTournament = relation_get_related_entity('tourney_match', $this->id, 'has_match', 1);
     }
 
-    return $this->matchTournamentId;
+    return $this->matchTournament;
   }
 
   /**
@@ -127,7 +126,7 @@ class TourneyMatch extends Entity {
    */
   public function getGameIds() {
     if (is_null($this->matchGameIds)) {
-      $this->matchGameIds = TourneyMatch::fetchGAmeIds($this->id);
+      $this->matchGameIds = TourneyMatch::fetchGameIds($this->id);
     }
 
     return $this->matchGameIds;
