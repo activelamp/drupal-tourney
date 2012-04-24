@@ -166,33 +166,6 @@ function tourney_action_set_all_matches($match) {
   return array(
     'action_message' => $message,
   );
-} 
-
-/**
- * Recursive function that sets players in a RoundRobin tournament in all their
- * matches once the first round has been setup.
- *
- * @param $match (object)
- *   The match the game belongs to
- */
-function tourney_action_set_all_matches($match) {
-  @list($wbracket, $wround, $wmatch, $wcontestant) = explode("_", $match->next_match_winner);
-  @list($lbracket, $lround, $lmatch, $lcontestant) = explode("_", $match->next_match_loser);
-  
-  if ($match->next_match_winner) {
-    $new_match1 = _tourney_move_next_round($match, $wbracket, $wround, $wmatch, $wcontestant);
-    tourney_action_set_all_matches($new_match1);
-  }
-  if ($match->next_match_loser) {
-    $lmatch_obj = clone $match;
-    $new_match2 = _tourney_move_next_round($lmatch_obj, $lbracket, $lround, $lmatch, $lcontestant, 'bracket-top');
-    tourney_action_set_all_matches($new_match2);
-  }
-  $message = 'Players added to all rounds';
-  
-  return array(
-    'action_message' => $message,
-  );
 }
 
 function _tourney_set_match_winner($match) {
