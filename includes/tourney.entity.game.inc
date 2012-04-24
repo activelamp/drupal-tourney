@@ -6,7 +6,7 @@
  *
  */
 
-class TourneyGame extends Entity {
+class TourneyGame extends TourneyEntity {
 
   private $gameTournamentId = NULL;
   private $gameMatchId = NULL;
@@ -210,15 +210,6 @@ class TourneyGame extends Entity {
   }
 
   /**
-   * Retrieve property. Property created by hook_entity_load().
-   */
-  public function getWinner() {
-    $this->gameWinner = $this->winner;
-
-    return $this->gameWinner;
-  }
-
-  /**
    * Determine if a game has started (contestant relationships exist).
    *
    * @return bool
@@ -240,7 +231,7 @@ class TourneyGame extends Entity {
    * @return bool
    */
   public function isFinished() {
-    $finished = strlen($this->getWinner()) ? TRUE : FALSE;
+    $finished = strlen($this->getWinner());
 
     if (TOURNEY_DEBUG_EXTENDS) {
       $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS... (NO WINNER)';

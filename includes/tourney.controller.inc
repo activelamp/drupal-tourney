@@ -9,9 +9,9 @@
 define('MAXIMUM_ROUNDS', 5);
 
 /**
- * A Default controller for building matches.
+ * A Default factory for building matches.
  */
-class TourneyBuildMatches {
+class TourneyFactory {
 
   protected $num_contestants;
   protected $match_style;
@@ -29,11 +29,11 @@ class TourneyBuildMatches {
       trigger_error(check_plain(t('Unable to create !match_style matches. Class not found.', array('!match_style' => $match_style))), E_USER_ERROR);
     }
     $interfaces = class_implements($match_style);
-    if (isset($interfaces['TourneyMatchInterface'])) {
+    if (isset($interfaces['TourneyFactoryInterface'])) {
       $this->match_style = new $match_style($num_contestants);
     }
     else {
-      trigger_error(check_plain(t('Unable to create !match_style matches. Class does not implement TourneyMatchInterface.', array('!match_style' => $match_style))), E_USER_ERROR);
+      trigger_error(check_plain(t('Unable to create !match_style matches. Class does not implement TourneyFactoryInterface.', array('!match_style' => $match_style))), E_USER_ERROR);
     }
   }
 
@@ -112,7 +112,7 @@ class TourneyBuildMatches {
 /**
  * Default interface for any classes that will define a match style.
  */
-interface TourneyMatchInterface {
+interface TourneyFactoryInterface {
   /**
    * Builds the array structure for all matches to be created.
    */
@@ -121,10 +121,26 @@ interface TourneyMatchInterface {
   /**
    * Determines which contestant is the winner.
    */
-  public function determine_winner($tournament);
+  public function determineWinner($tournament);
   
   /**
    * Determines if the tournament is finished.
    */
-  public function is_finished($tournament);
+  public function isFinished($tournament);
+}
+
+abstract class TourneyEntity extends Entity {
+  abstract public function isFinished();
+  abstract public function isStarted();
+
+  /**
+   * Retrieve property. Property created by hook_entity_load().
+   */
+  protected function getWinner() {
+    return $this->winner;
+  }
+  public function delete() {
+    watchdog('tourney', 'Deleted @type #@id.', array('@type' => $this->type, '@id' => $this->id));
+    parent::delete();
+  }
 }

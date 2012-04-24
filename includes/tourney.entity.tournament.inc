@@ -5,7 +5,7 @@
  * Tournament class.
  */
 
-class TourneyTournament extends Entity {
+class TourneyTournament extends TourneyEntity {
 
   private $tournamentMatchIds = NULL;
   private $tournamentStarted  = NULL;
@@ -114,7 +114,14 @@ class TourneyTournament extends Entity {
 
     return $ranks;
   }
-
+  
+  /**
+   * Stub code for detemining if a tournament has started
+   */
+  public function isStarted() {
+    // @todo: do something
+  }
+  
   /**
    * Determine if a tournament is finished (when all matches are finished).
    *
@@ -123,7 +130,7 @@ class TourneyTournament extends Entity {
    */
   public function isFinished() {
     if (is_null($this->tournamentFinished)) {
-      $this->tournamentFinished = $this->tournamentFormatPlugin->is_finished($this);
+      $this->tournamentFinished = $this->tournamentFormatPlugin->isFinished($this);
     }
 
     if (TOURNEY_DEBUG_EXTENDS) {
@@ -139,10 +146,30 @@ class TourneyTournament extends Entity {
    */
   public function determineWinner() {
     if ($this->isFinished()) {
-      $this->tournamentFormatPlugin->determine_winner($this);
+      $this->tournamentFormatPlugin->determineWinner($this);
     }
 
     return $this;
   }
-
+  
+  /**
+   * Delete a tournament.
+   */
+   public function delete() {
+     // Find all the relationships to matches for this tournament.
+     $mquery = relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
+     $matches = $mquery->execute();
+     
+     // Build an array of stuff to delete.
+     foreach (array_keys($matches) as $rid) {
+       // Get all the match relations and matches and delete them.
+       $relation = relation_load($rid);
+       relation_delete($rid);
+       $match = tourney_match_load($relation->endpoints['und'][1]['entity_id']);
+       $match->delete();
+     }
+     
+     parent::delete();
+     drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
+   }
 }

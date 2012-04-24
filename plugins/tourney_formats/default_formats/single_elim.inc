@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class SingleElimination implements TourneyMatchInterface {
+class SingleElimination implements TourneyFactoryInterface {
 
   protected $num_contestants;
   protected $num_rounds;
@@ -22,6 +22,7 @@ class SingleElimination implements TourneyMatchInterface {
    */
   public function __construct($num_contestants = 0) {
     if ($num_contestants > 0) {
+      $this->num_contestants = $num_contestants;
       $this->calculate_rounds($num_contestants);
     }
   }
@@ -183,7 +184,7 @@ class SingleElimination implements TourneyMatchInterface {
    * @return TourneyTournament $this
    *   Returns $this for chaining.
    */
-  public function determine_winner($tournament) {
+  public function determineWinner($tournament) {
     $ranks = $tournament->fetchRanks();
     $standings = tourney_get_standings($tournament);
 
@@ -216,7 +217,7 @@ class SingleElimination implements TourneyMatchInterface {
    * @return bool $finished
    *   Will report TRUE if the tournament is finished, FALSE if not.
    */
-  function is_finished($tournament) {
+  function isFinished($tournament) {
     $matches = tourney_match_load_multiple($tournament->getMatchIds());
     if (!empty($matches)) {
       foreach ($matches as $match) {
