@@ -204,6 +204,12 @@ function tourney_configuration($form, &$form_state) {
     '#prefix' => '<h3>' . t('Tournament Module Configuration') . '</h3><div>',
     '#suffix' => '</div>',
   );
+  $form['tourney_debug'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Turn debug mode on'),
+    '#default_value' => variable_get('tourney_debug', FALSE),
+  );
+  
   $form['tourney_games'] = array(
     '#type' => 'textfield',
     '#title' => t('Games'),
@@ -272,8 +278,12 @@ function tourney_configuration_form_submit($form, &$form_state) {
   $targets = array();
 
   try {
+    // Save settings to variables table
     variable_set('tourney_games_all', $form_state['values']['tourney_games']);
     variable_set('tourney_hide_byes', $form_state['values']['tourney_hide_byes']);
+    variable_set('tourney_debug', $form_state['values']['tourney_debug']);
+    
+    // Set the relations.
     tourney_relation_type_untarget($relation_types);
     foreach ($entities as $key => $entity) {
       foreach ($entity['bundles'] as $b_key => $bundle) {
