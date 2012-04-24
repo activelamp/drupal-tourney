@@ -248,26 +248,27 @@ function tourney_match_form_validate($form, &$form_state) {
  * Match form submit handler.
  */
 function tourney_match_form_submit($form, &$form_state) {
-  drupal_set_message(t('Your match has been saved.'));
-
-  foreach ( $form_state['input'] as $id => $value ) {
-    if ( !$value || substr($id, 0, 5) != 'game_' ) continue;
+  $match = $form_state['match'];
+  foreach ($form_state['input'] as $id => $value) {
+    // If we're not dealing with a game move on.
+    if (!$value || substr($id, 0, 5) != 'game_') continue;
+    
     $parts = explode('_', $id);
     $game = tourney_game_load($parts[1]);
-    if ( $game->winner != $value ) {
+    if ($game->winner != $value) {
       $game->winner = $value;
       tourney_game_save($game);
+      // The winner needs to be re set for the match
+      $match->winner = '';
     }
   }
 
-  $match = $form_state['match'];
+  
   entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
   tourney_match_save($match);
-  if (function_exists('_tourney_set_match_winner')) {
-    _tourney_set_match_winner($match);
-  }
   
   $form_state['redirect'] = 'tourney/match/' . $match->id;
+  drupal_set_message(t('Your match has been saved.'));
 }
 
 /**
@@ -355,14 +356,14 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['match_contestant1'] = is_object($contestant1) ? array(
     '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
     '#suffix' => '</div>',
-    '#markup' => $contestant1->title,
+    '#markup' => $contestant1->_entity_name,
   ) : '';
 
   $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
   $entity->content['match_contestant2'] = is_object($contestant2) ? array(
     '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
     '#suffix' => '</div>',
-    '#markup' => $contestant2->title,
+    '#markup' => $contestant2->_entity_name,
   ) : '';
 
   $entity->content['match_table'] = array(

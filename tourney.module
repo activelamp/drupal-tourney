@@ -263,8 +263,6 @@ function tourney_entity_info() {
   return $return;
 }
 
-
-
 /**
  * Implements hook_forms().
  */
@@ -433,8 +431,8 @@ function tourney_theme($existing, $type, $theme, $path) {
       'path' => $path . '/theme',
     ),
     'tourney_match_fix' => array(
-      'template' => 'tourney-match-fix',
       'render element' => 'element',
+      'file' => 'tourney.inc',
       'path' => $path . '/theme',
     ),
   );
@@ -448,7 +446,8 @@ function tourney_entity_load($entities, $type) {
   foreach ($entities as $id => $entity) {
     $entity->_entity_type = $type;
     $entity->_entity_id   = $id;
-    $entity->_entity_name = !property_exists($entity, 'title') ? ( property_exists($entity, 'name') ? $entity->name : 'NONAME' ) : $entity->title;
+    $entity->_entity_name = !property_exists($entity, 'title') 
+      ? (property_exists($entity, 'name') ? $entity->name : 'NONAME') : $entity->title;
   }
   if ($type === 'tourney_match') {
     foreach ($entities as $entity) {
@@ -670,16 +669,6 @@ function tourney_game_load($id = NULL, $reset = FALSE) {
  */
 function tourney_game_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
   return entity_load('tourney_game', $ids, $conditions, $reset);
-}
-
-/**
- * Delete multiple tournament entities.
- *
- * @param $ids
- *   An array of test entity IDs.
- */
-function tourney_match_delete_multiple(array $ids) {
-  entity_get_controller('tourney_match')->delete($ids);
 }
 
 /**

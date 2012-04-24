@@ -168,7 +168,10 @@ function tourney_configuration($form, &$form_state) {
   $entities = entity_get_info();
 
   $header = array(
-    'bundle_name' => t('Select All'),
+    'bundle_name' => t('Bundle Name'),
+    // @todo: It would be nice to be able to configure what field you want to
+    // use for the contestant name.
+    // 'label_field' => t('Contestant Name Field'),
   );
 
   $form['tourney_header'] = array(
@@ -306,6 +309,7 @@ function tourney_relation_type_tableselect_options($entity_name) {
   foreach ($entity['bundles'] as $key => $bundle) {
     $report[$key] = array(
       'bundle_name' => $bundle['label'],
+      // 'label_field' => t('Label Field'),
     );
   }
 

@@ -44,20 +44,42 @@ function tourney_load_games($ids, $total) {
 function tourney_games_to_table($games) {
   $header = array('Team Name');
   $rows   = array();
-
-  foreach ( $games as $gn => $game ) {
-    $header[] = "Game " . ( $gn + 1 ); //. ( $game ? " | " . $game->id : "" );
-    if ( $game == NULL || !property_exists($game, 'contestants') || count($game->contestants) < 1 )
-      foreach ( $rows as $k => $v ) $rows[$k][] = '-';
-    else foreach ( $game->contestants as $id => $contestant ) {
-      if ( !isset($rows[$id]) ) $rows[$id] = array($contestant);
-      if ( $game->winner ) $rows[$id][] = $game->winner == $id ? 'W' : 'L';
-      else $rows[$id][] = count($game->contestants) < 2 || $game->match->winner ? '-' : drupal_render(drupal_get_form('tourney_game_win_form',
-        array('match' => $game->match->id, 'game' => $game->id, 'contestant' => $id, 'name' => $contestant)));
+  
+  foreach ($games as $gn => $game) {
+    $header[] = "Game " . ($gn + 1); //. ( $game ? " | " . $game->id : "" );
+    
+    // A game does not yet exist for this match.
+    if ( $game == NULL || !property_exists($game, 'contestants') || count($game->contestants) < 1 ) {
+      foreach ($rows as $k => $v) {
+        $rows[$k][] = '-';
+      } 
     }
+    else {
+      foreach ($game->contestants as $id => $contestant) {
+        // If the row doesn't already exist, create one.
+        if (!isset($rows[$id])) {
+          $rows[$id] = array($contestant);
+        }
+        // Give the winner a W.
+        if ($game->winner) {
+          $rows[$id][] = $game->winner == $id ? 'W' : 'L';
+        }
+        // Render a small form in the row
+        else {
+          $rows[$id][] = count($game->contestants) < 2 || $game->match->winner 
+            ? '-' : drupal_render(drupal_get_form('tourney_game_win_form',
+            array(
+              'match' => $game->match->id, 
+              'game' => $game->id, 
+              'contestant' => $id, 
+              'name' => $contestant
+            )));
+        } 
+      }
+    } 
   }
   $header[] = "Results";
-  foreach ( $rows as $k => $v ) {
+  foreach ($rows as $k => $v) {
     $points = array_key_exists('W', $tally = array_count_values($v)) ? $tally['W'] : 0;
     $rows[$k][] = ( $points > count($games) / 2 ) ? 'Winner' : '-';
   }
