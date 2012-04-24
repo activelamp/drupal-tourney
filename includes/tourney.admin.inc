@@ -152,7 +152,8 @@ function tourney_confirm_delete($form, &$form_state, $tournament) {
  * Submit handler after confirming deletion.
  */
 function tourney_confirm_delete_submit($form, &$form_state) {
-  entity_delete('tourney_tournament', $form['#tournament']->id);
+  // Delete the tournament.
+  $form['#tournament']->delete();
   $form_state['redirect'] = "admin/content/tourney";
 }
 

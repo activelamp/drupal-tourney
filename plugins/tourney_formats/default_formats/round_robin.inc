@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class RoundRobin implements TourneyMatchInterface {
+class RoundRobin implements TourneyFactoryInterface {
 
   protected $num_contestants;
   protected $matches;
@@ -147,7 +147,7 @@ class RoundRobin implements TourneyMatchInterface {
    *
    * @see tourney_roundrobin_standings_sort()
    */
-  public function determine_winner($tournament) {
+  public function determineWinner($tournament) {
     module_load_include('inc', 'tourney', 'theme/type/roundrobin');
     $ranks = $tournament->fetchRanks();
     $standings = tourney_get_standings($tournament);
@@ -174,7 +174,7 @@ class RoundRobin implements TourneyMatchInterface {
    * @return bool $finished
    *   Will report TRUE if the tournament is finished, FALSE if not.
    */
-  function is_finished($tournament) {
+  function isFinished($tournament) {
     if (!property_exists($tournament, 'id')) {
       throw new Exception(t('Required parameter is not correct.'));
     }

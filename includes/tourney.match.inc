@@ -92,7 +92,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#maxlength' => 255,
     '#default_value' => $match->games,
     '#required' => TRUE,
-    '#disabled' => $m_finished,
+    '#disabled' => $match->isFinished(),
   );
 
   $matches = tourney_tournament_build_matches($match->tournament);
@@ -134,7 +134,6 @@ function tourney_match_form($form, &$form_state, $match) {
     '#type' => 'submit',
     '#value' => t('Save'),
     '#weight' => 40,
-    '#disabled' => $m_finished
   );
 
   $form['#submit'][] = 'tourney_match_form_submit';

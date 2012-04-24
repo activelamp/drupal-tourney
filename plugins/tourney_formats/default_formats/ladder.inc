@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class Ladder implements TourneyMatchInterface {
+class Ladder implements TourneyFactoryInterface {
 
   protected $num_contestants;
   protected $matches;
@@ -31,7 +31,7 @@ class Ladder implements TourneyMatchInterface {
   /**
    *
    */
-  public function determine_winner($tournament) {
+  public function determineWinner($tournament) {
     $ranks = $tournament->fetchRanks();
 
     drupal_set_message(t('Tournament ' . $tournament->format. ' not implemented yet!.'), 'status');

@@ -5,7 +5,7 @@
  * Tournament match class.
  */
 
-class TourneyMatch extends Entity {
+class TourneyMatch extends TourneyEntity {
 
   private $matchGameIds = NULL;
   private $matchTournament = NULL;
@@ -187,31 +187,20 @@ class TourneyMatch extends Entity {
 
   /**
    * Determine if match is finished (when all games are finished).
-   *
-   * Do not call this from the constructor, or from any other method that
-   * fires during instantiation. If called during instantiation infinite
-   * recursion may occur.
-   *
+   * 
    * @return bool
    */
   public function isFinished() {
     $games = tourney_game_load_multiple($this->getGameIds());
-
-    // todo don't like logic that defaults to true.
-    $finished = FALSE;
     if (!empty($games)) {
-      $finished = TRUE;
       foreach ($games as $game) {
-        $finished = ($finished) ? $game->isFinished() : FALSE;
+        // Delegate the checking to the game to see if each game is finished
+        if (!$game->isFinished()) {
+          return FALSE;
+        }
       }
+      return TRUE;
     }
-
-    if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS...';
-      dpr('MATCH ' . $this->id . ': ' . $output);
-    }
-
-    return $finished;
   }
 
   /**
@@ -227,6 +216,33 @@ class TourneyMatch extends Entity {
 
     return $this;
   }
-
-
+  
+  /**
+   * Delete a match and its relations.
+   */
+  public function delete() {
+    // Get all the contestant relations
+    $crids = array();
+    $c1q = relation_query('tourney_match', $this->id)->entityCondition('bundle', TOURNEY_CONTESTANT_1);
+    $crids += $c1q->execute();
+    $c2q = relation_query('tourney_match', $this->id)->entityCondition('bundle', TOURNEY_CONTESTANT_2);
+    $crids += $c2q->execute();
+    foreach (array_keys($crids) as $rid) {
+      relation_delete($rid);
+    }
+    
+    // Get all the game relations and games
+    $gquery = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'has_game');
+    $game_relations = $gquery->execute();
+    
+    // Delete the games in this match
+    foreach (array_keys($game_relations) as $rid) {
+      $relation = relation_load($rid);
+      relation_delete($rid);
+      $game = tourney_game_load($relation->endpoints['und'][1]['entity_id']);
+      $game->delete();
+    }
+    
+    parent::delete();
+  }
 }
