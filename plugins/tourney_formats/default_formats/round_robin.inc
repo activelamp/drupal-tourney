@@ -153,11 +153,6 @@ class RoundRobin implements TourneyFactoryInterface {
     $standings = tourney_get_standings($tournament);
     uasort($standings, 'tourney_roundrobin_standings_sort');
 
-    if (TOURNEY_DEBUG_EXTENDS) {
-      dpm($ranks);
-      dpm($standings);
-    }
-
     $keys = array_keys($standings);
     $tournament->winner = $keys[0];
     $tournament->save();

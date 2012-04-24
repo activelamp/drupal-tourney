@@ -194,12 +194,6 @@ class SingleElimination implements TourneyFactoryInterface {
     }
     arsort($winners);
 
-    if (TOURNEY_DEBUG_EXTENDS) {
-      dpm($ranks);
-      dpm($standings);
-      dpm($winners);
-    }
-
     $keys = array_keys($winners);
     $tournament->winner = $keys[0];
     //$tournament->tournamentWinner = $keys[0]; (is private);

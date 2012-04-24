@@ -94,6 +94,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#required' => TRUE,
     '#disabled' => $match->isFinished(),
   );
+  
   if ($match->previous_match2 == 'bye') {
     $form['contestant1']['#title'] = t('Contestant');
     $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
@@ -104,6 +105,8 @@ function tourney_match_form($form, &$form_state, $match) {
     );
 
     $form['games'] = array(
+      '#prefix' => '<h2>'. t('Games') .'</h2>',
+      '#suffix' => t('This match is a bye. No games to configure.'),
       '#type' => 'value',
       '#value' => 1,
     );
@@ -151,7 +154,6 @@ function tourney_match_form($form, &$form_state, $match) {
   );
 
   $form['#submit'][] = 'tourney_match_form_submit';
-
   return $form;
 }
 
@@ -276,7 +278,6 @@ function tourney_match_form_submit($form, &$form_state) {
       $match->winner = '';
     }
   }
-
   
   entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
   tourney_match_save($match);

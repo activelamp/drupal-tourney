@@ -925,28 +925,38 @@ function tourney_get_contestants($tournament) {
 function tourney_get_winner_counts($match, $reset = FALSE) {
   if ($reset || !$cache = cache_get('tourney_winner_count_' . $match->id, 'tourney_cache')) {
     $games = array();
-
-    // If there aren't two contestants in the match return
-    if (empty($match->contestant1->_entity_type) || empty($match->contestant2->_entity_type)) {
-      return array();
+    
+    // This is a bye
+    if ($match->previous_match2 == 'bye') {
+      $winners = array(
+        $match->contestant1 => 0,
+        'bye' => 0,
+      );
     }
+    else {
+      // If there aren't two contestants in the match return
+      if (empty($match->contestant1->_entity_type) || empty($match->contestant2->_entity_type)) {
+        return array();
+      }
 
-    // Set up the default count array.
-    $winners = array(
-      $match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id => 0,
-      $match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id => 0,
-    );
+      // Set up the default count array.
+      $winners = array(
+        $match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id => 0,
+        $match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id => 0,
+      );
 
-    foreach ($match->games_played as $entity_id) {
-      $games[$entity_id] = tourney_game_load($entity_id);
-      // Check to make sure the game has a winner
-      if ($games[$entity_id]->winner) {
-        // Tally up the winners in array keyed by uid
-        $winners[$games[$entity_id]->winner] =
-          array_key_exists($games[$entity_id]->winner, $winners)
-          ? ++$winners[$games[$entity_id]->winner] : 1;
+      foreach ($match->games_played as $entity_id) {
+        $games[$entity_id] = tourney_game_load($entity_id);
+        // Check to make sure the game has a winner
+        if ($games[$entity_id]->winner) {
+          // Tally up the winners in array keyed by uid
+          $winners[$games[$entity_id]->winner] =
+            array_key_exists($games[$entity_id]->winner, $winners)
+            ? ++$winners[$games[$entity_id]->winner] : 1;
+        }
       }
     }
+    
     cache_set('tourney_winner_count_' . $match->id, $winners, 'tourney_cache');
     return $winners;
   }

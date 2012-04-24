@@ -228,7 +228,6 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
     // We have a match, lets do something with it.
     if ($next_match->title == $match_name && empty($next_match->$contestant)) {
       $contestant = str_replace('-', '', $contestant);
-    
       $next_match->$contestant = _tourney_move_next_round_contestant($bracket, $match, $from);
       tourney_match_save($next_match);
       return $next_match;
@@ -238,6 +237,13 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
 
 /**
  * Figure out who the contestant is for the contestant spot passed in.
+ * 
+ * @param $bracket
+ *   Machine name of the bracket to move contestant to.
+ * @param $match
+ *   A match object.
+ * @param $from
+ *   A string to determine from where the match is coming from.
  */
 function _tourney_move_next_round_contestant($bracket, $match, $from) {
   // Set the contestant on the next match. Round robin does not care about
@@ -247,7 +253,6 @@ function _tourney_move_next_round_contestant($bracket, $match, $from) {
   }
   else {
     $winners = tourney_get_winner_counts($match);
-
     // Get the winner uid.
     $winner = array_keys($winners, max($winners));
     $winner_contestant = $winner[0];
