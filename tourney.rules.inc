@@ -93,6 +93,18 @@ function tourney_action_game_is_won($match, $quotient) {
   $message = '';
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
+    if ( $match->winner ) {
+      $matches = tourney_tournament_build_matches($match->tournament);
+      if ( $match->next_match_winner ) {
+        $wmatch = tourney_get_match_by_name($matches, $match->next_match_winner);
+        $cn = "contestant" . array_pop(explode('-', $match->next_match_winner));
+        $wmatch->$cn = FALSE;
+        tourney_match_save($wmatch);
+      }
+      if ( $match->next_match_loser ) {
+        $lmatch = tourney_get_match_by_name($matches, $match->next_match_loser);
+      }
+    }
     // Default action to create a new game.
     $create_new_game = TRUE;
 

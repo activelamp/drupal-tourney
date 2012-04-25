@@ -740,7 +740,7 @@ function tourney_match_save(&$match) {
     $c1 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
     $c2 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
 
-    if ( $match->contestant1 && gettype($match->contestant1) == 'string' && $c1 && tourney_cid($c1) != $match->contestant1 ) {
+    if ( $match->contestant1 === FALSE || ( $match->contestant1 && gettype($match->contestant1) == 'string' && $c1 && tourney_cid($c1) != $match->contestant1 ) ) {
       $query = relation_query('tourney_match', $match->id);
       $query->entityCondition('bundle', TOURNEY_CONTESTANT_1);
       $results = $query->execute();
@@ -761,7 +761,7 @@ function tourney_match_save(&$match) {
       $rid = relation_insert(TOURNEY_CONTESTANT_1, $entity_keys);
     }
 
-    if ( $match->contestant2 && gettype($match->contestant2) == 'string' && $c2 && tourney_cid($c2) != $match->contestant2 ) {
+    if ( $match->contestant2 === FALSE || ( $match->contestant2 && gettype($match->contestant2) == 'string' && $c2 && tourney_cid($c2) != $match->contestant2 ) ) {
       $query = relation_query('tourney_match', $match->id);
       $query->entityCondition('bundle', TOURNEY_CONTESTANT_2);
       $results = $query->execute();
@@ -783,6 +783,7 @@ function tourney_match_save(&$match) {
     // Clear the match cache now to get the new contestants
     cache_clear_all('tourney_match_games_' . $match->id, 'cache_tourney', TRUE);
   }
+
   if (property_exists($match, 'tournament')) {
     cache_clear_all('tourney_build_matches_' . $match->tournament->id, 'cache_tourney', TRUE);
   }
