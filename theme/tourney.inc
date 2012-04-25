@@ -29,12 +29,12 @@ function theme_tourney_render_tourney($vars) {
     $matches = tourney_tournament_build_matches($tournament);
   }
 
-  $output = "<div class='tourney tourney-$format'>";
+  $output = "<div class='tourney tourney-$format'><div class='tourney-inner'>";
   module_load_include('inc', 'tourney', "theme/type/$format");
   if (function_exists($f = "tourney_render_tourney_$format")) {
     $output .= call_user_func_array($f, array($tournament, $matches));
   }
-  $output .= "</div>";
+  $output .= "</div></div>";
   return $output;
 }
 

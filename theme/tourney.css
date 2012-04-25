@@ -1,5 +1,9 @@
 .field-label{font-weight:bold;}
 
+.tourney {
+  overflow-x: auto;
+}
+
 .tourney .bracket {
   float: left;
 }
