@@ -174,7 +174,7 @@ class SingleElimination implements TourneyFactoryInterface {
     $tournament->winner = $keys[0];
     //$tournament->tournamentWinner = $keys[0]; (is private);
     $tournament->save();
-    drupal_set_message(t('Tournament ' . $tournament->format. ' is complete!.'), 'status');
+    drupal_set_message(check_plain(t('Tournament !format is complete!.', array('!format' => $tournament->format)), 'status'));
 
     return $this;
   }

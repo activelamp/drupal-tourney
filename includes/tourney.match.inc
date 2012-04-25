@@ -242,6 +242,16 @@ function tourney_match_form_validate($form, &$form_state) {
   if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] == $form_state['values']['contestant2']) {
     form_set_error('contestant1', t('Contestant 1 and Contestant 2 cannot be the same person.'));
   }
+  $wins = array();
+  foreach ($form_state['input'] as $id => $value) {
+    if (!$value || substr($id, 0, 5) != 'game_') continue;
+    if ( !array_key_exists($value, $wins) ) $wins[$value] = 0;
+    $wins[$value]++; 
+  }
+  foreach ( $wins as $id => $count ) {
+    if ( $count > $form_state['match']->games / 2 ) 
+      form_set_error('', t('A contestant cannot win more games than neccesary to win a match'));
+  }
 }
 
 /**

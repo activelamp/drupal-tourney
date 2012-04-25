@@ -34,7 +34,7 @@ class Ladder implements TourneyFactoryInterface {
   public function determineWinner($tournament) {
     $ranks = $tournament->fetchRanks();
 
-    drupal_set_message(t('Tournament ' . $tournament->format. ' not implemented yet!.'), 'status');
+    drupal_set_message(check_plain(t('Tournament !format not implemented yet!.', array('!format' => $tournament->format)), 'status'));
 
     return $this;
   }

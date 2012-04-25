@@ -129,7 +129,7 @@ function tourney_action_game_is_won($match, $quotient) {
       $message = t('A new game has been created: !game', array('!game' => l($game->title, 'tourney/game/' . $game->id)));
     }
   }
-  else if ($match->tournament->format != 'RoundRobin') {
+  elseif ($match->tournament->format != 'RoundRobin') {
     // Get the winner and loser locations into variables.
     @list($wbracket, $wround, $wmatch, $wcontestant) = explode("_", $match->next_match_winner);
     @list($lbracket, $lround, $lmatch, $lcontestant) = explode("_", $match->next_match_loser);
