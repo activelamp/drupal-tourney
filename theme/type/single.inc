@@ -4,14 +4,16 @@
  * @file
  */
 
-function tourney_render_tourney_single($tournament, $matches) {
+function theme_tourney_render_tourney_single($vars) {
+  extract($vars);
   drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
   $rounds = array_values($matches['bracket-top']);
-  $output = tourney_single_tree($rounds, $tournament->players > 8);
+  $output = theme('tourney_single_tree', array('rounds' => $rounds, 'small' => $tournament->players > 8));
   return $output;
 }
 
-function tourney_single_tree($rounds, $small = FALSE) {
+function theme_tourney_single_tree($vars) {
+  extract($vars); 
   $output = '';
   foreach ( $rounds as $r => $round ) {
     $last = $r >= count($rounds) -1;  // is this the last round?

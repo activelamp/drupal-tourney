@@ -12,7 +12,8 @@
  * @param $matches
  *   An array of all the rounds and matches in a tournament.
  */
-function tourney_render_tourney_roundrobin($tournament, $matches) {
+function theme_tourney_render_tourney_roundrobin($vars) {
+  extract($vars);
   drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
   // Render the standings table.
   $output = theme('tourney_roundrobin_standings', array(

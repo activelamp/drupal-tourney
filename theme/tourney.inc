@@ -30,10 +30,11 @@ function theme_tourney_render_tourney($vars) {
   }
 
   $output = "<div class='tourney tourney-$format'><div class='tourney-inner'>";
-  module_load_include('inc', 'tourney', "theme/type/$format");
-  if (function_exists($f = "tourney_render_tourney_$format")) {
-    $output .= call_user_func_array($f, array($tournament, $matches));
-  }
+  //module_load_include('inc', 'tourney', "theme/type/$format");
+  //if (function_exists($f = "tourney_render_tourney_$format")) {
+  //  $output .= call_user_func_array($f, array($tournament, $matches));
+  //}
+  $output .= theme("tourney_render_tourney_$format", array('tournament' => $tournament, 'matches' => $matches));
   $output .= "</div></div>";
   return $output;
 }

@@ -4,6 +4,10 @@
   overflow-x: auto;
 }
 
+.tourney.tourney-roundrobin {
+  overflow-x: inherit;
+}
+
 .tourney .bracket {
   float: left;
 }

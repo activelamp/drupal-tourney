@@ -4,23 +4,23 @@
  * @file
  */
 
-function tourney_render_tourney_double($tournament, $matches) {
+function theme_tourney_render_tourney_double($vars) {
+  extract($vars);
   drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/double.js');
   $output = '';
-
   if (!empty($matches['bracket-top'])  || !empty($matches['bracket-bottom'])) {
     $output .= '<div class="bracket bracket-wrapper">';
 
     if (!empty($matches['bracket-top'])) {
       $output .= '<div class="bracket bracket-top">';
-      $output .=   tourney_dummy_rounds(count($matches['bracket-bottom']) - count($matches['bracket-top']), $tournament->players);
-      $output .=   tourney_double_top_bracket(array_values($matches['bracket-top']), $tournament->players);
+      $output .=   theme('tourney_dummy_rounds', array('count' => count($matches['bracket-bottom']) - count($matches['bracket-top']), 'height' => $tournament->players));
+      $output .=   theme('tourney_double_top_bracket', array('rounds' => array_values($matches['bracket-top'])));
       $output .= '</div>';
     }
 
     if (!empty($matches['bracket-bottom'])) {
       $output .= '<div class="bracket bracket-bottom">';
-      $output .=   tourney_double_bottom_bracket(array_values($matches['bracket-bottom']));
+      $output .=   theme('tourney_double_bottom_bracket', array('rounds' => array_values($matches['bracket-bottom'])));
       $output .= '</div>';
     }
 
@@ -29,21 +29,22 @@ function tourney_render_tourney_double($tournament, $matches) {
 
   if (!empty($matches['bracket-champion'])) {
     $output .= '<div class="bracket bracket-champion">';
-    $output .=   tourney_double_champion_bracket($tournament, array_values($matches['bracket-champion']), 1);
+    $output .=   theme('tourney_double_champion_bracket', array('tournament' => $tournament, 'rounds' => array_values($matches['bracket-champion'])));
     $output .= '</div>';
   }
-
   return $output;
 }
 
-function tourney_dummy_rounds($count, $height, $small = 1) {
+function theme_tourney_dummy_rounds($vars) {
+  extract($vars);
   if ( $count <= 0 ) return '';
   $round = '<div class="round round-dummy">' . theme('tourney_spacer', array('height' => $height, 'flow' => 0, 'small' => $small)) . '</div>';
   return str_repeat($round, $count);
 }
 
 
-function tourney_double_top_bracket($rounds) {
+function theme_tourney_double_top_bracket($vars) {
+  extract($vars);
   $round = reset($rounds);
   $match = reset($round);
   $views = FALSE;
@@ -175,7 +176,8 @@ function tourney_double_top_bracket($rounds) {
   return $output;
 }
 
-function tourney_double_bottom_bracket($rounds) {
+function theme_tourney_double_bottom_bracket($vars) {
+  extract($vars);
   $small = TRUE;
   $output = '';
   $views = FALSE;
@@ -353,7 +355,8 @@ function tourney_double_bottom_bracket($rounds) {
   return $output;
 }
 
-function tourney_double_champion_bracket($tournament, $rounds) {
+function theme_tourney_double_champion_bracket($vars) {
+  extract($vars); 
   if ( property_exists($tournament, 'views') &&  $tournament->views == TRUE ) $tournament->players = 1;
 
   $champ = array_pop($rounds[0]);

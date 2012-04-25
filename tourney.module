@@ -412,9 +412,6 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'tourney.inc',
       'path' => $path . '/theme',
     ),
-    'tourney_roundrobin_standings' => array(
-      'variables' => array('tournament' => NULL, 'matches' => NULL),
-    ),
     'tourney_matchblock' => array(
       'variables' => array('match' => NULL, 'flow' => FALSE, 'small' => 0),
       'file' => 'tourney.inc',
@@ -434,6 +431,57 @@ function tourney_theme($existing, $type, $theme, $path) {
       'render element' => 'element',
       'file' => 'tourney.inc',
       'path' => $path . '/theme',
+    ),
+
+    //single
+    'tourney_render_tourney_single' => array(
+      'variables' => array('tournament' => NULL, 'matches' => NULL),
+      'file' => 'single.inc', 
+      'path' => $path . '/theme/type/',
+    ),
+    'tourney_single_tree' => array(
+      'variables' => array('rounds' => NULL, 'small' => FALSE),
+      'file' => 'single.inc', 
+      'path' => $path . '/theme/type/',
+    ),
+
+    //double
+    'tourney_render_tourney_double' => array(
+      'variables' => array('tournament' => NULL, 'matches' => NULL),
+      'file' => 'double.inc', 
+      'path' => $path . '/theme/type/',
+    ),
+    'tourney_dummy_rounds' => array(
+      'variables' => array('count' => NULL, 'height' => NULL, 'small' => 1),
+      'file' => 'double.inc', 
+      'path' => $path . '/theme/type/',
+    ),
+    'tourney_double_top_bracket' => array(
+      'variables' => array('rounds' => NULL),
+      'file' => 'double.inc', 
+      'path' => $path . '/theme/type/',
+    ),
+    'tourney_double_bottom_bracket' => array(
+      'variables' => array('rounds' => NULL),
+      'file' => 'double.inc', 
+      'path' => $path . '/theme/type/',
+    ),
+    'tourney_double_champion_bracket' => array(
+      'variables' => array('tournament' => NULL, 'rounds' => NULL),
+      'file' => 'double.inc', 
+      'path' => $path . '/theme/type/',
+    ),
+
+    //round robin
+    'tourney_render_tourney_roundrobin' => array(
+      'variables' => array('tournament' => NULL, 'matches' => NULL),
+      'file' => 'roundrobin.inc', 
+      'path' => $path . '/theme/type/',
+    ),
+    'tourney_roundrobin_standings' => array(
+      'variables' => array('tournament' => NULL, 'matches' => NULL),
+      'file' => 'roundrobin.inc', 
+      'path' => $path . '/theme/type/',
     ),
   );
 }
