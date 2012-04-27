@@ -2,7 +2,7 @@
 
 /**
  * @file
- * A Single Elimination class for tournaments.
+ * Single elimination controller.
  */
 
 /**
@@ -16,7 +16,7 @@ class SingleElimination implements TourneyFactoryInterface {
 
   /**
    * Constructor
-   * 
+   *
    * @todo The methods in this constuctor should be moved out and called
    *   explicitly when building tournaments.
    */
@@ -54,12 +54,12 @@ class SingleElimination implements TourneyFactoryInterface {
     $this->calculate_rounds($num_contestants);
     $num_rounds = $this->num_rounds;
 
-    for ($r=1;$r<=$num_rounds;$r++) {
+    for ($r = 1; $r <= $num_rounds; ++$r) {
       $matches['round-' . $r] = array();
       $this->build_round($matches, $num_contestants, $r);
-
       $num_contestants /= 2;
     }
+
     return array(
       'bracket-top' => $matches,
     );
@@ -114,7 +114,7 @@ class SingleElimination implements TourneyFactoryInterface {
     $possible_count = array();
 
     // Figure out how many rounds we're going to have.
-    for ($i=1;$i<=MAXIMUM_ROUNDS;$i++) {
+    for ($i = 1; $i <= MAXIMUM_ROUNDS; ++$i) {
       if ($num_contestants == pow(2, $i)) {
         $this->num_rounds = $i;
         $this->num_contestants = $num_contestants;
@@ -130,12 +130,11 @@ class SingleElimination implements TourneyFactoryInterface {
   private function fix_contestant_count($num_contestants, $possible_count) {
     // If the number of contestants is not a base two exponent. Figure out how
     // many contestants we need to bump up to.
-    for ($i=0;$i<=count($possible_count);$i++) {
+    for ($i = 0; $i <= count($possible_count); ++$i) {
       // Find between what valid possible counts the number of contestants is in.
-      if ($num_contestants > $possible_count[$i] && $num_contestants < $possible_count[$i+1]) {
+      if ($num_contestants > $possible_count[$i] && $num_contestants < $possible_count[$i + 1]) {
         // Set the number of contestants to the higher number
-        $new_num_contestants = $possible_count[$i+1];
-
+        $new_num_contestants = $possible_count[$i + 1];
         // Calculate number of rounds now that we fixed contestant count.
         $this->calculate_rounds($new_num_contestants);
         return;
@@ -164,17 +163,11 @@ class SingleElimination implements TourneyFactoryInterface {
     }
     arsort($winners);
 
-    if (TOURNEY_DEBUG_EXTENDS) {
-      dpm($ranks);
-      dpm($standings);
-      dpm($winners);
-    }
-
     $keys = array_keys($winners);
     $tournament->winner = $keys[0];
     //$tournament->tournamentWinner = $keys[0]; (is private);
     $tournament->save();
-    drupal_set_message(check_plain(t('Tournament !format is complete!.', array('!format' => $tournament->format)), 'status'));
+    drupal_set_message(t('Tournament !format is complete!.', array('!format' => $tournament->format)), 'status');
 
     return $this;
   }

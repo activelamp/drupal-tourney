@@ -2,11 +2,11 @@
 
 /**
  * @file
- * Default plugin for a default style.
+ * Toureny format plugin for single elmination tournaments.
  */
 
 /**
- * Single Elimination Tournament
+ * Single Elimination Tournament.
  */
 $plugin = array(
   'name' => t('Single Elimination Tournament'),
@@ -16,6 +16,3 @@ $plugin = array(
   'total games' => 5,
   'builder controller' => 'SingleElimination',
 );
-
-// Define any classes below to extend default functionality in the controllers.
-// The default implementation works for this plugin.
