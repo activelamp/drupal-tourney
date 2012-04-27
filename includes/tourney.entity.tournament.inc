@@ -133,11 +133,6 @@ class TourneyTournament extends TourneyEntity {
       $this->tournamentFinished = $this->tournamentFormatPlugin->isFinished($this);
     }
 
-    if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->tournamentFinished) ? 'FINISHED!' : 'IN PROGRESS...';
-      dpr('TOURNAMENT ' . $this->id . ': ' . $output);
-    }
-
     return $this->tournamentFinished;
   }
 

@@ -11,10 +11,6 @@
  * Show the tournament page.
  */
 function tourney_match_page_view($match) {
-  if  (TOURNEY_DEBUG_EXTENDS) {
-    $match->isStarted();
-    $match->determineWinner();
-  }
   return $match->view('full', NULL, TRUE);
 }
 

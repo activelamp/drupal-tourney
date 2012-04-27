@@ -8,8 +8,8 @@
 
 class TourneyGame extends TourneyEntity {
 
-  private $gameTournamentId = NULL;
-  private $gameMatchId = NULL;
+  public  $tournamentId = NULL;
+  public  $matchId = NULL;
   private $gameContestantIds = NULL;
   private $gameContestants = NULL;
   private $gameStarted = NULL;
@@ -21,58 +21,39 @@ class TourneyGame extends TourneyEntity {
    */
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
+    
+    $this->tournamentId = $this->getTournamentId($this->id);
+    $this->matchId = $this->getMatchId($this->id);
   }
-
-  /**
-   * Report any match_id associated with the game ids specified.
-   *
-   * Example usage:
-   * @code
-   *   $game_ids  = array(25, 26);
-   *   $match_ids = TourneyGame::fetchMatchIds($game_ids);
-   *   $match_id  = $match_ids[25];
-   * @endcode
-   *
-   * @param array|integer $game_ids
-   * @return TourneyGame
-   *   A array of newly instantiated game entities.
-   */
-   public static function loadTourneyGame($game_ids = array()) {
-     $game_ids = (is_array($game_ids)) ? $game_ids : array($game_ids);
-
-     $new_game = entity_load('tourney_game', $game_ids);
-
-     return $new_game;
-   }
 
   /**
    * Report the match entity_id related to a game.
    *
    * @return array $match_ids
-   *   An associative array, keyed by TourneyGame id, of TourneyMatch ids.
-   *   Array will be empty if no matches are found.
+   *  An integer or associative array, keyed by TourneyGame id, of TourneyMatch
+   *  ids. Array will be empty if no matches are found.
    */
-  public static function fetchMatchIds($game_ids) {
-    $game_ids  = (is_array($game_ids)) ? $game_ids : array($game_ids);
-    $match_ids = array();
+  public function getMatchId($game_id) {
+    if (is_null($this->matchId)) {
+      $game_ids  = (is_array($game_id)) ? $game_id : array($game_id);
+      $match_ids = array();
 
-    $query = relation_query('tourney_game', $game_ids);
-    $query->entityCondition('bundle', 'has_game');
-    $results = $query->execute();
-    if (!empty($results)) {
-      foreach ($results as $relation) {
-        $r = relation_load($relation->rid);
-        $game_id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-        $match_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
-        $match_ids[$game_id] = $match_id;
+      $query = relation_query('tourney_game', $game_ids);
+      $query->entityCondition('bundle', 'has_game');
+      $results = $query->execute();
+      if (!empty($results)) {
+        foreach ($results as $relation) {
+          $r = relation_load($relation->rid);
+          $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+          break;
+        }
       }
     }
-
-    return $match_ids;
+    return $this->matchId;
   }
 
   /**
-   * Report the tournament entity_id related to a game.
+   * Get the tournament entity_id related to a game.
    *
    * @param integer $game_id
    * @param integer $match_id
@@ -80,21 +61,21 @@ class TourneyGame extends TourneyEntity {
    *
    * @return integer|NULL $tournament_id
    */
-  public static function fetchTournamentId($game_id, $match_id = NULL) {
-    $tournament_id = NULL;
-    $match_id = ($match_id) ? array($game_id => $match_id) : TourneyGame::fetchMatchIds($game_id);
+  public function getTournamentId($game_id, $match_id = NULL) {
+    if (is_null($this->tournamentId)) {
+      $tournament_id = NULL;
+      $match_id = ($match_id) ? array($game_id => $match_id) : $this->getMatchIds($game_id);
 
-    if ($match_id) {
       $query = relation_query('tourney_match', $match_id[$game_id]);
       $query->entityCondition('bundle', 'has_match');
       $results = $query->execute();
       foreach ($results as $relation) {
         $r = relation_load($relation->rid);
-        $tournament_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+        $this->tournamentId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+        break;
       }
     }
-
-    return $tournament_id;
+    return $this->tournamentId;
   }
 
   /**
@@ -113,7 +94,7 @@ class TourneyGame extends TourneyEntity {
    */
   public static function fetchContestantIds($game_id, $match_id = NULL) {
     $contestants = array();
-    $match_id = ($match_id) ? array($game_id => $match_id) : TourneyGame::fetchMatchIds($game_id);
+    $match_id = ($match_id) ? array($game_id => $match_id) : $this->getMatchIds($game_id);
 
     if ($match_id) {
       $query = relation_query('tourney_match', $match_id[$game_id]);
@@ -178,24 +159,13 @@ class TourneyGame extends TourneyEntity {
   /**
    * Retrieve property. Pseudo caches result.
    */
-  public function getTournamentId() {
-    if (is_null($this->gameTournamentId)) {
-      $this->gameTournamentId = TourneyGame::fetchTournamentId($this->id, $this->getMatchId());
-    }
-    
-    return $this->gameTournamentId;
-  }
-
-  /**
-   * Retrieve property. Pseudo caches result.
-   */
   public function getMatchId() {
-    if (is_null($this->gameMatchId)) {
-      $match_ids = TourneyGame::fetchMatchIds($this->id);
-      $this->gameMatchId = $match_ids[$this->id];
+    if (is_null($this->matchId)) {
+      $match_ids = $this->getMatchIds($this->id);
+      $this->matchId = $match_ids[$this->id];
     }
 
-    return $this->gameMatchId;
+    return $this->matchId;
   }
 
   /**
@@ -217,11 +187,6 @@ class TourneyGame extends TourneyEntity {
   public function isStarted() {
     $started = !empty($this->getContestantId) ? TRUE : FALSE;
 
-    if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->getStarted()) ? 'STARTED' : 'NOT STARTED (CLASS SETUP?)';
-      dpr('GAME ' . $this->id . ': ' . $output);
-    }
-
     return $started;
   }
 
@@ -232,11 +197,6 @@ class TourneyGame extends TourneyEntity {
    */
   public function isFinished() {
     $finished = strlen($this->getWinner());
-
-    if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS... (NO WINNER)';
-      dpr('GAME ' . $this->id . ': ' . $output);
-    }
 
     return $finished;
   }

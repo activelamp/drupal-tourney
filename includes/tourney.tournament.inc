@@ -91,9 +91,6 @@ function tourney_tournament_form_submit($form, &$form_state) {
  * Show the tournament page.
  */
 function tourney_tournament_page_view($tourney) {
-  if  (TOURNEY_DEBUG_EXTENDS) {
-    // $tourney->determineWinner();
-  }
   return $tourney->view('full', NULL, TRUE);
 }
 

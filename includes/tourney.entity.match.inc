@@ -177,11 +177,6 @@ class TourneyMatch extends TourneyEntity {
       }
     }
 
-    if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->getStarted()) ? 'STARTED.' : 'NOT STARTED...';
-      dpr('MATCH ' . $this->id . ': ' . $output);
-    }
-
     return $started;
   }
 
