@@ -26,13 +26,16 @@ class TourneyGame extends TourneyEntity {
     $this->matchId = $this->getMatchId();
     
     // Set the parent match on the game entity.
-    $match = relation_get_related_entity('tourney_game', $this->id, 'has_game');
+    $match = tourney_match_load($this->matchId, true);
     $this->match = $match;
-    if (is_object($match) && is_object($match->contestant1)) {
-      $this->contestants[$match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id] = $match->contestant1->_entity_name;
+    dpm($match);
+    if (is_object($match) && is_object($match->getContestant(1))) {
+      $contestant = $match->getContestant(1);
+      $this->contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = $contestant->_entity_name;
     }
-    if (is_object($match) && is_object($match->contestant2)) {
-      $this->contestants[$match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id] = $match->contestant2->_entity_name;
+    if (is_object($match) && is_object($match->getContestant(2))) {
+      $contestant = $match->getContestant(2);
+      $this->contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = $contestant->_entity_name;
     }
   }
 
