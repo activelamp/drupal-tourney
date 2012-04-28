@@ -24,6 +24,16 @@ class TourneyGame extends TourneyEntity {
     
     $this->tournamentId = $this->getTournamentId();
     $this->matchId = $this->getMatchId();
+    
+    // Set the parent match on the game entity.
+    $match = relation_get_related_entity('tourney_game', $this->id, 'has_game');
+    $this->match = $match;
+    if (is_object($match) && is_object($match->contestant1)) {
+      $this->contestants[$match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id] = $match->contestant1->_entity_name;
+    }
+    if (is_object($match) && is_object($match->contestant2)) {
+      $this->contestants[$match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id] = $match->contestant2->_entity_name;
+    }
   }
 
   /**
@@ -98,41 +108,6 @@ class TourneyGame extends TourneyEntity {
   // Helper methods that we aren't using yet. If you implement one of these
   // methods, move it above this section.
   /*************************************************************************/
-  
-  /**
-   * Report the contestants related to a game.
-   *
-   * @param integer $game_id
-   * @param integer $match_id
-   *   (optional) If provided will eliminate some work.
-   *
-   * @return array $contestants
-   *   An associative array containing:
-   *   - contestant: An array of entity type concatenated with entity id:
-   *     - type: String denoting the entity type.
-   *     - id: Integer denoting the specific entity id.
-   *   An empty array will be returned if no contestants are found.
-   */
-  public static function fetchContestantIds($game_id, $match_id = NULL) {
-    $contestants = array();
-
-    if ($match_id) {
-      $query = relation_query('tourney_match', $this->getMatchId());
-      $query->entityCondition('bundle', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2), 'IN');
-      $results = $query->execute();
-      foreach ($results as $relation) {
-        $r = relation_load($relation->rid);
-        $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
-        $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-        $contestants[$type . '.' . $id] = array(
-          'type' => $type,
-          'id' => $id,
-        );
-      }
-    }
-    
-    return $contestants;
-  }
 
   /**
    * Retrieve property. (Lazy load contestant objects).

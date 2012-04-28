@@ -9,6 +9,9 @@ class TourneyMatch extends TourneyEntity {
 
   public  $tournamentId = NULL;
   public  $gameIds = NULL;
+  public  $contestantIds = NULL;
+  public  $contestant1 = NULL;
+  public  $contestant2 = NULL;
   private $matchTournament = NULL;
   private $matchStarted = NULL;
   private $matchFinished = NULL;
@@ -22,6 +25,14 @@ class TourneyMatch extends TourneyEntity {
     
     $this->tournamentId = $this->getTournamentId();
     $this->gameIds = $this->getGameIds();
+    
+    // Remove this once I know for sure that modules aren't depending on
+    // properties directly on the match object.
+    $this->backwardCompatibility();
+    
+    // Get all the games in this match.
+    module_load_include('inc', 'tourney', 'includes/tourney.tournament');
+    $this->games_played = tourney_tournament_get_match_games($this, FALSE);
   }
 
   /**
@@ -70,6 +81,55 @@ class TourneyMatch extends TourneyEntity {
     }
     return $tournament_id;
   }
+  
+  /**
+   * Report the contestants related to a match.
+   *
+   * @param integer $match_id
+   *
+   * @return array $contestants
+   *   An associative array containing:
+   *   - contestant: An array of entity type concatenated with entity id:
+   *     - type: String denoting the entity type.
+   *     - id: Integer denoting the specific entity id.
+   *   An empty array will be returned if no contestants are found.
+   */
+  public static function fetchContestantIds($match_id) {
+    $contestants = array();
+
+    $query = relation_query('tourney_match', $match_id);
+    $query->entityCondition('bundle', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2), 'IN');
+    $results = $query->execute();
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
+      $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+      
+      $contestants[$r->relation_type] = array(
+        'type' => $type,
+        'id' => $id,
+      );
+    }
+    
+    return $contestants;
+  }
+  
+  /**
+   * For backward compatibility I'm loading public properties on the object 
+   * that used to be in hook_entity_load().
+   * 
+   * The tourney module does not have any dependencies on these properties. 
+   * This is only here in case Riot is expecting these properties on the object
+   * and is not using one of the public API methods to retrieve property.
+   */
+   private function backwardCompatibility() {
+     // Get the contestants in this match on the object.
+     $this->contestant1 = $this->getContestant(1);
+     $this->contestant2 = $this->getContestant(2);
+     
+     // Put the tournament object on the object
+     $this->tournament = $this->getTournament();
+   }
 
   /**
    * Lazy load a tournament object this match belongs to.
@@ -79,6 +139,22 @@ class TourneyMatch extends TourneyEntity {
       $this->matchTournament = relation_get_related_entity('tourney_match', $this->id, 'has_match', 1);
     }
     return $this->matchTournament;
+  }
+  
+  /**
+   * Get a contestant on the match.
+   * 
+   * @param int $slot
+   *   The contestant slot number to get a contestant from.
+   */
+  public function getContestant($slot) {
+    if (!is_numeric($slot)) {
+      throw new Exception(t('$slot must be a number'));
+    }
+    $contestants = $this->getContestantIds();
+    if (!empty($contestants) && !empty($contestants['contestant_'. $slot])) {
+      return array_pop(entity_load($contestants['contestant_'. $slot]['type'], array($contestants['contestant_'. $slot]['id'])));
+    }
   }
   
   /**
@@ -92,7 +168,7 @@ class TourneyMatch extends TourneyEntity {
   }
   
   /**
-   * Report property.
+   * Get the game ids for this match.
    */
   public function getGameIds() {
     if (is_null($this->gameIds)) {
@@ -101,6 +177,15 @@ class TourneyMatch extends TourneyEntity {
     return $this->gameIds;
   }
   
+  /**
+   * Get the contestant entity type and id for this match.
+   */
+  public function getContestantIds() {
+    if (is_null($this->contestantIds)) {
+      $this->contestantIds = TourneyMatch::fetchContestantIds($this->id);
+    }
+    return $this->contestantIds;
+  }
 
   /**
    * Retrieve property.
@@ -235,6 +320,18 @@ class TourneyMatch extends TourneyEntity {
     }
     
     parent::delete();
+  }
+  /**
+   * Save the entity
+   */
+  public function save() {
+    parent::save();
+    // Set the tournament winner if this was the last match.
+    if ($this->getTournament()->isFinished()) {
+      if (!$this->getTournament()->winner) {
+        $this->getTournament()->determineWinner();
+      }
+    }
   }
   
   /*************************************************************************/

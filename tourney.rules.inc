@@ -91,10 +91,12 @@ function tourney_action_get_game_count($match) {
  */
 function tourney_action_game_is_won($match, $quotient) {
   $message = '';
+  $games_played = $match->getGameIds();
+  
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
     if ( $match->winner ) {
-      $matches = tourney_tournament_build_matches($match->tournament);
+      $matches = $match->getTournament()->buildMatches();
       if ( $match->next_match_winner ) {
         $wmatch = tourney_get_match_by_name($matches, $match->next_match_winner);
         $cn = "contestant" . array_pop(explode('-', $match->next_match_winner));
@@ -109,7 +111,7 @@ function tourney_action_game_is_won($match, $quotient) {
     $create_new_game = TRUE;
 
     // Ensure every game has a winner selected
-    foreach ($match->games_played as $game_id) {
+    foreach ($games_played as $game_id) {
       $game = tourney_game_load($game_id);
       if (!$game->winner) {
         $message = t('Game updated, but not all games have a winner selected. Action not completed.');
@@ -118,7 +120,7 @@ function tourney_action_game_is_won($match, $quotient) {
       }
     }
     if ($create_new_game) {
-      $game_count = count($match->games_played);
+      $game_count = count($games_played);
       $game = new stdClass();
       $game->type = 'game';
       $game->title = 'game-' . ++$game_count;
@@ -129,7 +131,7 @@ function tourney_action_game_is_won($match, $quotient) {
       $message = t('A new game has been created: !game', array('!game' => l($game->title, 'tourney/game/' . $game->id)));
     }
   }
-  elseif ($match->tournament->format != 'RoundRobin') {
+  elseif ($match->getTournament()->format != 'RoundRobin') {
     // Get the winner and loser locations into variables.
     @list($wbracket, $wround, $wmatch, $wcontestant) = explode("_", $match->next_match_winner);
     @list($lbracket, $lround, $lmatch, $lcontestant) = explode("_", $match->next_match_loser);
@@ -254,8 +256,8 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
 function _tourney_move_next_round_contestant($bracket, $match, $from) {
   // Set the contestant on the next match. Round robin does not care about
   // winners or losers.
-  if ($match->tournament->format == 'RoundRobin') {
-    return ($from != 'same') ? $match->contestant2 : $match->contestant1;
+  if ($match->getTournament()->format == 'RoundRobin') {
+    return ($from != 'same') ? $match->getContestant(2) : $match->getContestant(1);
   }
   else {
     $winners = $match->fetchRanks();

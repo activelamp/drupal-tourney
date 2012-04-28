@@ -90,30 +90,19 @@ function tourney_match_form($form, &$form_state, $match) {
     '#required' => TRUE,
     '#disabled' => $match->isFinished(),
   );
-
-  $matches = tourney_tournament_build_matches($match->tournament);
-  $next_matches = array();
-  if ( $match->next_match_winner )
-    $next_matches[] = tourney_get_match_by_name($matches, $match->next_match_winner);
-  if ( $match->next_match_loser )
-    $next_matches[] = tourney_get_match_by_name($matches, $match->next_match_loser);
-
-  $locked = FALSE;
-  foreach ( $next_matches as $next_match )
-    if ( count($next_match->games_played) > 1 ) $locked = TRUE;
-
-  if ( $locked ) {
+    
+  if (tourney_match_is_locked($match)) {
     $form['fix_games'] = array(
       '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
     );
   }
-  elseif ( count($match->games_played) > 1 ) {
+  elseif (9 > 1) {
     $form['fix_games'] = array(
       '#theme' => 'tourney_match_fix',
       '#games' => $match->games,
     );
 
-    foreach ( $games as $id => $game ) {
+    foreach ($games as $id => $game) {
       $form['fix_games']['game.' . $id] = array(
         '#type' => 'radios',
         '#title' => t('Game @id', array('@id' => $id)),
@@ -138,7 +127,42 @@ function tourney_match_form($form, &$form_state, $match) {
 }
 
 /**
- * Create an entity field for contestants.
+ * Checks to see if a match is locked from being edited.
+ * 
+ * @param object
+ *   The match object to check locking on.
+ */
+function tourney_match_is_locked($match) {
+  // Get the tournament of this match, and then build the matches for the tournament.
+  $match_structure = $match->getTournament()->buildMatches();
+  
+  $next_matches = array();
+  if ($match->next_match_winner) {
+    $next_matches[] = tourney_get_match_by_name($match_structure, $match->next_match_winner);
+  }
+  if ($match->next_match_loser) {
+    $next_matches[] = tourney_get_match_by_name($match_structure, $match->next_match_loser);
+  }    
+
+  $locked = FALSE;
+  foreach ($next_matches as $next_match) {
+    if (count($next_match->games_played) > 1) {
+      $locked = TRUE;
+    }
+  }
+  return $locked;
+}
+
+/**
+ * Create an entity field select box for contestants on the match edit form.
+ * 
+ * @param $match
+ *   The match object for the match being edited
+ * @return array
+ *   Returns a form element to be used in a form.
+ * 
+ * @see tourney_match_form().
+ * @see _tourney_match_contestants().
  */
 function _tourney_match_contestant($match) {
   return array(
@@ -148,7 +172,19 @@ function _tourney_match_contestant($match) {
     '#required' => TRUE,
   );
 }
-
+/**
+ * Get the bundles that can be contestants in a match and build an options
+ * array to be used on the match edit form.
+ * 
+ * @param $match
+ *   The match object for the match being edited.
+ * @return array
+ *   Returns an $options array of contestants that have not been added to a
+ *   tournament yet.
+ * 
+ * @see _tourney_match_contestant().
+ * @see _tourney_match_contestants_sanitize(). 
+ */
 function _tourney_match_contestants($match) {
   $query = db_select('relation_bundles', 'rb');
   $query->fields('rb', array('entity_type', 'bundle'))
@@ -196,9 +232,23 @@ function _tourney_match_contestants($match) {
   return $options;
 }
 
-function _tourney_match_contestants_sanitize($main_match, &$options) {
+/**
+ * Helper function for a select element options array.
+ * 
+ * Ensure that the contestant is not related to any other match in the first
+ * round. Remove contestant if already associated with a match in first round.
+ * This means that they are already playing in the tournament.
+ * 
+ * @param $match
+ *   The match object the select options will display on.
+ * @param $options
+ *   The options array for the select form element.
+ * 
+ * @see _tourney_match_contestant().
+ */
+function _tourney_match_contestants_sanitize($match, &$options) {
   // Get the tournament object this match is in.
-  $tournament = relation_get_related_entity('tourney_match', $main_match->id, 'has_match');
+  $tournament = relation_get_related_entity('tourney_match', $match->id, 'has_match');
   // Get all the matches in round 1 for this tournament
   $query = relation_query('tourney_tournament', $tournament->id);
   $query->entityCondition('bundle', 'has_match')
@@ -214,17 +264,23 @@ function _tourney_match_contestants_sanitize($main_match, &$options) {
 
   // Unset users in the options array that are already selected
   foreach ($matches as $match) {
-    if (is_object($match->contestant1)) {
-      $et = $match->contestant1->_entity_type;
-      unset($options[$et]["$et." . $match->contestant1->_entity_id]);
+    if (is_object($match->getContestant(1))) {
+      $et = $match->getContestant(1)->_entity_type;
+      unset($options[$et]["$et." . $match->getContestant(1)->_entity_id]);
     }
-    if (is_object($match->contestant2)) {
-      $et = $match->contestant2->_entity_type;
-      unset($options[$et]["$et." . $match->contestant2->_entity_id]);
+    if (is_object($match->getContestant(2))) {
+      $et = $match->getContestant(2)->_entity_type;
+      unset($options[$et]["$et." . $match->getContestant(2)->_entity_id]);
     }
   }
-  if ( array_key_exists('user', $options) ) {
-    foreach ( $options['user'] as $id => $user ) if ( str_replace("user.", "", $id)  <= 1 ) unset($options['user'][$id]);
+  
+  // @todo: Document code below, what is this doing?
+  if (array_key_exists('user', $options)) {
+    foreach ($options['user'] as $id => $user) {
+      if (str_replace("user.", "", $id)  <= 1) {
+        unset($options['user'][$id]);
+      }
+    }
   }
 }
 
@@ -349,8 +405,8 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#theme' => 'link',
-    '#text' => 'Go to tournament ' . $entity->tournament->title,
-    '#path' => 'tourney/' . $entity->tournament->id,
+    '#text' => 'Go to tournament ' . $entity->getTournament()->title,
+    '#path' => 'tourney/' . $entity->getTournament()->id,
     '#options' => array('attributes' => array(), 'html' => FALSE),
   );
   $entity->content['match_winner'] = array(
@@ -399,8 +455,7 @@ function tourney_match_get_parents($mid, $depth) {
   $ids = array($mid);
 
   $match = tourney_match_load($mid);
-  $tournament = $match->tournament;
-  $matches = tourney_tournament_build_matches($tournament);
+  $matches = $match->getTournament()->buildMatches();
   $bracket = tourney_get_name_part($match->this_match, 'bracket');
 
   $names = array($match->previous_match1, $match->previous_match2);
@@ -419,14 +474,33 @@ function tourney_match_get_parents($mid, $depth) {
   return $ids;
 }
 
-function tourney_get_match_by_name($matches, $name) {
-  if ( $name == 'manual' ) return NULL;
-  $parts = explode('_', $name);
-  if ( substr(end($parts), 0, 10) == 'contestant' ) array_pop($parts);
-  foreach ( $parts as $part ) if ( array_key_exists($part, $matches) ) $matches = $matches[$part];
+/**
+ * @param $bracket_structure
+ *   The bracket structure for this tournament.
+ * @param $path
+ *   The path to the next match in the bracket structure.
+ */
+function tourney_get_match_by_name($bracket_structure, $path) {
+  if ($path == 'manual') {
+    return NULL;
+  }
+  
+  // Seperate the parts of the match path.
+  $parts = explode('_', $path);
+  // Remove the contestant part.
+  array_pop($parts);
+  
+  $match_identifer = array_pop($parts);
+  // Get just the structure of the next match
+  $next_match_structure = $bracket_structure[$match_identifier];
+  
+
   @list(, $id) = explode('-', array_pop($parts));
-  while ( --$id > 0 ) array_shift($matches);
-  $match = array_shift($matches);
+  while (--$id > 0) {
+    array_shift($bracket_structure);
+  }
+  $match = array_shift($bracket_structure);
+  
   return $match['match'];
 }
 
