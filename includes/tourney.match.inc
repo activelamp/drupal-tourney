@@ -479,6 +479,9 @@ function tourney_match_get_parents($mid, $depth) {
  *   The bracket structure for this tournament.
  * @param $path
  *   The path to the next match in the bracket structure.
+ * @return $array
+ *   Returns the portion of the bracket stucture that contains the match object
+ *   and a games array of game objects.
  */
 function tourney_get_match_by_name($bracket_structure, $path) {
   if ($path == 'manual') {
@@ -487,13 +490,10 @@ function tourney_get_match_by_name($bracket_structure, $path) {
   
   // Seperate the parts of the match path.
   $parts = explode('_', $path);
-  // Remove the contestant part.
-  array_pop($parts);
-  
-  $match_identifer = array_pop($parts);
+
   // Get just the structure of the next match
-  $next_match_structure = $bracket_structure[$match_identifier];
-  
+  $next_match_structure = $bracket_structure[$parts[0]][$parts[1]];
+  dpm($next_match_structure);
 
   @list(, $id) = explode('-', array_pop($parts));
   while (--$id > 0) {
