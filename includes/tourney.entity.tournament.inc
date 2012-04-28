@@ -14,13 +14,10 @@ class TourneyTournament extends TourneyEntity {
   private $tournamentWinner = NULL;
   private $tournamentMatches = NULL;
 
-  public $tournamentFormatPlugin = NULL;
+  public $tourneyFormatPlugin = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-    
-    $this->matchIds = $this->getMatchIds();
-    $this->gameIds = $this->getGameIds();
     
     // Instantiate the plugin, but only if our entity has been created
     // via entity_load(). If our entity has been constructed by another
@@ -28,10 +25,16 @@ class TourneyTournament extends TourneyEntity {
     // available.
     // @todo : Lazy load this?
     if (!empty($this->players)) {
+      // Ensure that matches have been created before retreving them.
+      if ($this->matches_created) {
+        $this->matchIds = $this->getMatchIds();
+        $this->gameIds = $this->getGameIds();
+      }      
+      
       if (!class_exists($this->format)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }   
-      $this->toureyFormatPlugin = new $this->format($this->players);
+      $this->tourneyFormatPlugin = new $this->format($this->players);
     }
   }
 
@@ -166,7 +169,7 @@ class TourneyTournament extends TourneyEntity {
    */
   public function isFinished() {
     if (is_null($this->tournamentFinished)) {
-      $this->tournamentFinished = $this->tournamentFormatPlugin->isFinished($this);
+      $this->tournamentFinished = $this->tourneyFormatPlugin->isFinished($this);
     }
 
     return $this->tournamentFinished;
@@ -177,7 +180,7 @@ class TourneyTournament extends TourneyEntity {
    */
   public function determineWinner() {
     if ($this->isFinished()) {
-      $this->tournamentFormatPlugin->determineWinner($this);
+      $this->tourneyFormatPlugin->determineWinner($this);
     }
 
     return $this;

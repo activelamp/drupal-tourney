@@ -57,14 +57,17 @@ class TourneyMatch extends TourneyEntity {
    *   tournament entity id if found, empty array if not found.
    */
   public static function fetchTournamentId($match_id) {
+    $tournament_id = NULL;
+    
     $query = relation_query('tourney_match', $match_id);
     $query->entityCondition('bundle', 'has_match');
     $results = $query->execute();
     
-    $relation = array_pop($results);
-    $r = relation_load($relation->rid);
-    $tournament_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
-
+    if (!empty($results)) {
+      $relation = array_pop($results);
+      $r = relation_load($relation->rid);
+      $tournament_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+    }
     return $tournament_id;
   }
 
@@ -111,17 +114,44 @@ class TourneyMatch extends TourneyEntity {
 
   /**
    * Report current winner rankings for this match.
+   * 
+   * @param $reset
+   *   Flag to rebuild the cache.
    *
    * @return array
-   *   Array is keyed by winner and sorted by descending value.
-   *
-   * @see tourney_get_winner_counts()
+   *   Returns an array keyed by uid with value being the number of won games
+   *   sorted in descending order.
    */
-  public function fetchRanks() {
-    $ranks = tourney_get_winner_counts($this);
-    arsort($ranks);
+  public function fetchRanks($reset = FALSE) {
+    if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'tourney_cache')) {
+      $games = array();
 
-    return $ranks;
+      // If there aren't two contestants in the match return
+      if (empty($this->contestant1->_entity_type) || empty($this->contestant2->_entity_type)) {
+        return array();
+      }
+
+      // Set up the default count array.
+      $winners = array(
+        $this->contestant1->_entity_type . '.' . $this->contestant1->_entity_id => 0,
+        $this->contestant2->_entity_type . '.' . $this->contestant2->_entity_id => 0,
+      );
+
+      foreach ($this->games_played as $entity_id) {
+        $games[$entity_id] = tourney_game_load($entity_id);
+        // Check to make sure the game has a winner
+        if ($games[$entity_id]->winner) {
+          // Tally up the winners in array keyed by uid
+          $winners[$games[$entity_id]->winner] =
+            array_key_exists($games[$entity_id]->winner, $winners)
+            ? ++$winners[$games[$entity_id]->winner] : 1;
+        }
+      }
+      asort($winners);
+      cache_set('tourney_winner_count_' . $this->id, $winners, 'tourney_cache');
+      return $winners;
+    }
+    return !empty($cache->data) ? $cache->data : array();
   }
 
   /**

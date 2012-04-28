@@ -38,12 +38,11 @@ class TourneyGame extends TourneyEntity {
       $query = relation_query('tourney_game', $this->id);
       $query->entityCondition('bundle', 'has_game');
       $results = $query->execute();
+      
       if (!empty($results)) {
-        foreach ($results as $relation) {
-          $r = relation_load($relation->rid);
-          $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
-          break;
-        }
+        $relation = array_pop($results);
+        $r = relation_load($relation->rid);
+        $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
       }
     }
     return $this->matchId;
@@ -63,10 +62,11 @@ class TourneyGame extends TourneyEntity {
       $query = relation_query('tourney_match', $this->getMatchId());
       $query->entityCondition('bundle', 'has_match');
       $results = $query->execute();
-      foreach ($results as $relation) {
+      
+      if (!empty($results)) {
+        $relation = array_pop($results);
         $r = relation_load($relation->rid);
         $this->tournamentId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
-        break;
       }
     }
     return $this->tournamentId;

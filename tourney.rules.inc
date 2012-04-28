@@ -74,7 +74,7 @@ function tourney_rules_action_info() {
  */
 function tourney_action_get_game_count($match) {
   // Get the number of games each contestant has won.
-  $winners = tourney_get_winner_counts($match, TRUE);
+  $winners = $match->fetchRanks(TRUE);
 
   return array(
     'number_of_won_games' => max($winners),
@@ -181,7 +181,7 @@ function tourney_action_set_all_matches($match) {
 }
 
 function _tourney_set_match_winner($match) {
-  $winners = tourney_get_winner_counts($match);
+  $winners = $match->fetchRanks();
   $winner = array_keys($winners, max($winners));
   if ( $winners[$winner[0]] > $match->games / 2 ) {
     list($type, $id) = explode(".", $winner[0]);
@@ -258,7 +258,7 @@ function _tourney_move_next_round_contestant($bracket, $match, $from) {
     return ($from != 'same') ? $match->contestant2 : $match->contestant1;
   }
   else {
-    $winners = tourney_get_winner_counts($match);
+    $winners = $match->fetchRanks();
 
     // Get the winner uid.
     $winner = array_keys($winners, max($winners));
