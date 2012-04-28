@@ -9,7 +9,8 @@
 define('MAXIMUM_ROUNDS', 5);
 
 /**
- * A Default factory for building matches.
+ * A Default factory for building matches and the first game of a match for a
+ * tourney tournament.
  */
 class TourneyFactory {
 

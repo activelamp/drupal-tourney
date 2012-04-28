@@ -7,7 +7,8 @@
 
 class TourneyMatch extends TourneyEntity {
 
-  private $matchGameIds = NULL;
+  public  $tournamentId = NULL;
+  public  $gameIds = NULL;
   private $matchTournament = NULL;
   private $matchStarted = NULL;
   private $matchFinished = NULL;
@@ -18,6 +19,9 @@ class TourneyMatch extends TourneyEntity {
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
+    
+    $this->tournamentId = $this->getTournamentId();
+    $this->gameIds = $this->getGameIds();
   }
 
   /**
@@ -52,63 +56,17 @@ class TourneyMatch extends TourneyEntity {
    * @return array $tournament_ids
    *   tournament entity id if found, empty array if not found.
    */
-  public static function fetchTournamentId($match_ids, &$tournament_ids = array()) {
-    if (is_array($match_ids)) {
-      foreach ($match_ids as $match_id) {
-        $tournament_ids = TourneyMatch::fetchTournamentIds($match_id, $tournament_ids);
-      }
-    }
-    $match_id = $match_ids;
-
+  public static function fetchTournamentId($match_id) {
     $query = relation_query('tourney_match', $match_id);
     $query->entityCondition('bundle', 'has_match');
     $results = $query->execute();
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $tournament_ids[$match_id] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-    }
+    
+    $relation = array_pop($results);
+    $r = relation_load($relation->rid);
+    $tournament_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
 
-    return $tournament_ids;
+    return $tournament_id;
   }
-
-  /**
-   * Retrieve property. (Lazy load TourneyGame entities).
-   *
-   * @example
-   *   $games47_50 = $match->getGames();
-   *   $game47     = $match->getGames('game.47');
-   *   $game47     = $match->getGames(0);
-   *   $game48     = $match->getGames(1);
-   *   $game48_id  = $match->getGames(1)->id;
-   *
-   * @param string|integer|NULL $key
-   *   (optional) Associated key index, or simple integer offset index.
-   *
-   * @return array|TourneyGame $game
-   *   If the $key paramater was NULL then an array of all games keyed by
-   *   ['game'.$game_id]. If $key parameter was string then only the
-   *   element [$key] of all games is returned. If $key parameter is an
-   *   integer then only the element at offset [$key] is returned.
-   */
-  function getGames($key = NULL) {
-    if (is_null($this->matchGames)) {
-      foreach ($this->getMatchIds() as $matchId)
-      $this->matchGames['match.' . $matchId] = tourney_match_load($matchId);
-    }
-
-    // When the parameter is of the type integer then we will just report
-    // the element contained in the array at the integer offset.
-    if (is_integer($key)) {
-      $keys = array_keys($this->matchGames);
-      $key = $keys[$key];
-    }
-
-    // If a key was specified only report that array element, otherwise
-    // report the entire array.
-    $game = ($key) ? $this->matchGames[$key] : $this->matchGames;
-
-    return $game;
-  } 
 
   /**
    * Lazy load a tournament object this match belongs to.
@@ -117,20 +75,29 @@ class TourneyMatch extends TourneyEntity {
     if (is_null($this->matchTournament)) {
       $this->matchTournament = relation_get_related_entity('tourney_match', $this->id, 'has_match', 1);
     }
-
     return $this->matchTournament;
   }
-
+  
+  /**
+   * Get the tournament id
+   */
+  public function getTournamentId() {
+    if (is_null($this->tournamentId)) {
+      $this->tournamentId = TourneyMatch::fetchTournamentId($this->id);
+    }
+    return $this->tournamentId;
+  }
+  
   /**
    * Report property.
    */
   public function getGameIds() {
-    if (is_null($this->matchGameIds)) {
-      $this->matchGameIds = TourneyMatch::fetchGameIds($this->id);
+    if (is_null($this->gameIds)) {
+      $this->gameIds = TourneyMatch::fetchGameIds($this->id);
     }
-
-    return $this->matchGameIds;
+    return $this->gameIds;
   }
+  
 
   /**
    * Retrieve property.
@@ -139,7 +106,6 @@ class TourneyMatch extends TourneyEntity {
     if (is_null($this->matchWinner)) {
       $this->matchWinner = $this->determineWinner();
     }
-
     return $this->matchWinner;
   }
 
@@ -239,5 +205,49 @@ class TourneyMatch extends TourneyEntity {
     }
     
     parent::delete();
+  }
+  
+  /*************************************************************************/
+  // Helper methods that we aren't using yet. If you implement one of these
+  // methods, move it above this section.
+  /*************************************************************************/
+  
+  /**
+   * Retrieve property. (Lazy load TourneyGame entities).
+   *
+   * @example
+   *   $games47_50 = $match->getGames();
+   *   $game47     = $match->getGames('game.47');
+   *   $game47     = $match->getGames(0);
+   *   $game48     = $match->getGames(1);
+   *   $game48_id  = $match->getGames(1)->id;
+   *
+   * @param string|integer|NULL $key
+   *   (optional) Associated key index, or simple integer offset index.
+   *
+   * @return array|TourneyGame $game
+   *   If the $key paramater was NULL then an array of all games keyed by
+   *   ['game'.$game_id]. If $key parameter was string then only the
+   *   element [$key] of all games is returned. If $key parameter is an
+   *   integer then only the element at offset [$key] is returned.
+   */
+  function getGames($key = NULL) {
+    if (is_null($this->matchGames)) {
+      foreach ($this->getMatchIds() as $matchId)
+      $this->matchGames['match.' . $matchId] = tourney_match_load($matchId);
+    }
+
+    // When the parameter is of the type integer then we will just report
+    // the element contained in the array at the integer offset.
+    if (is_integer($key)) {
+      $keys = array_keys($this->matchGames);
+      $key = $keys[$key];
+    }
+
+    // If a key was specified only report that array element, otherwise
+    // report the entire array.
+    $game = ($key) ? $this->matchGames[$key] : $this->matchGames;
+
+    return $game;
   }
 }

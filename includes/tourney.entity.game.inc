@@ -22,8 +22,8 @@ class TourneyGame extends TourneyEntity {
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
     
-    $this->tournamentId = $this->getTournamentId($this->id);
-    $this->matchId = $this->getMatchId($this->id);
+    $this->tournamentId = $this->getTournamentId();
+    $this->matchId = $this->getMatchId();
   }
 
   /**
@@ -33,12 +33,9 @@ class TourneyGame extends TourneyEntity {
    *  An integer or associative array, keyed by TourneyGame id, of TourneyMatch
    *  ids. Array will be empty if no matches are found.
    */
-  public function getMatchId($game_id) {
+  public function getMatchId() {
     if (is_null($this->matchId)) {
-      $game_ids  = (is_array($game_id)) ? $game_id : array($game_id);
-      $match_ids = array();
-
-      $query = relation_query('tourney_game', $game_ids);
+      $query = relation_query('tourney_game', $this->id);
       $query->entityCondition('bundle', 'has_game');
       $results = $query->execute();
       if (!empty($results)) {
@@ -61,12 +58,9 @@ class TourneyGame extends TourneyEntity {
    *
    * @return integer|NULL $tournament_id
    */
-  public function getTournamentId($game_id, $match_id = NULL) {
+  public function getTournamentId() {
     if (is_null($this->tournamentId)) {
-      $tournament_id = NULL;
-      $match_id = ($match_id) ? array($game_id => $match_id) : $this->getMatchIds($game_id);
-
-      $query = relation_query('tourney_match', $match_id[$game_id]);
+      $query = relation_query('tourney_match', $this->getMatchId());
       $query->entityCondition('bundle', 'has_match');
       $results = $query->execute();
       foreach ($results as $relation) {
@@ -78,6 +72,33 @@ class TourneyGame extends TourneyEntity {
     return $this->tournamentId;
   }
 
+  /**
+   * Determine if a game has started (contestant relationships exist).
+   *
+   * @return bool
+   */
+  public function isStarted() {
+    $started = !empty($this->getContestantId) ? TRUE : FALSE;
+
+    return $started;
+  }
+
+  /**
+   * Determine if a game is finshed (if a winner has been set).
+   *
+   * @return bool
+   */
+  public function isFinished() {
+    $finished = strlen($this->getWinner());
+
+    return $finished;
+  }
+  
+  /*************************************************************************/
+  // Helper methods that we aren't using yet. If you implement one of these
+  // methods, move it above this section.
+  /*************************************************************************/
+  
   /**
    * Report the contestants related to a game.
    *
@@ -94,10 +115,9 @@ class TourneyGame extends TourneyEntity {
    */
   public static function fetchContestantIds($game_id, $match_id = NULL) {
     $contestants = array();
-    $match_id = ($match_id) ? array($game_id => $match_id) : $this->getMatchIds($game_id);
 
     if ($match_id) {
-      $query = relation_query('tourney_match', $match_id[$game_id]);
+      $query = relation_query('tourney_match', $this->getMatchId());
       $query->entityCondition('bundle', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2), 'IN');
       $results = $query->execute();
       foreach ($results as $relation) {
@@ -130,8 +150,8 @@ class TourneyGame extends TourneyEntity {
    *   (optional) Associated key index, or simple integer offset index.
    *
    * @return array|object $contestant
-   *   If the $key paramater was NULL then an array of all contestants keyed 
-   *   by ["$obj_type.$obj_id"]. If $key parameter was string then only the
+   *   If the $key paramater is NULL then an array of all contestants keyed 
+   *   by ["$obj_type.$obj_id"]. If $key parameter is string then only the
    *   element [$key] of all contestants is returned. If $key parameter is an
    *   integer then only the element at offset [$key] is returned.
    */
@@ -159,45 +179,11 @@ class TourneyGame extends TourneyEntity {
   /**
    * Retrieve property. Pseudo caches result.
    */
-  public function getMatchId() {
-    if (is_null($this->matchId)) {
-      $match_ids = $this->getMatchIds($this->id);
-      $this->matchId = $match_ids[$this->id];
-    }
-
-    return $this->matchId;
-  }
-
-  /**
-   * Retrieve property. Pseudo caches result.
-   */
   public function getContestantIds() {
     if (is_null($this->gameContestantIds)) {
       $this->gameContestantIds = TourneyGame::fetchContestantIds($this->id, $this->getMatchId());
     }
 
     return $this->gameContestantIds;
-  }
-
-  /**
-   * Determine if a game has started (contestant relationships exist).
-   *
-   * @return bool
-   */
-  public function isStarted() {
-    $started = !empty($this->getContestantId) ? TRUE : FALSE;
-
-    return $started;
-  }
-
-  /**
-   * Determine if a game is finshed (if a winner has been set).
-   *
-   * @return bool
-   */
-  public function isFinished() {
-    $finished = strlen($this->getWinner());
-
-    return $finished;
   }
 }

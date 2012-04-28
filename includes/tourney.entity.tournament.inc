@@ -7,7 +7,8 @@
 
 class TourneyTournament extends TourneyEntity {
 
-  private $tournamentMatchIds = NULL;
+  public  $matchIds = NULL;
+  public  $gameIds = NULL;
   private $tournamentStarted  = NULL;
   private $tournamentFinished = NULL;
   private $tournamentWinner = NULL;
@@ -17,6 +18,10 @@ class TourneyTournament extends TourneyEntity {
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
+    
+    $this->matchIds = $this->getMatchIds();
+    $this->gameIds = $this->getGameIds();
+    
     // Instantiate the plugin, but only if our entity has been created
     // via entity_load(). If our entity has been constructed by another
     // means, like entity_create(), required properties will not yet be
@@ -26,7 +31,7 @@ class TourneyTournament extends TourneyEntity {
       if (!class_exists($this->format)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }   
-      $this->tournamentFormatPlugin = new $this->format($this->players);
+      $this->toureyFormatPlugin = new $this->format($this->players);
     }
   }
 
@@ -52,16 +57,47 @@ class TourneyTournament extends TourneyEntity {
 
     return $match_ids;
   }
+  
+  /**
+   * Static function that returns an array of game ids for that passed in 
+   * tournament id.
+   * 
+   * @param $tournament_id
+   *   The tournament entity id to find matches on.
+   * @return array
+   *   An array of match entity ids.
+   */
+  public static function fetchGameIds($tournament_id) {
+    $match_ids = TourneyTournament::fetchMatchIds($tournament_id);
+    
+    $game_ids = array();
+    foreach ($match_ids as $mid) {
+      $game_ids = TourneyMatch::fetchGameIds($mid);
+    }
+
+    return $game_ids;
+  }
 
   /**
    * Lazy load all the match ids for this tournament. Once the matches have 
    * been loaded for the tournament, it will return the 'cached' copy.
    */
   public function getMatchIds() {
-    if (empty($this->tournamentMatchIds)) {
-      $this->tournamentMatchIds = TourneyTournament::fetchMatchIds($this->id); 
+    if (empty($this->matchIds)) {
+      $this->matchIds = TourneyTournament::fetchMatchIds($this->id); 
     }
-    return $this->tournamentMatchIds;
+    return $this->matchIds;
+  }
+  
+  /**
+   * Lazy load all the game ids for this tournament. Once the games have been
+   * loaded for the tournament, it will return the 'cached' copy.
+   */
+  public function getGameIds() {
+    if (empty($this->gameIds)) {
+      $this->gameIds = TourneyMatch::fetchGameIds($this->getMatchIds()); 
+    }
+    return $this->gameIds;
   }
 
   /**
