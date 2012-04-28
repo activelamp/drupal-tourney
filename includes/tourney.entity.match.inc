@@ -29,10 +29,6 @@ class TourneyMatch extends TourneyEntity {
     // Remove this once I know for sure that modules aren't depending on
     // properties directly on the match object.
     $this->backwardCompatibility();
-    
-    // Get all the games in this match.
-    module_load_include('inc', 'tourney', 'includes/tourney.tournament');
-    $this->games_played = tourney_tournament_get_match_games($this, FALSE);
   }
 
   /**
@@ -129,6 +125,9 @@ class TourneyMatch extends TourneyEntity {
      
      // Put the tournament object on the object
      $this->tournament = $this->getTournament();
+     
+     // Load the game ids onto the object
+     $this->games_played = $this->getGameIds();
    }
 
   /**
@@ -222,7 +221,7 @@ class TourneyMatch extends TourneyEntity {
         $this->contestant2->_entity_type . '.' . $this->contestant2->_entity_id => 0,
       );
 
-      foreach ($this->games_played as $entity_id) {
+      foreach ($this->getGameIds() as $entity_id) {
         $games[$entity_id] = tourney_game_load($entity_id);
         // Check to make sure the game has a winner
         if ($games[$entity_id]->winner) {

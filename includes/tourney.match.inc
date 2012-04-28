@@ -57,6 +57,7 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['match'] = $match;
+  module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
   // @todo: It would be nice if these were field api fields
@@ -146,7 +147,7 @@ function tourney_match_is_locked($match) {
 
   $locked = FALSE;
   foreach ($next_matches as $next_match) {
-    if (count($next_match->games_played) > 1) {
+    if (count($next_match->getGameIds()) > 1) {
       $locked = TRUE;
     }
   }
@@ -480,8 +481,8 @@ function tourney_match_get_parents($mid, $depth) {
  * @param $path
  *   The path to the next match in the bracket structure.
  * @return $array
- *   Returns the portion of the bracket stucture that contains the match object
- *   and a games array of game objects.
+ *   Returns the match object that is on the portion of the bracket stucture 
+ *   that contains the match object and a games array of game objects.
  */
 function tourney_get_match_by_name($bracket_structure, $path) {
   if ($path == 'manual') {
@@ -493,15 +494,25 @@ function tourney_get_match_by_name($bracket_structure, $path) {
 
   // Get just the structure of the next match
   $next_match_structure = $bracket_structure[$parts[0]][$parts[1]];
-  dpm($next_match_structure);
-
-  @list(, $id) = explode('-', array_pop($parts));
-  while (--$id > 0) {
-    array_shift($bracket_structure);
-  }
-  $match = array_shift($bracket_structure);
   
-  return $match['match'];
+  // Set $id to the round number
+  @list(, $id) = explode('-', $parts[3]);
+  
+  /**
+   * The bracket structure should be built in the order of matches. This for
+   * loop assumes that the matches will always be in order of match-1, match-2,
+   * and so on.
+   * 
+   * Create an iterator for each match, and return the match that has the same
+   * match number as the iterator.
+   */
+  $i = 1;
+  foreach($next_match_structure as $match) {
+    if ($id == $i) {
+      return $match['match'];
+    }
+    $i++;
+  }
 }
 
 function tourney_get_name_part($name, $part) {

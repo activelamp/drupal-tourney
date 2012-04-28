@@ -749,8 +749,6 @@ function tourney_tournament_save(&$tourney) {
  */
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
-  $contestant1 = getContestant(1);
-  $contestant2 = getContestant(2);
   
   // Save the relation for contestants if one exists.
   if (isset($contestant1) || isset($contestant2)) {
