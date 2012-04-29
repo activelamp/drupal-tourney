@@ -97,7 +97,7 @@ function tourney_match_form($form, &$form_state, $match) {
       '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
     );
   }
-  elseif (9 > 1) {
+  elseif (count($match->games_played) > 1) {
     $form['fix_games'] = array(
       '#theme' => 'tourney_match_fix',
       '#games' => $match->games,

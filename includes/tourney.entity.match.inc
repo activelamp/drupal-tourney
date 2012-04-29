@@ -96,6 +96,7 @@ class TourneyMatch extends TourneyEntity {
     $query = relation_query('tourney_match', $match_id);
     $query->entityCondition('bundle', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2), 'IN');
     $results = $query->execute();
+    
     foreach ($results as $relation) {
       $r = relation_load($relation->rid);
       $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
@@ -151,6 +152,7 @@ class TourneyMatch extends TourneyEntity {
       throw new Exception(t('$slot must be a number'));
     }
     $contestants = $this->getContestantIds();
+    
     if (!empty($contestants) && !empty($contestants['contestant_'. $slot])) {
       return array_pop(entity_load($contestants['contestant_'. $slot]['type'], array($contestants['contestant_'. $slot]['id'])));
     }

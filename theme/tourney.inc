@@ -98,8 +98,8 @@ function theme_tourney_matchblock($vars) {
   }
 
   $output .= theme('tourney_flow_control', array('flows' => $flow));
-  $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . ( $match->winner == $contestant1_obj ? ' ♔' : '' ) . '</div>';
-  $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . ( $match->winner == $contestant2_obj ? ' ♔' : '' ) . '</div>';
+  $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . (is_object($contestant1_obj) && $match->winner == $contestant1_obj ? ' ♔' : '' ) . '</div>';
+  $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . (is_object($contestant2_obj) && $match->winner == $contestant2_obj ? ' ♔' : '' ) . '</div>';
   $output .= '</div>';
 
   return l($output, "tourney/match/{$match->id}" . ($editable ? "/edit" : ''), array(
