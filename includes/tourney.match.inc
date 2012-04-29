@@ -147,7 +147,7 @@ function tourney_match_is_locked($match) {
 
   $locked = FALSE;
   foreach ($next_matches as $next_match) {
-    if (count($next_match->getGameIds()) > 1) {
+    if (!empty($next_match) && count($next_match->getGameIds()) > 1) {
       $locked = TRUE;
     }
   }
