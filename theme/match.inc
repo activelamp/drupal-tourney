@@ -49,16 +49,16 @@ function tourney_games_to_table($games) {
     $header[] = "Game " . ($gn + 1); //. ( $game ? " | " . $game->id : "" );
     
     // A game does not yet exist for this match.
-    if ( $game == NULL || !property_exists($game, 'contestants') || count($game->contestants) < 1 ) {
+    if ($game == NULL || !method_exists($game, 'getContestants') || count($game->getContestants()) < 1) {
       foreach ($rows as $k => $v) {
         $rows[$k][] = '-';
-      } 
+      }
     }
     else {
-      foreach ($game->contestants as $id => $contestant) {
+      foreach ($game->getContestants() as $id => $contestant) {
         // If the row doesn't already exist, create one.
         if (!isset($rows[$id])) {
-          $rows[$id] = array($contestant);
+          $rows[$id] = array($contestant->_entity_name);
         }
         // Give the winner a W.
         if ($game->winner) {
@@ -66,17 +66,17 @@ function tourney_games_to_table($games) {
         }
         // Render a small form in the row
         else {
-          $rows[$id][] = count($game->contestants) < 2 || $game->match->winner 
+          $rows[$id][] = count($game->getContestants()) < 2 || $game->getMatch()->winner 
             ? '-' : drupal_render(drupal_get_form('tourney_game_win_form',
             array(
-              'match' => $game->match->id, 
+              'match' => $game->getMatch()->id, 
               'game' => $game->id, 
               'contestant' => $id, 
-              'name' => $contestant
+              'name' => $contestant->_entity_name,
             )));
-        } 
+        }
       }
-    } 
+    }
   }
   $header[] = "Results";
   foreach ($rows as $k => $v) {

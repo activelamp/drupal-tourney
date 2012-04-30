@@ -10,11 +10,9 @@ class TourneyGame extends TourneyEntity {
 
   public  $tournamentId = NULL;
   public  $matchId = NULL;
+  private $gameMatch = NULL;
   private $gameContestantIds = NULL;
   private $gameContestants = NULL;
-  private $gameStarted = NULL;
-  private $gameFinished = NULL;
-  private $gameWinner = NULL;
 
   /**
    * Constructor.
@@ -24,20 +22,35 @@ class TourneyGame extends TourneyEntity {
     
     $this->tournamentId = $this->getTournamentId();
     $this->matchId = $this->getMatchId();
-    
-    // Set the parent match on the game entity.
-    $match = tourney_match_load($this->matchId, true);
-    $this->match = $match;
-    
-    if (is_object($match) && is_object($match->getContestant(1))) {
-      $contestant = $match->getContestant(1);
-      $this->contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = $contestant->_entity_name;
-    }
-    if (is_object($match) && is_object($match->getContestant(2))) {
-      $contestant = $match->getContestant(2);
-      $this->contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = $contestant->_entity_name;
-    }
+        
+    // Remove this once I know for sure that modules aren't depending on
+    // properties directly on the match object.
+    // $this->backwardCompatibility();
   }
+  
+  /**
+   * For backward compatibility I'm loading public properties on the object 
+   * that used to be in hook_entity_load().
+   * 
+   * The tourney module does not have any dependencies on these properties. 
+   * This is only here in case Riot is expecting these properties on the object
+   * and is not using one of the public API methods to retrieve property.
+   */
+   private function backwardCompatibility() {
+     // Set the parent match on the game entity.
+     $match = tourney_match_load($this->matchId, true);
+     $this->match = $match;
+     
+     // Load the contestants property on the object.
+     if (is_object($match) && is_object($match->getContestant(1))) {
+       $contestant = $match->getContestant(1);
+       $this->contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = entity_load($contestant->_entity_type, array($contestant->_entity_id));
+     }
+     if (is_object($match) && is_object($match->getContestant(2))) {
+       $contestant = $match->getContestant(2);
+       $this->contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = entity_load($contestant->_entity_type, array($contestant->_entity_id));
+     }
+   }
 
   /**
    * Report the match entity_id related to a game.
@@ -107,11 +120,16 @@ class TourneyGame extends TourneyEntity {
     return $finished;
   }
   
-  /*************************************************************************/
-  // Helper methods that we aren't using yet. If you implement one of these
-  // methods, move it above this section.
-  /*************************************************************************/
-
+  /**
+   * Lazy load a tournament object this match belongs to.
+   */
+  public function getMatch() {
+    if (is_null($this->gameMatch)) {
+      $this->gameMatch = relation_get_related_entity('tourney_game', $this->id, 'has_game', 1);
+    }
+    return $this->gameMatch;
+  }
+  
   /**
    * Retrieve property. (Lazy load contestant objects).
    *
@@ -136,7 +154,7 @@ class TourneyGame extends TourneyEntity {
   public function getContestants($key = NULL) {
     if (is_null($this->gameContestants)) {
       foreach ($this->getContestantIds() as $c_id) {
-        $this->gameContestants[$c_id['type'] . '.' . $c_id['id']] = entity_load($c_id['type'], array($c_id['id']));
+        $this->gameContestants[$c_id['type'] . '.' . $c_id['id']] = array_pop(entity_load($c_id['type'], array($c_id['id'])));
       }
     }
 
@@ -159,7 +177,7 @@ class TourneyGame extends TourneyEntity {
    */
   public function getContestantIds() {
     if (is_null($this->gameContestantIds)) {
-      $this->gameContestantIds = TourneyGame::fetchContestantIds($this->id, $this->getMatchId());
+      $this->gameContestantIds = TourneyMatch::fetchContestantIds($this->getMatchId());
     }
 
     return $this->gameContestantIds;

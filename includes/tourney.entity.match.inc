@@ -12,6 +12,8 @@ class TourneyMatch extends TourneyEntity {
   public  $contestantIds = NULL;
   public  $contestant1 = NULL;
   public  $contestant2 = NULL;
+  // @todo: rename the variable below to $tournament when backwardCompatibility
+  // is no longer being used.
   private $matchTournament = NULL;
   private $matchStarted = NULL;
   private $matchFinished = NULL;
@@ -28,7 +30,7 @@ class TourneyMatch extends TourneyEntity {
     
     // Remove this once I know for sure that modules aren't depending on
     // properties directly on the match object.
-    $this->backwardCompatibility();
+    // $this->backwardCompatibility();
   }
 
   /**
@@ -213,14 +215,16 @@ class TourneyMatch extends TourneyEntity {
       $games = array();
 
       // If there aren't two contestants in the match return
-      if (empty($this->contestant1->_entity_type) || empty($this->contestant2->_entity_type)) {
+      if (empty($this->getContestant(1)->_entity_type) || empty($this->getContestant(2)->_entity_type)) {
         return array();
       }
-
+      
+      $contestant1 = $this->getContestant(1);
+      $contestant2 = $this->getContestant(2);
       // Set up the default count array.
       $winners = array(
-        $this->contestant1->_entity_type . '.' . $this->contestant1->_entity_id => 0,
-        $this->contestant2->_entity_type . '.' . $this->contestant2->_entity_id => 0,
+        $contestant1->_entity_type . '.' . $contestant1->_entity_id => 0,
+        $contestant2->_entity_type . '.' . $contestant2->_entity_id => 0,
       );
 
       foreach ($this->getGameIds() as $entity_id) {

@@ -97,7 +97,7 @@ function tourney_match_form($form, &$form_state, $match) {
       '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
     );
   }
-  elseif (count($match->games_played) > 1) {
+  elseif (count($match->getGameIds()) > 1) {
     $form['fix_games'] = array(
       '#theme' => 'tourney_match_fix',
       '#games' => $match->games,
@@ -351,6 +351,22 @@ function tourney_game_edit($game) {
 }
 
 /**
+ * Format objects to populate a select list
+ * 
+ * @param $contestants
+ *   An array of contestant objects to format.
+ * @return array
+ *   Returns an options array ready to be used in a #options form element.
+ */
+function tourney_format_contestant_options($contestants) {
+  $options = array();
+  foreach ($contestants as $id => $contestant) {
+    $options[$id] = $contestant->_entity_name;
+  }
+  return $options;
+}
+
+/**
  * The match form.
  */
 function tourney_game_form($form, &$form_state, $game) {
@@ -360,7 +376,9 @@ function tourney_game_form($form, &$form_state, $game) {
     '#type' => 'select',
     '#title' => t('Winner'),
     '#description' => t('The winner of this game.'),
-    '#options' => isset($game->contestants) ? array('' => t('- Choose Winner -')) + $game->contestants : array(),
+    '#options' => isset($game->contestants) 
+      ? array('' => t('- Choose Winner -')) + tourney_format_contestant_options($game->contestants)
+      : array(),
     '#default_value' => isset($game->winner) ? $game->winner : -1,
   );
 
