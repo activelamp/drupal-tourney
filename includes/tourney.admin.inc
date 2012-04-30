@@ -183,6 +183,13 @@ function tourney_configuration($form, &$form_state) {
     '#title' => t('Turn debug mode on'),
     '#default_value' => variable_get('tourney_debug', FALSE),
   );
+  $form['tourney_backward_compatibility'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Backward Compatibility'),
+    '#default_value' => variable_get('tourney_backward_compatibility', FALSE),
+    '#description' => t('Tourney objects used to have properties available right on the object. There are now getter methods in place to get these properties. Check this box if you have code accessing these properties directly and still need to the data directly on the object.'),
+  );
+  
   
   $form['tourney_games'] = array(
     '#type' => 'textfield',
@@ -248,6 +255,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
     // Save settings to variables table
     variable_set('tourney_games_all', $form_state['values']['tourney_games']);
     variable_set('tourney_debug', $form_state['values']['tourney_debug']);
+    variable_set('tourney_backward_compatibility', $form_state['values']['tourney_backward_compatibility']);
     
     // Set the relations.
     tourney_relation_type_untarget($relation_types);

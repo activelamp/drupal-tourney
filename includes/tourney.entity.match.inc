@@ -30,7 +30,10 @@ class TourneyMatch extends TourneyEntity {
     
     // Remove this once I know for sure that modules aren't depending on
     // properties directly on the match object.
-    // $this->backwardCompatibility();
+    if (variable_get('tourney_backward_compatibility', false)) {
+      $this->backwardCompatibility();
+    }
+    
   }
 
   /**
