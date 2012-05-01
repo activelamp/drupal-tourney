@@ -17,7 +17,7 @@ class TourneyGame extends TourneyEntity {
   /**
    * Constructor.
    */
-  public function __construct($values = array(), $entityType = NULL) {
+  public function __construct($values = array(), $entityType = 'tourney_game') {
     parent::__construct($values, $entityType);
     
     $this->tournamentId = $this->getTournamentId();

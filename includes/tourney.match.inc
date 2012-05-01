@@ -315,7 +315,7 @@ function tourney_match_form_submit($form, &$form_state) {
   foreach ($form_state['input'] as $id => $value) {
     // If we're not dealing with a game move on.
     if (!$value || substr($id, 0, 5) != 'game_') continue;
-    
+
     $parts = explode('_', $id);
     $game = tourney_game_load($parts[1]);
     if ($game->winner != $value) {
@@ -328,7 +328,7 @@ function tourney_match_form_submit($form, &$form_state) {
 
   
   entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
-  tourney_match_save($match);
+  $match->save();
   
   $form_state['redirect'] = 'tourney/match/' . $match->id;
   drupal_set_message(t('Your match has been saved.'));

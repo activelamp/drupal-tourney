@@ -101,7 +101,7 @@ function tourney_action_game_is_won($match, $quotient) {
         $wmatch = tourney_get_match_by_name($matches, $match->next_match_winner);
         $cn = "contestant" . array_pop(explode('-', $match->next_match_winner));
         $wmatch->$cn = FALSE;
-        tourney_match_save($wmatch);
+        $wmatch->save();
       }
       if ( $match->next_match_loser ) {
         $lmatch = tourney_get_match_by_name($matches, $match->next_match_loser);
@@ -196,7 +196,7 @@ function _tourney_set_match_winner($match) {
   else {
     $match->winner = '';
   }
-  tourney_match_save($match);
+  $match->save();
 }
 
 /**

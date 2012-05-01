@@ -22,9 +22,9 @@ class TourneyMatch extends TourneyEntity {
   
   private $matchGames = NULL;
 
-  public function __construct($values = array(), $entityType = NULL) {
+  public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
-    
+
     $this->tournamentId = $this->getTournamentId();
     $this->gameIds = $this->getGameIds();
     
@@ -33,7 +33,7 @@ class TourneyMatch extends TourneyEntity {
     if (variable_get('tourney_backward_compatibility', false)) {
       $this->backwardCompatibility();
     }
-    
+    $this->checkContestants();
   }
 
   /**
@@ -161,6 +161,8 @@ class TourneyMatch extends TourneyEntity {
     if (!empty($contestants) && !empty($contestants['contestant_'. $slot])) {
       return array_pop(entity_load($contestants['contestant_'. $slot]['type'], array($contestants['contestant_'. $slot]['id'])));
     }
+    $var = "contestant$slot";
+    return $this->$var;
   }
   
   /**
@@ -335,10 +337,17 @@ class TourneyMatch extends TourneyEntity {
   public function save() {
     parent::save();
     // Set the tournament winner if this was the last match.
-    if ($this->getTournament()->isFinished()) {
-      if (!$this->getTournament()->winner) {
-        $this->getTournament()->determineWinner();
+    if ( $this->getTournament() ) {
+      if ( $this->getTournament()->isFinished() ) {
+        if ( !$this->getTournament()->winner ) {
+          $this->getTournament()->determineWinner();
+        }
       }
+    }
+    $this->checkContestants();
+    $this->updateContestants();
+    if (method_exists($this, 'getTournament')) {
+      cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
     }
   }
   
@@ -384,5 +393,39 @@ class TourneyMatch extends TourneyEntity {
     $game = ($key) ? $this->matchGames[$key] : $this->matchGames;
 
     return $game;
+  }
+
+  function checkContestants() {
+    foreach ( $this->getContestantIds() as $variable => $contestant ) {
+      $id = $variable[strlen($variable)-1];
+      $relation_contestant = relation_get_related_entity('tourney_match', $this->id, $variable);
+      $match_contestant = $this->getContestant($id);
+      if ( $relation_contestant == $match_contestant ) continue;
+      $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', $id)->execute();
+      relation_delete(array_pop($results)->rid);
+    }
+  }
+
+  function updateContestants() {
+    $contestants = array('contestant_1' => $this->contestant1, 'contestant_2' => $this->contestant2);
+    foreach ( $contestants as $variable => $contestant ) {
+      $id = $variable[strlen($variable)-1];
+      $relation_contestant = relation_get_related_entity('tourney_match', $this->id, $variable);
+      $match_contestant = $this->getContestant($id);
+      if ( !is_object($relation_contestant) && !empty($match_contestant) ) {
+        if ( is_object($match_contestant) ) {
+          $contestant_type = $match_contestant->_entity_type;
+          $contestant_id = $match_contestant->_entity_id;
+        }
+        else {
+          list($contestant_type, $contestant_id) = explode('.', $match_contestant);
+        }
+        $entity_keys = array(
+          array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
+          array('entity_type' => $contestant_type, 'entity_id' => $contestant_id),
+        );
+        $rid = relation_insert($variable, $entity_keys);
+      }
+    }
   }
 }

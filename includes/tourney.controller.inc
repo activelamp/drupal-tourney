@@ -78,16 +78,20 @@ class TourneyFactory {
       }
       else {
         // Build the match object to save
-        $match = new stdClass();
-        $match->type = 'match';
-        $match->title = $key;
-        $match->games = variable_get('tourney_games_all', TOURNEY_GAMES);
-        $match->next_match_winner = array_key_exists('winner', $value) ? $value['winner'] : '';
-        $match->next_match_loser = array_key_exists('loser', $value) ? $value['loser'] : '';
-        $match->previous_match1 = array_key_exists('previous-1', $value) ? $value['previous-1'] : 'manual';
-        $match->previous_match2 = array_key_exists('previous-2', $value) ? $value['previous-2'] : 'manual';
-        $match->this_match = array_key_exists('this_match', $value) ? $value['this_match'] : '';
-        tourney_match_save($match);
+        $values = array(
+          'type' => 'match',
+          'title' => $key,
+          'games' => variable_get('tourney_games_all', TOURNEY_GAMES),
+          'next_match_winner' => array_key_exists('winner', $value) ? $value['winner'] : '',
+          'next_match_loser' => array_key_exists('loser', $value) ? $value['loser'] : '',
+          'previous_match1' => array_key_exists('previous-1', $value) ? $value['previous-1'] : 'manual',
+          'previous_match2' => array_key_exists('previous-2', $value) ? $value['previous-2'] : 'manual',
+          'this_match' => array_key_exists('this_match', $value) ? $value['this_match'] : '',
+        );
+        $match = new TourneyMatch($values);
+        krumo($match);
+
+        $match->save();
         $this->match_count++;
 
         // Add the relationship to the tournament.
@@ -98,10 +102,10 @@ class TourneyFactory {
         relation_save($relation);
 
         // Create the first game of the match
-        $game = new stdClass();
-        $game->type = 'game';
-        $game->title = 'game-1';
-        tourney_game_save($game);
+        $game = new TourneyGame(array(
+          'type' => 'game',
+          'title' => 'game-1'));
+        $game->save();
 
         // Add the relationship to the game.
         $rid = tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
