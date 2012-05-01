@@ -678,22 +678,6 @@ function tourney_game_load_multiple($ids = array(), $conditions = array(), $rese
   return entity_load('tourney_game', $ids, $conditions, $reset);
 }
 
-/**
- * Implements hook_entity_load().
- */
-function tourney_entity_load($entities, $type) {
-  // Need consistent properties about the entity loaded since contestants can
-  // be any entity.
-  // @todo: limit this logic just to entities that are setup in the contestant
-  //   relations.
-  foreach ($entities as $id => $entity) {
-    $entity->_eid         = $type . '.' . $id;
-    $entity->_entity_type = $type;
-    $entity->_entity_id   = $id;
-    $entity->_entity_name = !property_exists($entity, 'title') 
-      ? (property_exists($entity, 'name') ? $entity->name : 'NONAME') : $entity->title;
-  }
-}
 
 /**
  * Implements hook_entity_insert().
@@ -861,14 +845,14 @@ function tourney_get_standings($tournament) {
   $i = 0;
 
   foreach ($matches as $match) {
-    if ( $match->winner == '' ) continue;
-    $c1 = $match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id;
-    $c2 = $match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id;
+    if ( $match->getWinner() == '' ) continue;
+    $c1 = $match->getContestant(1)->eid;
+    $c2 = $match->getContestant(2)->eid;
     if ( !array_key_exists($c1, $standings) )
       $standings[$c1] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
     if ( !array_key_exists($c2, $standings) )
       $standings[$c2] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
-    if ( $match->winner == $match->contestant1->_entity_name ) {
+    if ( $match->winner == $c1 ) {
       $standings[$c1]['wins']++;
       $standings[$c2]['losses']++;
       if ( $standings[$c1]['first'] == -1 ) $standings[$c1]['first'] = $i++;
@@ -965,14 +949,6 @@ function tourney_views_api() {
   );
 }
 
-function tourney_cid_split($string) {
-  return explode('.', $string);
-}
-
-function tourney_cid($entity) {
-  return $entity->_entity_type . '.' . $entity->_entity_id;
-}
-
 /**
  * Update the URL aliases for an individual tourney entity.
  *
@@ -1014,4 +990,43 @@ function tourney_update_alias($entity, $op, array $options = array()) {
  */
 function tourney_flush_caches() {
   return array('cache_tourney');
+}
+
+
+
+
+
+
+
+
+// POSSIBLE ENTITY MODULE PATCHES:
+
+function entity_load_by_eid($eids) {
+  $entities = array();
+  foreach ( $eids as $eid ) {
+    $entities[$eid] = entity_load_single_by_eid($eid);
+  }
+  return $entities;
+}
+
+function entity_load_single_by_eid($eid) {
+  @list($type, $id) = explode('.', $eid);
+  return entity_load_single($type, $id);
+}
+
+/**
+ * Implements hook_entity_load().
+ */
+function tourney_entity_load($entities, $type) {
+  // Need consistent properties about the entity loaded since contestants can
+  // be any entity.
+  // @todo: limit this logic just to entities that are setup in the contestant
+  //   relations.
+  foreach ($entities as $id => $entity) {
+    $entity->eid         = $type . '.' . $id;
+    $entity->entity_type = $type;
+    $entity->entity_id   = $id;
+    $entity->entity_name = !property_exists($entity, 'title') 
+      ? (property_exists($entity, 'name') ? $entity->name : 'NONAME') : $entity->title;
+  }
 }

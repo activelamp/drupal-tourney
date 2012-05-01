@@ -326,11 +326,34 @@ class TourneyTournament extends TourneyEntity {
         // Fill the seeds by group, contestant_1 to seed_1, contestant_2 to seed_2
         $group = "seed_$slot";
         $contestant = $match->getContestant($slot);
-        ${$group}[$contestant->_entity_type . '.' . $contestant->_entity_id] = $contestant;
+        ${$group}[$contestant->eid] = $contestant;
       }
     }
     // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
     $contestants = array_merge($seed_1, array_reverse($seed_2));
     return $contestants;
+  }
+
+  public function getStandings() {
+    $matches = $this->buildMatches(TRUE);
+    $standings = array();
+    $i = 0;
+    foreach ($matches as $match) {
+      if ( !$match->getWinner() ) continue;
+      foreach ( $match->getContestantIds() as $var => $contestant ) {
+        if ( !array_key_exists($eid = $contestant['eid'], $standings) ) 
+          $standings[$eid] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
+        if ( $match->getWinner() == $eid ) {
+          $standings[$eid]['wins']++;
+        }
+        else {
+          $standings[$eid]['losses']++;
+        }
+        $standings[$eid]['total']++;
+        if ( $standings[$eid]['first'] == -1 ) 
+          $standings[$eid]['first'] = $i++;
+      }
+    }
+    return $standings;
   }
 }

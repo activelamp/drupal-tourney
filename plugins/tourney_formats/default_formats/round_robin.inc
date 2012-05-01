@@ -150,7 +150,7 @@ class RoundRobin implements TourneyFactoryInterface {
   public function determineWinner($tournament) {
     module_load_include('inc', 'tourney', 'theme/type/roundrobin');
     $ranks = $tournament->fetchRanks();
-    $standings = tourney_get_standings($tournament);
+    $standings = $tournament->getStandings();
     uasort($standings, 'tourney_roundrobin_standings_sort');
 
     $keys = array_keys($standings);

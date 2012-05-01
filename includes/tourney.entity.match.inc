@@ -111,6 +111,7 @@ class TourneyMatch extends TourneyEntity {
       $contestants[$r->relation_type] = array(
         'type' => $type,
         'id' => $id,
+        'eid' => $type .  '.' . $id,
       );
     }
     
@@ -219,7 +220,7 @@ class TourneyMatch extends TourneyEntity {
       $games = array();
 
       // If there aren't two contestants in the match return
-      if (empty($this->getContestant(1)->_entity_type) || empty($this->getContestant(2)->_entity_type)) {
+      if (empty($this->getContestant(1)->entity_type) || empty($this->getContestant(2)->entity_type)) {
         return array();
       }
       
@@ -227,8 +228,8 @@ class TourneyMatch extends TourneyEntity {
       $contestant2 = $this->getContestant(2);
       // Set up the default count array.
       $winners = array(
-        $contestant1->_entity_type . '.' . $contestant1->_entity_id => 0,
-        $contestant2->_entity_type . '.' . $contestant2->_entity_id => 0,
+        $contestant1->eid => 0,
+        $contestant2->eid => 0,
       );
 
       foreach ($this->getGameIds() as $entity_id) {
@@ -460,7 +461,7 @@ class TourneyMatch extends TourneyEntity {
     // Create the relation...
     $entity_keys = array(
       array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
-      array('entity_type' => $entity->_entity_type, 'entity_id' => $entity->_entity_id),
+      array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
     );
     // ... and save it!
     $rid = relation_insert("contestant_$slot", $entity_keys);

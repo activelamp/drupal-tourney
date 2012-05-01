@@ -196,23 +196,6 @@ function tourney_action_set_all_matches($match) {
   );
 }
 
-function _tourney_set_match_winner($match) {
-  $winners = $match->fetchRanks();
-  $winner = array_keys($winners, max($winners));
-  if ( $winners[$winner[0]] > $match->games / 2 ) {
-    list($type, $id) = explode(".", $winner[0]);
-    $wobj = entity_load($type, array($id));
-    $winner = array_pop($wobj);
-
-    // @todo what do we do for a winner thing here... type.id or name or what? using name for now
-    $match->winner = $winner->_entity_name;
-  }
-  else {
-    $match->winner = '';
-  }
-  $match->save();
-}
-
 /**
  * Search through all matches in the next round that has a match title that is
  * the same as the path for the next match. Save the match found with the new
