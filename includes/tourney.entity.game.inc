@@ -62,12 +62,13 @@ class TourneyGame extends TourneyEntity {
    *  ids. Array will be empty if no matches are found.
    */
   public function getMatchId() {
-    if (is_null($this->matchId)) {
+    if ( !property_exists($this, 'id') || is_null($this->id) ) return NULL;
+    if ( is_null($this->matchId) ) {
       $query = relation_query('tourney_game', $this->id);
       $query->entityCondition('bundle', 'has_game');
       $results = $query->execute();
       
-      if (!empty($results)) {
+      if ( !empty($results) ) {
         $relation = array_pop($results);
         $r = relation_load($relation->rid);
         $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
@@ -184,4 +185,5 @@ class TourneyGame extends TourneyEntity {
 
     return $this->gameContestantIds;
   }
+
 }

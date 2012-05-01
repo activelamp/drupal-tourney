@@ -141,7 +141,7 @@ abstract class TourneyEntity extends Entity {
   /**
    * Retrieve property. Property created by hook_entity_load().
    */
-  protected function getWinner() {
+  public function getWinner() {
     return $this->winner;
   }
   public function delete() {

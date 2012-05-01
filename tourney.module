@@ -687,6 +687,7 @@ function tourney_entity_load($entities, $type) {
   // @todo: limit this logic just to entities that are setup in the contestant
   //   relations.
   foreach ($entities as $id => $entity) {
+    $entity->_eid         = $type . '.' . $id;
     $entity->_entity_type = $type;
     $entity->_entity_id   = $id;
     $entity->_entity_name = !property_exists($entity, 'title') 

@@ -91,63 +91,77 @@ function tourney_action_get_game_count($match) {
  */
 function tourney_action_game_is_won($match, $quotient) {
   $message = '';
-  $games_played = $match->getGameIds();
-  
+
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
-    if ( $match->winner ) {
-      $matches = $match->getTournament()->buildMatches();
+
+    // If the match already has a winner even though we've not met our quotient, that means a game was changed
+    // We need to visit the next matches and clear the necessary contestants
+    if ( $match->getWinner() ) {
       if ( $match->next_match_winner ) {
-        $wmatch = tourney_get_match_by_name($matches, $match->next_match_winner);
-        $cn = "contestant" . array_pop(explode('-', $match->next_match_winner));
-        $wmatch->$cn = FALSE;
-        $wmatch->save();
+        $wmatch = $match->getTournament()->getMatchByName($match->next_match_winner);
+        $wmatch->removeContestant(tourney_get_name_part($match->next_match_winner, 'contestant'));
       }
       if ( $match->next_match_loser ) {
-        $lmatch = tourney_get_match_by_name($matches, $match->next_match_loser);
+        $lmatch = $match->getTournament()->getMatchByName($match->next_match_loser);
+        $lmatch->removeContestant(tourney_get_name_part($match->next_match_loser, 'contestant'));
       }
     }
-    // Default action to create a new game.
-    $create_new_game = TRUE;
 
-    // Ensure every game has a winner selected
-    foreach ($games_played as $game_id) {
+    // Check all our played games to make sure they've been won.
+    // If one of them hasn't, that means we don't need to make a new game to continue the match
+    $create_new_game = TRUE;
+    foreach ( $match->getGameIds() as $game_id ) {
       $game = tourney_game_load($game_id);
-      if (!$game->winner) {
+      if ( !$game->getWinner() ) {
         $message = t('Game updated, but not all games have a winner selected. Action not completed.');
         watchdog('tourney', $message);
         $create_new_game = FALSE;
       }
-    }
+    } 
+
+    // If all our games are played, then we'll need to make a new game to continue the match
     if ($create_new_game) {
-      $game_count = count($games_played);
-      $game = new stdClass();
-      $game->type = 'game';
-      $game->title = 'game-' . ++$game_count;
-      tourney_game_save($game);
+      $game_count = count($match->getGameIds());
+      $game = new TourneyGame(array(
+        'type' => 'game',
+        'title' => 'game-' . ++$game_count,
+      ));
+      $game->save();
       // Add the relationship to the game.
       $rid = tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
-
       $message = t('A new game has been created: !game', array('!game' => l($game->title, 'tourney/game/' . $game->id)));
     }
   }
   elseif ($match->getTournament()->format != 'RoundRobin') {
-    // Get the winner and loser locations into variables.
-    @list($wbracket, $wround, $wmatch, $wcontestant) = explode("_", $match->next_match_winner);
-    @list($lbracket, $lround, $lmatch, $lcontestant) = explode("_", $match->next_match_loser);
-
-    _tourney_move_next_round($match, $wbracket, $wround, $wmatch, $wcontestant);
-    // If there is a place for losers, move them too
-    if (isset($lround)) {
-      $lmatch_obj = clone $match;
-      _tourney_move_next_round($lmatch_obj, $lbracket, $lround, $lmatch, $lcontestant, 'bracket-top');
+    // Clear the gameIds so they can be reloaded
+    $match->gameIds = NULL;
+    // Check all our games starting from the back to find the games that haven't been won
+    // Since we've already won the match, we're going to remove all the games that no longer serve purpose for the match
+    foreach ( array_reverse($match->getGameIds()) as $game_id ) {
+      $game = tourney_game_load($game_id);
+      // If we've run across a won game, it's almost certain the rest of the first matches have been played, so we don't need to continue
+      if ( $game->getWinner() ) break;
+      // @todo: find a way to just load in a single relation based on two related entities
+      // This code just runs through all the related games to the match to find the specific relation for the game to delete, and removes it
+      $relations = relation_query('tourney_match', $match->id)->entityCondition('bundle', 'has_game')->execute();
+      foreach ( array_reverse($relations) as $relation ) {
+        $relation = relation_load($relation->rid); 
+        $relation_game = tourney_game_load($relation->endpoints['und'][1]['entity_id']);
+        if ( $relation_game->id == $game_id ) {
+          $relation_game->delete();
+          relation_delete($relation->rid);
+          break;
+        }
+      }
     }
-    _tourney_set_match_winner($match);
-
+    // With our fancy new oop methods, no more messy contestant movements!
+    $match->moveContestants();
+    $match->determineWinner();
     $message = t('Players moved to next round');
   }
   else {
-    _tourney_set_match_winner($match);
+    $match->determineWinner();
   }
 
   return array(
@@ -244,6 +258,7 @@ function _tourney_move_next_round($match, $bracket, $round, $match_name, $contes
       $contestant = str_replace('-', '', $contestant);
     
       $next_match->$contestant = _tourney_move_next_round_contestant($bracket, $match, $from);
+      dpm($next_match);
       tourney_match_save($next_match);
       return $next_match;
     }

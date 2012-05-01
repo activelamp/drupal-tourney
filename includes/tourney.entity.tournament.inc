@@ -218,19 +218,19 @@ class TourneyTournament extends TourneyEntity {
         if ($bracket[0]['safe_value'] && $round[0]['safe_value']) {
           $brackets[$bracket[0]['safe_value']][$round[0]['safe_value']][$match->id] = array(
             'match' => $match,
-            'games' => tourney_tournament_get_match_games($match),
+            'games' => $match->getGames(),
           );
         }
         elseif ($round[0]['safe_value']) {
           $brackets[$round[0]['safe_value']][$match->id] = array(
             'match' => $match,
-            'games' => tourney_tournament_get_match_games($match),
+            'games' => $match->getGames(),
           );
         }
         else {
           $brackets[$match->id] = array(
             'match' => $match,
-            'games' => tourney_tournament_get_match_games($match),
+            'games' => $match->getGames(),
           );
         }
       }
@@ -264,4 +264,45 @@ class TourneyTournament extends TourneyEntity {
      parent::delete();
      drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
    }
+
+
+/**
+ * Goes through the tournament's matches to return one by name
+ *
+ * @param string $name
+ *   Identifier of the match, $match->this_match
+ * @return TourneyMatch $match 
+ *   The desired match
+ */
+  public function getMatchByName($name) {
+    if ($name == 'manual') {
+      return NULL;
+    }
+    
+    // Seperate the parts of the match path.
+    $parts = explode('_', $name);
+
+    // Get just the structure of the next match
+    $matches = $this->buildMatches();
+    $context = $matches[$parts[0]][$parts[1]];
+
+    // Set $id to the round number
+    $id = tourney_get_name_part($name, 'match');
+    
+    /**
+     * The bracket structure should be built in the order of matches. This for
+     * loop assumes that the matches will always be in order of match-1, match-2,
+     * and so on.
+     * 
+     * Create an iterator for each match, and return the match that has the same
+     * match number as the iterator.
+     */
+    $i = 1;
+    foreach($context as $match) {
+      if ($id == $i) {
+        return $match['match'];
+      }
+      $i++;
+    }
+  }
 }

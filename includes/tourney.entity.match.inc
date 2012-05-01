@@ -32,7 +32,6 @@ class TourneyMatch extends TourneyEntity {
     if (variable_get('tourney_backward_compatibility', false)) {
       $this->backwardCompatibility();
     }
-    $this->checkContestants();
   }
 
   /**
@@ -94,7 +93,8 @@ class TourneyMatch extends TourneyEntity {
    *     - id: Integer denoting the specific entity id.
    *   An empty array will be returned if no contestants are found.
    */
-  public static function fetchContestantIds($match_id) {
+  public static function fetchContestantIds($match_id = NULL) {
+    if ( $match_id == NULL ) $match_id = $this->id;
     $contestants = array();
 
     $query = relation_query('tourney_match', $match_id);
@@ -160,8 +160,6 @@ class TourneyMatch extends TourneyEntity {
     if (!empty($contestants) && !empty($contestants['contestant_'. $slot])) {
       return array_pop(entity_load($contestants['contestant_'. $slot]['type'], array($contestants['contestant_'. $slot]['id'])));
     }
-    $var = "contestant$slot";
-    return $this->$var;
   }
   
   /**
@@ -233,6 +231,7 @@ class TourneyMatch extends TourneyEntity {
 
       foreach ($this->getGameIds() as $entity_id) {
         $games[$entity_id] = tourney_game_load($entity_id);
+        if ( $games[$entity_id] == FALSE ) continue; 
         // Check to make sure the game has a winner
         if ($games[$entity_id]->winner) {
           // Tally up the winners in array keyed by uid
@@ -298,8 +297,7 @@ class TourneyMatch extends TourneyEntity {
       $keys = array_keys($ranks);
       $this->matchWinner = $keys[0];
     }
-
-    return $this;
+    return $this->matchWinner;
   }
   
   /**
@@ -343,8 +341,6 @@ class TourneyMatch extends TourneyEntity {
         }
       }
     }
-    $this->checkContestants();
-    $this->updateContestants();
     if (method_exists($this, 'getTournament')) {
       cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
     }
@@ -390,37 +386,106 @@ class TourneyMatch extends TourneyEntity {
     return $game;
   }
 
-  function checkContestants() {
-    foreach ( $this->getContestantIds() as $variable => $contestant ) {
-      $id = $variable[strlen($variable)-1];
-      $relation_contestant = relation_get_related_entity('tourney_match', $this->id, $variable);
-      $match_contestant = $this->getContestant($id);
-      if ( $relation_contestant == $match_contestant ) continue;
-      $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', $id)->execute();
-      relation_delete(array_pop($results)->rid);
+/**
+ * Checks the next matches to determine whether or not either has been started. If they have, the current match shouldn't be editable
+ *
+ * @return $locked
+ *   Returns a bool detemining whether the current match can be edited
+ */
+  public function isLocked() {
+    $next_matches = array();
+    // Get the next matches...
+    if ($this->next_match_winner) {
+      $next_matches[] = $this->getTournament()->getMatchByName($this->next_match_winner);
     }
+    if ($this->next_match_loser) {
+      $next_matches[] = $this->getTournament()->getMatchByName($this->next_match_loser);
+    }    
+    $locked = FALSE;
+    // Then check them all for games played
+    // If there is only one game, that means it hasn't been played into yet.
+    foreach ($next_matches as $next_match) {
+      // If a match has more than one game, then it's been started and this match cannot be changed
+      if (count($next_match->getGameIds()) > 1) {
+        $locked = TRUE;
+      }
+    }
+    return $locked;
   }
 
-  function updateContestants() {
-    $contestants = array('contestant_1' => $this->contestant1, 'contestant_2' => $this->contestant2);
-    foreach ( $contestants as $variable => $contestant ) {
-      $id = $variable[strlen($variable)-1];
-      $relation_contestant = relation_get_related_entity('tourney_match', $this->id, $variable);
-      $match_contestant = $this->getContestant($id);
-      if ( !is_object($relation_contestant) && !empty($match_contestant) ) {
-        if ( is_object($match_contestant) ) {
-          $contestant_type = $match_contestant->_entity_type;
-          $contestant_id = $match_contestant->_entity_id;
-        }
-        else {
-          list($contestant_type, $contestant_id) = explode('.', $match_contestant);
-        }
-        $entity_keys = array(
-          array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
-          array('entity_type' => $contestant_type, 'entity_id' => $contestant_id),
-        );
-        $rid = relation_insert($variable, $entity_keys);
-      }
+/**
+ * Cleanly removes an existing contestant from a match, deleting the relation
+ *
+ * @param integer $slot
+ *   Contestant slot to target
+ */
+  public function removeContestant($slot) {
+    // If we're locked, can't remove the contestant
+    if ( $this->isLocked() ) {
+      $message = t('Match is locked, cannot modify contestants.');
+      watchdog('tourney', $message);
+      return FALSE;
+    }
+    // Get all the contestants, and, if we haven't got any, we can't remove any! 
+    $contestants = $this->getContestantIds();
+    if ( empty($contestants) ) return;
+    // Until there's a better way for addressing specific contestant names, using this:
+    $relation_type = "contestant_$slot";
+    // Pull in the relation so we can delete it, then apply changes to the match object
+    $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', $relation_type)->execute();
+    relation_delete(array_pop($relations)->rid);
+    unset($this->contestantIds[$relation_type]);
+    $this->save();
+  }
+
+/**
+ * Automatically populate the next matches to this match with the necessary contestants by adding the relation
+ *
+ * @param integer $slot
+ *   Contestant slot to target
+ * @param Object entity
+ *   Any type of entity to fill the target slot with
+ */
+  public function setContestant($slot, $entity) {
+    // Get the current contestant in the target slot
+    $current = $this->getContestant($slot);
+    // If it's empty, no need to worry
+    if ( $current !== NULL ) {
+      // If it isn't, however... We'll need to check if it's same. If not, remove it.
+      if ( $current->_eid == $entity->_eid ) return;
+      $this->removeContestant($slot);
+    }
+    // Create the relation...
+    $entity_keys = array(
+      array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
+      array('entity_type' => $entity->_entity_type, 'entity_id' => $entity->_entity_id),
+    );
+    // ... and save it!
+    $rid = relation_insert("contestant_$slot", $entity_keys);
+  }
+
+/**
+ * Automatically populate the next matches to this match with the necessary contestants 
+ */
+  public function moveContestants() {
+    // If this match hasn't been won, we shouldn't be doing anything with the next matches.
+    if ( !$this->isFinished() ) return;
+    // Instantiate the two origin contestants
+    $winner = NULL;
+    $loser  = NULL;
+    // This loop goes through 'all' the contestants and fills them in the appropriate winner/loser variables
+    // Since we've only got two contestants, it's just a glorified abstraction in case we have more contestants later
+    foreach ( $this->getContestantIds() as $slot => $contestant ) {
+      $eid = $contestant['type'] . '.' . $contestant['id'];
+      $entity = entity_load_single($contestant['type'], $contestant['id']);
+      if ( $this->getWinner() == $eid ) $winner = $entity;
+      else $loser = $entity;
+    }
+    // Another code-saving abstraction, use the handy new setContestant to easily apply the entities to their targets
+    foreach ( array('winner' => $this->next_match_winner, 'loser' => $this->next_match_loser) as $var => $target ) {
+      if ( !$target ) continue;
+      $match = $this->getTournament()->getMatchByName($target);
+      $match->setContestant(tourney_get_name_part($target, 'contestant'), $$var);
     }
   }
 }

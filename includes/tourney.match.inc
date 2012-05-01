@@ -92,18 +92,19 @@ function tourney_match_form($form, &$form_state, $match) {
     '#disabled' => $match->isFinished(),
   );
     
-  if (tourney_match_is_locked($match)) {
+  if ( $match->isLocked() ) {
     $form['fix_games'] = array(
       '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
     );
   }
-  elseif (count($match->getGameIds()) > 1) {
+  elseif ( count($match->getGameIds()) > 1 ) {
     $form['fix_games'] = array(
       '#theme' => 'tourney_match_fix',
       '#games' => $match->games,
     );
 
     foreach ($match->getGames() as $id => $game) {
+      if ( !$game->getWinner() ) continue;
       $form['fix_games']['game.' . $id] = array(
         '#type' => 'radios',
         '#title' => t('Game @id', array('@id' => $id)),
@@ -125,33 +126,6 @@ function tourney_match_form($form, &$form_state, $match) {
   $form['#submit'][] = 'tourney_match_form_submit';
 
   return $form;
-}
-
-/**
- * Checks to see if a match is locked from being edited.
- * 
- * @param object
- *   The match object to check locking on.
- */
-function tourney_match_is_locked($match) {
-  // Get the tournament of this match, and then build the matches for the tournament.
-  $match_structure = $match->getTournament()->buildMatches();
-  
-  $next_matches = array();
-  if ($match->next_match_winner) {
-    $next_matches[] = tourney_get_match_by_name($match_structure, $match->next_match_winner);
-  }
-  if ($match->next_match_loser) {
-    $next_matches[] = tourney_get_match_by_name($match_structure, $match->next_match_loser);
-  }    
-
-  $locked = FALSE;
-  foreach ($next_matches as $next_match) {
-    if (count($next_match->getGameIds()) > 1) {
-      $locked = TRUE;
-    }
-  }
-  return $locked;
 }
 
 /**
@@ -312,7 +286,7 @@ function tourney_match_form_validate($form, &$form_state) {
     $wins[$value]++; 
   }
   foreach ( $wins as $id => $count ) {
-    if ( $count > $form_state['match']->games / 2 ) 
+    if ( $count - 1 > $form_state['match']->games / 2 ) 
       form_set_error('', t('A contestant cannot win more games than neccesary to win a match'));
   }
 }
@@ -336,8 +310,21 @@ function tourney_match_form_submit($form, &$form_state) {
     }
   }
 
+  if ( array_key_exists('contestant1', $form_state['input']) ) {
+    if ( $eid = $form_state['input']['contestant1'] ) {
+      @list($type, $id) = explode('.', $eid);
+      $entity = entity_load_single($type, $id);
+      $match->setContestant(1, $entity);
+    }
+    if ( $eid = $form_state['input']['contestant2'] ) {
+      @list($type, $id) = explode('.', $eid);
+      $entity = entity_load_single($type, $id);
+      $match->setContestant(2, $entity);
+    }
+  }
   
   entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
+
   $match->save();
   
   $form_state['redirect'] = 'tourney/match/' . $match->id;
@@ -441,7 +428,7 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['match_winner'] = array(
     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
     '#suffix' => '</div>',
-    '#markup' => $entity->winner,
+    '#markup' => $entity->getWinner(),
   );
   $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
   $entity->content['match_contestant1'] = is_object($contestant1) ? array(
