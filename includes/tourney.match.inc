@@ -523,9 +523,3 @@ function tourney_get_match_by_name($bracket_structure, $path) {
   }
 }
 
-function tourney_get_name_part($name, $part) {
-  foreach ( explode('_', $name) as $sub ) {
-    $sub = explode('-', $sub);
-    if ( $sub[0] == $part ) return $sub[1];
-  }
-}

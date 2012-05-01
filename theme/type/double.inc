@@ -48,7 +48,7 @@ function theme_tourney_double_top_bracket($vars) {
   $round = reset($rounds);
   $match = reset($round);
   $views = FALSE;
-  if ( property_exists($match['match']->tournament, 'views') && $match['match']->tournament->views == TRUE ) $views = TRUE;
+  if ( property_exists($match['match']->getTournament(), 'views') && $match['match']->getTournament()->views == TRUE ) $views = TRUE;
 
   // Note: copied with remarkable shamelessness from tourney_single_tree().
   // One alteration is rendering an extra flow line from the last round to
@@ -185,7 +185,7 @@ function theme_tourney_double_bottom_bracket($vars) {
   $round = reset($rounds);
   if ( !$round ) $round = next($rounds); 
   $match = reset($round);
-  if ( property_exists($match['match']->tournament, 'views') && $match['match']->tournament->views == TRUE ) $views = TRUE;
+  if ( property_exists($match['match']->getTournament(), 'views') && $match['match']->getTournament()->views == TRUE ) $views = TRUE;
 
   foreach ( $rounds as $r => $round ) {
     /*

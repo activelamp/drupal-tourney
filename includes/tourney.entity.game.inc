@@ -184,4 +184,9 @@ class TourneyGame extends TourneyEntity {
     return $this->gameContestantIds;
   }
 
+  public function save() {
+    parent::save();
+    cache_clear_all('tourney_winner_count_' . $this->getMatchId(), 'cache_tourney');
+  }
+
 }

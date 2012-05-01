@@ -106,6 +106,7 @@ class RoundRobin implements TourneyFactoryInterface {
 
       $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['winner'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][0]);
       $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['loser'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][1]);
+      $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['this_match'] = 'bracket-roundrobin_round-' . $current_round . '_match-' . $current_match;
     }
     return $matches;
   }
