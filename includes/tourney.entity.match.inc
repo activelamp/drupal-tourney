@@ -15,12 +15,11 @@ class TourneyMatch extends TourneyEntity {
   // @todo: rename the variable below to $tournament when backwardCompatibility
   // is no longer being used.
   private $matchTournament = NULL;
+  private $matchGames = NULL;
   private $matchStarted = NULL;
   private $matchFinished = NULL;
   private $matchWinner = NULL;
   private $matchSetup = NULL;
-  
-  private $matchGames = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
@@ -342,11 +341,6 @@ class TourneyMatch extends TourneyEntity {
     }
   }
   
-  /*************************************************************************/
-  // Helper methods that we aren't using yet. If you implement one of these
-  // methods, move it above this section.
-  /*************************************************************************/
-  
   /**
    * Retrieve property. (Lazy load TourneyGame entities).
    *
@@ -368,8 +362,9 @@ class TourneyMatch extends TourneyEntity {
    */
   function getGames($key = NULL) {
     if (is_null($this->matchGames)) {
-      foreach ($this->getMatchIds() as $matchId)
-      $this->matchGames['match.' . $matchId] = tourney_match_load($matchId);
+      foreach ($this->getGameIds() as $gameId) {
+        $this->matchGames[$gameId] = tourney_game_load($gameId);
+      }
     }
 
     // When the parameter is of the type integer then we will just report

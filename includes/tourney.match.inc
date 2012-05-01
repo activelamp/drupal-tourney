@@ -103,12 +103,12 @@ function tourney_match_form($form, &$form_state, $match) {
       '#games' => $match->games,
     );
 
-    foreach ($games as $id => $game) {
+    foreach ($match->getGames() as $id => $game) {
       $form['fix_games']['game.' . $id] = array(
         '#type' => 'radios',
         '#title' => t('Game @id', array('@id' => $id)),
         '#default_value' => $game->winner,
-        '#options' => $game->contestants,
+        '#options' => tourney_format_contestant_options($game->getContestants()),
       );
     }
   }
@@ -193,7 +193,7 @@ function _tourney_match_contestants($match) {
     ->condition('relation_type', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2))
     ->condition('r_index', 1);
   $results = $query->execute()->fetchAll();
-
+  
   $options = array('' => ' - Choose contestant -');
   foreach ($results as $row) {
     $entity_type = $row->entity_type;
@@ -204,8 +204,11 @@ function _tourney_match_contestants($match) {
     }
     else {
       $query = new EntityFieldQuery();
-      $query->entityCondition('entity_type', $entity_type, '=')
-        ->propertyCondition('type', $row->bundle, '=');
+      $query->entityCondition('entity_type', $entity_type, '=');
+      // Users don't have bundles, don't look for a bundle on user entities.
+      if ($entity_type != 'user') {
+        $query->propertyCondition('type', $row->bundle, '=');
+      }            
       $result = $query->execute();
 
       $entities = array();
@@ -230,6 +233,7 @@ function _tourney_match_contestants($match) {
     }
   }
   _tourney_match_contestants_sanitize($match, $options);
+
   return $options;
 }
 
@@ -248,10 +252,8 @@ function _tourney_match_contestants($match) {
  * @see _tourney_match_contestant().
  */
 function _tourney_match_contestants_sanitize($match, &$options) {
-  // Get the tournament object this match is in.
-  $tournament = relation_get_related_entity('tourney_match', $match->id, 'has_match');
   // Get all the matches in round 1 for this tournament
-  $query = relation_query('tourney_tournament', $tournament->id);
+  $query = relation_query('tourney_tournament', $match->getTournament()->id);
   $query->entityCondition('bundle', 'has_match')
         ->fieldCondition('round', 'value', 'round-1');
   $results = $query->execute();
@@ -267,11 +269,19 @@ function _tourney_match_contestants_sanitize($match, &$options) {
   foreach ($matches as $match) {
     if (is_object($match->getContestant(1))) {
       $et = $match->getContestant(1)->_entity_type;
-      unset($options[$et]["$et." . $match->getContestant(1)->_entity_id]);
+      foreach (array_keys($options) as $group) {
+        if (is_array($options[$group]) && array_key_exists("$et." . $match->getContestant(1)->_entity_id, $options[$group])) {
+          unset($options[$group]["$et." . $match->getContestant(1)->_entity_id]);
+        }
+      }
     }
     if (is_object($match->getContestant(2))) {
       $et = $match->getContestant(2)->_entity_type;
-      unset($options[$et]["$et." . $match->getContestant(2)->_entity_id]);
+      foreach (array_keys($options) as $group) {
+        if (is_array($options[$group]) && array_key_exists("$et." . $match->getContestant(2)->_entity_id, $options[$group])) {
+          unset($options[$group]["$et." . $match->getContestant(2)->_entity_id]);
+        }
+      }
     }
   }
   
