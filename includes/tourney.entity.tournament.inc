@@ -309,8 +309,8 @@ class TourneyTournament extends TourneyEntity {
 /**
  * Gets a list of participating contestants in seed order
  *
- * @return TourneyMatch $match 
- *   List of contestants
+ * @return array $contestants 
+ *   List of contestants, all entities
  */
   public function getContestants() {
     // Take matches from only the first round, since those are the manually populated ones
