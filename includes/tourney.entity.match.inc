@@ -24,8 +24,10 @@ class TourneyMatch extends TourneyEntity {
   public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
 
-    $this->tournamentId = $this->getTournamentId();
-    $this->gameIds = $this->getGameIds();
+    if ( property_exists($this, 'id') && $this->id ) {
+      $this->tournamentId = $this->getTournamentId();
+      $this->gameIds = $this->getGameIds();
+    }
     
     // Remove this once I know for sure that modules aren't depending on
     // properties directly on the match object.

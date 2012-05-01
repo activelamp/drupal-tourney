@@ -846,41 +846,6 @@ function tourney_tournament_count_finished($tournaments, &$finished = array()) {
 }
 
 /**
- * Get the contestants playing in the tournament by looking at all the relations
- * to contestants from each match in the first round.
- *
- * @param $tournament
- *   The tournament object to get contestants for *
- * @return
- *   Returns an array of all the objects participating ordered by seed rank.
- */
-function tourney_get_contestants($tournament) {
-  $contestants = array();
-
-  $match_structure = $tournament->buildMatches();
-
-  // Shift off the rounds from the bracket
-  $rounds = array_shift($match_structure);
-
-  // Build the contestants array in the order the contestants are seeded.
-  $reverse = array_reverse($rounds['round-1']);
-  foreach ($reverse as $match) {
-    if (is_object($match['match']->getContestant(1))) {
-      $contestant = $match['match']->getContestant(1);
-      $contestants = array_reverse($contestants, TRUE);
-      $contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = $contestant->_entity_name;
-      $contestants = array_reverse($contestants, TRUE);
-    }
-    if (is_object($match['match']->getContestant(2))) {
-      $contestant = $match['match']->getContestant(2);
-      $contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = $contestant->_entity_name;
-    }
-  }
-
-  return $contestants;
-}
-
-/**
  * Get the standings for a tournament
  *
  * @param $tournament

@@ -305,4 +305,32 @@ class TourneyTournament extends TourneyEntity {
       $i++;
     }
   }
+
+/**
+ * Gets a list of participating contestants in seed order
+ *
+ * @return TourneyMatch $match 
+ *   List of contestants
+ */
+  public function getContestants() {
+    // Take matches from only the first round, since those are the manually populated ones
+    $bracket = array_shift($this->buildMatches());
+    $round = $bracket['round-1'];
+    // Set up two arrays to fill for seed order
+    $seed_1 = array();
+    $seed_2 = array();
+    foreach ( $round as $match ) {
+      $match = $match['match'];
+      foreach ( $match->getContestantIds() as $var => $contestant ) {
+        $slot = substr($var, strlen($var)-1);        
+        // Fill the seeds by group, contestant_1 to seed_1, contestant_2 to seed_2
+        $group = "seed_$slot";
+        $contestant = $match->getContestant($slot);
+        ${$group}[$contestant->_entity_type . '.' . $contestant->_entity_id] = $contestant;
+      }
+    }
+    // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
+    $contestants = array_merge($seed_1, array_reverse($seed_2));
+    return $contestants;
+  }
 }

@@ -21,6 +21,7 @@ function theme_tourney_render_tourney($vars) {
     'RoundRobin'        => 'roundrobin',
   );
   $tournament = $vars['tournament'];
+  krumo($tournament->getContestants());
   $format = $types[$tournament->format];
   if (array_key_exists('matches', $vars)) {
     $matches = $vars['matches'];

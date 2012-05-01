@@ -47,7 +47,7 @@ function tourney_roundrobin_standings_sort($a, $b) {
  * Renders the html for the leader board for a round robin tourney
  */
 function theme_tourney_roundrobin_standings($vars) {
-  $contestants = tourney_get_contestants($vars['tournament']);
+  $contestants = $vars['tournament']->getContestants() ;
   $standings = tourney_get_standings($vars['tournament']);
   $table['header'] = array('Teams', 'Games Played', 'Wins', 'Losses');
   $table['rows'] = array();
