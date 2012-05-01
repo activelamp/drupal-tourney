@@ -89,7 +89,6 @@ class TourneyFactory {
           'this_match' => array_key_exists('this_match', $value) ? $value['this_match'] : '',
         );
         $match = new TourneyMatch($values);
-        krumo($match);
 
         $match->save();
         $this->match_count++;
