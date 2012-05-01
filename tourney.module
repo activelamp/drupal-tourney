@@ -992,14 +992,22 @@ function tourney_flush_caches() {
   return array('cache_tourney');
 }
 
-
+/**
+ * Returns a single part of a full match name 
+ *
+ * @param $name
+ *   Full name of the match in bracket_round_match[_contestant] format
+ * @param $part
+ *   Which part of the name to return
+ * @return $value
+ *   Value of the part asked for 
+ */
 function tourney_get_name_part($name, $part) {
   foreach ( explode('_', $name) as $sub ) {
     $sub = explode('-', $sub);
     if ( $sub[0] == $part ) return $sub[1];
   }
 }
-
 
 
 
