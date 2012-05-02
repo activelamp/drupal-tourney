@@ -38,21 +38,19 @@ class TourneyGame extends TourneyEntity {
    * This is only here in case Riot is expecting these properties on the object
    * and is not using one of the public API methods to retrieve property.
    */
-   private function backwardCompatibility() {
-     // Set the parent match on the game entity.
-     $match = tourney_match_load($this->matchId, true);
-     $this->match = $match;
-     
-     // Load the contestants property on the object.
-     if (is_object($match) && is_object($match->getContestant(1))) {
-       $contestant = $match->getContestant(1);
-       $this->contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = entity_load($contestant->_entity_type, array($contestant->_entity_id));
-     }
-     if (is_object($match) && is_object($match->getContestant(2))) {
-       $contestant = $match->getContestant(2);
-       $this->contestants[$contestant->_entity_type . '.' . $contestant->_entity_id] = entity_load($contestant->_entity_type, array($contestant->_entity_id));
-     }
-   }
+  private function backwardCompatibility() {
+    // Set the parent match on the game entity.
+    $match = tourney_match_load($this->matchId, true);
+    $this->match = $match;
+
+    // Load the contestants property on the object.
+    foreach ( array(1, 2) as $i ) {
+      if (is_object($match) && is_object($match->getContestant($i))) {
+        $contestant = $match->getContestant($i);
+        $this->contestants[$contestant->eid] = entity_load_single_by_eid($contestant->eid);
+      }
+    }
+  }
 
   /**
    * Report the match entity_id related to a game.
@@ -184,6 +182,11 @@ class TourneyGame extends TourneyEntity {
     }
 
     return $this->gameContestantIds;
+  }
+
+  public function save() {
+    parent::save();
+    cache_clear_all('tourney_winner_count_' . $this->getMatchId(), 'cache_tourney');
   }
 
 }

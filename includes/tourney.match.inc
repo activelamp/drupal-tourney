@@ -241,19 +241,12 @@ function _tourney_match_contestants_sanitize($match, &$options) {
 
   // Unset users in the options array that are already selected
   foreach ($matches as $match) {
-    if (is_object($match->getContestant(1))) {
-      $et = $match->getContestant(1)->_entity_type;
-      foreach (array_keys($options) as $group) {
-        if (is_array($options[$group]) && array_key_exists("$et." . $match->getContestant(1)->_entity_id, $options[$group])) {
-          unset($options[$group]["$et." . $match->getContestant(1)->_entity_id]);
-        }
-      }
-    }
-    if (is_object($match->getContestant(2))) {
-      $et = $match->getContestant(2)->_entity_type;
-      foreach (array_keys($options) as $group) {
-        if (is_array($options[$group]) && array_key_exists("$et." . $match->getContestant(2)->_entity_id, $options[$group])) {
-          unset($options[$group]["$et." . $match->getContestant(2)->_entity_id]);
+    foreach ( array(1, 2) as $i ) {
+      if (is_object($match->getContestant($i))) {
+        foreach (array_keys($options) as $group) {
+          if (is_array($options[$group]) && array_key_exists($match->getContestant($i)->eid, $options[$group])) {
+            unset($options[$group][$match->getContestant($i)->eid]);
+          }
         }
       }
     }
@@ -358,7 +351,7 @@ function tourney_game_edit($game) {
 function tourney_format_contestant_options($contestants) {
   $options = array();
   foreach ($contestants as $id => $contestant) {
-    $options[$id] = $contestant->_entity_name;
+    $options[$id] = $contestant->entity_name;
   }
   return $options;
 }
@@ -434,14 +427,14 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['match_contestant1'] = is_object($contestant1) ? array(
     '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
     '#suffix' => '</div>',
-    '#markup' => $contestant1->_entity_name,
+    '#markup' => $contestant1->entity_name,
   ) : '';
 
   $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
   $entity->content['match_contestant2'] = is_object($contestant2) ? array(
     '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
     '#suffix' => '</div>',
-    '#markup' => $contestant2->_entity_name,
+    '#markup' => $contestant2->entity_name,
   ) : '';
 
   $entity->content['match_table'] = array(
@@ -530,9 +523,3 @@ function tourney_get_match_by_name($bracket_structure, $path) {
   }
 }
 
-function tourney_get_name_part($name, $part) {
-  foreach ( explode('_', $name) as $sub ) {
-    $sub = explode('-', $sub);
-    if ( $sub[0] == $part ) return $sub[1];
-  }
-}

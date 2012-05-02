@@ -155,7 +155,7 @@ class SingleElimination implements TourneyFactoryInterface {
    */
   public function determineWinner($tournament) {
     $ranks = $tournament->fetchRanks();
-    $standings = tourney_get_standings($tournament);
+    $standings = $tournament->getStandings();
 
     // todo : remove quick hack, implement custom uasort callback.
     foreach ($standings as $key => $standing) {

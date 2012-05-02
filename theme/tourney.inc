@@ -30,10 +30,6 @@ function theme_tourney_render_tourney($vars) {
   }
 
   $output = "<div class='tourney tourney-$format'><div class='tourney-inner'>";
-  //module_load_include('inc', 'tourney', "theme/type/$format");
-  //if (function_exists($f = "tourney_render_tourney_$format")) {
-  //  $output .= call_user_func_array($f, array($tournament, $matches));
-  //}
   $output .= theme("tourney_render_tourney_$format", array('tournament' => $tournament, 'matches' => $matches));
   $output .= "</div></div>";
   return $output;
@@ -79,8 +75,8 @@ function theme_tourney_matchblock($vars) {
   
   $editable = !(is_object($contestant1_obj) && is_object($contestant2_obj)) &&
     ($match->previous_match1 == 'manual' || $match->previous_match1 == 'manual');
-  $contestant1 = is_object($contestant1_obj) ? $contestant1_obj->_entity_name : 'team 1';
-  $contestant2 = is_object($contestant2_obj) ? $contestant2_obj->_entity_name : 'team 2';
+  $contestant1 = is_object($contestant1_obj) ? $contestant1_obj->entity_name : 'team 1';
+  $contestant2 = is_object($contestant2_obj) ? $contestant2_obj->entity_name : 'team 2';
   $title       = $match->title . ' ' . $match->id;
 
   $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . '">';
@@ -89,8 +85,8 @@ function theme_tourney_matchblock($vars) {
   //   }
 
   // Add extra classes to the contestant and flow containers to aid in highlighting
-  $contestant1_class = (!empty($contestant1_obj) ? ' entity-' . $contestant1_obj->_entity_type . '-' . $contestant1_obj->_entity_id : '');
-  $contestant2_class = (!empty($contestant2_obj) ? ' entity-' . $contestant2_obj->_entity_type . '-' . $contestant2_obj->_entity_id : '');
+  $contestant1_class = (!empty($contestant1_obj) ? ' entity-' . $contestant1_obj->entity_type . '-' . $contestant1_obj->entity_id : '');
+  $contestant2_class = (!empty($contestant2_obj) ? ' entity-' . $contestant2_obj->entity_type . '-' . $contestant2_obj->entity_id : '');
   $winner_class = '';
   if (!empty($match->winner)) {
     if ($match->winner == $contestant1_obj->name) $winner_class = $contestant1_class;

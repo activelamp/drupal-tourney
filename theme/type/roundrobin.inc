@@ -48,14 +48,14 @@ function tourney_roundrobin_standings_sort($a, $b) {
  */
 function theme_tourney_roundrobin_standings($vars) {
   $contestants = $vars['tournament']->getContestants() ;
-  $standings = tourney_get_standings($vars['tournament']);
+  $standings = $vars['tournament']->getStandings();
   $table['header'] = array('Teams', 'Games Played', 'Wins', 'Losses');
   $table['rows'] = array();
   
   uasort($standings, 'tourney_roundrobin_standings_sort');
 
   foreach ( $standings as $id => $standing ) {
-    $table['rows'][] = array($contestants[$id], $standing['total'], $standing['wins'], $standing['losses']);
+    $table['rows'][] = array($contestants[$id]->entity_name, $standing['total'], $standing['wins'], $standing['losses']);
   }
 
   return theme('table', $table);

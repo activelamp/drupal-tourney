@@ -58,7 +58,7 @@ function tourney_games_to_table($games) {
       foreach ($game->getContestants() as $id => $contestant) {
         // If the row doesn't already exist, create one.
         if (!isset($rows[$id])) {
-          $rows[$id] = array($contestant->_entity_name);
+          $rows[$id] = array($contestant->entity_name);
         }
         // Give the winner a W.
         if ($game->winner) {
@@ -72,7 +72,7 @@ function tourney_games_to_table($games) {
               'match' => $game->getMatch()->id, 
               'game' => $game->id, 
               'contestant' => $id, 
-              'name' => $contestant->_entity_name,
+              'name' => $contestant->entity_name,
             )));
         }
       }
