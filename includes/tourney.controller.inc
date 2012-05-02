@@ -29,6 +29,7 @@ class TourneyFactory {
     if (!class_exists($match_style)) {
       trigger_error(check_plain(t('Unable to create !match_style matches. Class not found.', array('!match_style' => $match_style))), E_USER_ERROR);
     }
+    
     $interfaces = class_implements($match_style);
     if (isset($interfaces['TourneyFactoryInterface'])) {
       $this->match_style = new $match_style($num_contestants);

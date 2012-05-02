@@ -14,7 +14,7 @@ $plugin = array(
   'description' => t('This is the description of the tournament'),
   'weight' => 3,
   'total games' => 5,
-  'builder controller' => 'RoundRobin',
+  'controller' => 'RoundRobin',
 );
 
 // Define any classes below to extend default functionality in the controllers.

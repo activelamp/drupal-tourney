@@ -247,23 +247,47 @@ class TourneyTournament extends TourneyEntity {
   /**
    * Delete a tournament.
    */
-   public function delete() {
-     // Find all the relationships to matches for this tournament.
-     $mquery = relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
-     $matches = $mquery->execute();
-     
-     // Build an array of stuff to delete.
-     foreach (array_keys($matches) as $rid) {
-       // Get all the match relations and matches and delete them.
-       $relation = relation_load($rid);
-       relation_delete($rid);
-       $match = tourney_match_load($relation->endpoints['und'][1]['entity_id']);
-       $match->delete();
-     }
-     
-     parent::delete();
-     drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
-   }
+  public function delete() {
+    // Find all the relationships to matches for this tournament.
+    $mquery = relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
+    $matches = $mquery->execute();
+
+    // Build an array of stuff to delete.
+    foreach (array_keys($matches) as $rid) {
+     // Get all the match relations and matches and delete them.
+     $relation = relation_load($rid);
+     relation_delete($rid);
+     $match = tourney_match_load($relation->endpoints['und'][1]['entity_id']);
+     $match->delete();
+    }
+
+    parent::delete();
+    drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
+  }
+  
+  /**
+  * Save the entity
+  */
+  public function save() {
+    // Store the property in local variable.  The property is no longer there
+    // after the entity is initially saved.
+    // @todo: Change the is_new property if this entity patch gets in:
+    //   Patch at - http://drupal.org/node/1558266
+    $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
+    parent::save();
+    
+    // Create the matches and first game if new tournament.
+    if ($new) {
+      // Build a nested array of matches for the tournament being saved.
+      $matches = new TourneyFactory($this->players, $this->format);
+      $matches->create();
+      // Create the actual match entities and the first game.
+      $matches_created = $matches->save($this);
+      // Update the tournament with the number of matches created
+      $this->matches_created = $matches_created;
+      drupal_write_record('tourney_tournament', $this, 'id');
+    }
+  }
 
 
 /**

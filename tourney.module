@@ -683,19 +683,6 @@ function tourney_game_load_multiple($ids = array(), $conditions = array(), $rese
  * Implements hook_entity_insert().
  */
 function tourney_entity_insert($entity, $type) {
-  $info = entity_get_info($type);
-
-  if ($type == 'tourney_tournament') {
-    // Build a nested array of matches for the tournament being saved.
-    $matches = new TourneyFactory($entity->players, $entity->format);
-    $matches->create();
-    // Create the actual match entities and the first game.
-    $matches_created = $matches->save($entity);
-    // Update the tournament with the number of matches created
-    $entity->matches_created = $matches_created;
-    drupal_write_record('tourney_tournament', $entity, 'id');
-  }
-
   if (is_subclass_of($entity, 'TourneyEntity')) {
     tourney_update_alias($entity, 'insert');
   }
@@ -893,7 +880,7 @@ function tourney_get_type_options($reset = FALSE) {
   $plugins = tourney_get_types();
   uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
-    $options[$info['builder controller']] = $info['name'];
+    $options[$info['controller']] = $info['name'];
   }
   return $options;
 }
