@@ -157,7 +157,6 @@ class RoundRobin implements TourneyFactoryInterface {
     $keys = array_keys($standings);
     $tournament->winner = $keys[0];
     $tournament->save();
-    drupal_set_message(check_plain(t('Tournament !format is complete!.', array('!format' => $tournament->format))), 'status');
 
     return $this;
   }

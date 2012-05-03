@@ -71,20 +71,19 @@ function tourney_tournament_delete_submit($form, &$form_state) {
     unset($_GET['destination']);
   }
   $tourney = $form_state['tourney'];
-  $form_state['redirect'] = array('tourney/' . $tourney->id . '/delete', array('query' => $destination));
+  $form_state['redirect'] = array($tourney->getUri() . '/delete', array('query' => $destination));
 }
 
 /**
  * Tournament form submit handler.
  */
 function tourney_tournament_form_submit($form, &$form_state) {
-  drupal_set_message(t('Your tournament has been saved.'));
-
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
   tourney_tournament_save($tourney);
-
-  $form_state['redirect'] = 'tourney/' . $tourney->id;
+  
+  drupal_set_message(t('Your tournament has been saved.'));
+  $form_state['redirect'] = $tourney->getUri();
 }
 
 /**

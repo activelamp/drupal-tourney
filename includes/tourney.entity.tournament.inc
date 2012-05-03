@@ -9,6 +9,7 @@ class TourneyTournament extends TourneyEntity {
 
   public  $matchIds = NULL;
   public  $gameIds = NULL;
+  public  $uri;
   private $tournamentStarted  = NULL;
   private $tournamentFinished = NULL;
   private $tournamentWinner = NULL;
@@ -29,12 +30,15 @@ class TourneyTournament extends TourneyEntity {
       if ($this->matches_created) {
         $this->matchIds = $this->getMatchIds();
         $this->gameIds = $this->getGameIds();
-      }      
+      }
       
       if (!class_exists($this->format)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }   
       $this->tourneyFormatPlugin = new $this->format($this->players);
+      
+      // Add a url to the object
+      $this->uri = $this->getUri();
     }
   }
 
@@ -187,6 +191,20 @@ class TourneyTournament extends TourneyEntity {
   }
   
   /**
+   * Get the path to a tourney url without needing a tourney object loaded.
+   */
+  public static function path() {
+    return 'tourney/tournament';
+  }
+  
+  /**
+   * Return the uri to the entity object
+   */
+  public function getUri() {
+    return TourneyTournament::path() . '/' . $this->id;
+  }
+  
+  /**
    * Return all the matches that have a relation 'has_match' with the passed in
    * tournament object.
    *
@@ -262,7 +280,6 @@ class TourneyTournament extends TourneyEntity {
     }
 
     parent::delete();
-    drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
   }
   
   /**
@@ -275,6 +292,8 @@ class TourneyTournament extends TourneyEntity {
     //   Patch at - http://drupal.org/node/1558266
     $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
     parent::save();
+    
+    // Set the uri
     
     // Create the matches and first game if new tournament.
     if ($new) {

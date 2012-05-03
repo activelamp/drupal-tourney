@@ -43,8 +43,6 @@ class TourneyFactory {
    * Create the match entities for the tournament.
    */
   public function create() {
-    drupal_set_message(t('The matches were created'));
-
     // Build the match structure
     $this->matches = $this->match_style->build();
   }

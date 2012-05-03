@@ -88,10 +88,6 @@ class SingleElimination implements TourneyFactoryInterface {
     return $this->num_contestants;
   }
 
-  protected function set_message() {
-    drupal_set_message(check_plain(get_class($this) . ' with ' . $this->num_contestants . ' contestants and ' . $this->num_rounds . ' rounds.'));
-  }
-
   protected function build_round(&$matches, $contestants, $round, $bracket = 'top') {
     for ($match=1;$match<=$contestants/2;$match++) {
       $matches['round-' . $round]['match-' . $match] = array(
@@ -103,13 +99,6 @@ class SingleElimination implements TourneyFactoryInterface {
   }
 
   private function calculate_rounds($num_contestants) {
-    // Make sure we don't have too many contestants.
-    $maximum_contestants = pow(2, MAXIMUM_ROUNDS);
-    if ($num_contestants > $maximum_contestants) {
-      drupal_set_message(check_plain(t('Tournaments can only be !num rounds at the most with !player contestants. Some teams will not be able to play.', array('!num' => MAXIMUM_ROUNDS, '!player' => $maximum_contestants))), 'warning');
-      $num_contestants = $maximum_contestants;
-    }
-
     // Store values of exponents with base 2
     $possible_count = array();
 
@@ -167,7 +156,6 @@ class SingleElimination implements TourneyFactoryInterface {
     $tournament->winner = $keys[0];
     //$tournament->tournamentWinner = $keys[0]; (is private);
     $tournament->save();
-    drupal_set_message(t('Tournament !format is complete!.', array('!format' => $tournament->format)), 'status');
 
     return $this;
   }

@@ -97,11 +97,12 @@ function theme_tourney_matchblock($vars) {
   $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . (is_object($contestant1_obj) && $match->winner == $contestant1_obj ? ' ♔' : '' ) . '</div>';
   $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . (is_object($contestant2_obj) && $match->winner == $contestant2_obj ? ' ♔' : '' ) . '</div>';
   $output .= '</div>';
-
-  return l($output, "tourney/match/{$match->id}" . ($editable ? "/edit" : ''), array(
+  
+  $match_uri = $match->getUri();
+  return l($output, $match_uri . ($editable ? "/edit" : ''), array(
     'html' => TRUE,
     'attributes' => array('class' => 'match-link'),
-    'query' => $editable ? array('destination' => "tourney/match/{$match->id}") : array()
+    'query' => $editable ? array('destination' => $match_uri) : array()
   ));
 }
 

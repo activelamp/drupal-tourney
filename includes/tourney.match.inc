@@ -30,7 +30,7 @@ function tourney_game_win_form_submit($form, &$form_state) {
   $game = tourney_game_load($extra['game']);
   $game->winner = $contestant;
   tourney_game_save($game);
-  $form_sate['redirect'] = 'tourney/match/' . $match->id;
+  $form_sate['redirect'] = $match->getUri();
 }
 
 function tourney_game_win_form($form, &$form_state, $extra) {
@@ -320,7 +320,7 @@ function tourney_match_form_submit($form, &$form_state) {
 
   $match->save();
   
-  $form_state['redirect'] = 'tourney/match/' . $match->id;
+  $form_state['redirect'] = $match->getUri();
   drupal_set_message(t('Your match has been saved.'));
 }
 
@@ -397,7 +397,7 @@ function tourney_game_form_submit($form, &$form_state) {
   entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
   tourney_game_save($game);
 
-  $form_state['redirect'] = 'tourney/game/' . $game->id;
+  $form_state['redirect'] = $game->getUri();
 }
 
 /**
@@ -415,7 +415,7 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#suffix' => '</div>',
     '#theme' => 'link',
     '#text' => 'Go to tournament ' . $entity->getTournament()->title,
-    '#path' => 'tourney/' . $entity->getTournament()->id,
+    '#path' => $entity->getTournament()->getUri(),
     '#options' => array('attributes' => array(), 'html' => FALSE),
   );
   $entity->content['match_winner'] = array(

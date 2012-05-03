@@ -24,33 +24,33 @@ function tourney_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'includes/tourney.tournament.inc',
   );
-  $items['tourney/%tourney_tournament'] = array(
+  $items['tourney/tournament/%tourney_tournament'] = array(
     'title callback' => 'tourney_page_title',
-    'title arguments' => array(1),
+    'title arguments' => array(2),
     'page callback' => 'tourney_tournament_page_view',
-    'page arguments' => array(1),
+    'page arguments' => array(2),
     'access arguments' => array('access tourney'),
     'file' => 'includes/tourney.tournament.inc',
   );
-  $items['tourney/%tourney_tournament/view'] = array(
+  $items['tourney/tournament/%tourney_tournament/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  $items['tourney/%tourney_tournament/edit'] = array(
+  $items['tourney/tournament/%tourney_tournament/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'tourney_tournament_edit',
-    'page arguments' => array(1),
+    'page arguments' => array(2),
     'access arguments' => array('edit tourney'),
     'file' => 'includes/tourney.tournament.inc',
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
-  $items['tourney/%tourney_tournament/delete'] = array(
+  $items['tourney/tournament/%tourney_tournament/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'tourney_confirm_delete_page',
-    'page arguments' => array(1),
+    'page arguments' => array(2),
     'access arguments' => array('delete tourney'),
     'file' => 'includes/tourney.admin.inc',
     'weight' => 10,
@@ -517,9 +517,8 @@ function tourney_entities() {
  * What is this for?
  */
 function tourney_uri($entity) {
-  $path = $entity->type === 'tournament' ? 'tourney/' . $entity->id : 'tourney/' . $entity->type . '/' . $entity->id;
   return array(
-    'path' => $path,
+    'path' => 'tourney/' . $entity->type . '/' . $entity->id,
   );
 }
 
