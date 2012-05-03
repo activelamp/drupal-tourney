@@ -164,10 +164,10 @@ function _tourney_match_contestants($match) {
   $query = db_select('relation_bundles', 'rb');
   $query->fields('rb', array('entity_type', 'bundle'))
     ->distinct()
-    ->condition('relation_type', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2))
+    ->condition('relation_type', array('contestant'))
     ->condition('r_index', 1);
   $results = $query->execute()->fetchAll();
-  
+
   $options = array('' => ' - Choose contestant -');
   foreach ($results as $row) {
     $entity_type = $row->entity_type;
@@ -252,10 +252,10 @@ function _tourney_match_contestants_sanitize($match, &$options) {
     }
   }
   
-  // @todo: Document code below, what is this doing?
+  // Remove admin accounts from the contestant choices
   if (array_key_exists('user', $options)) {
     foreach ($options['user'] as $id => $user) {
-      if (str_replace("user.", "", $id)  <= 1) {
+      if (str_replace("user.", "", $id) <= 1) {
         unset($options['user'][$id]);
       }
     }
@@ -307,12 +307,12 @@ function tourney_match_form_submit($form, &$form_state) {
     if ( $eid = $form_state['input']['contestant1'] ) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
-      $match->setContestant(1, $entity);
+      $match->addContestant($entity);
     }
     if ( $eid = $form_state['input']['contestant2'] ) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
-      $match->setContestant(2, $entity);
+      $match->addContestant($entity);
     }
   }
   

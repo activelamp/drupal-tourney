@@ -100,18 +100,18 @@ class TourneyMatch extends TourneyEntity {
     $contestants = array();
 
     $query = relation_query('tourney_match', $match_id);
-    $query->entityCondition('bundle', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2), 'IN');
+    $query->entityCondition('bundle', 'contestant');
     $results = $query->execute();
-    
+
     foreach ($results as $relation) {
       $r = relation_load($relation->rid);
       $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
       $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-      
-      $contestants[$r->relation_type] = array(
+      $contestants[] = array(
         'type' => $type,
         'id' => $id,
         'eid' => $type .  '.' . $id,
+        'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
       );
     }
     
@@ -158,10 +158,11 @@ class TourneyMatch extends TourneyEntity {
     if (!is_numeric($slot)) {
       throw new Exception(t('$slot must be a number'));
     }
-    $contestants = $this->getContestantIds();
+    $contestants = array_values($this->getContestants());
+    array_unshift($contestants, array());
     
-    if (!empty($contestants) && !empty($contestants['contestant_'. $slot])) {
-      return array_pop(entity_load($contestants['contestant_'. $slot]['type'], array($contestants['contestant_'. $slot]['id'])));
+    if (!empty($contestants) && array_key_exists($slot, $contestants) && !empty($contestants[$slot])) {
+      return $contestants[$slot];
     }
   }
   
@@ -196,6 +197,18 @@ class TourneyMatch extends TourneyEntity {
   }
 
   /**
+   * Get the contestant entities
+   */
+  public function getContestants() {
+    $entities = array();
+    foreach ( $this->getContestantIds() as $contestant ) {
+      $entity = entity_load_single_by_eid($contestant['eid']);
+      $entities[$entity->eid] = $entity;  
+    }
+    return $entities;  
+  }
+
+  /**
    * Retrieve property.
    */
   public function getWinner() {
@@ -219,30 +232,16 @@ class TourneyMatch extends TourneyEntity {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'tourney_cache')) {
       $games = array();
 
-      // If there aren't two contestants in the match return
-      if (empty($this->getContestant(1)->entity_type) || empty($this->getContestant(2)->entity_type)) {
-        return array();
-      }
-      
-      $contestant1 = $this->getContestant(1);
-      $contestant2 = $this->getContestant(2);
-      // Set up the default count array.
-      $winners = array(
-        $contestant1->eid => 0,
-        $contestant2->eid => 0,
-      );
+      if ( count($this->getContestants()) < 2 ) return array();
 
-      foreach ($this->getGameIds() as $entity_id) {
-        $games[$entity_id] = tourney_game_load($entity_id);
-        if ( $games[$entity_id] == FALSE ) continue; 
-        // Check to make sure the game has a winner
-        if ($games[$entity_id]->winner) {
-          // Tally up the winners in array keyed by uid
-          $winners[$games[$entity_id]->winner] =
-            array_key_exists($games[$entity_id]->winner, $winners)
-            ? ++$winners[$games[$entity_id]->winner] : 1;
-        }
+      foreach ( $this->getContestants() as $eid => $contestant ) {
+        $winners[$eid] = 0;
       }
+      foreach ( $this->getGames() as $gid => $game ) {
+        if ( !$game->getWinner() ) continue;
+        $winners[$game->getWinner()]++;
+      }
+
       asort($winners);
       cache_set('tourney_winner_count_' . $this->id, $winners, 'tourney_cache');
       return $winners;
@@ -317,11 +316,8 @@ class TourneyMatch extends TourneyEntity {
    */
   public function delete() {
     // Get all the contestant relations
-    $crids = array();
-    $c1q = relation_query('tourney_match', $this->id)->entityCondition('bundle', TOURNEY_CONTESTANT_1);
-    $crids += $c1q->execute();
-    $c2q = relation_query('tourney_match', $this->id)->entityCondition('bundle', TOURNEY_CONTESTANT_2);
-    $crids += $c2q->execute();
+    $crelations = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant');
+    $crids = $crelations->execute();
     foreach (array_keys($crids) as $rid) {
       relation_delete($rid);
     }
@@ -478,6 +474,20 @@ class TourneyMatch extends TourneyEntity {
     $this->contestantIds = NULL;
   }
 
+  public function addContestant($entity, $slot = NULL) {
+    //@todo logic to remove existing conflicting contestant(s)
+    $entity_keys = array(
+      array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
+      array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
+    );
+    $rid = relation_insert("contestant", $entity_keys);
+    if ( $slot ) {
+      $relation = relation_load($rid);
+      $relation->slot[LANGUAGE_NONE][0]['value'] = $slot;
+      relation_save($relation);
+    }
+  }
+
 /**
  * Automatically populate the next matches to this match with the necessary contestants 
  */
@@ -500,7 +510,7 @@ class TourneyMatch extends TourneyEntity {
     foreach ( array('winner' => $this->next_match_winner, 'loser' => $this->next_match_loser) as $var => $target ) {
       if ( !$target ) continue;
       $match = $this->getTournament()->getMatchByName($target);
-      $match->setContestant(tourney_get_name_part($target, 'contestant'), $$var);
+      $match->addContestant($$var);
     }
   }
 }

@@ -219,7 +219,7 @@ function tourney_configuration($form, &$form_state) {
       '#type' => 'tableselect',
       '#header' => $header,
       '#options' => tourney_relation_type_tableselect_options($key),
-      '#default_value' => tourney_relation_type_tableselect_values(TOURNEY_CONTESTANT_1, $key),
+      '#default_value' => tourney_relation_type_tableselect_values('contestant', $key),
     );
   }
   $form['actions']['submit'] = array(
@@ -247,7 +247,7 @@ function tourney_configuration($form, &$form_state) {
  * exist to be targeted.
  */
 function tourney_configuration_form_submit($form, &$form_state) {
-  $relation_types = array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2);
+  $relation_types = array('contestant');
   $entities = entity_get_info();
   $targets = array();
 
@@ -285,7 +285,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
  * target bundles of user:* and node:*.
  */
 function tourney_configuration_defaults_submit($form, &$form_state) {
-  $relation_types = array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2);
+  $relation_types = array('contestant');
 
   try {
     tourney_relation_type_untarget($relation_types);

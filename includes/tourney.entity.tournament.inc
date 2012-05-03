@@ -321,12 +321,10 @@ class TourneyTournament extends TourneyEntity {
     $seed_2 = array();
     foreach ( $round as $match ) {
       $match = $match['match'];
-      foreach ( $match->getContestantIds() as $var => $contestant ) {
-        $slot = substr($var, strlen($var)-1);        
-        // Fill the seeds by group, contestant_1 to seed_1, contestant_2 to seed_2
-        $group = "seed_$slot";
-        $contestant = $match->getContestant($slot);
-        ${$group}[$contestant->eid] = $contestant;
+      $seed = 1;
+      foreach ( $match->getContestants() as $eid => $contestant ) {
+        $group = "seed_" . $seed++;
+        ${$group}[$eid] = $contestant;
       }
     }
     // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 

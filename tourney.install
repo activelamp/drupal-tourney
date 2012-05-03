@@ -277,6 +277,7 @@ function tourney_install() {
   $relation->target_bundles['node:*'] = 'node:*';
   relation_type_save($relation);
 
+
   // Define fields for the tournament has match relation.
   $field = array(
     'field_name' => 'bracket',
@@ -308,6 +309,7 @@ function tourney_install() {
   );
   field_create_instance($field_instance);
 
+
   // Create the default bundles for the tournaments
   $type = entity_create('tourney_tournament_type', array(
     'name' => 'tournament',
@@ -335,9 +337,34 @@ function tourney_install() {
 function tourney_uninstall() {
   relation_type_delete('has_match');
   relation_type_delete('has_game');
+  relation_type_delete('contestant');
   relation_type_delete(TOURNEY_CONTESTANT_1);
   relation_type_delete(TOURNEY_CONTESTANT_2);
 }
 
+function tourney_update_7001(&$sandbox) {
+  $relation = new stdClass();
+  $relation->relation_type = 'contestant';
+  $relation->label = 'contestant';
+  $relation->directional = TRUE;
+  $relation->source_bundles['tourney_match:*'] = 'tourney_match:*';
+  $relation->target_bundles['user:*'] = 'user:*';
+  $relation->target_bundles['node:*'] = 'node:*';
+  relation_type_save($relation);
 
+  $field = array(
+    'field_name' => 'slot',
+    'cardinality' => 1,
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+
+  $field_instance = array(
+    'entity_type' => 'relation',
+    'bundle' => 'contestant',
+    'field_name' => 'slot',
+    'label' => st('Slot'),
+  );
+  field_create_instance($field_instance);
+}
 

@@ -10,7 +10,7 @@
  */
 class SingleElimination implements TourneyFactoryInterface {
 
-  protected $num_contestants;
+  protected $contestants;
   protected $num_rounds;
   protected $matches;
 
@@ -20,9 +20,9 @@ class SingleElimination implements TourneyFactoryInterface {
    * @todo The methods in this constuctor should be moved out and called
    *   explicitly when building tournaments.
    */
-  public function __construct($num_contestants = 0) {
-    if ($num_contestants > 0) {
-      $this->calculate_rounds($num_contestants);
+  public function __construct($contestants = 0) {
+    if ($contestants > 0) {
+      $this->calculate_rounds($contestants);
     }
   }
 
@@ -36,8 +36,13 @@ class SingleElimination implements TourneyFactoryInterface {
     $matches = array();
 
     // Build all rounds
-    $this->matches = $this->build_rounds($this->num_contestants);
+    $this->matches = $this->build_rounds();
     return $this->matches;
+  }
+
+  public function buildMatches() {
+    $this->contestants = pow(2, ceil(log($this->contestants, 2)));
+
   }
 
   /**
@@ -49,12 +54,12 @@ class SingleElimination implements TourneyFactoryInterface {
    * @return $matches
    *   The matches array completely built out.
    */
-  protected function build_rounds($num_contestants) {
+  protected function build_rounds() {
     $matches = array();
-    $this->calculate_rounds($num_contestants);
-    $num_rounds = $this->num_rounds;
+    $this->calculate_rounds($this->num_contestants);
+    $num_contestants = $this->num_contestants;
 
-    for ($r = 1; $r <= $num_rounds; ++$r) {
+    for ($r = 1; $r <= $this->num_rounds; ++$r) {
       $matches['round-' . $r] = array();
       $this->build_round($matches, $num_contestants, $r);
       $num_contestants /= 2;
@@ -102,44 +107,14 @@ class SingleElimination implements TourneyFactoryInterface {
     }
   }
 
-  private function calculate_rounds($num_contestants) {
-    // Make sure we don't have too many contestants.
-    $maximum_contestants = pow(2, MAXIMUM_ROUNDS);
-    if ($num_contestants > $maximum_contestants) {
+  public function calculate_rounds($num_contestants) { 
+    $max_contestants = pow(2, MAXIMUM_ROUNDS);
+    if ( $num_contestants > $max_contestants ) {
       drupal_set_message(check_plain(t('Tournaments can only be !num rounds at the most with !player contestants. Some teams will not be able to play.', array('!num' => MAXIMUM_ROUNDS, '!player' => $maximum_contestants))), 'warning');
-      $num_contestants = $maximum_contestants;
+      $num_contestants = $max_contestants;
     }
-
-    // Store values of exponents with base 2
-    $possible_count = array();
-
-    // Figure out how many rounds we're going to have.
-    for ($i = 1; $i <= MAXIMUM_ROUNDS; ++$i) {
-      if ($num_contestants == pow(2, $i)) {
-        $this->num_rounds = $i;
-        $this->num_contestants = $num_contestants;
-        return;
-      }
-      $possible_count[] = pow(2, $i);
-    }
-    // Unable to calculate rounds because the number of contestants passed in.
-    $this->fix_contestant_count($num_contestants, $possible_count) ;
-
-  }
-
-  private function fix_contestant_count($num_contestants, $possible_count) {
-    // If the number of contestants is not a base two exponent. Figure out how
-    // many contestants we need to bump up to.
-    for ($i = 0; $i <= count($possible_count); ++$i) {
-      // Find between what valid possible counts the number of contestants is in.
-      if ($num_contestants > $possible_count[$i] && $num_contestants < $possible_count[$i + 1]) {
-        // Set the number of contestants to the higher number
-        $new_num_contestants = $possible_count[$i + 1];
-        // Calculate number of rounds now that we fixed contestant count.
-        $this->calculate_rounds($new_num_contestants);
-        return;
-      }
-    }
+    $this->num_rounds = ceil(log($num_contestants, 2));
+    $this->num_contestants = pow(2, $this->num_rounds);
   }
 
   /**
