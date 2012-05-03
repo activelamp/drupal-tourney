@@ -115,7 +115,7 @@ function theme_tourney_admin_content($variables) {
   else foreach ($tournaments as $tournament) {
     // $tournament is not a fully loaded object. Need to get the path via the
     // static method on tournaments.
-    $uri = TourneyTournament::path() . '/' . $tournament->id;
+    $uri = TourneyTournament::path($tournament->id);
     $rows[] = array(
       l($tournament->id, $uri),
       l($tournament->title, $uri),

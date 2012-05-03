@@ -362,17 +362,17 @@ class TourneyMatch extends TourneyEntity {
   }
   
   /**
-   * Get the path to a tourney url without needing a tourney object loaded.
-   */
-  public static function path() {
-    return 'tourney/match';
+    * Get the path to a tourney url without needing a tourney object loaded.
+    */
+  public static function path($id) {
+    return 'tourney/match/' . $id;
   }
-  
+
   /**
    * Return the uri to the entity object
    */
   public function getUri() {
-    return TourneyMatch::path() . '/' . $this->id;
+     return TourneyMatch::path($this->id);
   }
   
   /**
@@ -415,12 +415,12 @@ class TourneyMatch extends TourneyEntity {
     return $game;
   }
 
-/**
- * Checks the next matches to determine whether or not either has been started. If they have, the current match shouldn't be editable
- *
- * @return $locked
- *   Returns a bool detemining whether the current match can be edited
- */
+  /**
+   * Checks the next matches to determine whether or not either has been started. If they have, the current match shouldn't be editable
+   *
+   * @return $locked
+   *   Returns a bool detemining whether the current match can be edited
+   */
   public function isLocked() {
     $next_matches = array();
     // Get the next matches...
