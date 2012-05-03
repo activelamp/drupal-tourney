@@ -70,6 +70,7 @@ function theme_tourney_flow_control($vars) {
  */
 function theme_tourney_matchblock($vars) {
   extract($vars);
+  static $debug_val = 0;
   $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . '">';
   $output .= theme('tourney_flow_control', array('flows' => $flow));
 
@@ -89,6 +90,11 @@ function theme_tourney_matchblock($vars) {
     }
   }
   $output .= '</div>';
+
+  // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
+  //   . '<div class="contestant contestant-1">' . $debug_val++ . '</div>'
+  //   . '<div class="contestant contestant-2">' . $match->nextMatch('loser') . '</div>'
+  //   . '</div>';
   
   $match_uri = $match->getUri();
   return l($output, $match_uri . ($editable ? "/edit" : ''), array(

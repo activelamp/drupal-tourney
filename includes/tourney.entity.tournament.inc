@@ -407,4 +407,12 @@ class TourneyTournament extends TourneyEntity {
     }
     return $standings;
   }
+
+  public function getNextMatch($match, $direction = 'winner') {
+    $ids = array_flip($this->getMatchIds());
+    $next = $this->tourneyFormatPlugin->getNextMatch($ids[$match->entity_id], $direction);
+    $ids = array_flip($ids);
+    if ( !array_key_exists($next, $ids) ) return NULL;
+    return entity_load_single('tourney_match', $ids[$next]);
+  } 
 }

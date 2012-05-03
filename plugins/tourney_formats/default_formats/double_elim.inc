@@ -30,11 +30,11 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
    * @return $matches
    *   The matches array completely built out.
    */
-  protected function build_rounds($num_contestants) {
-    $this->top_bracket = parent::build_rounds($num_contestants);
+  protected function build_rounds() {
+    $this->top_bracket = parent::build_rounds();
     // Set a flag for building bottom bracket.
     $this->same_bracket = FALSE;
-    $this->bottom_bracket = $this->build_bottom_rounds($num_contestants);
+    $this->bottom_bracket = $this->build_bottom_rounds();
     // Fix the loser path in top bracket, now that the bottom bracket has been
     // built.
     $this->fix_top_loser_path($this->top_bracket);
@@ -129,9 +129,10 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
     return $matches;
   }
 
-  private function build_bottom_rounds($num_contestants) {
+  private function build_bottom_rounds() {
     // First round of play in losers bracket
-    $loser_contestants = $num_contestants /= 2;
+    $loser_contestants = $this->contestants /= 2;
+    $num_contestants = $this->contestants;
     $num_bottom_round = 1;
     $matches = array();
 
@@ -148,7 +149,6 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
 
       // Number of losers in this round.
       $loser_contestants = $winning_losers + $new_losers;
-
       if ($winning_losers == $new_losers) {
         // Increase round count.
         $num_bottom_round++;
@@ -251,5 +251,64 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
     }
 
     return $finished;
+  }
+
+  public function getNextMatch($place, $direction = 'winner') {
+    // @todo find a better way to count matches
+    $contestants = $this->contestants;
+    $matches = $contestants * 2 - 1;
+    $top_matches = $contestants - 1;
+    $bottom_matches = $top_matches - 1;
+    // If the place is in the SingleElimination bracket, send the call there
+    if ( $direction == 'winner' ) {
+      // Top Bracket
+      if ( $place < $top_matches ) {
+        if ( $place == $bottom_matches ) return $matches - 2;
+        return parent::getNextMatch($place);
+      }
+      // Champion Bracket(s)
+      elseif ( $place >= $matches - 2 ) {
+        // Last match goes nowhere
+        if ( $place == $matches - 1 ) return NULL;
+        return $place + 1;
+      }
+      // Bottom Bracket
+      else {
+        $series = $this->magicSeries($bottom_matches);
+        return $place + $series[$place-$top_matches];
+      }
+    }
+    elseif ( $direction == 'loser' ) {
+      if ( $place < $top_matches ) {
+        $single = parent::getNextMatch($place);
+        if ( $place < $contestants / 2 ) {  
+          return $single + ($bottom_matches/2);          
+        }
+        // More magical math to determine placement
+        return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));
+      }
+    }
+    return NULL;
+  }
+
+ /**
+  * This is a special function that I could have just stored as a fixed array, but I wanted it to scale
+  * It creates a special series of numbers that affect where loser bracket matches go
+  */
+  private function magicSeries($until) {
+    $series = array(1, 1);
+    $i = 1;
+    while ( count($series) < $until ) {
+      //pad from n to n*2 with double integers
+      $series[] = $i;
+      $next = $i * 2;
+      while ( ++$i < $next ) {
+        $series = array_merge($series, array($i, $i));
+      }
+      $series[] = $i;
+      //fill in n * n
+      foreach ( range(1, $i) as $n ) $series[] = $i;
+    }
+    return array_reverse($series);
   }
 }

@@ -60,6 +60,15 @@ function tourney_match_form($form, &$form_state, $match) {
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
+  $contestants = $match->getContestants();
+  while ( count($contestants) < 2 ) $contestants[] = NULL;
+
+  $cid = 1;
+  foreach ( $contestants as $eid => $contestant ) {
+    if ( $contestant != NULL ) continue;
+    // @todo: replace code below with a scalable contestant field code with a list of text boxes
+  }
+
   // @todo: It would be nice if these were field api fields
   $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
   if (($match->previous_match1 == 'manual' && !is_object($contestant))) {

@@ -444,7 +444,7 @@ class TourneyMatch extends TourneyEntity {
  * @param integer $slot
  *   Contestant slot to target
  */
-  public function removeContestant($slot) {
+  public function removeContestant($entity) {
     // If we're locked, can't remove the contestant
     if ( $this->isLocked() ) {
       $message = t('Match is locked, cannot modify contestants.');
@@ -458,7 +458,6 @@ class TourneyMatch extends TourneyEntity {
     $relation_type = "contestant_$slot";
     // Pull in the relation so we can delete it, then apply changes to the match object
     $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', $relation_type)->execute();
-    dpm(debug_backtrace());
     relation_delete(array_pop($relations)->rid);
     unset($this->contestantIds[$relation_type]);
     $this->save();
@@ -524,10 +523,11 @@ class TourneyMatch extends TourneyEntity {
       else $loser = $entity;
     }
     // Another code-saving abstraction, use the handy new setContestant to easily apply the entities to their targets
-    foreach ( array('winner' => $this->next_match_winner, 'loser' => $this->next_match_loser) as $var => $target ) {
-      if ( !$target ) continue;
-      $match = $this->getTournament()->getMatchByName($target);
-      $match->addContestant($$var);
-    }
+    $this->nextMatch()->addContestant($winner);
+    if ( $this->nextMatch('loser') ) $this->nextMatch('loser')->addContestant($loser);
+  }
+
+  public function nextMatch($direction = 'winner') {
+    return $this->getTournament()->getNextMatch($this, $direction);
   }
 }

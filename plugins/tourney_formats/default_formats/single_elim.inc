@@ -11,7 +11,7 @@
 class SingleElimination implements TourneyFactoryInterface {
 
   protected $contestants;
-  protected $num_rounds;
+  protected $rounds;
   protected $matches;
 
   /**
@@ -36,7 +36,7 @@ class SingleElimination implements TourneyFactoryInterface {
     $matches = array();
 
     // Build all rounds
-    $this->matches = $this->build_rounds();
+    $this->matches = $this->build_rounds($this->contestants);
     return $this->matches;
   }
 
@@ -56,10 +56,11 @@ class SingleElimination implements TourneyFactoryInterface {
    */
   protected function build_rounds() {
     $matches = array();
-    $this->calculate_rounds($this->num_contestants);
-    $num_contestants = $this->num_contestants;
 
-    for ($r = 1; $r <= $this->num_rounds; ++$r) {
+    $this->calculate_rounds($this->contestants);
+    $num_contestants = $this->contestants;
+
+    for ($r = 1; $r <= $this->rounds; ++$r) {
       $matches['round-' . $r] = array();
       $this->build_round($matches, $num_contestants, $r);
       $num_contestants /= 2;
@@ -90,7 +91,7 @@ class SingleElimination implements TourneyFactoryInterface {
    * Getter for the number of contestants
    */
   protected function get_num_contestants() {
-    return $this->num_contestants;
+    return $this->contestants;
   }
 
   protected function build_round(&$matches, $contestants, $round, $bracket = 'top') {
@@ -103,14 +104,14 @@ class SingleElimination implements TourneyFactoryInterface {
     }
   }
 
-  public function calculate_rounds($num_contestants) { 
+  public function calculate_rounds($contestants) { 
     $max_contestants = pow(2, MAXIMUM_ROUNDS);
-    if ( $num_contestants > $max_contestants ) {
+    if ( $contestants > $max_contestants ) {
       drupal_set_message(check_plain(t('Tournaments can only be !num rounds at the most with !player contestants. Some teams will not be able to play.', array('!num' => MAXIMUM_ROUNDS, '!player' => $maximum_contestants))), 'warning');
-      $num_contestants = $max_contestants;
+      $contestants = $max_contestants;
     }
-    $this->num_rounds = ceil(log($num_contestants, 2));
-    $this->num_contestants = pow(2, $this->num_rounds);
+    $this->rounds = ceil(log($contestants, 2));
+    $this->contestants = pow(2, $this->rounds);
   }
 
   /**
@@ -162,5 +163,14 @@ class SingleElimination implements TourneyFactoryInterface {
       return TRUE;
     }
     throw new Exception(t('There are no matches for this tournament'));
+  }
+
+  public function getNextMatch($place, $direction = NULL) {
+    // @todo find a better way to count matches
+    $matches = $this->contestants - 1;
+    // If it's the last match, it doesn't go anywhere
+    if ( $place == $matches - 1 ) return NULL;
+    // Otherwise some math!
+    return ( ($matches + 1) / 2 ) + floor($place / 2);
   }
 }
