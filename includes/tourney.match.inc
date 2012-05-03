@@ -67,27 +67,13 @@ function tourney_match_form($form, &$form_state, $match) {
   foreach ( $contestants as $eid => $contestant ) {
     if ( $contestant != NULL ) continue;
     // @todo: replace code below with a scalable contestant field code with a list of text boxes
-  }
-
-  // @todo: It would be nice if these were field api fields
-  $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
-  if (($match->previous_match1 == 'manual' && !is_object($contestant))) {
-    $form['contestant1'] = array(
+    $form['contestant'.$cid++] = array(
       '#title' => t('Contestant 1'),
-      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
-      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
-      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
+      '#default_value' => is_object($contestant) && $contestant->eid ? $contestant->eid : -1,
+      '#disabled' => is_object($contestant) && $contestant->eid ? TRUE : FALSE,
+      '#required' => is_object($contestant) && $contestant->eid ? FALSE : TRUE,
     ) + _tourney_match_contestant($match);
-  }
 
-  $contestant = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
-  if (($match->previous_match2 == 'manual' && !is_object($contestant))) {
-    $form['contestant2'] = array(
-      '#title' => t('Contestant 2'),
-      '#default_value' => is_object($contestant) && $contestant->uid ? $contestant->uid : -1,
-      '#disabled' => is_object($contestant) && $contestant->uid ? TRUE : FALSE,
-      '#required' => is_object($contestant) && $contestant->uid ? FALSE : TRUE,
-    ) + _tourney_match_contestant($match);
   }
 
   $form['games'] = array(

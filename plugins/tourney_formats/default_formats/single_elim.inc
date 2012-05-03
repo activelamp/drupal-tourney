@@ -165,6 +165,16 @@ class SingleElimination implements TourneyFactoryInterface {
     throw new Exception(t('There are no matches for this tournament'));
   }
 
+ /**
+  * Given a match place integer, returns the next match place based on either 'winner' or 'loser' direction
+  *
+  * @param $place
+  *   Match placement, zero-based. round 1 match 1's match placement is 0
+  * @param $direction
+  *   Either 'winner' or 'loser'
+  * @return $place
+  *   Match placement of the desired match, otherwise NULL 
+  */
   public function getNextMatch($place, $direction = NULL) {
     // @todo find a better way to count matches
     $matches = $this->contestants - 1;

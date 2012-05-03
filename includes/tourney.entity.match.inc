@@ -222,6 +222,23 @@ class TourneyMatch extends TourneyEntity {
   }
 
   /**
+   * Helper getters
+   */
+  public function getWinnerEntity() {
+    if ( !$this->getWinner() ) return NULL;
+    return entity_load_single_by_eid($this->getWinner());
+  }
+  public function getLoserEntity() {
+    if ( !$this->getWinner() ) return NULL;
+    foreach ( $this->getContestantIds() as $contestant ) {
+      if ( $contestant['eid'] !== $winner ) 
+        return entity_load_single_by_eid($contestant['eid']);
+    }
+    return NULL;
+  }
+
+
+  /**
    * Report current winner rankings for this match.
    * 
    * @param $reset
@@ -452,15 +469,16 @@ class TourneyMatch extends TourneyEntity {
       return FALSE;
     }
     // Get all the contestants, and, if we haven't got any, we can't remove any! 
-    $contestants = $this->getContestantIds();
-    if ( empty($contestants) ) return;
+    $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant')->execute();
+    if ( empty($relations) ) return;
+    foreach ( $relations as $relation ) {
+
+    }
     // Until there's a better way for addressing specific contestant names, using this:
-    $relation_type = "contestant_$slot";
     // Pull in the relation so we can delete it, then apply changes to the match object
-    $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', $relation_type)->execute();
-    relation_delete(array_pop($relations)->rid);
-    unset($this->contestantIds[$relation_type]);
-    $this->save();
+    //relation_delete(array_pop($relations)->rid);
+    //unset($this->contestantIds[$relation_type]);
+    //$this->save();
   }
 
 /**
@@ -490,6 +508,14 @@ class TourneyMatch extends TourneyEntity {
     $this->contestantIds = NULL;
   }
 
+/**
+ * Adds a contestant entity to an object by creating the necessary relation
+ *
+ * @param integer $slot
+ *   Contestant slot to target
+ * @param Object entity
+ *   Any type of entity to fill the target slot with
+ */
   public function addContestant($entity, $slot = NULL) {
     //@todo logic to remove existing conflicting contestant(s)
     $entity_keys = array(
@@ -523,10 +549,19 @@ class TourneyMatch extends TourneyEntity {
       else $loser = $entity;
     }
     // Another code-saving abstraction, use the handy new setContestant to easily apply the entities to their targets
+    krumo($this->nextMatch());
     $this->nextMatch()->addContestant($winner);
     if ( $this->nextMatch('loser') ) $this->nextMatch('loser')->addContestant($loser);
   }
 
+ /**
+  * Get this match's next match contestants go to when they either win or lose
+  *
+  * @param $direction
+  *   Either 'winner' or 'loser'
+  * @return $place
+  *   Match placement of the desired match, otherwise NULL 
+  */
   public function nextMatch($direction = 'winner') {
     return $this->getTournament()->getNextMatch($this, $direction);
   }
