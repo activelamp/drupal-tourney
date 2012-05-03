@@ -67,6 +67,7 @@ function tourney_tournament_type_form_submit(&$form, &$form_state) {
  * Form API submit callback for the delete button.
  */
 function tourney_tournament_type_form_submit_delete(&$form, &$form_state) {
+  drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
   $form_state['redirect'] = 'admin/structure/tournament/manage/' . $form_state['tourney_tournament_type']->type . '/delete';
 }
 
@@ -84,7 +85,7 @@ function tourney_admin_content() {
     'operations' => array('data' => t('Operations'), 'colspan' => '3'),
   );
 
-  // Grab all relations.
+  // Grab all tournaments.
   $query = db_select('tourney_tournament', 't')->extend('PagerDefault')->extend('TableSort');
   $query->fields('t', array('id', 'title', 'format', 'players', 'winner'))
     ->limit(50)
@@ -111,17 +112,20 @@ function theme_tourney_admin_content($variables) {
       array('data' => $message, 'colspan' => 8),
     );
   }
-  else foreach ( $tournaments as $tournament ) {
+  else foreach ($tournaments as $tournament) {
+    // $tournament is not a fully loaded object. Need to get the path via the
+    // static method on tournaments.
+    $uri = TourneyTournament::path($tournament->id);
     $rows[] = array(
-      l($tournament->id, 'tourney/' . $tournament->id),
-      l($tournament->title, 'tourney/' . $tournament->id),
+      l($tournament->id, $uri),
+      l($tournament->title, $uri),
       $tournament->format,
       $tournament->players,
       $tournament->winner,
-      user_access('access content') ? l(t('View'), 'tourney/' . $tournament->id . '') : '',
-      user_access('access content') ? l(t('Edit'), 'tourney/' . $tournament->id . '/edit') : '',
+      user_access('access tourney') ? l(t('View'), $uri . '') : '',
+      user_access('edit tourney') ? l(t('Edit'), $uri . '/edit') : '',
       //TODO : implement delete
-      user_access('access content') ? l(t('Delete'), 'tourney/' . $tournament->id . '/delete') : '',
+      user_access('delete tourney') ? l(t('Delete'), $uri . '/delete') : '',
     );
   }
 

@@ -12,6 +12,7 @@ class TourneyMatch extends TourneyEntity {
   public  $contestantIds = NULL;
   public  $contestant1 = NULL;
   public  $contestant2 = NULL;
+  public  $uri;
   // @todo: rename the variable below to $tournament when backwardCompatibility
   // is no longer being used.
   private $matchTournament = NULL;
@@ -24,10 +25,12 @@ class TourneyMatch extends TourneyEntity {
   public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
 
-    if ( property_exists($this, 'id') && $this->id ) {
+    if (property_exists($this, 'id') && $this->id) {
       $this->tournamentId = $this->getTournamentId();
       $this->gameIds = $this->getGameIds();
-    }
+      // Add a url to the object
+      $this->uri = $this->getUri();
+    }    
     
     // Remove this once I know for sure that modules aren't depending on
     // properties directly on the match object.
@@ -355,6 +358,20 @@ class TourneyMatch extends TourneyEntity {
   }
   
   /**
+    * Get the path to a tourney url without needing a tourney object loaded.
+    */
+  public static function path($id) {
+    return 'tourney/match/' . $id;
+  }
+
+  /**
+   * Return the uri to the entity object
+   */
+  public function getUri() {
+     return TourneyMatch::path($this->id);
+  }
+  
+  /**
    * Retrieve property. (Lazy load TourneyGame entities).
    *
    * @example
@@ -394,12 +411,12 @@ class TourneyMatch extends TourneyEntity {
     return $game;
   }
 
-/**
- * Checks the next matches to determine whether or not either has been started. If they have, the current match shouldn't be editable
- *
- * @return $locked
- *   Returns a bool detemining whether the current match can be edited
- */
+  /**
+   * Checks the next matches to determine whether or not either has been started. If they have, the current match shouldn't be editable
+   *
+   * @return $locked
+   *   Returns a bool detemining whether the current match can be edited
+   */
   public function isLocked() {
     $next_matches = array();
     // Get the next matches...

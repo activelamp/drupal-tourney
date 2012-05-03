@@ -93,10 +93,6 @@ class SingleElimination implements TourneyFactoryInterface {
     return $this->num_contestants;
   }
 
-  protected function set_message() {
-    drupal_set_message(check_plain(get_class($this) . ' with ' . $this->num_contestants . ' contestants and ' . $this->num_rounds . ' rounds.'));
-  }
-
   protected function build_round(&$matches, $contestants, $round, $bracket = 'top') {
     for ($match=1;$match<=$contestants/2;$match++) {
       $matches['round-' . $round]['match-' . $match] = array(
@@ -142,7 +138,6 @@ class SingleElimination implements TourneyFactoryInterface {
     $tournament->winner = $keys[0];
     //$tournament->tournamentWinner = $keys[0]; (is private);
     $tournament->save();
-    drupal_set_message(t('Tournament !format is complete!.', array('!format' => $tournament->format)), 'status');
 
     return $this;
   }

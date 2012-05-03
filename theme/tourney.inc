@@ -89,11 +89,12 @@ function theme_tourney_matchblock($vars) {
     }
   }
   $output .= '</div>';
-
-  return l($output, "tourney/match/{$match->id}" . ($editable ? "/edit" : ''), array(
+  
+  $match_uri = $match->getUri();
+  return l($output, $match_uri . ($editable ? "/edit" : ''), array(
     'html' => TRUE,
     'attributes' => array('class' => 'match-link'),
-    'query' => $editable ? array('destination' => "tourney/match/{$match->id}") : array()
+    'query' => $editable ? array('destination' => $match_uri) : array()
   ));
 }
 

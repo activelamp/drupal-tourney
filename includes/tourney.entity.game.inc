@@ -10,6 +10,7 @@ class TourneyGame extends TourneyEntity {
 
   public  $tournamentId = NULL;
   public  $matchId = NULL;
+  public  $uri;
   private $gameMatch = NULL;
   private $gameContestantIds = NULL;
   private $gameContestants = NULL;
@@ -20,9 +21,13 @@ class TourneyGame extends TourneyEntity {
   public function __construct($values = array(), $entityType = 'tourney_game') {
     parent::__construct($values, $entityType);
     
-    $this->tournamentId = $this->getTournamentId();
-    $this->matchId = $this->getMatchId();
-        
+    if (property_exists($this, 'id') && $this->id) {
+      $this->tournamentId = $this->getTournamentId();
+      $this->matchId = $this->getMatchId();
+      // Add a url to the object
+      $this->uri = $this->getUri();
+    }
+    
     // Remove this once I know for sure that modules aren't depending on
     // properties directly on the match object.
     if (variable_get('tourney_backward_compatibility', false)) {
@@ -188,5 +193,19 @@ class TourneyGame extends TourneyEntity {
     parent::save();
     cache_clear_all('tourney_winner_count_' . $this->getMatchId(), 'cache_tourney');
   }
+  
+  /**
+    * Get the path to a tourney url without needing a tourney object loaded.
+    */
+   public static function path($id) {
+     return 'tourney/game/' . $id;
+   }
+
+   /**
+    * Return the uri to the entity object
+    */
+   public function getUri() {
+     return TourneyGame::path($this->id);
+   }
 
 }

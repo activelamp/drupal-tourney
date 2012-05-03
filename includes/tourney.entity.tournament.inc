@@ -9,6 +9,7 @@ class TourneyTournament extends TourneyEntity {
 
   public  $matchIds = NULL;
   public  $gameIds = NULL;
+  public  $uri;
   private $tournamentStarted  = NULL;
   private $tournamentFinished = NULL;
   private $tournamentWinner = NULL;
@@ -29,12 +30,15 @@ class TourneyTournament extends TourneyEntity {
       if ($this->matches_created) {
         $this->matchIds = $this->getMatchIds();
         $this->gameIds = $this->getGameIds();
-      }      
+      }
       
       if (!class_exists($this->format)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }   
       $this->tourneyFormatPlugin = new $this->format($this->players);
+      
+      // Add a url to the object
+      $this->uri = $this->getUri();
     }
   }
 
@@ -187,6 +191,20 @@ class TourneyTournament extends TourneyEntity {
   }
   
   /**
+   * Get the path to a tourney url without needing a tourney object loaded.
+   */
+  public static function path($id) {
+    return 'tourney/tournament/' . $id;
+  }
+  
+  /**
+   * Return the uri to the entity object
+   */
+  public function getUri() {
+    return TourneyTournament::path($this->id);
+  }
+  
+  /**
    * Return all the matches that have a relation 'has_match' with the passed in
    * tournament object.
    *
@@ -247,23 +265,48 @@ class TourneyTournament extends TourneyEntity {
   /**
    * Delete a tournament.
    */
-   public function delete() {
-     // Find all the relationships to matches for this tournament.
-     $mquery = relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
-     $matches = $mquery->execute();
-     
-     // Build an array of stuff to delete.
-     foreach (array_keys($matches) as $rid) {
-       // Get all the match relations and matches and delete them.
-       $relation = relation_load($rid);
-       relation_delete($rid);
-       $match = tourney_match_load($relation->endpoints['und'][1]['entity_id']);
-       $match->delete();
-     }
-     
-     parent::delete();
-     drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
-   }
+  public function delete() {
+    // Find all the relationships to matches for this tournament.
+    $mquery = relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
+    $matches = $mquery->execute();
+
+    // Build an array of stuff to delete.
+    foreach (array_keys($matches) as $rid) {
+     // Get all the match relations and matches and delete them.
+     $relation = relation_load($rid);
+     relation_delete($rid);
+     $match = tourney_match_load($relation->endpoints['und'][1]['entity_id']);
+     $match->delete();
+    }
+
+    parent::delete();
+  }
+  
+  /**
+  * Save the entity
+  */
+  public function save() {
+    // Store the property in local variable.  The property is no longer there
+    // after the entity is initially saved.
+    // @todo: Change the is_new property if this entity patch gets in:
+    //   Patch at - http://drupal.org/node/1558266
+    $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
+    parent::save();
+    
+    // Set the uri
+    
+    // Create the matches and first game if new tournament.
+    if ($new) {
+      // Build a nested array of matches for the tournament being saved.
+      $matches = new TourneyFactory($this->players, $this->format);
+      $matches->create();
+      // Create the actual match entities and the first game.
+      $matches_created = $matches->save($this);
+      // Update the tournament with the number of matches created
+      $this->matches_created = $matches_created;
+      drupal_write_record('tourney_tournament', $this, 'id');
+    }
+  }
 
 
 /**
