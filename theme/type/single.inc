@@ -7,7 +7,7 @@
 function theme_tourney_render_tourney_single($vars) {
   extract($vars);
   drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
-  $rounds = array_values($matches['bracket-top']);
+  $rounds = array_values($matches['top']);
   $output = theme('tourney_single_tree', array('rounds' => $rounds, 'small' => $tournament->players > 8));
   return $output;
 }
@@ -66,7 +66,7 @@ function theme_tourney_single_tree($vars) {
 
         // Render the match itself, and a flow tail coming off of it
         $match_flow_tail = ( $last ? '' : ( $pad_rows == 0 ? 'bottomleft evenright,special,bottom' : 'bottomleft' ) );
-        $output .= theme('tourney_matchblock', array('match' => $match['match'], 'flow' => $match_flow_tail, 'small' => $small));
+        $output .= theme('tourney_matchblock', array('match' => $match, 'flow' => $match_flow_tail, 'small' => $small));
 
         if ($pad_rows && !$last) {
           // Render padding rows. These rows have flow lines in them.
@@ -98,7 +98,7 @@ function theme_tourney_single_tree($vars) {
 
         // Render the match, with a flow tail.
         $match_flow_tail = ( $last ? '' : ( $pad_rows == 0 ? 'topleft evenright,special' : 'topleft' ) );
-        $output .= theme('tourney_matchblock', array('match' => $match['match'], 'flow' => $match_flow_tail, 'small' => $small));
+        $output .= theme('tourney_matchblock', array('match' => $match, 'flow' => $match_flow_tail, 'small' => $small));
 
         // Close match pair div
         $output .= '</div></div>';  // <!-- /match-contestant /match-pair -->

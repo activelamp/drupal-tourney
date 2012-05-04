@@ -217,49 +217,28 @@ class TourneyTournament extends TourneyEntity {
    *   An array of all the rounds and matches.
    */
   function buildMatches($raw = FALSE, $reset = FALSE) {
-    if ($reset || !$cache = cache_get('tourney_build_matches_' . $this->id, 'tourney_cache')) {
-      $query = relation_query('tourney_tournament', $this->id);
-      $results = $query->entityCondition('bundle', 'has_match')
-                        ->range(0, $this->matches_created)
-                        ->execute();
+    $relations = relation_query('tourney_tournament', $this->id)
+      ->entityCondition('bundle', 'has_match')
+      ->execute();
 
-      $matches = $brackets = array();
-      foreach ($results as $id => $relation) {
-        $relation = relation_load($id);
-        $bracket = field_get_items('relation', $relation, 'bracket');
-        $round = field_get_items('relation', $relation, 'round');
-        $endpoints = field_get_items('relation', $relation, 'endpoints');
+    $brackets = array();
+    foreach ( $relations as $rid => $relation ) {
+      $relation = relation_load($rid);
+      $bracket  = $relation->bracket[LANGUAGE_NONE][0]['safe_value'];
+      $round    = $relation->round[LANGUAGE_NONE][0]['safe_value'];
 
-        $match = tourney_match_load($endpoints[1]['entity_id']);
-        $matches[] = $match;
+      $match    = $relation->endpoints[LANGUAGE_NONE][1]['entity_id'];
+      $match    = entity_load_single('tourney_match', $match);
 
-        if ($bracket[0]['safe_value'] && $round[0]['safe_value']) {
-          $brackets[$bracket[0]['safe_value']][$round[0]['safe_value']][$match->id] = array(
-            'match' => $match,
-            'games' => $match->getGames(),
-          );
-        }
-        elseif ($round[0]['safe_value']) {
-          $brackets[$round[0]['safe_value']][$match->id] = array(
-            'match' => $match,
-            'games' => $match->getGames(),
-          );
-        }
-        else {
-          $brackets[$match->id] = array(
-            'match' => $match,
-            'games' => $match->getGames(),
-          );
-        }
-      }
+      if ( !array_key_exists($bracket, $brackets) )
+        $brackets[$bracket] = array();
+      if ( !array_key_exists($round, $brackets[$bracket]) )
+        $brackets[$bracket][$round] = array();
 
-      cache_set('tourney_build_matches_' . $this->id . '_raw', $matches, 'cache_tourney');
-      cache_set('tourney_build_matches_' . $this->id, $brackets, 'cache_tourney');
-      return $raw ? $matches : $brackets;
+      $brackets[$bracket][$round][$match->entity_id] = $match;
     }
-    $cache_raw = cache_get('tourney_build_matches_' . $this->id . '_raw', 'cache_tourney');
-    return $raw ? $cache_raw->data : $cache->data;
 
+    return $brackets;
   }
   
   /**
@@ -298,10 +277,10 @@ class TourneyTournament extends TourneyEntity {
     // Create the matches and first game if new tournament.
     if ($new) {
       // Build a nested array of matches for the tournament being saved.
-      $matches = new TourneyFactory($this->players, $this->format);
-      $matches->create();
+      $factory = new TourneyFactory($this->players, $this->format);
+      $factory->create();
       // Create the actual match entities and the first game.
-      $matches_created = $matches->save($this);
+      $matches_created = $factory->save($this);
       // Update the tournament with the number of matches created
       $this->matches_created = $matches_created;
       drupal_write_record('tourney_tournament', $this, 'id');
@@ -358,12 +337,11 @@ class TourneyTournament extends TourneyEntity {
   public function getContestants() {
     // Take matches from only the first round, since those are the manually populated ones
     $bracket = array_shift($this->buildMatches());
-    $round = $bracket['round-1'];
+    $round = $bracket[1];
     // Set up two arrays to fill for seed order
     $seed_1 = array();
     $seed_2 = array();
     foreach ( $round as $match ) {
-      $match = $match['match'];
       $seed = 1;
       foreach ( $match->getContestants() as $eid => $contestant ) {
         $group = "seed_" . $seed++;
@@ -382,10 +360,11 @@ class TourneyTournament extends TourneyEntity {
  *   Keyed array with wins and losses
  */
   public function getStandings() {
-    $matches = $this->buildMatches(TRUE);
+    $matches = $this->getMatchIds();
     $standings = array();
     $i = 0;
     foreach ($matches as $match) {
+      $match = entity_load_single('tourney_match', $match);
       // If a match hasn't been won yet, don't count its games
       if ( !$match->getWinner() ) continue;
       foreach ( $match->getContestantIds() as $var => $contestant ) {

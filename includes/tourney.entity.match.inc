@@ -437,22 +437,11 @@ class TourneyMatch extends TourneyEntity {
   public function isLocked() {
     $next_matches = array();
     // Get the next matches...
-    if ($this->next_match_winner) {
-      $next_matches[] = $this->getTournament()->getMatchByName($this->next_match_winner);
-    }
-    if ($this->next_match_loser) {
-      $next_matches[] = $this->getTournament()->getMatchByName($this->next_match_loser);
-    }    
-    $locked = FALSE;
-    // Then check them all for games played
-    // If there is only one game, that means it hasn't been played into yet.
-    foreach ($next_matches as $next_match) {
-      // If a match has more than one game, then it's been started and this match cannot be changed
-      if (count($next_match->getGameIds()) > 1) {
-        $locked = TRUE;
-      }
-    }
-    return $locked;
+    if ( $this->getWinnerEntity() )
+      if ( count($this->getWinnerEntity()->getGameIds()) > 1 ) return TRUE;
+    if ( $this->getLoserEntity() )
+      if ( count($this->getLoserEntity()->getGameIds()) > 1 ) return TRUE;
+    return FALSE;
   }
 
 /**

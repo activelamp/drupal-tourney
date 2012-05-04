@@ -57,57 +57,33 @@ class TourneyFactory {
    */
   public function save($tournament) {
     $this->tournament = $tournament;
-    $this->save_match($this->matches);
+    $this->saveMatches($this->matches);
     return $this->match_count;
   }
 
-  private function save_match($matches) {
-    static $round;
-    static $bracket;
-    $identifiers = array('bracket', 'round');
-    foreach ($matches as $key => $value) {
-      foreach ($identifiers as $identifier) {
-        // We only want matches, but keep bracket and round metadata.
-        if (strpos($key, $identifier . '-') === 0 && is_array($value)) {
-          ${$identifier} = $key;
-        }
-      }
-      if (strpos($key, 'match-') !== 0 && is_array($value)) {
-        $this->save_match($value);
-      }
-      else {
-        // Build the match object to save
-        $values = array(
-          'type' => 'match',
-          'title' => $key,
-          'games' => variable_get('tourney_games_all', TOURNEY_GAMES),
-          'next_match_winner' => array_key_exists('winner', $value) ? $value['winner'] : '',
-          'next_match_loser' => array_key_exists('loser', $value) ? $value['loser'] : '',
-          'previous_match1' => array_key_exists('previous-1', $value) ? $value['previous-1'] : 'manual',
-          'previous_match2' => array_key_exists('previous-2', $value) ? $value['previous-2'] : 'manual',
-          'this_match' => array_key_exists('this_match', $value) ? $value['this_match'] : '',
-        );
-        $match = new TourneyMatch($values);
+  private function saveMatches($matches) {
+    foreach ( $matches as $mid => $match ) {
+      krumo($match);
+      $values = array(
+        'type' => 'match',
+        'title' => 'match-' . $match['match'],
+        'games' => variable_get('tourney_games_all', TOURNEY_GAMES),
+      );
+      $new_match = new TourneyMatch($values);
+      $new_match->save();
 
-        $match->save();
-        $this->match_count++;
+      $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
+      $relation = relation_load($rid);
+      $relation->bracket[LANGUAGE_NONE][0]['value'] = $match['bracket'];
+      $relation->round[LANGUAGE_NONE][0]['value'] = $match['round'];
+      relation_save($relation);
 
-        // Add the relationship to the tournament.
-        $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $match->id);
-        $relation = relation_load($rid);
-        $relation->bracket[LANGUAGE_NONE][0]['value'] = $bracket;
-        $relation->round[LANGUAGE_NONE][0]['value'] = $round;
-        relation_save($relation);
-
-        // Create the first game of the match
-        $game = new TourneyGame(array(
-          'type' => 'game',
-          'title' => 'game-1'));
-        $game->save();
-
-        // Add the relationship to the game.
-        $rid = tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
-      }
+      $game = new TourneyGame(array(
+        'type' => 'game',
+        'title' => 'game-1',
+      ));
+      $game->save();
+      tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
     }
   }
 }

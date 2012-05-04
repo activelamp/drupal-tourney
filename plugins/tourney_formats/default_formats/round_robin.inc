@@ -42,15 +42,10 @@ class RoundRobin implements TourneyFactoryInterface {
 
     for ($r=1;$r<=$rounds;$r++) {
       for ($m=1;$m<=$spots/2;$m++) {
-        $matches['bracket-roundrobin']['round-' . $r]['match-' . $m]['contestant-1'] = $r == 1 ? 'manual' : '';
-        $matches['bracket-roundrobin']['round-' . $r]['match-' . $m]['contestant-2'] = $r == 1 ? 'manual' : '';
-
-        $matches = $this->set_match_path($matches, $r, $m);
+        $matches[] = array('bracket' => 'roundrobin', 'round' => $r, 'match' => $m);
       }
     }
-    return array(
-      'bracket-roundrobin' => $matches,
-    );
+    return $matches;
   }
 
   /**

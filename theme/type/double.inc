@@ -8,28 +8,28 @@ function theme_tourney_render_tourney_double($vars) {
   extract($vars);
   drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/double.js');
   $output = '';
-  if (!empty($matches['bracket-top'])  || !empty($matches['bracket-bottom'])) {
+  if (!empty($matches['top'])  || !empty($matches['bottom'])) {
     $output .= '<div class="bracket bracket-wrapper">';
 
-    if (!empty($matches['bracket-top'])) {
+    if (!empty($matches['top'])) {
       $output .= '<div class="bracket bracket-top">';
-      $output .=   theme('tourney_dummy_rounds', array('count' => count($matches['bracket-bottom']) - count($matches['bracket-top']), 'height' => $tournament->players));
-      $output .=   theme('tourney_double_top_bracket', array('rounds' => array_values($matches['bracket-top'])));
+      $output .=   theme('tourney_dummy_rounds', array('count' => count($matches['bottom']) - count($matches['top']), 'height' => $tournament->players));
+      $output .=   theme('tourney_double_top_bracket', array('rounds' => array_values($matches['top'])));
       $output .= '</div>';
     }
 
-    if (!empty($matches['bracket-bottom'])) {
+    if (!empty($matches['bottom'])) {
       $output .= '<div class="bracket bracket-bottom">';
-      $output .=   theme('tourney_double_bottom_bracket', array('rounds' => array_values($matches['bracket-bottom'])));
+      $output .=   theme('tourney_double_bottom_bracket', array('rounds' => array_values($matches['bottom'])));
       $output .= '</div>';
     }
 
     $output .= '</div>';
   }
 
-  if (!empty($matches['bracket-champion'])) {
+  if (!empty($matches['champion'])) {
     $output .= '<div class="bracket bracket-champion">';
-    $output .=   theme('tourney_double_champion_bracket', array('tournament' => $tournament, 'rounds' => array_values($matches['bracket-champion'])));
+    $output .=   theme('tourney_double_champion_bracket', array('tournament' => $tournament, 'rounds' => array_values($matches['champion'])));
     $output .= '</div>';
   }
   return $output;
@@ -48,7 +48,7 @@ function theme_tourney_double_top_bracket($vars) {
   $round = reset($rounds);
   $match = reset($round);
   $views = FALSE;
-  if ( property_exists($match['match']->getTournament(), 'views') && $match['match']->getTournament()->views == TRUE ) $views = TRUE;
+  if ( property_exists($match->getTournament(), 'views') && $match->getTournament()->views == TRUE ) $views = TRUE;
 
   // Note: copied with remarkable shamelessness from tourney_single_tree().
   // One alteration is rendering an extra flow line from the last round to
@@ -110,7 +110,7 @@ function theme_tourney_double_top_bracket($vars) {
         if ( $last && $views ) $match_flow_tail = NULL;
         //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
         $output .= theme('tourney_matchblock', array(
-          'match' => $match['match'],
+          'match' => $match,
           'flow' => $match_flow_tail,
           'small' => $small,
         ));
@@ -160,7 +160,7 @@ function theme_tourney_double_top_bracket($vars) {
         }
         //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
         $output .= theme('tourney_matchblock', array(
-          'match' => $match['match'],
+          'match' => $match,
           'flow' => $match_flow_tail,
           'small' => $small,
         ));
@@ -185,7 +185,7 @@ function theme_tourney_double_bottom_bracket($vars) {
   $round = reset($rounds);
   if ( !$round ) $round = next($rounds); 
   $match = reset($round);
-  if ( property_exists($match['match']->getTournament(), 'views') && $match['match']->getTournament()->views == TRUE ) $views = TRUE;
+  if ( property_exists($match->getTournament(), 'views') && $match->getTournament()->views == TRUE ) $views = TRUE;
 
   foreach ( $rounds as $r => $round ) {
     /*
@@ -282,7 +282,7 @@ function theme_tourney_double_bottom_bracket($vars) {
         }
         //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
         $output .= theme('tourney_matchblock', array(
-          'match' => $match['match'],
+          'match' => $match,
           'flow' => $match_flow_tail,
           'small' => $small,
         ));
@@ -338,7 +338,7 @@ function theme_tourney_double_bottom_bracket($vars) {
         }
         //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
         $output .= theme('tourney_matchblock', array(
-          'match' => $match['match'],
+          'match' => $match,
           'flow' => $match_flow_tail,
           'small' => $small,
         ));
@@ -360,9 +360,7 @@ function theme_tourney_double_champion_bracket($vars) {
   if ( property_exists($tournament, 'views') &&  $tournament->views == TRUE ) $tournament->players = 1;
 
   $champ = array_pop($rounds[0]);
-  $champ = $champ['match'];
   $extra = array_pop($rounds[1]);
-  $extra = $extra['match'];
 
   // Top padding is number of players minus one. We want to line this up at the
   // bottom of the top bracket, so we add padding the height of the top bracket.
