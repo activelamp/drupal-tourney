@@ -22,13 +22,11 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
 
 
   /**
-   * Figure out how many rounds there should be based on $num_contestants,
-   * then loop through and build all rounds.
+   * Build the double elim, calling the SingleElim build for its top bracket and
+   * internal buildBottomBracket for its bottom.
    *
-   * @param $num_contestants
-   *   The number of contestants in the first round of top bracket
    * @return $matches
-   *   The matches array completely built out.
+   *   An array containing all matches.
    */
   public function build() {
     $matches = parent::build();
@@ -39,11 +37,21 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
     return $this->matches;
   }
 
+  /**
+   * Build the double elim bottom bracket
+   *
+   * @return $matches
+   *   The bottom bracket matches array
+   */
   protected function buildBottomBracket() {
     $matches = array();
+    // Rounds is a certain number, 2, 4, 6, based on the contestants participating
     $rounds = ( log($this->contestants, 2) - 1 ) * 2;
     foreach ( range(1, $rounds) as $round ) {
+      // Bring the round number down to a unique number per group of two
       $er = ceil($round/2);
+      // Matches is a certain number based on the round number and contestants
+      // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
       $m = $this->contestants / pow(2, $er+1);
       foreach ( range(1, $m) as $match ) {
         $matches[] = array('bracket' => 'bottom', 'round' => $round, 'match' => $match);

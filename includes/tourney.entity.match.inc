@@ -538,7 +538,6 @@ class TourneyMatch extends TourneyEntity {
       else $loser = $entity;
     }
     // Another code-saving abstraction, use the handy new setContestant to easily apply the entities to their targets
-    krumo($this->nextMatch());
     $this->nextMatch()->addContestant($winner);
     if ( $this->nextMatch('loser') ) $this->nextMatch('loser')->addContestant($loser);
   }

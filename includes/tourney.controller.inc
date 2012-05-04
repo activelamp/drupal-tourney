@@ -61,9 +61,14 @@ class TourneyFactory {
     return $this->match_count;
   }
 
+  /**
+   * Loops through all the built match elements and creates new matches, along with their initial games and appropriate relations.
+   *
+   * @param $matches
+   *   List of matches built by a factory::build() method.
+   */
   private function saveMatches($matches) {
     foreach ( $matches as $mid => $match ) {
-      krumo($match);
       $values = array(
         'type' => 'match',
         'title' => 'match-' . $match['match'],
@@ -72,12 +77,14 @@ class TourneyFactory {
       $new_match = new TourneyMatch($values);
       $new_match->save();
 
+      // Create the Tourney/Match relation and save bracket and round data to it
       $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
       $relation = relation_load($rid);
       $relation->bracket[LANGUAGE_NONE][0]['value'] = $match['bracket'];
       $relation->round[LANGUAGE_NONE][0]['value'] = $match['round'];
       relation_save($relation);
 
+      // Create the Match/Game relation
       $game = new TourneyGame(array(
         'type' => 'game',
         'title' => 'game-1',

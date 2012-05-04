@@ -27,7 +27,7 @@ class SingleElimination implements TourneyFactoryInterface {
   }
 
   /**
-   * Build the nested matches array with all possible matches.
+   * Build the Single Elimination matchlist
    *
    * @return $matches
    *   The matches array completely built out.
@@ -42,15 +42,26 @@ class SingleElimination implements TourneyFactoryInterface {
     return $this->matches;
   }
 
+  /**
+   * Rounds contestants up to the nearest power of two, and also sets and returns the number of rounds
+   *
+   * @return $rounds
+   *   Number of rounds needed from the given contestants
+   */
   public function calculateRounds($contestants = NULL) {
+    // Populate contestants with our internal value if no argument given
     if ( $contestants == NULL ) $contestants = $this->contestants; 
+    // @todo: perhaps change this to a maximum contestants with validation to keep it a power of two?
     $max_contestants = pow(2, MAXIMUM_ROUNDS);
+    // Display an error if the maximum was pushed over
     if ( $contestants > $max_contestants ) {
       drupal_set_message(check_plain(t('Tournaments can only be !num rounds at the most with !player contestants. Some teams will not be able to play.', 
         array('!num' => MAXIMUM_ROUNDS, '!player' => $maximum_contestants))), 'warning');
       $contestants = $max_contestants;
     }
+    // ceil(log2(n)) will get up the minimum number of rounds required for n contestants 
     $this->rounds = ceil(log($contestants, 2));
+    // The rounded round count will reaffirm our contestants are a power of two
     $this->contestants = pow(2, $this->rounds);
     return $this->rounds;
   }
