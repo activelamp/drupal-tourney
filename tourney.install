@@ -392,3 +392,25 @@ function tourney_update_7001(&$sandbox) {
   field_create_instance($field_instance);
 }
 
+/**
+ * Update the format column in tourney table with new class name.
+ */
+function tourney_update_7002() {
+  // Append the word controller to any tournament formats that do not already 
+  // have it.
+  $rows = db_query("SELECT id, format FROM {tourney_tournament} 
+    WHERE format NOT LIKE '%Controller'")->fetchAll();
+  
+  // Update each row
+  foreach ($rows as $row) {
+    $num_updated = db_update('tourney_tournament') // Table name no longer needs {}
+      ->fields(array(
+        'format' => $row->format . 'Controller',
+      ))
+      ->condition('id', $row->id)
+      ->execute();
+  }
+  
+  return t('Tournament formats updated successfully.');
+}
+

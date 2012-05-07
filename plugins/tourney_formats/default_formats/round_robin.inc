@@ -8,8 +8,9 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class RoundRobinController extends ToruneyController implements TourneyControllerInterface {
 
+class RoundRobinController extends TourneyController implements TourneyControllerInterface {
+  
   protected $slots;
   protected $contestants;
   protected $matches;
