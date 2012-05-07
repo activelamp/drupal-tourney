@@ -129,7 +129,7 @@ function tourney_action_game_is_won($match, $quotient) {
       $message = t('A new game has been created: !game', array('!game' => l($game->title, 'tourney/game/' . $game->id)));
     }
   }
-  elseif ($match->getTournament()->format != 'RoundRobin') {
+  elseif ($match->getTournament()->format != 'RoundRobinController') {
     // Clear the gameIds so they can be reloaded
     $match->gameIds = NULL;
     // Check all our games starting from the back to find the games that haven't been won

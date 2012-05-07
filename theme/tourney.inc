@@ -16,9 +16,9 @@
 function theme_tourney_render_tourney($vars) {
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $types = array(
-    'SingleElimination' => 'single',
-    'DoubleElimination' => 'double',
-    'RoundRobin'        => 'roundrobin',
+    'SingleEliminationController' => 'single',
+    'DoubleEliminationController' => 'double',
+    'RoundRobinController'        => 'roundrobin',
   );
   $tournament = $vars['tournament'];
   $format = $types[$tournament->format];

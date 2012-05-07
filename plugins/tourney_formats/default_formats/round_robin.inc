@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class RoundRobin implements TourneyFactoryInterface {
+class RoundRobinController extends TourneyController implements TourneyControllerInterface {
 
   protected $num_contestants;
   protected $matches;

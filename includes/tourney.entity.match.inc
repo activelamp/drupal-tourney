@@ -225,9 +225,12 @@ class TourneyMatch extends TourneyEntity {
    * Helper getters
    */
   public function getWinnerEntity() {
-    if ( !$this->getWinner() ) return NULL;
+    if (!$this->getWinner()) {
+      return NULL;
+    }
     return entity_load_single_by_eid($this->getWinner());
   }
+  
   public function getLoserEntity() {
     if ( !$this->getWinner() ) return NULL;
     foreach ( $this->getContestantIds() as $contestant ) {
@@ -429,7 +432,8 @@ class TourneyMatch extends TourneyEntity {
   }
 
   /**
-   * Checks the next matches to determine whether or not either has been started. If they have, the current match shouldn't be editable
+   * Checks the next matches to determine whether or not either has been started.
+   * If they have, the current match shouldn't be editable
    *
    * @return $locked
    *   Returns a bool detemining whether the current match can be edited
@@ -437,11 +441,22 @@ class TourneyMatch extends TourneyEntity {
   public function isLocked() {
     $next_matches = array();
     // Get the next matches...
-    if ( $this->getWinnerEntity() )
-      if ( count($this->getWinnerEntity()->getGameIds()) > 1 ) return TRUE;
-    if ( $this->getLoserEntity() )
-      if ( count($this->getLoserEntity()->getGameIds()) > 1 ) return TRUE;
-    return FALSE;
+    if ($this->next_match_winner) {
+      $next_matches[] = $this->getTournament()->getMatchByName($this->next_match_winner);
+    }
+    if ($this->next_match_loser) {
+      $next_matches[] = $this->getTournament()->getMatchByName($this->next_match_loser);
+    }    
+    $locked = FALSE;
+    // Then check them all for games played
+    // If there is only one game, that means it hasn't been played into yet.
+    foreach ($next_matches as $next_match) {
+      // If a match has more than one game, then it's been started and this match cannot be changed
+      if (count($next_match->getGameIds()) > 1) {
+        $locked = TRUE;
+      }
+    }
+    return $locked;
   }
 
 /**
@@ -471,7 +486,8 @@ class TourneyMatch extends TourneyEntity {
   }
 
 /**
- * Automatically populate the next matches to this match with the necessary contestants by adding the relation
+ * Automatically populate the next matches to this match with the necessary 
+ * contestants by adding the relation
  *
  * @param integer $slot
  *   Contestant slot to target
@@ -523,21 +539,24 @@ class TourneyMatch extends TourneyEntity {
  * Automatically populate the next matches to this match with the necessary contestants 
  */
   public function moveContestants() {
-    // If this match hasn't been won, we shouldn't be doing anything with the next matches.
+    // If this match hasn't been won, we shouldn't be doing anything with the 
+    // next matches.
     if ( !$this->isFinished() ) return;
     // Set the matchWinner back to NULL so it has to be reloaded
     $this->matchWinner = NULL;
     // Instantiate the two origin contestants
     $winner = NULL;
     $loser  = NULL;
-    // This loop goes through 'all' the contestants and fills them in the appropriate winner/loser variables
-    // Since we've only got two contestants, it's just a glorified abstraction in case we have more contestants later
+    // This loop goes through 'all' the contestants and fills them in the 
+    // appropriate winner/loser variables. Since we've only got two contestants,
+    // it's just a glorified abstraction in case we have more contestants later
     foreach ( $this->getContestantIds() as $slot => $contestant ) {
       $entity = entity_load_single($contestant['type'], $contestant['id']);
       if ( $this->getWinner() == $contestant['eid'] ) $winner = $entity;
       else $loser = $entity;
     }
-    // Another code-saving abstraction, use the handy new setContestant to easily apply the entities to their targets
+    // Another code-saving abstraction, use the handy new setContestant to easily 
+    // apply the entities to their targets
     $this->nextMatch()->addContestant($winner);
     if ( $this->nextMatch('loser') ) $this->nextMatch('loser')->addContestant($loser);
   }

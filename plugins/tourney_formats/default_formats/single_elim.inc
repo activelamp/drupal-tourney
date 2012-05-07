@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class SingleElimination implements TourneyFactoryInterface {
+class SingleEliminationController extends TourneyController implements TourneyControllerInterface {
 
   protected $contestants;
   protected $rounds;

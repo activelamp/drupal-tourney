@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class DoubleElimination extends SingleElimination implements TourneyFactoryInterface {
+class DoubleEliminationController extends SingleEliminationController implements TourneyControllerInterface {
 
   protected $num_bottom_rounds;
   // Set a variable when contestants in round are from the same bracket.
@@ -66,7 +66,7 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
    * If the top two ranking contestants are not tied in their number of wins
    * then we do not require the final match to be finished.
    *
-   * @see SingleElimination::isFinished().
+   * @see SingleEliminationController::isFinished().
    */
   public function isFinished($tournament) {
     $finished = parent::isFinished($tournament);

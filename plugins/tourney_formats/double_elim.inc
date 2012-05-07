@@ -14,7 +14,7 @@ $plugin = array(
   'description' => t('This is the description of the tournament'),
   'weight' => 1,
   'total games' => 5,
-  'controller' => 'DoubleElimination',
+  'controller' => 'DoubleEliminationController',
 );
 
 // Define any classes below to extend default functionality in the controllers.
