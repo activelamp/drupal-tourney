@@ -12,7 +12,7 @@ define('MAXIMUM_ROUNDS', 5);
  * A Default factory for building matches and the first game of a match for a
  * tourney tournament.
  */
-class TourneyFactory {
+class TourneyController {
 
   protected $num_contestants;
   protected $match_style;
@@ -31,11 +31,11 @@ class TourneyFactory {
     }
     
     $interfaces = class_implements($match_style);
-    if (isset($interfaces['TourneyFactoryInterface'])) {
+    if (isset($interfaces['TourneyControllerInterface'])) {
       $this->match_style = new $match_style($num_contestants);
     }
     else {
-      trigger_error(check_plain(t('Unable to create !match_style matches. Class does not implement TourneyFactoryInterface.', array('!match_style' => $match_style))), E_USER_ERROR);
+      trigger_error(check_plain(t('Unable to create !match_style matches. Class does not implement TourneyControllerInterface.', array('!match_style' => $match_style))), E_USER_ERROR);
     }
   }
 
@@ -98,7 +98,7 @@ class TourneyFactory {
 /**
  * Default interface for any classes that will define a match style.
  */
-interface TourneyFactoryInterface {
+interface TourneyControllerInterface {
   /**
    * Builds the array structure for all matches to be created.
    */

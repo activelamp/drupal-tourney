@@ -8,17 +8,20 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class RoundRobin implements TourneyFactoryInterface {
+class RoundRobinController extends ToruneyController implements TourneyControllerInterface {
 
-  protected $num_contestants;
+  protected $slots;
+  protected $contestants;
   protected $matches;
-  protected $spots;
 
   /**
    * Constructor
    */
-  public function __construct($num_contestants) {
-    $this->num_contestants = $num_contestants;
+  public function __construct($contestants) {
+    $this->contestants = $contestants;
+    // Ensure we have an even number of slots
+    $slots = $this->contestants % 2 ? $this->contestants + 1 : $this->contestants;
+    $this->slots = $slots;
   }
 
   /**
@@ -33,15 +36,11 @@ class RoundRobin implements TourneyFactoryInterface {
    */
   public function build() {
     $matches = array();
-    // Ensure we have an even number of spots
-    $spots = $this->num_contestants % 2 ? $this->num_contestants + 1 : $this->num_contestants;
-    $this->spots = $spots;
-
     // Number of rounds is (n - 1), n being contestants
-    $rounds = $spots - 1;
+    $rounds = $this->slots - 1;
 
     for ($r=1;$r<=$rounds;$r++) {
-      for ($m=1;$m<=$spots/2;$m++) {
+      for ($m=1;$m<=$this->slots/2;$m++) {
         $matches[] = array('bracket' => 'roundrobin', 'round' => $r, 'match' => $m);
       }
     }
@@ -50,20 +49,20 @@ class RoundRobin implements TourneyFactoryInterface {
 
   /**
    * Figure out where each team needs to go next based on standard round robin
-   * logic. Build the array that determines the placeholder spots.
+   * logic. Build the array that determines the placeholder slots.
    *
-   * @param $spots
+   * @param $slots
    *   The (even) number of players in the tournament.
    */
-  private function placeholders($spots) {
+  private function placeholders($slots) {
     static $placeholders = array();
 
     if (empty($placeholders)) {
-      $num_rounds = $spots - 1;
+      $num_rounds = $slots - 1;
       $rounds = array();
 
       for ($round = 0; $round < $num_rounds; $round++) {
-        for ($index = 0; $index < $spots / 2; $index++) {
+        for ($index = 0; $index < $slots / 2; $index++) {
 
           // Create the ascending array value
           $local_key = ($index != 0) * ($index - $round) +
@@ -95,9 +94,9 @@ class RoundRobin implements TourneyFactoryInterface {
    * @todo Fix the name of the db column paths so that they are named more generic.
    */
   protected function set_match_path($matches, $current_round, $current_match) {
-    $rounds = $this->spots - 1;
+    $rounds = $this->slots - 1;
     if ($current_round < $rounds) {
-      $placeholders = $this->placeholders($this->spots);
+      $placeholders = $this->placeholders($this->slots);
 
       $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['winner'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][0]);
       $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['loser'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][1]);
@@ -118,7 +117,7 @@ class RoundRobin implements TourneyFactoryInterface {
    *   Returns a full path string to the next placement.
    */
   private function find_next($round, $placeholder_value) {
-    $placeholders = $this->placeholders($this->spots);
+    $placeholders = $this->placeholders($this->slots);
     foreach ($placeholders[$round] as $key => $matches) {
       $pos = array_search($placeholder_value, $matches);
       if ($pos !== FALSE) {

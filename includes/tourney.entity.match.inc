@@ -231,7 +231,7 @@ class TourneyMatch extends TourneyEntity {
   public function getLoserEntity() {
     if ( !$this->getWinner() ) return NULL;
     foreach ( $this->getContestantIds() as $contestant ) {
-      if ( $contestant['eid'] !== $winner ) 
+      if ( $contestant['eid'] !== $this->getWinner() ) 
         return entity_load_single_by_eid($contestant['eid']);
     }
     return NULL;
@@ -435,12 +435,11 @@ class TourneyMatch extends TourneyEntity {
    *   Returns a bool detemining whether the current match can be edited
    */
   public function isLocked() {
-    $next_matches = array();
     // Get the next matches...
     if ( $this->getWinnerEntity() )
-      if ( count($this->getWinnerEntity()->getGameIds()) > 1 ) return TRUE;
+      if ( count($this->nextMatch('winner')->getGameIds()) > 1 ) return TRUE;
     if ( $this->getLoserEntity() )
-      if ( count($this->getLoserEntity()->getGameIds()) > 1 ) return TRUE;
+      if ( count($this->nextMatch('loser')->getGameIds()) > 1 ) return TRUE;
     return FALSE;
   }
 

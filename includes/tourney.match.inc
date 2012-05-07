@@ -235,14 +235,10 @@ function _tourney_match_contestants_sanitize($match, &$options) {
   $matches = tourney_match_load_multiple($match_ids);
 
   // Unset users in the options array that are already selected
-  foreach ($matches as $match) {
-    foreach ( array(1, 2) as $i ) {
-      if (is_object($match->getContestant($i))) {
-        foreach (array_keys($options) as $group) {
-          if (is_array($options[$group]) && array_key_exists($match->getContestant($i)->eid, $options[$group])) {
-            unset($options[$group][$match->getContestant($i)->eid]);
-          }
-        }
+  foreach ($match->getTournament()->getContestants() as $eid => $contestant ) {
+    foreach (array_keys($options) as $group) {
+      if (is_array($options[$group]) && array_key_exists($eid, $options[$group])) {
+        unset($options[$group][$eid]);
       }
     }
   }

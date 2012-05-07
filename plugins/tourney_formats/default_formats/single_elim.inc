@@ -8,9 +8,9 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class SingleElimination implements TourneyFactoryInterface {
+class SingleEliminationController extends TourneyController implements TourneyControllerInterface {
 
-  protected $contestants;
+  protected $slots;
   protected $rounds;
   protected $matches;
 
@@ -35,7 +35,7 @@ class SingleElimination implements TourneyFactoryInterface {
   public function build() {
     $matches = array();
     foreach ( range(1, $this->rounds) as $round ) {
-      foreach ( range(1, $this->contestants / pow(2, $round)) as $match )
+      foreach ( range(1, $this->slots / pow(2, $round)) as $match )
         $matches[] = array('bracket' => 'top', 'round' => $round, 'match' => $match);
     }
     $this->matches = $matches;
@@ -50,7 +50,7 @@ class SingleElimination implements TourneyFactoryInterface {
    */
   public function calculateRounds($contestants = NULL) {
     // Populate contestants with our internal value if no argument given
-    if ( $contestants == NULL ) $contestants = $this->contestants; 
+    if ( $contestants == NULL ) $contestants = $this->slots; 
     // @todo: perhaps change this to a maximum contestants with validation to keep it a power of two?
     $max_contestants = pow(2, MAXIMUM_ROUNDS);
     // Display an error if the maximum was pushed over
@@ -62,7 +62,7 @@ class SingleElimination implements TourneyFactoryInterface {
     // ceil(log2(n)) will get up the minimum number of rounds required for n contestants 
     $this->rounds = ceil(log($contestants, 2));
     // The rounded round count will reaffirm our contestants are a power of two
-    $this->contestants = pow(2, $this->rounds);
+    $this->slots = pow(2, $this->rounds);
     return $this->rounds;
   }
 
@@ -129,7 +129,7 @@ class SingleElimination implements TourneyFactoryInterface {
   */
   public function getNextMatch($place, $direction = NULL) {
     // @todo find a better way to count matches
-    $matches = $this->contestants - 1;
+    $matches = $this->slots - 1;
     // If it's the last match, it doesn't go anywhere
     if ( $place == $matches - 1 ) return NULL;
     // Otherwise some math!

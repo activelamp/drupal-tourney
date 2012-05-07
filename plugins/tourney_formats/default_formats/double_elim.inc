@@ -8,18 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class DoubleElimination extends SingleElimination implements TourneyFactoryInterface {
-
-  protected $num_bottom_rounds;
-  // Set a variable when contestants in round are from the same bracket.
-  private $same_bracket = TRUE;
-  // Track round numbers that new contestants not from the same bracket enter
-  // the round.
-  private $bracket_alignment = array();
-
-  private $top_bracket;
-  private $bottom_bracket;
-
+class DoubleEliminationController extends SingleEliminationController implements TourneyControllerInterface {
 
   /**
    * Build the double elim, calling the SingleElim build for its top bracket and
@@ -46,13 +35,13 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
   protected function buildBottomBracket() {
     $matches = array();
     // Rounds is a certain number, 2, 4, 6, based on the contestants participating
-    $rounds = ( log($this->contestants, 2) - 1 ) * 2;
+    $rounds = ( log($this->slots, 2) - 1 ) * 2;
     foreach ( range(1, $rounds) as $round ) {
       // Bring the round number down to a unique number per group of two
       $er = ceil($round/2);
-      // Matches is a certain number based on the round number and contestants
+      // Matches is a certain number based on the round number and slots
       // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
-      $m = $this->contestants / pow(2, $er+1);
+      $m = $this->slots / pow(2, $er+1);
       foreach ( range(1, $m) as $match ) {
         $matches[] = array('bracket' => 'bottom', 'round' => $round, 'match' => $match);
       }
@@ -66,7 +55,7 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
    * If the top two ranking contestants are not tied in their number of wins
    * then we do not require the final match to be finished.
    *
-   * @see SingleElimination::isFinished().
+   * @see SingleEliminationController::isFinished().
    */
   public function isFinished($tournament) {
     $finished = parent::isFinished($tournament);
@@ -100,10 +89,10 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
   */
   public function getNextMatch($place, $direction = 'winner') {
     // @todo find a better way to count matches
-    $contestants = $this->contestants;
+    $slots = $this->slots;
     // Set up our handy values
-    $matches = $contestants * 2 - 1;
-    $top_matches = $contestants - 1;
+    $matches = $slots * 2 - 1;
+    $top_matches = $slots - 1;
     $bottom_matches = $top_matches - 1;
 
     if ( $direction == 'winner' ) {
@@ -130,7 +119,7 @@ class DoubleElimination extends SingleElimination implements TourneyFactoryInter
       // Top Bracket
       if ( $place < $top_matches ) {
         // If we're in the first round of matches, it's rather simple
-        if ( $place < $contestants / 2 ) 
+        if ( $place < $slots / 2 ) 
           return parent::getNextMatch($place) + ($bottom_matches/2);          
         // Otherwise, more magical math to determine placement
         return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));

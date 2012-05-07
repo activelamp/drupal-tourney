@@ -14,5 +14,5 @@ $plugin = array(
   'description' => t('This is the description of the tournament'),
   'weight' => 0,
   'total games' => 5,
-  'controller' => 'SingleElimination',
+  'controller' => 'SingleEliminationController',
 );

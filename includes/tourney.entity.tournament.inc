@@ -277,7 +277,7 @@ class TourneyTournament extends TourneyEntity {
     // Create the matches and first game if new tournament.
     if ($new) {
       // Build a nested array of matches for the tournament being saved.
-      $factory = new TourneyFactory($this->players, $this->format);
+      $factory = new TourneyController($this->players, $this->format);
       $factory->create();
       // Create the actual match entities and the first game.
       $matches_created = $factory->save($this);
