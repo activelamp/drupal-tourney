@@ -23,4 +23,4 @@ files[] = plugins/tourney_formats/default_formats/ladder.inc
 ; Views handlers
 files[] = views/handlers/tourney_handler_match_tree.inc
 files[] = views/handlers/tourney_plugin_style_tournament.inc
-files[] = views/handlers/tourney_handler_object_property.inc
+files[] = views/handlers/tourney_handler_field_object_property.inc

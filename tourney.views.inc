@@ -36,19 +36,18 @@ function tourney_views_data_alter(&$data) {
   // Define the field for the gameIds on the match object
   $data['tourney_match']['game_ids'] = array(
     'title' => t('Game Ids'),
-    'help' => t('An array of game ids for the match'),
+    'help' => t('An array of game ids loaded on the match object'),
     'field' => array(
-      'handler' => 'tourney_handler_object_property',
+      'handler' => 'tourney_handler_field_object_property',
     ),
   );
   $data['tourney_match']['tournament_id'] = array(
     'title' => t('Tournament Id'),
-    'help' => t('The tournament id for the match'),
+    'help' => t('The tournament id loaded on the match object'),
     'field' => array(
-      'handler' => 'tourney_handler_object_property',
+      'handler' => 'tourney_handler_field_object_property',
     ),
   );
-  dpm($data['tourney_tournament']);
 }
 
 function tourney_views_plugins() {
