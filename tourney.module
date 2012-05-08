@@ -132,6 +132,84 @@ function tourney_menu() {
 }
 
 /**
+ * Implements hook_menu_alter().
+ */
+function tourney_menu_alter(&$items) {
+  // Only alter when devel is available.
+  if (isset($items['node/%node/devel'])) {
+    // tourney_tournament entities.
+    $items['tourney/tournament/%tourney_tournament/devel'] = array(
+      'title' => 'Devel',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_tournament', 1),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    $items['tourney/tournament/%tourney_tournament/devel/load'] = array(
+      'title' => 'Load',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['tourney/tournament/%tourney_tournament/devel/render'] = array(
+      'title' => 'Render',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_tournament', 1),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    // tourney_match entities.
+    $items['tourney/match/%tourney_match/devel'] = array(
+      'title' => 'Devel',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_match', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    $items['tourney/match/%tourney_match/devel/load'] = array(
+      'title' => 'Load',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['tourney/match/%tourney_match/devel/render'] = array(
+      'title' => 'Render',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_match', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    // tourney_game entities.
+    $items['tourney/game/%tourney_match/devel'] = array(
+      'title' => 'Devel',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_game', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    $items['tourney/match/%tourney_match/devel/load'] = array(
+      'title' => 'Load',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['tourney/match/%tourney_game/devel/render'] = array(
+      'title' => 'Render',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_game', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+  }
+}
+
+/**
  * Implements hook_admin_paths().
  */
 function tourney_admin_paths() {
@@ -760,7 +838,7 @@ function tourney_tournament_calc_winner($tournaments, &$winners = array()) {
       throw new Exception(t('No such claass'));
     }
     $interfaces = class_implements($match_style);
-    if (!isset($interfaces['TourneyFactoryInterface'])) {
+    if (!isset($interfaces['TourneyControllerInterface'])) {
       throw new Exception(t('Wrong implementation.'));
     }
 

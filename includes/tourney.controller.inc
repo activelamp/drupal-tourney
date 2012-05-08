@@ -12,7 +12,7 @@ define('MAXIMUM_ROUNDS', 5);
  * A Default factory for building matches and the first game of a match for a
  * tourney tournament.
  */
-class TourneyFactory {
+class TourneyController {
 
   protected $num_contestants;
   protected $match_style;
@@ -31,11 +31,11 @@ class TourneyFactory {
     }
     
     $interfaces = class_implements($match_style);
-    if (isset($interfaces['TourneyFactoryInterface'])) {
+    if (isset($interfaces['TourneyControllerInterface'])) {
       $this->match_style = new $match_style($num_contestants);
     }
     else {
-      trigger_error(check_plain(t('Unable to create !match_style matches. Class does not implement TourneyFactoryInterface.', array('!match_style' => $match_style))), E_USER_ERROR);
+      trigger_error(check_plain(t('Unable to create !match_style matches. Class does not implement TourneyControllerInterface.', array('!match_style' => $match_style))), E_USER_ERROR);
     }
   }
 
@@ -57,57 +57,40 @@ class TourneyFactory {
    */
   public function save($tournament) {
     $this->tournament = $tournament;
-    $this->save_match($this->matches);
+    $this->saveMatches($this->matches);
     return $this->match_count;
   }
 
-  private function save_match($matches) {
-    static $round;
-    static $bracket;
-    $identifiers = array('bracket', 'round');
-    foreach ($matches as $key => $value) {
-      foreach ($identifiers as $identifier) {
-        // We only want matches, but keep bracket and round metadata.
-        if (strpos($key, $identifier . '-') === 0 && is_array($value)) {
-          ${$identifier} = $key;
-        }
-      }
-      if (strpos($key, 'match-') !== 0 && is_array($value)) {
-        $this->save_match($value);
-      }
-      else {
-        // Build the match object to save
-        $values = array(
-          'type' => 'match',
-          'title' => $key,
-          'games' => variable_get('tourney_games_all', TOURNEY_GAMES),
-          'next_match_winner' => array_key_exists('winner', $value) ? $value['winner'] : '',
-          'next_match_loser' => array_key_exists('loser', $value) ? $value['loser'] : '',
-          'previous_match1' => array_key_exists('previous-1', $value) ? $value['previous-1'] : 'manual',
-          'previous_match2' => array_key_exists('previous-2', $value) ? $value['previous-2'] : 'manual',
-          'this_match' => array_key_exists('this_match', $value) ? $value['this_match'] : '',
-        );
-        $match = new TourneyMatch($values);
+  /**
+   * Loops through all the built match elements and creates new matches, along with their initial games and appropriate relations.
+   *
+   * @param $matches
+   *   List of matches built by a factory::build() method.
+   */
+  private function saveMatches($matches) {
+    foreach ( $matches as $mid => $match ) {
+      $values = array(
+        'type' => 'match',
+        'title' => 'match-' . $match['match'],
+        'games' => variable_get('tourney_games_all', TOURNEY_GAMES),
+      );
+      $new_match = new TourneyMatch($values);
+      $new_match->save();
 
-        $match->save();
-        $this->match_count++;
+      // Create the Tourney/Match relation and save bracket and round data to it
+      $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
+      $relation = relation_load($rid);
+      $relation->bracket[LANGUAGE_NONE][0]['value'] = $match['bracket'];
+      $relation->round[LANGUAGE_NONE][0]['value'] = $match['round'];
+      relation_save($relation);
 
-        // Add the relationship to the tournament.
-        $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $match->id);
-        $relation = relation_load($rid);
-        $relation->bracket[LANGUAGE_NONE][0]['value'] = $bracket;
-        $relation->round[LANGUAGE_NONE][0]['value'] = $round;
-        relation_save($relation);
-
-        // Create the first game of the match
-        $game = new TourneyGame(array(
-          'type' => 'game',
-          'title' => 'game-1'));
-        $game->save();
-
-        // Add the relationship to the game.
-        $rid = tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
-      }
+      // Create the Match/Game relation
+      $game = new TourneyGame(array(
+        'type' => 'game',
+        'title' => 'game-1',
+      ));
+      $game->save();
+      tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
     }
   }
 }
@@ -115,7 +98,7 @@ class TourneyFactory {
 /**
  * Default interface for any classes that will define a match style.
  */
-interface TourneyFactoryInterface {
+interface TourneyControllerInterface {
   /**
    * Builds the array structure for all matches to be created.
    */

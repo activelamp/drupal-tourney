@@ -21,10 +21,10 @@ function theme_tourney_render_tourney_roundrobin($vars) {
     'matches' => $matches
   ));
   
-  foreach ($matches['bracket-roundrobin'] as $machine_name => $round) {
+  foreach ($matches['roundrobin'] as $machine_name => $round) {
     $output .= "<h3 id='$machine_name'>" . str_replace('-', ' ', ucfirst($machine_name)) . "</h3>";
     foreach ($round as $match) {
-      $output .= theme('tourney_matchblock', array('match' => $match['match']));
+      $output .= theme('tourney_matchblock', array('match' => $match));
     } 
     $output .= '<div class="clearfix"></div>';
   }

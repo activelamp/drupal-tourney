@@ -98,14 +98,10 @@ function tourney_action_game_is_won($match, $quotient) {
     // If the match already has a winner even though we've not met our quotient, that means a game was changed
     // We need to visit the next matches and clear the necessary contestants
     if ( $match->getWinner() ) {
-      if ( $match->next_match_winner ) {
-        $wmatch = $match->getTournament()->getMatchByName($match->next_match_winner);
-        $wmatch->removeContestant(tourney_get_name_part($match->next_match_winner, 'contestant'));
-      }
-      if ( $match->next_match_loser ) {
-        $lmatch = $match->getTournament()->getMatchByName($match->next_match_loser);
-        $lmatch->removeContestant(tourney_get_name_part($match->next_match_loser, 'contestant'));
-      }
+      if ( $match->nextMatch() )
+        $match->nextMatch()->removeContestant($match->getWinnerEntity());
+      if ( $match->nextMatch('loser') )
+        $match->nextMatch('loser')->removeContestant($match->getLoserEntity());
     }
 
     // Check all our played games to make sure they've been won.
@@ -133,7 +129,7 @@ function tourney_action_game_is_won($match, $quotient) {
       $message = t('A new game has been created: !game', array('!game' => l($game->title, 'tourney/game/' . $game->id)));
     }
   }
-  elseif ($match->getTournament()->format != 'RoundRobin') {
+  elseif ($match->getTournament()->format != 'RoundRobinController') {
     // Clear the gameIds so they can be reloaded
     $match->gameIds = NULL;
     // Check all our games starting from the back to find the games that haven't been won
