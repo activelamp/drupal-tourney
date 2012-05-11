@@ -90,7 +90,7 @@ function theme_tourney_matchblock($vars) {
     }
     else {
       $output .= '<div class="contestant contestant-' . $cid++ . ' entity-' . str_replace('.', '-', $eid) . '">' 
-        . $contestant->entity_name . '.' . $contestant->slot . ( $eid == $match->winner ? ' ♔' : '' ) 
+        . $contestant->entity_name . ( $eid == $match->winner ? ' ♔' : '' ) 
         . '</div>';
     }
   }
