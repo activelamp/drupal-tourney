@@ -27,6 +27,15 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   /**
+   * Slots getter function
+   *
+   * @return $slots
+   */
+  public function getSlots() {
+    return $this->slots;    
+  }
+
+  /**
    * Build the Single Elimination matchlist
    *
    * @return $matches
@@ -128,6 +137,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   *   Match placement of the desired match, otherwise NULL 
   */
   public function getNextMatch($place, $direction = NULL) {
+    if ( $direction == 'loser' ) return NULL;
     // @todo find a better way to count matches
     $matches = $this->slots - 1;
     // If it's the last match, it doesn't go anywhere

@@ -117,8 +117,14 @@ class TourneyMatch extends TourneyEntity {
         'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
       );
     }
+    uasort($contestants, 'TourneyMatch::contestantSort');
     
     return $contestants;
+  }
+
+  private static function contestantSort($a, $b) {
+    if ( $a['slot'] == $b['slot'] ) return 0;
+    return ( $a['slot'] < $b['slot'] ) ? -1 : 1;
   }
   
   /**
@@ -161,12 +167,17 @@ class TourneyMatch extends TourneyEntity {
     if (!is_numeric($slot)) {
       throw new Exception(t('$slot must be a number'));
     }
-    $contestants = array_values($this->getContestants());
-    array_unshift($contestants, array());
-    
-    if (!empty($contestants) && array_key_exists($slot, $contestants) && !empty($contestants[$slot])) {
-      return $contestants[$slot];
+    $contestants = $this->getContestants();
+    if ( !$contestants ) return NULL;
+    $first = reset($contestants);
+    if ( $first->slot !== NULL ) {
+      foreach ( $contestants as $eid => $contestant ) {
+        if ( $contestant->slot == $slot ) return $contestant;
+      }
+      return NULL;
     }
+    $values = array_values($contestants);
+    return $contestants[$values[$slot-1]];
   }
   
   /**
@@ -206,7 +217,8 @@ class TourneyMatch extends TourneyEntity {
     $entities = array();
     foreach ( $this->getContestantIds() as $contestant ) {
       $entity = entity_load_single_by_eid($contestant['eid']);
-      $entities[$entity->eid] = $entity;  
+      $entities[$entity->eid] = $entity;
+      $entities[$entity->eid]->slot = $contestant['slot'];  
     }
     return $entities;  
   }
@@ -447,6 +459,10 @@ class TourneyMatch extends TourneyEntity {
     return FALSE;
   }
 
+  public function canSetContestants() {
+    return $this->getTournament()->canSetContestants($this);
+  } 
+
 /**
  * Cleanly removes an existing contestant from a match, deleting the relation
  *
@@ -464,8 +480,12 @@ class TourneyMatch extends TourneyEntity {
     $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant')->execute();
     if ( empty($relations) ) return;
     foreach ( $relations as $relation ) {
-
+      $relation = relation_load($relation->rid);
+      $rcon = $relation->endpoints[LANGUAGE_NONE][1];
+      if ( $rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id )        
+        relation_delete($relation->rid);
     }
+    $this->save();
     // Until there's a better way for addressing specific contestant names, using this:
     // Pull in the relation so we can delete it, then apply changes to the match object
     //relation_delete(array_pop($relations)->rid);
@@ -489,7 +509,7 @@ class TourneyMatch extends TourneyEntity {
     if ( $current !== NULL ) {
       // If it isn't, however... We'll need to check if it's same. If not, remove it.
       if ( $current->eid == $entity->eid ) return;
-      $this->removeContestant($slot);
+      $this->removeContestant($current);
     }
     // Create the relation...
     $entity_keys = array(
@@ -521,6 +541,7 @@ class TourneyMatch extends TourneyEntity {
       $relation->slot[LANGUAGE_NONE][0]['value'] = $slot;
       relation_save($relation);
     }
+    $this->contestantIds = NULL;
   }
 
 /**
@@ -545,6 +566,7 @@ class TourneyMatch extends TourneyEntity {
     }
     // Another code-saving abstraction, use the handy new setContestant to easily 
     // apply the entities to their targets
+    dpm("NOOOOOOOOOOOOOOOOOOOOOOO");
     $this->nextMatch()->addContestant($winner);
     if ( $this->nextMatch('loser') ) $this->nextMatch('loser')->addContestant($loser);
   }

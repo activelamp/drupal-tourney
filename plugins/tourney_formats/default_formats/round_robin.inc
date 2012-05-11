@@ -10,7 +10,7 @@
  */
 
 class RoundRobinController extends TourneyController implements TourneyControllerInterface {
-  
+
   protected $slots;
   protected $contestants;
   protected $matches;
@@ -23,6 +23,10 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     // Ensure we have an even number of slots
     $slots = $this->contestants % 2 ? $this->contestants + 1 : $this->contestants;
     $this->slots = $slots;
+  }
+
+  public function getSlots() {
+    return $this->slots;    
   }
 
   /**
@@ -55,79 +59,21 @@ class RoundRobinController extends TourneyController implements TourneyControlle
    * @param $slots
    *   The (even) number of players in the tournament.
    */
-  private function placeholders($slots) {
-    static $placeholders = array();
+  public function placeholders($slots) {
+    static $matches = array();
 
-    if (empty($placeholders)) {
-      $num_rounds = $slots - 1;
-      $rounds = array();
-
-      for ($round = 0; $round < $num_rounds; $round++) {
-        for ($index = 0; $index < $slots / 2; $index++) {
-
-          // Create the ascending array value
-          $local_key = ($index != 0) * ($index - $round) +
-            (($index != 0) && (($index != 0) * ($index - $round) <= 0)) * $num_rounds;
-
-          // Create the descending array value
-          $away_key = $num_rounds - $index - $round +
-            (($index != 0) && ($num_rounds - $index - $round <= 0)) * $num_rounds;
-
-          // The home team and visitor team switch every other game
-          $rounds[$round][] = $round % 2 ? array($away_key, $local_key) : array($local_key, $away_key);
+    if ( empty($matches) ) {
+      $matches = array();
+      foreach ( range(1, $slots - 1) as $round ) {
+        $list = range(2, $slots);
+        $list = array_merge(array(1), array_slice(array_merge($list, $list), $slots-$round, $slots-1));
+        foreach ( range(1, $slots / 2) as $match ) {
+          $match = array($list[$match-1], $list[$slots-$match]);
+          $matches[] = ( $round % 2 ) ? $match : array_reverse($match);
         }
       }
-
-      $placeholders = $rounds;
-    }
-    return $placeholders;
-  }
-
-  /**
-   * There is a specific order that the matches are played. The fields that
-   * track movement were initially built for winner path and loser path. In
-   * round robin tournaments the path the teams take in the tournament do not
-   * depend on who wins the match, it is already determined at the start of
-   * the tournament. To accomodate for this, assume the following is true:
-   *   CONTESTANT 1 NEXT GAME = winner
-   *   CONTESTANT 2 NEXT GAME = loser
-   *
-   * @todo Fix the name of the db column paths so that they are named more generic.
-   */
-  protected function set_match_path($matches, $current_round, $current_match) {
-    $rounds = $this->slots - 1;
-    if ($current_round < $rounds) {
-      $placeholders = $this->placeholders($this->slots);
-
-      $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['winner'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][0]);
-      $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['loser'] = $this->find_next($current_round, $placeholders[$current_round - 1][$current_match - 1][1]);
-      $matches['bracket-roundrobin']['round-' . $current_round]['match-' . $current_match]['this_match'] = 'bracket-roundrobin_round-' . $current_round . '_match-' . $current_match;
     }
     return $matches;
-  }
-
-  /**
-   * Return the path of the next match based on the placeholder value passed
-   * in. This function looks for the place holder value in the next round.
-   *
-   * @param $round
-   *   The round to find the placeholder value in.
-   * @param $placeholder_value
-   *   The number corresponding to the seed position in the tournament.
-   * @return
-   *   Returns a full path string to the next placement.
-   */
-  private function find_next($round, $placeholder_value) {
-    $placeholders = $this->placeholders($this->slots);
-    foreach ($placeholders[$round] as $key => $matches) {
-      $pos = array_search($placeholder_value, $matches);
-      if ($pos !== FALSE) {
-        $r = $round + 1;
-        $m = $key + 1;
-        $c = $pos + 1;
-        return 'bracket-roundrobin_round-' . $r . '_match-' . $m . '_contestant-' . $c;
-      }
-    }
   }
 
   /**
@@ -181,5 +127,68 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     }
 
     return $finished;
+  }
+
+ /**
+  * Given a match place integer and a direction, returns both the target match 
+  * and slot
+  *
+  * @param $place
+  *   Match placement, zero-based. round 1 match 1's match placement is 0
+  * @param $slot
+  *   Either 'home' or 'away'
+  * @return $result
+  *   Keyed array giving both the target match and slot
+  */
+  function getNextMatchSlot($place, $slot) {
+    if ( !$slot ) return NULL;
+    $placeholders = $this->placeholders($this->slots);
+    // Get the current contestant slot number
+    $id = $placeholders[$place][$slot-1];
+    foreach ( $placeholders as $m => $slots ) {
+      if ( $m <= $place ) continue;
+      // Check for the next instance of it after the current match
+      if ( in_array($id, $slots) ) {
+        $slots = array_flip($slots);
+        return array('match' => $m, 'slot' => $slots[$id]);
+      }
+    }
+    return NULL;
+  }
+
+ /**
+  * Given a match place integer, returns the next match place based on either 
+  * 'home' or 'away' direction
+  *
+  * @param $place
+  *   Match placement, zero-based. round 1 match 1's match placement is 0
+  * @param $direction
+  *   Either 'home' or 'away'
+  * @return $place
+  *   Match placement of the desired match, otherwise NULL 
+  */
+  function getNextMatch($place, $direction) {
+    $next = $this->getNextMatchSlot($place, $direction);
+    if ( $next === NULL ) return NULL;
+    return $next['match'];
+  }
+
+ /**
+  * Given a match place integer, returns the next match slot based on either 
+  * 'home' or 'away' direction
+  *
+  * @param $match
+  *   Match entity, since the tournament isn't handling this method to provide a 
+  *   zero-index match place
+  * @param $direction
+  *   Either 'home' or 'away'
+  * @return $place
+  *   Slot placement of the desired match, otherwise NULL 
+  */
+  function getNextSlot($match, $direction) {
+    $ids = array_flip($match->getTournament()->getMatchIds());
+    $next = $this->getNextMatchSlot($ids[$match->entity_id], $direction);
+    if ( $next === NULL ) return NULL;
+    return $next['slot'] + 1;
   }
 }

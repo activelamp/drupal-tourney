@@ -401,8 +401,15 @@ class TourneyTournament extends TourneyEntity {
   public function getNextMatch($match, $direction = 'winner') {
     $ids = array_flip($this->getMatchIds());
     $next = $this->tourneyFormatPlugin->getNextMatch($ids[$match->entity_id], $direction);
+    if ( $next === NULL ) return NULL;
     $ids = array_flip($ids);
     if ( !array_key_exists((int)$next, $ids) ) return NULL;
     return entity_load_single('tourney_match', $ids[$next]);
   } 
+
+  public function canSetContestants($match) {
+    $ids = array_flip($this->getMatchIds());
+    $place = $ids[$match->entity_id];
+    return $place < $this->tourneyFormatPlugin->getSlots() / 2; 
+  }
 }

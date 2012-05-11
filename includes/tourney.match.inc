@@ -60,20 +60,22 @@ function tourney_match_form($form, &$form_state, $match) {
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
-  $contestants = $match->getContestants();
-  while ( count($contestants) < 2 ) $contestants[] = NULL;
 
-  $cid = 1;
-  foreach ( $contestants as $eid => $contestant ) {
-    if ( $contestant != NULL ) continue;
-    // @todo: replace code below with a scalable contestant field code with a list of text boxes
-    $form['contestant'.$cid++] = array(
-      '#title' => t('Contestant 1'),
-      '#default_value' => is_object($contestant) && $contestant->eid ? $contestant->eid : -1,
-      '#disabled' => is_object($contestant) && $contestant->eid ? TRUE : FALSE,
-      '#required' => is_object($contestant) && $contestant->eid ? FALSE : TRUE,
-    ) + _tourney_match_contestant($match);
+  if ( $match->canSetContestants() ) {
+    $contestants = $match->getContestants();
+    while ( count($contestants) < 2 ) $contestants[] = NULL;
 
+    $cid = 1;
+    foreach ( $contestants as $eid => $contestant ) {
+      if ( $contestant != NULL ) continue;
+      // @todo: replace code below with a scalable contestant field code with a list of text boxes
+      $form['contestant'.$cid++] = array(
+        '#title' => t('Contestant '.($cid-1)),
+        '#default_value' => is_object($contestant) && $contestant->eid ? $contestant->eid : -1,
+        '#disabled' => is_object($contestant) && $contestant->eid ? TRUE : FALSE,
+        '#required' => is_object($contestant) && $contestant->eid ? FALSE : TRUE,
+      ) + _tourney_match_contestant($match);
+    }
   }
 
   $form['games'] = array(
@@ -280,6 +282,20 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
+
+  if ( array_key_exists('contestant1', $form_state['input']) ) {
+    if ( $eid = $form_state['input']['contestant1'] ) {
+      @list($type, $id) = explode('.', $eid);
+      $entity = entity_load_single($type, $id);
+      $match->addContestant($entity, 1);
+    }
+    if ( $eid = $form_state['input']['contestant2'] ) {
+      @list($type, $id) = explode('.', $eid);
+      $entity = entity_load_single($type, $id);
+      $match->addContestant($entity, 2);
+    }
+  }
+
   foreach ($form_state['input'] as $id => $value) {
     // If we're not dealing with a game move on.
     if (!$value || substr($id, 0, 5) != 'game_') continue;
@@ -291,19 +307,6 @@ function tourney_match_form_submit($form, &$form_state) {
       tourney_game_save($game);
       // The winner needs to be re set for the match
       $match->winner = '';
-    }
-  }
-
-  if ( array_key_exists('contestant1', $form_state['input']) ) {
-    if ( $eid = $form_state['input']['contestant1'] ) {
-      @list($type, $id) = explode('.', $eid);
-      $entity = entity_load_single($type, $id);
-      $match->addContestant($entity);
-    }
-    if ( $eid = $form_state['input']['contestant2'] ) {
-      @list($type, $id) = explode('.', $eid);
-      $entity = entity_load_single($type, $id);
-      $match->addContestant($entity);
     }
   }
   

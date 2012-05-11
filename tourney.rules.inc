@@ -157,7 +157,7 @@ function tourney_action_game_is_won($match, $quotient) {
     $message = t('Players moved to next round');
   }
   else {
-    //tourney_action_set_all_matches($match);
+    tourney_action_set_all_matches($match);
   }
 
   return array(
@@ -173,16 +173,15 @@ function tourney_action_game_is_won($match, $quotient) {
  *   The match the game belongs to
  */
 function tourney_action_set_all_matches($match) {
-  // Abstraction, ho!
-  foreach ( array('winner', 'loser') as $slot => $label ) {
-    $label = "next_match_$label"; 
-    // Check the next matches to see if they exist, and if so set those next matches' contestants to be what they should
-    if ( $match->$label && $match->getContestant($slot+1) ) {
-      $nmatch = $match->getTournament()->getMatchByName($match->$label);
-      $nmatch->setContestant(tourney_get_name_part($match->$label, 'contestant'), $match->getContestant($slot+1));
-      // Then do this all over again for those functions to recurse down to the bottom!
-      tourney_action_set_all_matches($nmatch);
-    }
+  foreach ( $match->getContestants() as $contestant ) {
+    $next = $match->nextMatch($contestant->slot);
+    if ( $next === NULL ) continue;
+    $slot = $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, $contestant->slot);
+    // If the slot is already taken, don't do anything
+    if ( $next->getContestant($slot) ) continue;
+    $next->addContestant($contestant, $slot);
+    // Recurse
+    tourney_action_set_all_matches($next);
   }
 
   $message = 'Players added to all rounds';

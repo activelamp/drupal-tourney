@@ -77,24 +77,31 @@ function theme_tourney_matchblock($vars) {
   $cid = 1;
 
   $contestants = $match->getContestants();
+  // If there is one contestants, pad the beginning if it's occupying slot 2
+  if ( count($contestants) == 1 ) {
+    $first = current($contestants);
+    if ( $first->slot == 2 ) array_unshift($contestants, NULL);
+  }
   while ( count($contestants) < 2 ) $contestants[] = NULL;
-  $editable = in_array(NULL, $contestants);
+  $editable = in_array(NULL, $contestants) && $match->canSetContestants();
   foreach ( $contestants as $eid => $contestant ) {
     if ( $contestant == NULL ) {
       $output .= '<div class="contestant contestant-' . $cid . '"> Team ' . $cid++ . ' </div>';
     }
     else {
       $output .= '<div class="contestant contestant-' . $cid++ . ' entity-' . str_replace('.', '-', $eid) . '">' 
-        . $contestant->entity_name . ( $eid == $match->winner ? ' ♔' : '' ) 
+        . $contestant->entity_name . '.' . $contestant->slot . ( $eid == $match->winner ? ' ♔' : '' ) 
         . '</div>';
     }
   }
   $output .= '</div>';
 
   // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
-  //   . '<div class="contestant contestant-1">' . $debug_val++ . '</div>'
-  //   . '<div class="contestant contestant-2">' . $match->nextMatch('loser') . '</div>'
-  //   . '</div>';
+  //    . '<div class="contestant contestant-1">' . ( $match->nextMatch(1) ? $match->nextMatch(1)->entity_id 
+  //     . '.' . $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, 1) : 'END' ) . '</div>'
+  //    . '<div class="contestant contestant-2">' . ( $match->nextMatch(2) ? $match->nextMatch(2)->entity_id 
+  //     . '.' . $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, 2) : 'END' ) . '</div>'
+  //    . '</div>';
   
   $match_uri = $match->getUri();
   return l($output, $match_uri . ($editable ? "/edit" : ''), array(
