@@ -32,10 +32,11 @@ class TourneyTournament extends TourneyEntity {
         $this->gameIds = $this->getGameIds();
       }
       
-      if (!class_exists($this->format)) {
+      $tourneyFormatPlugin = $this->format;
+      if (!class_exists($tourneyFormatPlugin)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }   
-      $this->tourneyFormatPlugin = new $this->format($this->players);
+      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this->players);
       
       // Add a url to the object
       $this->uri = $this->getUri();
@@ -265,24 +266,20 @@ class TourneyTournament extends TourneyEntity {
   * Save the entity
   */
   public function save() {
-    // Store the property in local variable.  The property is no longer there
-    // after the entity is initially saved.
+    // Store the is_new property in local variable. The property is no longer 
+    // there after the entity is initially saved.
     // @todo: Change the is_new property if this entity patch gets in:
     //   Patch at - http://drupal.org/node/1558266
     $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
     parent::save();
     
-    // Set the uri
-    
     // Create the matches and first game if new tournament.
     if ($new) {
-      // Build a nested array of matches for the tournament being saved.
-      $factory = new TourneyController($this->players, $this->format);
-      $factory->create();
-      // Create the actual match entities and the first game.
-      $matches_created = $factory->save($this);
+      $controller = new TourneyController($this);
+      $controller->createMatches();
+      
       // Update the tournament with the number of matches created
-      $this->matches_created = $matches_created;
+      $this->matches_created = count($this->getMatchIds());
       drupal_write_record('tourney_tournament', $this, 'id');
     }
   }

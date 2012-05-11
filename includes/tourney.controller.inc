@@ -13,61 +13,71 @@ define('MAXIMUM_ROUNDS', 5);
  * tourney tournament.
  */
 class TourneyController {
-
-  protected $num_contestants;
-  protected $match_style;
+  private static $controller = null;
+  protected $matchStyle;
   protected $matches;
   protected $tournament;
-  protected $match_path = array();
-  protected $match_count = 0;
 
   /**
    * Constructor
    */
-  public function __construct($num_contestants, $match_style) {
-    $this->num_contestants = $num_contestants;
-    if (!class_exists($match_style)) {
-      trigger_error(check_plain(t('Unable to create !match_style matches. Class not found.', array('!match_style' => $match_style))), E_USER_ERROR);
+  public function __construct($tournament) {
+    $this->tournament = $tournament;
+    $matchStyle = $tournament->format;
+    
+    if (!class_exists($matchStyle)) {
+      trigger_error(check_plain(t('Unable to create !matchStyle matches. Class not found.', array('!matchStyle' => $matchStyle))), E_USER_ERROR);
     }
     
-    $interfaces = class_implements($match_style);
+    $interfaces = class_implements($matchStyle);
     if (isset($interfaces['TourneyControllerInterface'])) {
-      $this->match_style = new $match_style($num_contestants);
+      $this->matchStyle = new $matchStyle($tournament->players);
     }
     else {
-      trigger_error(check_plain(t('Unable to create !match_style matches. Class does not implement TourneyControllerInterface.', array('!match_style' => $match_style))), E_USER_ERROR);
+      trigger_error(check_plain(t('Unable to create !matchStyle matches. Class does not implement TourneyControllerInterface.', array('!matchStyle' => $matchStyle))), E_USER_ERROR);
     }
   }
+  
+  /**
+   * Create matches for a tournament.
+   */
+  public function createMatches() {
+    // Create the actual match entities and the first game.
+    $this->save();
+  }
 
   /**
-   * Create the match entities for the tournament.
+   * Build the match entities for the tournament. The array construction is
+   * delegated to the plugin of this tournament.
    */
-  public function create() {
+  public function build() {
     // Build the match structure
-    $this->matches = $this->match_style->build();
+    $this->matches = $this->matchStyle->build();
   }
 
   /**
-   * Saves the matches for the tournament.
-   *
-   * @param $tournament
-   *   The entity object of the tournament the matches are being saved in.
-   * @return $match_count
-   *   Returns the number of matches saved by this tournament.
+   * Wrapper function for saving matches. Delegate saving matches to the plugin.
    */
-  public function save($tournament) {
-    $this->tournament = $tournament;
-    $this->saveMatches($this->matches);
-    return $this->match_count;
+  public function save() {
+    // Make sure we have a matches array to save.
+    if (empty($this->matches)) {
+      $this->build();
+    }
+    $this->matchStyle->saveMatches($this->tournament->id);
   }
 
   /**
-   * Loops through all the built match elements and creates new matches, along with their initial games and appropriate relations.
+   * Default method for saving matches. Plugins override this and define their
+   * own way to save matches.
+   * 
+   * Loops through all the built match elements and creates new matches, along 
+   * with their initial games and appropriate relations.
    *
-   * @param $matches
-   *   List of matches built by a factory::build() method.
+   * @param $tournament_id
+   *   The id of the tournament this match is related to.
    */
-  private function saveMatches($matches) {
+  protected function saveMatches($tournament_id) {
+    $matches = $this->matches;
     foreach ( $matches as $mid => $match ) {
       $values = array(
         'type' => 'match',
@@ -78,7 +88,7 @@ class TourneyController {
       $new_match->save();
 
       // Create the Tourney/Match relation and save bracket and round data to it
-      $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
+      $rid = tourney_create_relation('has_match', 'tourney_tournament', $tournament_id, 'tourney_match', $new_match->id);
       $relation = relation_load($rid);
       $relation->bracket[LANGUAGE_NONE][0]['value'] = $match['bracket'];
       $relation->round[LANGUAGE_NONE][0]['value'] = $match['round'];
