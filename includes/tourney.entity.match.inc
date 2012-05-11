@@ -400,7 +400,7 @@ class TourneyMatch extends TourneyEntity {
    * Return the uri to the entity object
    */
   public function getUri() {
-     return TourneyMatch::path($this->id);
+    return TourneyMatch::path($this->id);
   }
   
   /**

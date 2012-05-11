@@ -8,6 +8,7 @@
  * Implements hook_views_data_alter().
  */
 function tourney_views_data_alter(&$data) {
+  // Tournery Match additions
   $data['tourney_match']['match_tree'] = array(
     'title' => t('Match Tree'),
     'help' => t('Match ID with depth'),
@@ -32,6 +33,31 @@ function tourney_views_data_alter(&$data) {
       'handler' => 'views_handler_argument',
     ),
   );
+  // Define the field for the gameIds on the match object
+  $data['tourney_match']['game_ids'] = array(
+    'title' => t('Game Ids'),
+    'help' => t('An array of game ids loaded on the match object'),
+    'field' => array(
+      'handler' => 'tourney_handler_field_object_property',
+    ),
+  );
+  $data['tourney_match']['tournament_id'] = array(
+    'title' => t('Tournament Id'),
+    'help' => t('The tournament id loaded on the match object'),
+    'field' => array(
+      'handler' => 'tourney_handler_field_object_property',
+    ),
+  );
+  
+  // Tourney Game additions
+  $data['tourney_game']['edit_game'] = array(
+    'field' => array(
+      'title' => t('Edit link'),
+      'help' => t('Provide a simple link to edit the game.'),
+      'handler' => 'tourney_handler_field_entity_link_edit',
+    ),
+  );
+  
 }
 
 function tourney_views_plugins() {
