@@ -14,7 +14,7 @@ define('MAXIMUM_ROUNDS', 5);
  */
 class TourneyController {
   private static $controller = null;
-  protected $matchStyle;
+  protected $tourneyFormatPlugin;
   protected $matches;
   protected $tournament;
 
@@ -23,18 +23,18 @@ class TourneyController {
    */
   public function __construct($tournament) {
     $this->tournament = $tournament;
-    $matchStyle = $tournament->format;
+    $tourneyFormatPlugin = $tournament->format;
     
-    if (!class_exists($matchStyle)) {
-      trigger_error(check_plain(t('Unable to create !matchStyle matches. Class not found.', array('!matchStyle' => $matchStyle))), E_USER_ERROR);
+    if (!class_exists($tourneyFormatPlugin)) {
+      trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class not found.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
     }
     
-    $interfaces = class_implements($matchStyle);
+    $interfaces = class_implements($tourneyFormatPlugin);
     if (isset($interfaces['TourneyControllerInterface'])) {
-      $this->matchStyle = new $matchStyle($tournament->players);
+      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($tournament->players);
     }
     else {
-      trigger_error(check_plain(t('Unable to create !matchStyle matches. Class does not implement TourneyControllerInterface.', array('!matchStyle' => $matchStyle))), E_USER_ERROR);
+      trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class does not implement TourneyControllerInterface.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
     }
   }
   
@@ -52,7 +52,7 @@ class TourneyController {
    */
   public function build() {
     // Build the match structure
-    $this->matches = $this->matchStyle->build();
+    $this->matches = $this->tourneyFormatPlugin->build();
   }
 
   /**
@@ -63,7 +63,7 @@ class TourneyController {
     if (empty($this->matches)) {
       $this->build();
     }
-    $this->matchStyle->saveMatches($this->tournament->id);
+    $this->tourneyFormatPlugin->saveMatches($this->tournament->id);
   }
 
   /**
