@@ -10,6 +10,7 @@ class TourneyTournament extends TourneyEntity {
   public  $matchIds = NULL;
   public  $gameIds = NULL;
   public  $uri;
+  public  $data;
   private $tournamentStarted  = NULL;
   private $tournamentFinished = NULL;
   private $tournamentWinner = NULL;
@@ -36,7 +37,8 @@ class TourneyTournament extends TourneyEntity {
       if (!class_exists($tourneyFormatPlugin)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }   
-      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this->players);
+      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this);
+      $this->data = $this->tourneyFormatPlugin->structure();
       
       // Add a url to the object
       $this->uri = $this->getUri();

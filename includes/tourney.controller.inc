@@ -31,7 +31,7 @@ class TourneyController {
     
     $interfaces = class_implements($tourneyFormatPlugin);
     if (isset($interfaces['TourneyControllerInterface'])) {
-      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($tournament->players);
+      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($tournament);
     }
     else {
       trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class does not implement TourneyControllerInterface.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);

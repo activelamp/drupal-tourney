@@ -18,8 +18,8 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   /**
    * Constructor
    */
-  public function __construct($contestants) {
-    $this->contestants = $contestants;
+  public function __construct(TourneyTournament $tournament) {
+    $this->contestants = $tournament->players;
     // Ensure we have an even number of slots
     $slots = $this->contestants % 2 ? $this->contestants + 1 : $this->contestants;
     $this->slots = $slots;

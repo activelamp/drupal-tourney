@@ -16,9 +16,9 @@ class LadderController extends ToruneyController implements TourneyControllerInt
   /**
    * Constructor
    */
-  public function __construct($num_contestants) {
+  public function __construct(TourneyTournament $tournament) {
     drupal_set_message(t('Ladder match not implemented yet.'), 'warning');
-    $this->num_contestants = $num_contestants;
+    $this->num_contestants = $tournament->num_players;
   }
 
   /**

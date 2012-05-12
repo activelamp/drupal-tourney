@@ -10,6 +10,7 @@
  */
 class SingleEliminationController extends TourneyController implements TourneyControllerInterface {
 
+  protected $tournament;
   protected $slots;
   protected $rounds;
   protected $matches;
@@ -20,9 +21,12 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * @todo The methods in this constuctor should be moved out and called
    *   explicitly when building tournaments.
    */
-  public function __construct($contestants = 0) {
-    if ($contestants > 0) {
-      $this->calculateRounds($contestants);
+  public function __construct(TourneyTournament $tournament) {
+    $this->tournament = $tournament;
+    
+    if (!empty($tournament->players) && $tournament->players > 0) {
+      // Populate the object with some meta data.
+      $this->calculateRounds($tournament->players);
     }
   }
 
@@ -52,7 +56,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   /**
-   * Rounds contestants up to the nearest power of two, and also sets and returns the number of rounds
+   * Rounds contestants up to the nearest power of two, and also sets and returns
+   * the number of rounds
    *
    * @return $rounds
    *   Number of rounds needed from the given contestants
@@ -144,5 +149,146 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     if ( $place == $matches - 1 ) return NULL;
     // Otherwise some math!
     return ( ($matches + 1) / 2 ) + floor($place / 2);
+  }
+  
+  /**
+   * Build an array with tournament structure data.
+   *
+   * @return $structure
+   *   An array of the tournament structure and meta data.
+   */
+  public function structure($type = 'rounds') {
+    switch ($type) {
+      case 'rounds':
+        return $this->structure = $this->buildBracketByRounds($this->slots);
+
+      case 'tree':
+        return $this->structure = $this->buildBracketByTree($this->slots);
+    }
+  }
+  
+  /**
+   * Build bracket structure and logic.
+   *
+   * @param $slots
+   *   The number of slots in the first round.
+   * @return
+   *   An array of bracket structure and logic.
+   */
+  protected function buildBracketByTree($slots) {
+    $num_matches = ($slots * 2) - 1;
+    $num_rounds = log($slots, 2);
+
+    if (!is_int($num_rounds)) {
+      // @todo: Acocunt for byes.
+    }
+
+    $tree = $this->buildMatch($slots, $round_num, $match_num);
+    $tree['children'] = $this->buildChildren();
+
+    return array(
+      'bracket-main' => array(
+        'title'    => t('Main Bracket'),
+        'children' => $this->buildChildren($slots, $num_rounds, $num_matches),
+      ),
+    );
+  }
+
+  protected function buildChildren($slots, $round_num, $match_num) {
+    $tree = $this->buildMatch($slots, $round_num, $match_num);
+
+    if ($round_num > 1) {
+      $child_match_num = ($match_num - ($slots / 2)) * 2;
+      $tree['children'][] = $this->buildChildren($slots, $round_num - 1, $child_match_num - 1);
+      $tree['children'][] = $this->buildChildren($slots, $round_num - 1, $child_match_num);
+    }
+
+    return $tree;
+  }
+
+  /**
+   * Build bracket structure and logic.
+   *
+   * @param $slots
+   *   The number of slots in the first round.
+   * @return
+   *   An array of bracket structure and logic.
+   */
+  protected function buildBracketByRounds($slots) {
+    return array(
+      'bracket-main' => array(
+        'title'  => t('Main Bracket'),
+      ) + $this->buildRounds($slots),
+    );
+  }
+
+  /**
+   * Build rounds.
+   *
+   * @param $slots
+   *   The number of slots in the first round.
+   * @return
+   *   The rounds array completely built out.
+   */
+  protected function buildRounds($slots) {
+    $rounds    = array();
+    $round_num = 1;
+
+    for ($slots_left = $slots; $slots_left >= 2; $slots_left /= 2) {
+      $rounds['rounds']['round-' . $round_num] = $this->buildRound($slots_left, $round_num);
+      $round_num++;
+    }
+
+    return $rounds;
+  }
+
+  protected function buildRound($slots, $round_num) {
+    $round = array(
+      'title' => t('Round ') . $round_num,
+    );
+
+    for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
+      $round['matches']['match-' . $match_num] = $this->buildMatch($slots, $round_num, $match_num);
+    }
+
+    return $round;
+  }
+
+  protected function buildMatch($slots, $round_num, $match_num) {
+    return array(
+      'match' => $this->getMatch($round_num, $match_num),
+      'previous_match_callback' => 'getPreviousMatch',
+      'next_match_callback' => 'getNextMatch',
+    );
+  }
+  
+  /**
+   * Return the match object based on a location in the bracket.
+   * 
+   * @param $round_num int
+   *   The round number for the match.
+   * @param $match_num int
+   *   The match number for the match.
+   * @return $match
+   *   Returns a fully loaded match object.
+   */
+  protected function getMatch($round_num, $match_num) {
+    $query = relation_query('tourney_tournament', $this->tournament->id);
+    $query->entityCondition('bundle', 'has_match')
+          ->fieldCondition('round', 'value', $round_num);
+    $results = $query->execute();
+    
+    $match_ids = array();
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $match_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+    }
+    $matches = tourney_match_load_multiple($match_ids);
+    
+    foreach ($matches as $match) {
+      if ($match->title == 'match-'. $match_num) {
+        return $match;
+      }
+    }
   }
 }
