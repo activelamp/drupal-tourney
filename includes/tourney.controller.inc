@@ -63,7 +63,7 @@ class TourneyController {
     if (empty($this->matches)) {
       $this->build();
     }
-    $this->tourneyFormatPlugin->saveMatches($this->tournament->id);
+    $this->tourneyFormatPlugin->saveMatches($this->tournament);
   }
 
   /**
@@ -72,23 +72,29 @@ class TourneyController {
    * 
    * Loops through all the built match elements and creates new matches, along 
    * with their initial games and appropriate relations.
+   * 
+   * If a subclass changes the way matches are saved, the subclass will likely
+   * need to change the getMatch() method. getMatch() is dependent on saveMatches().
+   * 
+   * @see TourneyController::getMatch()
    *
-   * @param $tournament_id
-   *   The id of the tournament this match is related to.
+   * @param $tournament
+   *   The tournament object this match is related to.
    */
-  protected function saveMatches($tournament_id) {
+  protected function saveMatches($tournament) {
     $matches = $this->matches;
     foreach ( $matches as $mid => $match ) {
       $values = array(
         'type' => 'match',
-        'title' => 'match-' . $match['match'],
+        'title' => 'Match ' . $match['match'],
+        'name' => $tournament->name . '_match-' . $match['match'],
         'games' => variable_get('tourney_games_all', TOURNEY_GAMES),
       );
       $new_match = new TourneyMatch($values);
       $new_match->save();
 
       // Create the Tourney/Match relation and save bracket and round data to it
-      $rid = tourney_create_relation('has_match', 'tourney_tournament', $tournament_id, 'tourney_match', $new_match->id);
+      $rid = tourney_create_relation('has_match', 'tourney_tournament', $tournament->id, 'tourney_match', $new_match->id);
       $relation = relation_load($rid);
       $relation->bracket[LANGUAGE_NONE][0]['value'] = $match['bracket'];
       $relation->round[LANGUAGE_NONE][0]['value'] = $match['round'];
@@ -97,10 +103,48 @@ class TourneyController {
       // Create the Match/Game relation
       $game = new TourneyGame(array(
         'type' => 'game',
-        'title' => 'game-1',
+        'title' => 'Game 1',
+        'name' => $tournament->name . '_match-' . $new_match->id . '_game-1',
       ));
       $game->save();
       tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
+    }
+  }
+  
+  /**
+   * Return the match object based on a location in the bracket.
+   * 
+   * The SingleElimination plugin stores information about the location of the
+   * match in a relation entity. This getMatch method is dependent on how the
+   * saveMatches() method is written. If saveMatches() is overridden, it is
+   * likely that getMatch() should be overridden as well.
+   * 
+   * @see TourneyController::saveMatches()
+   * 
+   * @param $round_num int
+   *   The round number for the match.
+   * @param $match_num int
+   *   The match number for the match.
+   * @return $match
+   *   Returns a fully loaded match object.
+   */
+  protected function getMatch($round_num, $match_num) {
+    $query = relation_query('tourney_tournament', $this->tournament->id);
+    $query->entityCondition('bundle', 'has_match')
+          ->fieldCondition('round', 'value', $round_num);
+    $results = $query->execute();
+    
+    $match_ids = array();
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $match_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+    }
+    $matches = tourney_match_load_multiple($match_ids);
+    
+    foreach ($matches as $match) {
+      if ($match->name == $this->tournament->name . '_match-'. $match_num) {
+        return $match;
+      }
     }
   }
 }

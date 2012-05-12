@@ -23,6 +23,11 @@ function tourney_schema() {
         'length' => 32,
         'not null' => TRUE,
         'default' => ''),
+      'name' => array(
+        'description' => 'The machine-readable name of this tournament.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE),
       'title' => array(
         'description' => 'The title of the tournament, always treated as non-markup plain text.',
         'type' => 'varchar',
@@ -74,6 +79,11 @@ function tourney_schema() {
         'length' => 32,
         'not null' => TRUE,
         'default' => ''),
+      'name' => array(
+        'description' => 'The machine-readable name of this match.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE),
       'title' => array(
         'description' => 'The title of a match, always treated as non-markup plain text.',
         'type' => 'varchar',
@@ -88,30 +98,6 @@ function tourney_schema() {
         'description' => "The number of games in a match."),
       'winner' => array(
         'description' => 'Winner of the match.',
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => ''),
-      'next_match_winner' => array(
-        'description' => 'Winners next match.',
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => ''),
-      'next_match_loser' => array(
-        'description' => 'Losers next match.',
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => ''),
-      'previous_match1' => array(
-        'description' => 'Contestant 1 previous match.',
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-        'default' => ''),
-      'previous_match2' => array(
-        'description' => 'Contestant 2 previous match.',
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE,
@@ -143,6 +129,11 @@ function tourney_schema() {
         'length' => 32,
         'not null' => TRUE,
         'default' => ''),
+      'name' => array(
+        'description' => 'The machine-readable name of this game.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE),
       'title' => array(
         'description' => 'The title of a game, always treated as non-markup plain text.',
         'type' => 'varchar',
@@ -229,6 +220,33 @@ function tourney_schema() {
       'name' => array('name'),
     ),
   );
+  $schema['tourney'] = array(
+    'description' => 'Stores information about each tournament.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'An machine_name identifier for the tournament object.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'The type of information being stored for the tournament.',
+      ),
+      'tourney_options' => array(
+        'type' => 'blob',
+        'description' => 'A serialized array of options for this tournament.',
+        'serialize' => TRUE,
+        'serialized default' => 'a:0:{}',
+      ),
+    ),
+    'indexes' => array('id' => array('id')),
+  );
+  
   $schema['cache_tourney'] = drupal_get_schema_unprocessed('system', 'cache');
   return $schema;
 }
@@ -414,3 +432,98 @@ function tourney_update_7002() {
   return t('Tournament formats updated successfully.');
 }
 
+/**
+ * Add a settings table for tourney. Removes un-needed fields in the 
+ * tourney_match table.
+ */
+function tourney_update_7003() {
+  $schema['tourney'] = array(
+    'description' => 'Stores information about each tournament.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'An machine_name identifier for the tournament object.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'default' => '',
+        'not null' => TRUE,
+        'description' => 'The type of information being stored for the tournament.',
+      ),
+      'tourney_options' => array(
+        'type' => 'blob',
+        'description' => 'A serialized array of options for this tournament.',
+        'serialize' => TRUE,
+        'serialized default' => 'a:0:{}',
+      ),
+    ),
+    'indexes' => array('id' => array('id')),
+  );
+  db_create_table('tourney', $schema['tourney']);
+  db_drop_field('tourney_match', 'next_match_winner');
+  db_drop_field('tourney_match', 'next_match_loser');
+  db_drop_field('tourney_match', 'previous_match1');
+  db_drop_field('tourney_match', 'previous_match2');
+}
+
+/**
+ * Adding a machine name field to entities
+ */
+function tourney_update_7004() {
+  $field = array(
+    'description' => 'The machine-readable name of this entity.',
+    'type' => 'varchar',
+    'length' => 32,
+    'not null' => TRUE,
+    'initial' => '',
+  );
+  foreach (array('tourney_tournament', 'tourney_match', 'tourney_game') as $table) {
+    if (!db_field_exists($table, 'name')) {
+      db_add_field($table, 'name', $field);
+      _tourney_update_name_field($table);
+    }
+  }
+  
+  return t('Tournament formats updated successfully.');
+}
+
+/**
+ * Helper functions
+ */
+ 
+/**
+ * Update machine name field
+ */
+function _tourney_update_name_field($table) {
+  // Append the word controller to any tournament formats that do not already 
+  // have it.
+  $rows = db_query("SELECT id, title FROM {$table}")->fetchAll();
+  
+  // Update each row
+  foreach ($rows as $row) {
+    $machine_name = _tourney_machine_name($row->title);
+    
+    // Fix machine name for matches
+    if ($table == 'tourney_match') {
+      $match = tourney_match_load($row->id);
+      $machine_name = $match->getTournament()->name . '_' . $machine_name;
+    }
+    // Fix machine name for games
+    if ($table == 'tourney_game') {
+      $game = tourney_game_load($row->id);
+      $match = tourney_match_load($game->getMatchId());
+      $machine_name = $match->getTournament()->name . '_' . _tourney_machine_name($match->title) . '_' . $machine_name;
+    }
+    
+    $num_updated = db_update($table) // Table name no longer needs {}
+      ->fields(array(
+        'name' => $machine_name,
+      ))
+      ->condition('id', $row->id)
+      ->execute();
+  }
+}

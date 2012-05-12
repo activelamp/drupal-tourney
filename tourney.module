@@ -257,6 +257,10 @@ function tourney_page_title($tourney) {
   return ucfirst($tourney->label());
 }
 
+function _tourney_machine_name($title) {
+  return preg_replace('/[^a-z0-9-]+/', '-', $title);
+}
+
 /**
  * Implements hook_entity_info().
  */

@@ -21,6 +21,19 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#maxlength' => 255,
     '#default_value' => isset($tourney->title) ? $tourney->title : '',
   );
+  
+  $form['name'] = array(
+    '#type' => 'machine_name',
+    '#default_value' => isset($tourney->title) ? $tourney->name : '',
+    '#maxlength' => 21,
+    '#description' => t('A unique name for tournaments. It must only contain lowercase letters, numbers and hyphens.'),
+    '#machine_name' => array(
+      'source' => array('title'),
+      'exists' => 'tourney_name_exists',
+      'replace_pattern' => '[^a-z0-9-]+',
+      'replace' => '-',
+    ),
+  );
 
   $form['format'] = array(
     '#type' => 'select',
@@ -62,6 +75,13 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['#submit'][] = 'tourney_tournament_form_submit';
 
   return $form;
+}
+
+/**
+ * Machine name callback to make sure it name does not already exist.
+ */
+function tourney_name_exists($value) {
+  return db_query_range('SELECT 1 FROM {tourney_tournament} WHERE name = :name', 0, 1, array(':name' => $value))->fetchField();
 }
 
 function tourney_tournament_delete_submit($form, &$form_state) {

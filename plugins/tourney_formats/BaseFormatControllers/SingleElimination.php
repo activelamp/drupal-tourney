@@ -261,34 +261,4 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       'next_match_callback' => 'getNextMatch',
     );
   }
-  
-  /**
-   * Return the match object based on a location in the bracket.
-   * 
-   * @param $round_num int
-   *   The round number for the match.
-   * @param $match_num int
-   *   The match number for the match.
-   * @return $match
-   *   Returns a fully loaded match object.
-   */
-  protected function getMatch($round_num, $match_num) {
-    $query = relation_query('tourney_tournament', $this->tournament->id);
-    $query->entityCondition('bundle', 'has_match')
-          ->fieldCondition('round', 'value', $round_num);
-    $results = $query->execute();
-    
-    $match_ids = array();
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $match_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-    }
-    $matches = tourney_match_load_multiple($match_ids);
-    
-    foreach ($matches as $match) {
-      if ($match->title == 'match-'. $match_num) {
-        return $match;
-      }
-    }
-  }
 }
