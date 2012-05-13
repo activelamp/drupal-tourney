@@ -404,7 +404,15 @@ class TourneyTournament extends TourneyEntity {
     $ids = array_flip($ids);
     if ( !array_key_exists((int)$next, $ids) ) return NULL;
     return entity_load_single('tourney_match', $ids[$next]);
-  } 
+  }
+  
+  public function render() {
+    $info = $this->tourneyFormatPlugin->getPluginInfo(get_class($this->tourneyFormatPlugin));
+    $output = "<div class='tourney tourney-" . $info['machine name'] ."'><div class='tourney-inner'>";
+    $output .= $this->tourneyFormatPlugin->render($this, $this->buildMatches());
+    $output .= "</div></div>";
+    return $output;
+  }
 
   public function canSetContestants($match) {
     $ids = array_flip($this->getMatchIds());

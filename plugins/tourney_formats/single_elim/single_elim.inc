@@ -10,7 +10,7 @@
  */
 $plugin = array(
   'name' => t('Single Elimination Tournament'),
-  'machine name' => 'single_elim',
+  'machine name' => 'single',
   'description' => t('This is the description of the tournament'),
   'weight' => 0,
   'total games' => 5,

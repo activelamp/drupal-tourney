@@ -3,33 +3,6 @@
 /**
  * @file
  */
- 
-/**
- * Renders the html for each round of a round robin tournament
- * 
- * @param $tournament
- *   The tournament object
- * @param $matches
- *   An array of all the rounds and matches in a tournament.
- */
-function theme_tourney_render_tourney_roundrobin($vars) {
-  extract($vars);
-  drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
-  // Render the standings table.
-  $output = theme('tourney_roundrobin_standings', array(
-    'tournament' => $tournament,
-    'matches' => $matches
-  ));
-  
-  foreach ($matches['roundrobin'] as $r => $round) {
-    $output .= "<h3 id='round-$r'>Round $r</h3>";
-    foreach ($round as $match) {
-      $output .= theme('tourney_matchblock', array('match' => $match));
-    } 
-    $output .= '<div class="clearfix"></div>';
-  }
-  return $output;
-}
 
 function tourney_roundrobin_standings_sort($a, $b) {
   if ( $a['wins'] != $b['wins'] ) {

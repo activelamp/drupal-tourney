@@ -24,7 +24,48 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     $slots = $this->contestants % 2 ? $this->contestants + 1 : $this->contestants;
     $this->slots = $slots;
   }
+  
+  /**
+   * Theme implementations to register with tourney module.
+   * 
+   * @see hook_theme().
+   */
+  public static function theme($existing, $type, $theme, $path) {
+    return array(
+      'tourney_roundrobin_standings' => array(
+        'variables' => array('tournament' => NULL, 'matches' => NULL),
+        'file' => 'roundrobin.inc', 
+        'path' => $path . '/theme',
+      ),
+    );
+  }
+  
+  /**
+   * Renders the html for each round of a round robin tournament
+   * 
+   * @param $tournament
+   *   The tournament object
+   * @param $matches
+   *   An array of all the rounds and matches in a tournament.
+   */
+  public function render($tournament, $matches) {
+    drupal_add_js($this->pluginInfo['path'] . '/theme/single.js');
+    // Render the standings table.
+    $output = theme('tourney_roundrobin_standings', array(
+      'tournament' => $tournament,
+      'matches' => $matches
+    ));
 
+    foreach ($matches['roundrobin'] as $r => $round) {
+      $output .= "<h3 id='round-$r'>Round $r</h3>";
+      foreach ($round as $match) {
+        $output .= theme('tourney_matchblock', array('match' => $match));
+      } 
+      $output .= '<div class="clearfix"></div>';
+    }
+    return $output;
+  }
+  
   public function getSlots() {
     return $this->slots;    
   }

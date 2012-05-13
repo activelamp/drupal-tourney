@@ -28,6 +28,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       // Populate the object with some meta data.
       $this->calculateRounds($tournament->players);
     }
+    parent::__construct(NULL);
   }
 
   /**
@@ -267,6 +268,21 @@ class SingleEliminationController extends TourneyController implements TourneyCo
 
     return $round;
   }
+  
+  /**
+   * Theme implementations to register with tourney module.
+   * 
+   * @see hook_theme().
+   */
+  public static function theme($existing, $type, $theme, $path) {
+    return array(
+      'tourney_single_tree' => array(
+        'variables' => array('rounds' => NULL, 'small' => FALSE),
+        'file' => 'single.inc', 
+        'path' => $path . '/theme',
+      ),
+    );
+  }
 
   protected function buildMatch($slots, $round_num, $match_num) {
     return array(
@@ -284,5 +300,20 @@ class SingleEliminationController extends TourneyController implements TourneyCo
         'callback' => 'getNextMatch',
       ),
     );
+  }
+  
+  /**
+   * Renders the html for each round tournament
+   * 
+   * @param $tournament
+   *   The tournament object
+   * @param $matches
+   *   An array of all the rounds and matches in a tournament.
+   */
+  public function render($tournament, $matches) {
+    drupal_add_js($this->pluginInfo['path'] . '/theme/single.js');
+    $rounds = array_values($matches['top']);
+    $output = theme('tourney_single_tree', array('rounds' => $rounds, 'small' => $tournament->players > 8));
+    return $output;
   }
 }

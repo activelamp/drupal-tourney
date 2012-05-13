@@ -10,7 +10,7 @@
  */
 $plugin = array(
   'name' => t('Round Robin Tournament'),
-  'machine name' => 'round_robin',
+  'machine name' => 'roundrobin',
   'description' => t('This is the description of the tournament'),
   'weight' => 3,
   'total games' => 5,

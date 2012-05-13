@@ -120,8 +120,9 @@ function tourney_action_game_is_won($match, $quotient) {
     if ($create_new_game) {
       $game_count = count($match->getGameIds());
       $game = new TourneyGame(array(
-        'type' => 'game',
-        'title' => 'game-' . ++$game_count,
+        'type'  => 'game',
+        'title' => 'Game ' . ++$game_count,
+        'name'  => $match->name . '_game-' . ++$game_count,
       ));
       $game->save();
       // Add the relationship to the game.

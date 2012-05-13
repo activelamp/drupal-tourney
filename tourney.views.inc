@@ -68,9 +68,9 @@ function tourney_views_plugins() {
       'tourney' => array(
         'title' => 'Tournament Tree',
         'handler' => 'tourney_plugin_style_tournament',
-        'path' => "$path/includes",
+        'path' => "$path/views/handlers",
         'theme' => 'tourney_tournament_view',
-        'theme path' => "$path/theme",
+        'theme path' => "$path/views/theme",
         'theme file' => 'tourney_tournament_view.inc',
         'uses fields' => FALSE,
         'uses row plugin' => FALSE,

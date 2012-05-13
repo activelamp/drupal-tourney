@@ -2,11 +2,12 @@
 
 /*
  * @file
+ * Holds the theme implementations for rendering tournaments
  */
 
 /**
- * Theme function to return HTML output for a given tournament, pulls includes
- * based on tournament type
+ * Theme function to return HTML output for a given tournament, delegates the
+ * rendering to the tourney format plugin.
  *
  * @param $vars
  *   Should be a single-key array containing the tournament
@@ -14,25 +15,7 @@
  *   Tree in HTML output
  */
 function theme_tourney_render_tourney($vars) {
-  module_load_include('inc', 'tourney', 'includes/tourney.tournament');
-  $types = array(
-    'SingleEliminationController' => 'single',
-    'DoubleEliminationController' => 'double',
-    'RoundRobinController'        => 'roundrobin',
-  );
-  $tournament = $vars['tournament'];
-  $format = $types[$tournament->format];
-  if (array_key_exists('matches', $vars)) {
-    $matches = $vars['matches'];
-  }
-  else {
-    $matches = $tournament->buildMatches();
-  }
-
-  $output = "<div class='tourney tourney-$format'><div class='tourney-inner'>";
-  $output .= theme("tourney_render_tourney_$format", array('tournament' => $tournament, 'matches' => $matches));
-  $output .= "</div></div>";
-  return $output;
+  return $vars['tournament']->render();
 }
 
 /**
@@ -147,52 +130,4 @@ function theme_tourney_spacer($vars) {
   else
     $output  = str_repeat(sprintf($div, ''), $height);
   return $output;
-}
-
-/**
- * Theme the match edit table of players
- */
-function theme_tourney_match_fix($vars) {
-  $element = $vars['element'];
-  
-  // Get the keys of the game form elements in this match render element
-  // @see tourney_match_form().
-  $children = element_children($element);
-  
-  // Initialize the header and rows
-  $header = array('Team Name');
-  $rows   = array();
-  
-  // Loop through all the games that have started.
-  for ($gn = 0; $gn < $element['#games']; $gn++) {
-    $header[] = "Game " . ( $gn + 1 );
-    
-    if ($gn < count($children)) {
-      // Get the form element for this game number.
-      $game = $element[$children[$gn]];
-      foreach (element_children($game) as $user) {
-        if (!isset($rows[$user])) {
-          $rows[$user][] = $game[$user]['#title'];
-        }
-        // Render the form element as a column in this row of the table.
-        $rows[$user][] = drupal_render($game[$user]);
-      }
-    }
-    else {
-      foreach ($rows as $id => &$row) {
-        $row[] = ' - ';
-      } 
-    }
-  }
-
-  $header[] = "Results";
-  foreach ( $rows as $id => &$row ) {
-    $row[] = ' - ';
-  }
-
-  return theme('table', array(
-    'attributes' => array('id' => 'game-list'),
-    'header' => $header,
-    'rows' => $rows,
-  ));
 }

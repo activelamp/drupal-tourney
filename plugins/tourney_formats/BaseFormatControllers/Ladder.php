@@ -8,7 +8,7 @@
 /**
  * A class defining how matches are created for this style tournament.
  */
-class LadderController extends ToruneyController implements TourneyControllerInterface {
+class LadderController extends TourneyController implements TourneyControllerInterface {
 
   protected $num_contestants;
   protected $matches;
@@ -25,7 +25,14 @@ class LadderController extends ToruneyController implements TourneyControllerInt
    * Build an array with all possible matches.
    */
   public function build() {
-
+    
+  }
+  
+  /**
+   * Stub code.
+   */
+  public function isFinished($tournament) {
+    return false;
   }
 
   /**

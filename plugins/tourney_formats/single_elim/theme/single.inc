@@ -4,14 +4,6 @@
  * @file
  */
 
-function theme_tourney_render_tourney_single($vars) {
-  extract($vars);
-  drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/single.js');
-  $rounds = array_values($matches['top']);
-  $output = theme('tourney_single_tree', array('rounds' => $rounds, 'small' => $tournament->players > 8));
-  return $output;
-}
-
 function theme_tourney_single_tree($vars) {
   extract($vars); 
   $output = '';

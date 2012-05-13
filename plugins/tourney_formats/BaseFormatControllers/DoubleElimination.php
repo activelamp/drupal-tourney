@@ -9,7 +9,74 @@
  * A class defining how matches are created for this style tournament.
  */
 class DoubleEliminationController extends SingleEliminationController implements TourneyControllerInterface {
+  /**
+   * Theme implementations to register with tourney module.
+   * 
+   * @see hook_theme().
+   */
+  public static function theme($existing, $type, $theme, $path) {
+    return array(
+      'tourney_dummy_rounds' => array(
+        'variables' => array('count' => NULL, 'height' => NULL, 'small' => 1),
+        'file' => 'double.inc', 
+        'path' => $path . '/theme',
+      ),
+      'tourney_double_top_bracket' => array(
+        'variables' => array('rounds' => NULL),
+        'file' => 'double.inc', 
+        'path' => $path . '/theme',
+      ),
+      'tourney_double_bottom_bracket' => array(
+        'variables' => array('rounds' => NULL),
+        'file' => 'double.inc', 
+        'path' => $path . '/theme',
+      ),
+      'tourney_double_champion_bracket' => array(
+        'variables' => array('tournament' => NULL, 'rounds' => NULL),
+        'file' => 'double.inc', 
+        'path' => $path . '/theme',
+      ),
+    );
+  }
+  
+  /**
+   * Renders the html for each round tournament
+   * 
+   * @param $tournament
+   *   The tournament object
+   * @param $matches
+   *   An array of all the rounds and matches in a tournament.
+   */
+  public function render($tournament, $matches) {
+    drupal_add_js($this->pluginInfo['path'] . '/theme/double.js');
+    $output = '';
+    if (!empty($matches['top'])  || !empty($matches['bottom'])) {
+      $output .= '<div class="bracket bracket-wrapper">';
 
+      if (!empty($matches['top'])) {
+        $output .= '<div class="bracket bracket-top">';
+        $output .=   theme('tourney_dummy_rounds', array('count' => count($matches['bottom']) - count($matches['top']), 'height' => $tournament->players));
+        $output .=   theme('tourney_double_top_bracket', array('rounds' => array_values($matches['top'])));
+        $output .= '</div>';
+      }
+
+      if (!empty($matches['bottom'])) {
+        $output .= '<div class="bracket bracket-bottom">';
+        $output .=   theme('tourney_double_bottom_bracket', array('rounds' => array_values($matches['bottom'])));
+        $output .= '</div>';
+      }
+
+      $output .= '</div>';
+    }
+
+    if (!empty($matches['champion'])) {
+      $output .= '<div class="bracket bracket-champion">';
+      $output .=   theme('tourney_double_champion_bracket', array('tournament' => $tournament, 'rounds' => array_values($matches['champion'])));
+      $output .= '</div>';
+    }
+    return $output;
+  }
+  
   /**
    * Build the double elim, calling the SingleElim build for its top bracket and
    * internal buildBottomBracket for its bottom.

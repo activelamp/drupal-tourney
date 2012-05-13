@@ -4,37 +4,6 @@
  * @file
  */
 
-function theme_tourney_render_tourney_double($vars) {
-  extract($vars);
-  drupal_add_js(drupal_get_path('module', 'tourney') . '/theme/js/double.js');
-  $output = '';
-  if (!empty($matches['top'])  || !empty($matches['bottom'])) {
-    $output .= '<div class="bracket bracket-wrapper">';
-
-    if (!empty($matches['top'])) {
-      $output .= '<div class="bracket bracket-top">';
-      $output .=   theme('tourney_dummy_rounds', array('count' => count($matches['bottom']) - count($matches['top']), 'height' => $tournament->players));
-      $output .=   theme('tourney_double_top_bracket', array('rounds' => array_values($matches['top'])));
-      $output .= '</div>';
-    }
-
-    if (!empty($matches['bottom'])) {
-      $output .= '<div class="bracket bracket-bottom">';
-      $output .=   theme('tourney_double_bottom_bracket', array('rounds' => array_values($matches['bottom'])));
-      $output .= '</div>';
-    }
-
-    $output .= '</div>';
-  }
-
-  if (!empty($matches['champion'])) {
-    $output .= '<div class="bracket bracket-champion">';
-    $output .=   theme('tourney_double_champion_bracket', array('tournament' => $tournament, 'rounds' => array_values($matches['champion'])));
-    $output .= '</div>';
-  }
-  return $output;
-}
-
 function theme_tourney_dummy_rounds($vars) {
   extract($vars);
   if ( $count <= 0 ) return '';

@@ -116,10 +116,11 @@ function theme_tourney_admin_content($variables) {
     // $tournament is not a fully loaded object. Need to get the path via the
     // static method on tournaments.
     $uri = TourneyTournament::path($tournament->id);
+    $info = TourneyController::getPluginInfo($tournament->format);
     $rows[] = array(
       l($tournament->id, $uri),
       l($tournament->title, $uri),
-      $tournament->format,
+      $info['name'],
       $tournament->players,
       $tournament->winner,
       user_access('access tourney') ? l(t('View'), $uri . '') : '',
@@ -209,7 +210,7 @@ function tourney_configuration($form, &$form_state) {
     '#type' => 'vertical_tabs',
   );
   $form['tourney']['#attached']['css'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/config.css',
+    drupal_get_path('module', 'tourney') . '/theme/tourney.css',
   );
   foreach ($entities as $key => $entity) {
     $form['tourney'][$key] = array(

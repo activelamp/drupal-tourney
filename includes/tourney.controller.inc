@@ -17,24 +17,40 @@ class TourneyController {
   protected $tourneyFormatPlugin;
   protected $matches;
   protected $tournament;
+  protected $pluginInfo;
 
   /**
    * Constructor
    */
   public function __construct($tournament) {
-    $this->tournament = $tournament;
-    $tourneyFormatPlugin = $tournament->format;
-    
-    if (!class_exists($tourneyFormatPlugin)) {
-      trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class not found.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
+    if (!is_null($tournament)) {
+      $this->tournament = $tournament;
+      $tourneyFormatPlugin = $tournament->format;
+
+      if (!class_exists($tourneyFormatPlugin)) {
+        trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class not found.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
+      }
+
+      $interfaces = class_implements($tourneyFormatPlugin);
+      if (isset($interfaces['TourneyControllerInterface'])) {
+        $this->tourneyFormatPlugin = new $tourneyFormatPlugin($tournament);
+      }
+      else {
+        trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class does not implement TourneyControllerInterface.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
+      }
     }
-    
-    $interfaces = class_implements($tourneyFormatPlugin);
-    if (isset($interfaces['TourneyControllerInterface'])) {
-      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($tournament);
-    }
-    else {
-      trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class does not implement TourneyControllerInterface.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
+    $this->pluginInfo = self::getPluginInfo(get_class($this));
+  }
+  
+  /**
+   * Get the machine name of the plugin.
+   */
+  public static function getPluginInfo($controller) {
+    $plugins = tourney_get_types();
+    foreach ($plugins as $info) {
+      if ($info['controller'] == $controller) {
+        return $info;
+      }
     }
   }
   

@@ -1,3 +1,5 @@
+#tourney-configuration .select-all {width:50px;}
+
 .field-label{font-weight:bold;}
 
 .tourney {
@@ -21,11 +23,9 @@
   background: #E8E8E8;
 }
 
-/*
-
-Match theming should update .match-spacer.small as well to exactly 50% of .match height
-
-*/
+/**
+ * Match theming should update .match-spacer.small as well to exactly 50% of .match height
+ */
 
 .tourney .match {
   height: 4em;
@@ -74,11 +74,7 @@ Match theming should update .match-spacer.small as well to exactly 50% of .match
   visibility: hidden;
 }
 
-/*
-
-Pretty sure this flow theming needs to be redone
-
-*/
+/* Pretty sure this flow theming needs to be redone */
 
 .tourney .match .flow {
   height: 100%;

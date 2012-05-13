@@ -511,65 +511,29 @@ function tourney_theme($existing, $type, $theme, $path) {
     ),
     'tourney_match_fix' => array(
       'render element' => 'element',
-      'file' => 'tourney.inc',
-      'path' => $path . '/theme',
+      'file' => 'tourney.match.inc',
+      'path' => $path . '/includes',
     ),
-
-    //single
-    'tourney_render_tourney_single' => array(
-      'variables' => array('tournament' => NULL, 'matches' => NULL),
-      'file' => 'single.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-    'tourney_single_tree' => array(
-      'variables' => array('rounds' => NULL, 'small' => FALSE),
-      'file' => 'single.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-
-    //double
-    'tourney_render_tourney_double' => array(
-      'variables' => array('tournament' => NULL, 'matches' => NULL),
-      'file' => 'double.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-    'tourney_dummy_rounds' => array(
-      'variables' => array('count' => NULL, 'height' => NULL, 'small' => 1),
-      'file' => 'double.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-    'tourney_double_top_bracket' => array(
-      'variables' => array('rounds' => NULL),
-      'file' => 'double.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-    'tourney_double_bottom_bracket' => array(
-      'variables' => array('rounds' => NULL),
-      'file' => 'double.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-    'tourney_double_champion_bracket' => array(
-      'variables' => array('tournament' => NULL, 'rounds' => NULL),
-      'file' => 'double.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-
-    //round robin
-    'tourney_render_tourney_roundrobin' => array(
-      'variables' => array('tournament' => NULL, 'matches' => NULL),
-      'file' => 'roundrobin.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-    'tourney_roundrobin_standings' => array(
-      'variables' => array('tournament' => NULL, 'matches' => NULL),
-      'file' => 'roundrobin.inc', 
-      'path' => $path . '/theme/type/',
-    ),
-  );
+  ) + _tourney_theme($existing, $type, $theme, $path);
 }
 
 /**
- * Defines the entities and their  default bundles for the entities created by
+ * Get the theme implementations defined in the plugins.
+ */
+function _tourney_theme($existing, $type, $theme, $path) {
+  $hooks = array();
+  $plugins = tourney_get_types();
+  foreach ($plugins as $info) {
+    $class = ctools_plugin_get_class($info, 'controller');
+    if (method_exists($class, 'theme')) {
+      $hooks += $class::theme($existing, $type, $theme, $info['path']);
+    }
+  }
+  return $hooks;
+}
+
+/**
+ * Defines the entities and their default bundles for the entities created by
  * this module.
  */
 function tourney_entities() {

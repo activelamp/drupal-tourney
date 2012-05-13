@@ -10,7 +10,7 @@ INTRODUCTION
 ------------
 
 The base classes provided in the BaseFormatControllers directory provide base 
-functionality for certian types of tournaments. Module developers can extend 
+functionality for certain types of tournaments. Module developers can extend 
 these classes in their own module to provide more specific functionality. The
 plugin system utilizes CTools plugins to define new plugin formats.
 
