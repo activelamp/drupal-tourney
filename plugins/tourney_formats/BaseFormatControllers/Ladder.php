@@ -19,6 +19,8 @@ class LadderController extends TourneyController implements TourneyControllerInt
   public function __construct(TourneyTournament $tournament) {
     drupal_set_message(t('Ladder match not implemented yet.'), 'warning');
     $this->num_contestants = $tournament->num_players;
+    
+    parent::__construct();
   }
 
   /**
@@ -26,6 +28,13 @@ class LadderController extends TourneyController implements TourneyControllerInt
    */
   public function build() {
     
+  }
+  
+  /**
+   * Stub coe
+   */
+  public function structure() {
+    return array();
   }
   
   /**

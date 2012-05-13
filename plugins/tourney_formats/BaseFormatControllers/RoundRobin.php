@@ -23,6 +23,8 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     // Ensure we have an even number of slots
     $slots = $this->contestants % 2 ? $this->contestants + 1 : $this->contestants;
     $this->slots = $slots;
+    
+    parent::__construct();
   }
   
   /**
@@ -41,6 +43,13 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   }
   
   /**
+   * Stub code for structure.
+   */
+  public function structure() {
+    return array();
+  }
+  
+  /**
    * Renders the html for each round of a round robin tournament
    * 
    * @param $tournament
@@ -49,7 +58,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
    *   An array of all the rounds and matches in a tournament.
    */
   public function render($tournament, $matches) {
-    drupal_add_js($this->pluginInfo['path'] . '/theme/single.js');
+    drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
     // Render the standings table.
     $output = theme('tourney_roundrobin_standings', array(
       'tournament' => $tournament,
@@ -90,7 +99,8 @@ class RoundRobinController extends TourneyController implements TourneyControlle
         $matches[] = array('bracket' => 'roundrobin', 'round' => $r, 'match' => $m);
       }
     }
-    return $matches;
+    $this->matches = $matches;
+    return $this->matches;
   }
 
   /**

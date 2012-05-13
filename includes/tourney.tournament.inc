@@ -117,6 +117,8 @@ function tourney_tournament_page_view($tourney) {
  * Implements hook_ENTITY_view().
  */
 function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode = 'en') {
+  $info = TourneyController::getPluginInfo($entity->format);
+  
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'
   );
@@ -126,7 +128,7 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   $entity->content['tourney_format'] = array(
    '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
    '#suffix' => '</div>',
-   '#markup' => $entity->format,
+   '#markup' => $info['name'],
   );
   $entity->content['tourney_players'] = array(
    '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',

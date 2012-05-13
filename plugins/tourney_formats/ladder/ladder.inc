@@ -6,10 +6,10 @@
  */
 
 /**
- * Ladder Tournament
+ * Ladder Format
  */
 $plugin = array(
-  'name' => t('Ladder Tournament'),
+  'name' => t('Ladder'),
   'machine name' => 'ladder',
   'description' => t('This is the description of the tournament'),
   'weight' => 4,

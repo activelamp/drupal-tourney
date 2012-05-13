@@ -28,7 +28,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       // Populate the object with some meta data.
       $this->calculateRounds($tournament->players);
     }
-    parent::__construct(NULL);
+    parent::__construct();
   }
 
   /**
@@ -162,7 +162,6 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     switch ($type) {
       case 'rounds':
         return $this->structure = $this->buildBracketByRounds($this->slots);
-
       case 'tree':
         return $this->structure = $this->buildBracketByTree($this->slots);
     }

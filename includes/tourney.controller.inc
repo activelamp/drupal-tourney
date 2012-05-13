@@ -22,7 +22,7 @@ class TourneyController {
   /**
    * Constructor
    */
-  public function __construct($tournament) {
+  public function __construct($tournament = NULL) {
     if (!is_null($tournament)) {
       $this->tournament = $tournament;
       $tourneyFormatPlugin = $tournament->format;
@@ -173,6 +173,11 @@ interface TourneyControllerInterface {
    * Builds the array structure for all matches to be created.
    */
   public function build();
+  
+  /**
+   * Defines the structure of matches in tournament.
+   */
+  public function structure();
   
   /**
    * Determines which contestant is the winner.
