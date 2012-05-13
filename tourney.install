@@ -488,7 +488,7 @@ function tourney_update_7004() {
     }
   }
   
-  return t('Tournament formats updated successfully.');
+  return t('Tournament content updated successfully.');
 }
 
 /**

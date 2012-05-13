@@ -243,9 +243,23 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   protected function buildRound($slots, $round_num) {
-    $round = array(
-      'title' => t('Round ') . $round_num,
-    );
+    // The plugin defines a title for rounds and hard codes the title it into 
+    // the structure array for every round except the first one.
+    if ($round_num == 1) {
+      $round = array(
+        'title' => array(
+          'callback' => 'getRoundTitle',
+          'args'     => array('round_num' => $round_num),
+        ),
+      );
+    }
+    else {
+      // This logic could have been handled in the callback above. It is hard
+      // coded here to provide a concrete example of both implementations.
+      $round = array(
+        'title' => t('Round ') . $round_num,
+      );
+    }
 
     for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
       $round['matches']['match-' . $match_num] = $this->buildMatch($slots, $round_num, $match_num);
@@ -256,9 +270,19 @@ class SingleEliminationController extends TourneyController implements TourneyCo
 
   protected function buildMatch($slots, $round_num, $match_num) {
     return array(
-      'match' => $this->getMatch($round_num, $match_num),
-      'previous_match_callback' => 'getPreviousMatch',
-      'next_match_callback' => 'getNextMatch',
+      'current_match' => array(
+        'callback' => 'getMatch',
+        'args' => array(
+          'round_num' => $round_num,
+          'match_num' => $match_num,
+        ),
+      ),
+      'previous_match' => array(
+        'callback' => 'getPreviousMatch',
+      ),
+      'next_match' => array(
+        'callback' => 'getNextMatch',
+      ),
     );
   }
 }
