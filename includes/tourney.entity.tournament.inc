@@ -387,23 +387,21 @@ class TourneyTournament extends TourneyEntity {
   }
 
  /**
-  * Given a match place integer, returns the next match place based on either 'winner' or 'loser' direction
-  * Calls the necessary tournament format plugin to get its result
+  * Retrieve the callback from the plugin for next match and pass and delegate
+  * responsibility to the plugin.
   *
   * @param $match
-  *   Match object to compare with the internal matchIds property to get its match placement
+  *   Match object to compare with the internal matchIds property to get its 
+  *   match placement
   * @param $direction
   *   Either 'winner' or 'loser'
   * @return $match
   *   Match entity of the desired match, otherwise NULL 
   */
   public function getNextMatch($match, $direction = 'winner') {
-    $ids = array_flip($this->getMatchIds());
-    $next = $this->tourneyFormatPlugin->getNextMatch($ids[$match->entity_id], $direction);
-    if ( $next === NULL ) return NULL;
-    $ids = array_flip($ids);
-    if ( !array_key_exists((int)$next, $ids) ) return NULL;
-    return entity_load_single('tourney_match', $ids[$next]);
+    // Get the callback for this match
+    $callbacks = $this->tourneyFormatPlugin->getMatchCallbacks($match);
+    return $this->tourneyFormatPlugin->$callbacks['next_match']['callback']($match, $direction);
   }
   
   public function render() {
