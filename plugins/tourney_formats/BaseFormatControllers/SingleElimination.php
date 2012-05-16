@@ -268,21 +268,21 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   protected function buildRound($slots, $round_num) {
     // The plugin defines a title for rounds and hard codes the title it into 
     // the structure array for every round except the first one.
-    // if ($round_num == 1) {
-    //       $round = array(
-    //         'title' => array(
-    //           'callback' => 'getRoundTitle',
-    //           'args'     => array('round_num' => $round_num),
-    //         ),
-    //       );
-    //     }
-    //     else {
+    if ($round_num == 1) {
+      $round = array(
+        'title' => array(
+          'callback' => 'getRoundTitle',
+          'args'     => array('round_num' => $round_num),
+        ),
+      );
+    }
+    else {
       // This logic could have been handled in the callback above. It is hard
       // coded here to provide a concrete example of both implementations.
       $round = array(
         'title' => t('Round ') . $round_num,
       );
-    // }
+    }
 
     for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
       $round['matches']['match-' . $match_num] = $this->buildMatch($slots, $round_num, $match_num);
@@ -354,5 +354,41 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     // this structure array is built, because this array was defined in this
     // plugin.
     return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
+  }
+  
+  /**
+   * Get the round title
+   */
+  public function getRoundTitle($round_num) {
+    if ($round_num == 1) {
+      return 'Qualifying Round';
+    }
+    return 'Round ' . $round_num;
+  }
+  
+  /**
+   * Method to get contestants for this plugin.
+   */
+  public function getContestants() {
+    // Take matches from only the first round, since those are the manually populated ones
+    $matches = $this->tournament->data['bracket-top']['rounds']['round-1']['matches'];
+    // Set up two arrays to fill for seed order
+    $seed_1 = array();
+    $seed_2 = array();
+    foreach ($matches as $match_callbacks) {
+      $match = $this->tournament->tourneyFormatPlugin
+        ->$match_callbacks['current_match']['callback'](
+          $match_callbacks['current_match']['args']['round_num'],
+          $match_callbacks['current_match']['args']['match_num']);
+        
+      $seed = 1;
+      foreach ( $match->getContestants() as $eid => $contestant ) {
+        $group = "seed_" . $seed++;
+        ${$group}[$eid] = $contestant;
+      }
+    }
+    // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
+    $contestants = array_merge($seed_1, array_reverse($seed_2));
+    return $contestants;
   }
 }
