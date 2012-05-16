@@ -163,6 +163,38 @@ class TourneyController {
       }
     }
   }
+  
+  /**
+   * Return the match location in the bracket of a match object.
+   * 
+   * The SingleElimination plugin stores information about the location of the
+   * match in a relation entity. This getMatchAddress method is dependent on how
+   * the saveMatches() method is written. If saveMatches() is overridden, it is
+   * likely that getMatchAddress() should be overridden as well.
+   * 
+   * @see TourneyController::saveMatches()
+   * 
+   * @param $match
+   *   The match object to get the address for
+   * @return array
+   *   An array keyed with 
+   */
+  protected function getMatchAddress($match) {
+    $query = relation_query('tourney_match', $match->id);
+    $query->entityCondition('bundle', 'has_match');
+    $results = $query->execute();
+    
+    $name_parts = explode('_', $match->name);
+    $match_ids = array();
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      return array(
+        'bracket' => $r->bracket[LANGUAGE_NONE][0]['safe_value'],
+        'round_num' => $r->round[LANGUAGE_NONE][0]['safe_value'],
+        'match_num' => substr(strstr($name_parts[1], '-'), 1),
+      );
+    }
+  }
 }
 
 /**

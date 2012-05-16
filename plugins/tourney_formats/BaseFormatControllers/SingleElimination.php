@@ -132,17 +132,40 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     throw new Exception(t('There are no matches for this tournament'));
   }
 
- /**
-  * Given a match place integer, returns the next match place based on either 'winner' or 'loser' direction
-  *
-  * @param $place
-  *   Match placement, zero-based. round 1 match 1's match placement is 0
-  * @param $direction
-  *   Either 'winner' or 'loser'
-  * @return $place
-  *   Match placement of the desired match, otherwise NULL 
-  */
-  public function getNextMatch($place, $direction = NULL) {
+  /**
+   * Given a match place integer, returns the next match place based on either 
+   * 'winner' or 'loser' direction. Calls the necessary tournament format plugin 
+   * to get its result
+   *
+   * @param $match
+   *   Match object to compare with the internal matchIds property to get its 
+   *   match placement
+   * @param $direction
+   *   Either 'winner' or 'loser'
+   * @return $match
+   *   Match entity of the desired match, otherwise NULL 
+   */
+  public function getNextMatch($match, $direction = NULL) {
+    $ids = array_flip($this->tournament->getMatchIds());
+    $next = $this->calculateNextPosition($ids[$match->entity_id], $direction);
+    if ( $next === NULL ) return NULL;
+    $ids = array_flip($ids);
+    if ( !array_key_exists((int)$next, $ids) ) return NULL;
+    return entity_load_single('tourney_match', $ids[$next]);
+  }
+  
+  /**
+   * Given a match place integer, returns the next match place based on either 
+   * 'winner' or 'loser' direction
+   *
+   * @param $place
+   *   Match placement, zero-based. round 1 match 1's match placement is 0
+   * @param $direction
+   *   Either 'winner' or 'loser'
+   * @return $place
+   *   Match placement of the desired match, otherwise NULL 
+   */
+  protected function calculateNextPosition($place, $direction) {
     if ( $direction == 'loser' ) return NULL;
     // @todo find a better way to count matches
     $matches = $this->slots - 1;
@@ -187,7 +210,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     $tree['children'] = $this->buildChildren();
 
     return array(
-      'bracket-main' => array(
+      'bracket-top' => array(
         'title'    => t('Main Bracket'),
         'children' => $this->buildChildren($slots, $num_rounds, $num_matches),
       ),
@@ -216,7 +239,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   protected function buildBracketByRounds($slots) {
     return array(
-      'bracket-main' => array(
+      'bracket-top' => array(
         'title'  => t('Main Bracket'),
       ) + $this->buildRounds($slots),
     );
@@ -282,7 +305,10 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       ),
     );
   }
-
+  
+  /**
+   * Define the match callbacks implemented in this plugin.
+   */
   protected function buildMatch($slots, $round_num, $match_num) {
     return array(
       'current_match' => array(
@@ -297,6 +323,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       ),
       'next_match' => array(
         'callback' => 'getNextMatch',
+        'args' => array(
+          'direction' => 'winner',
+        ),
       ),
     );
   }
@@ -314,5 +343,17 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     $rounds = array_values($matches['top']);
     $output = theme('tourney_single_tree', array('rounds' => $rounds, 'small' => $tournament->players > 8));
     return $output;
+  }
+  
+  /**
+   * Get the callbacks for this match from the structure of the plugin.
+   */
+  public function getMatchCallbacks($match) {
+    $match_location = $this->getMatchAddress($match);
+    
+    // Return just the portion of the structure array that we need. We know how 
+    // this structure array is built, because this array was defined in this
+    // plugin.
+    return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
   }
 }

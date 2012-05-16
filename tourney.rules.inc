@@ -95,13 +95,16 @@ function tourney_action_game_is_won($match, $quotient) {
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
 
-    // If the match already has a winner even though we've not met our quotient, that means a game was changed
-    // We need to visit the next matches and clear the necessary contestants
-    if ( $match->getWinner() ) {
-      if ( $match->nextMatch() )
+    // If the match already has a winner even though we've not met our quotient,
+    // that means a game was changed. We need to get the next matches and clear
+    // the necessary contestants
+    if ($match->getWinner()) {
+      if ($match->nextMatch()) {
         $match->nextMatch()->removeContestant($match->getWinnerEntity());
-      if ( $match->nextMatch('loser') )
+      }
+      if ($match->nextMatch('loser')) {
         $match->nextMatch('loser')->removeContestant($match->getLoserEntity());
+      }
     }
 
     // Check all our played games to make sure they've been won.
