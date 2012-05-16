@@ -3,7 +3,7 @@
 /*
  * @file
  */
- 
+
 function theme_tourney_single_tree($vars) {
   extract($vars);
   $output = '';
@@ -47,7 +47,8 @@ function theme_tourney_single_tree($vars) {
     
     // Display the title of this round.
     if (!empty($round['title'])) {
-      $output .= "<h3>" . $round['title'] . "</h3>";
+      $title = !is_array($round['title']) ? $round['title'] : $tournament->tourneyFormatPlugin->$round['title']['callback']($round['title']['args']['round_num']);
+      $output .= "<h3>$title</h3>";
     }
     
     

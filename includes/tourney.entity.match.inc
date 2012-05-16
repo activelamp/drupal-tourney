@@ -452,10 +452,13 @@ class TourneyMatch extends TourneyEntity {
    */
   public function isLocked() {
     // Get the next matches...
-    if ( $this->getWinnerEntity() )
-      if ( count($this->nextMatch('winner')->getGameIds()) > 1 ) return TRUE;
-    if ( $this->getLoserEntity() )
-      if ( count($this->nextMatch('loser')->getGameIds()) > 1 ) return TRUE;
+    if ($this->getWinnerEntity() && $this->nextMatch('winner')) {
+      if (count($this->nextMatch('winner')->getGameIds()) > 1) return TRUE;
+    }
+    if ($this->getLoserEntity() && $this->nextMatch('loser')) {
+      if (count($this->nextMatch('loser')->getGameIds()) > 1) return TRUE;
+    }
+      
     return FALSE;
   }
 
@@ -561,14 +564,22 @@ class TourneyMatch extends TourneyEntity {
     // it's just a glorified abstraction in case we have more contestants later
     foreach ( $this->getContestantIds() as $slot => $contestant ) {
       $entity = entity_load_single($contestant['type'], $contestant['id']);
-      if ( $this->getWinner() == $contestant['eid'] ) $winner = $entity;
-      else $loser = $entity;
+      if ($this->getWinner() == $contestant['eid']) {
+        $winner = $entity;
+      }
+      else {
+        $loser = $entity;
+      }
     }
     // Another code-saving abstraction, use the handy new setContestant to easily 
     // apply the entities to their targets
-    dpm("NOOOOOOOOOOOOOOOOOOOOOOO");
-    $this->nextMatch()->addContestant($winner);
-    if ( $this->nextMatch('loser') ) $this->nextMatch('loser')->addContestant($loser);
+    if ($this->nextMatch()) {
+      $this->nextMatch()->addContestant($winner);
+    }
+    
+    if ($this->nextMatch('loser')) {
+      $this->nextMatch('loser')->addContestant($loser);
+    } 
   }
 
  /**

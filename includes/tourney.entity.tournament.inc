@@ -297,22 +297,7 @@ class TourneyTournament extends TourneyEntity {
  *   List of contestants, all entities
  */
   public function getContestants() {
-    // Take matches from only the first round, since those are the manually populated ones
-    $bracket = array_shift($this->buildMatches());
-    $round = $bracket[1];
-    // Set up two arrays to fill for seed order
-    $seed_1 = array();
-    $seed_2 = array();
-    foreach ( $round as $match ) {
-      $seed = 1;
-      foreach ( $match->getContestants() as $eid => $contestant ) {
-        $group = "seed_" . $seed++;
-        ${$group}[$eid] = $contestant;
-      }
-    }
-    // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
-    $contestants = array_merge($seed_1, array_reverse($seed_2));
-    return $contestants;
+    return $this->tourneyFormatPlugin->getContestants();
   }
 
 /**
@@ -379,5 +364,44 @@ class TourneyTournament extends TourneyEntity {
     $ids = array_flip($this->getMatchIds());
     $place = $ids[$match->entity_id];
     return $place < $this->tourneyFormatPlugin->getSlots() / 2; 
+  }
+  
+  /**
+   * Deprecated function. Use the structure in plugin instead.
+   * 
+   * Return all the matches that have a relation 'has_match' with the passed in
+   * tournament object.
+   *
+   * @param $raw
+   *   If set to true only return the matches, do not return brackets and rounds
+   *   with it.
+   * @param $reset
+   *   Boolean to reset the cache.
+   * @return
+   *   An array of all the rounds and matches.
+   */
+  function buildMatches($raw = FALSE, $reset = FALSE) {
+    $relations = relation_query('tourney_tournament', $this->id)
+      ->entityCondition('bundle', 'has_match')
+      ->execute();
+
+    $brackets = array();
+    foreach ( $relations as $rid => $relation ) {
+      $relation = relation_load($rid);
+      $bracket  = $relation->bracket[LANGUAGE_NONE][0]['safe_value'];
+      $round    = $relation->round[LANGUAGE_NONE][0]['safe_value'];
+
+      $match    = $relation->endpoints[LANGUAGE_NONE][1]['entity_id'];
+      $match    = entity_load_single('tourney_match', $match);
+
+      if ( !array_key_exists($bracket, $brackets) )
+        $brackets[$bracket] = array();
+      if ( !array_key_exists($round, $brackets[$bracket]) )
+        $brackets[$bracket][$round] = array();
+
+      $brackets[$bracket][$round][$match->entity_id] = $match;
+    }
+
+    return $brackets;
   }
 }
