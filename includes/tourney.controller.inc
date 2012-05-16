@@ -144,7 +144,7 @@ class TourneyController {
    * @return $match
    *   Returns a fully loaded match object.
    */
-  protected function getMatch($round_num, $match_num) {
+  public function getMatch($round_num, $match_num) {
     $query = relation_query('tourney_tournament', $this->tournament->id);
     $query->entityCondition('bundle', 'has_match')
           ->fieldCondition('round', 'value', $round_num);

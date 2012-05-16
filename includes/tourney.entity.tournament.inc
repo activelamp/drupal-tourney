@@ -208,43 +208,6 @@ class TourneyTournament extends TourneyEntity {
   }
   
   /**
-   * Return all the matches that have a relation 'has_match' with the passed in
-   * tournament object.
-   *
-   * @param $raw
-   *   If set to true only return the matches, do not return brackets and rounds
-   *   with it.
-   * @param $reset
-   *   Boolean to reset the cache.
-   * @return
-   *   An array of all the rounds and matches.
-   */
-  function buildMatches($raw = FALSE, $reset = FALSE) {
-    $relations = relation_query('tourney_tournament', $this->id)
-      ->entityCondition('bundle', 'has_match')
-      ->execute();
-
-    $brackets = array();
-    foreach ( $relations as $rid => $relation ) {
-      $relation = relation_load($rid);
-      $bracket  = $relation->bracket[LANGUAGE_NONE][0]['safe_value'];
-      $round    = $relation->round[LANGUAGE_NONE][0]['safe_value'];
-
-      $match    = $relation->endpoints[LANGUAGE_NONE][1]['entity_id'];
-      $match    = entity_load_single('tourney_match', $match);
-
-      if ( !array_key_exists($bracket, $brackets) )
-        $brackets[$bracket] = array();
-      if ( !array_key_exists($round, $brackets[$bracket]) )
-        $brackets[$bracket][$round] = array();
-
-      $brackets[$bracket][$round][$match->entity_id] = $match;
-    }
-
-    return $brackets;
-  }
-  
-  /**
    * Delete a tournament.
    */
   public function delete() {
@@ -407,7 +370,7 @@ class TourneyTournament extends TourneyEntity {
   public function render() {
     $info = $this->tourneyFormatPlugin->getPluginInfo(get_class($this->tourneyFormatPlugin));
     $output = "<div class='tourney tourney-" . $info['machine name'] ."'><div class='tourney-inner'>";
-    $output .= $this->tourneyFormatPlugin->render($this, $this->buildMatches());
+    $output .= $this->tourneyFormatPlugin->render();
     $output .= "</div></div>";
     return $output;
   }
