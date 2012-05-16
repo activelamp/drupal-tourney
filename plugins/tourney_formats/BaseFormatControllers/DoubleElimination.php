@@ -47,15 +47,16 @@ class DoubleEliminationController extends SingleEliminationController implements
    * @param $matches
    *   An array of all the rounds and matches in a tournament.
    */
-  public function render($tournament, $matches) {
+  public function render() {
     drupal_add_js($this->pluginInfo['path'] . '/theme/double.js');
+    $matches = $this->tournament->buildMatches();
     $output = '';
     if (!empty($matches['top'])  || !empty($matches['bottom'])) {
       $output .= '<div class="bracket bracket-wrapper">';
 
       if (!empty($matches['top'])) {
         $output .= '<div class="bracket bracket-top">';
-        $output .=   theme('tourney_dummy_rounds', array('count' => count($matches['bottom']) - count($matches['top']), 'height' => $tournament->players));
+        $output .=   theme('tourney_dummy_rounds', array('count' => count($matches['bottom']) - count($matches['top']), 'height' => $this->tournament->players));
         $output .=   theme('tourney_double_top_bracket', array('rounds' => array_values($matches['top'])));
         $output .= '</div>';
       }
@@ -71,7 +72,7 @@ class DoubleEliminationController extends SingleEliminationController implements
 
     if (!empty($matches['champion'])) {
       $output .= '<div class="bracket bracket-champion">';
-      $output .=   theme('tourney_double_champion_bracket', array('tournament' => $tournament, 'rounds' => array_values($matches['champion'])));
+      $output .=   theme('tourney_double_champion_bracket', array('tournament' => $this->tournament, 'rounds' => array_values($matches['champion'])));
       $output .= '</div>';
     }
     return $output;

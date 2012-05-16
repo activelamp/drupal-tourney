@@ -57,11 +57,12 @@ class RoundRobinController extends TourneyController implements TourneyControlle
    * @param $matches
    *   An array of all the rounds and matches in a tournament.
    */
-  public function render($tournament, $matches) {
+  public function render() {
     drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
+    $matches = $this->tournament->buildMatches();
     // Render the standings table.
     $output = theme('tourney_roundrobin_standings', array(
-      'tournament' => $tournament,
+      'tournament' => $this->tournament,
       'matches' => $matches
     ));
 

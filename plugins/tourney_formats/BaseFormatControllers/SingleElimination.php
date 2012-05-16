@@ -268,21 +268,21 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   protected function buildRound($slots, $round_num) {
     // The plugin defines a title for rounds and hard codes the title it into 
     // the structure array for every round except the first one.
-    if ($round_num == 1) {
-      $round = array(
-        'title' => array(
-          'callback' => 'getRoundTitle',
-          'args'     => array('round_num' => $round_num),
-        ),
-      );
-    }
-    else {
+    // if ($round_num == 1) {
+    //       $round = array(
+    //         'title' => array(
+    //           'callback' => 'getRoundTitle',
+    //           'args'     => array('round_num' => $round_num),
+    //         ),
+    //       );
+    //     }
+    //     else {
       // This logic could have been handled in the callback above. It is hard
       // coded here to provide a concrete example of both implementations.
       $round = array(
         'title' => t('Round ') . $round_num,
       );
-    }
+    // }
 
     for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
       $round['matches']['match-' . $match_num] = $this->buildMatch($slots, $round_num, $match_num);
@@ -338,10 +338,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * @param $matches
    *   An array of all the rounds and matches in a tournament.
    */
-  public function render($tournament, $matches) {
+  public function render() {
     drupal_add_js($this->pluginInfo['path'] . '/theme/single.js');
-    $rounds = array_values($matches['top']);
-    $output = theme('tourney_single_tree', array('rounds' => $rounds, 'small' => $tournament->players > 8));
+    $output = theme('tourney_single_tree', array('tournament' => $this->tournament));
     return $output;
   }
   

@@ -3,13 +3,14 @@
 /*
  * @file
  */
-
+ 
 function theme_tourney_single_tree($vars) {
-  extract($vars); 
+  extract($vars);
   $output = '';
-  foreach ( $rounds as $r => $round ) {
-    $last = $r >= count($rounds) -1;  // is this the last round?
-
+  foreach ($tournament->data['bracket-top']['rounds'] as $round_name => &$round ) {
+    $r = substr(strstr($round_name, '-'), 1);
+    $last = $r >= count($tournament->data['bracket-top']['rounds']);  // is this the last round?
+    
     // If a round isn't set to render small, then the default rendering looks
     // squished (and it's impossible to display a title on top of each match).
     // Use the round 2 rendering to start this off, to add some padding.
@@ -41,9 +42,21 @@ function theme_tourney_single_tree($vars) {
      *
      */
     $pad_rows = pow(2, $r)-1;
-
+    
     $output .= '<div class="round round-' . $r . '">';
-    foreach ( array_values($round) as $m => $match ) {
+    
+    // Display the title of this round.
+    if (!empty($round['title'])) {
+      $output .= "<h3>" . $round['title'] . "</h3>";
+    }
+    
+    
+    $m = 0; // A match iterator for each match rendered in round.
+    foreach ($round['matches'] as $match_name => &$match_callbacks ) {
+      $match = $tournament->tourneyFormatPlugin
+        ->$match_callbacks['current_match']['callback'](
+          $match_callbacks['current_match']['args']['round_num'],
+          $match_callbacks['current_match']['args']['match_num']);
 
       // Group match pairs together. This gives the match more direct ownership
       // of its set of flow lines, and lets us target them more easily.
@@ -98,6 +111,7 @@ function theme_tourney_single_tree($vars) {
         // Empty padding to the bottom
         $output .= theme('tourney_spacer', array('height' => $pad_rows));
       }
+      $m++; // Increase match iterator for the round.
     }
     $output .= '</div>';
   } 
