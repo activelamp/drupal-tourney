@@ -584,7 +584,7 @@ class TourneyMatch extends TourneyEntity {
       }
     }
     // Another code-saving abstraction, use the handy new setContestant to easily 
-    // apply the entities to their targets
+    // apply the entities to their targets<<<<<<< HEAD
     if ($this->nextMatch()) {
       $this->nextMatch()->addContestant($winner);
     }
