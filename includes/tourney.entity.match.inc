@@ -452,9 +452,9 @@ class TourneyMatch extends TourneyEntity {
    */
   public function isLocked() {
     // Get the next matches...
-    if ( $this->getWinnerEntity() )
+    if ( $this->nextMatch('winner') )
       if ( count($this->nextMatch('winner')->getGameIds()) > 1 ) return TRUE;
-    if ( $this->getLoserEntity() )
+    if ( $this->nextMatch('loser') )
       if ( count($this->nextMatch('loser')->getGameIds()) > 1 ) return TRUE;
     return FALSE;
   }
@@ -566,7 +566,6 @@ class TourneyMatch extends TourneyEntity {
     }
     // Another code-saving abstraction, use the handy new setContestant to easily 
     // apply the entities to their targets
-    dpm("NOOOOOOOOOOOOOOOOOOOOOOO");
     $this->nextMatch()->addContestant($winner);
     if ( $this->nextMatch('loser') ) $this->nextMatch('loser')->addContestant($loser);
   }

@@ -296,6 +296,8 @@ function tourney_match_form_submit($form, &$form_state) {
     }
   }
 
+  // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
+  $match->getWinner();
   foreach ($form_state['input'] as $id => $value) {
     // If we're not dealing with a game move on.
     if (!$value || substr($id, 0, 5) != 'game_') continue;
@@ -417,19 +419,14 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#suffix' => '</div>',
     '#markup' => $entity->getWinner(),
   );
-  $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
-  $entity->content['match_contestant1'] = is_object($contestant1) ? array(
-    '#prefix' => '<div class="field-label">Contestant 1:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $contestant1->entity_name,
-  ) : '';
-
-  $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
-  $entity->content['match_contestant2'] = is_object($contestant2) ? array(
-    '#prefix' => '<div class="field-label">Contestant 2:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $contestant2->entity_name,
-  ) : '';
+  $i = 1;
+  foreach ( $entity->getContestants() as $eid => $contestant ) {
+    $entity->content['match_contestants'][$eid] = array(
+      '#prefix' => '<div class="field-label">Contestant ' . $i++ . ':</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $contestant->entity_name,
+    );
+  }
 
   $entity->content['match_table'] = array(
     '#theme' => 'tourney_render_match',
