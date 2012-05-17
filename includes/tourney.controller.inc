@@ -195,6 +195,32 @@ class TourneyController {
       );
     }
   }
+  /**
+   * Deprecated fallback for classes not using structure() method yet.
+   * 
+   * Gets a list of participating contestants in seed order
+   *
+   * @return array $contestants 
+   *   List of contestants, all entities
+   */
+  public function getContestants() {
+    // Take matches from only the first round, since those are the manually populated ones
+    $bracket = array_shift($this->tournament->buildMatches());
+    $round = $bracket[1];
+    // Set up two arrays to fill for seed order
+    $seed_1 = array();
+    $seed_2 = array();
+    foreach ( $round as $match ) {
+      $seed = 1;
+      foreach ( $match->getContestants() as $eid => $contestant ) {
+        $group = "seed_" . $seed++;
+        ${$group}[$eid] = $contestant;
+      }
+    }
+    // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
+    $contestants = array_merge($seed_1, array_reverse($seed_2));
+    return $contestants;
+  }
 }
 
 /**
@@ -210,6 +236,11 @@ interface TourneyControllerInterface {
    * Defines the structure of matches in tournament.
    */
   public function structure();
+  
+  /**
+   * Defines how to get the callbacks for a given match
+   */
+  public function getMatchCallbacks($match);
   
   /**
    * Determines which contestant is the winner.

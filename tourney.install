@@ -26,7 +26,7 @@ function tourney_schema() {
       'name' => array(
         'description' => 'The machine-readable name of this tournament.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 128,
         'not null' => TRUE),
       'title' => array(
         'description' => 'The title of the tournament, always treated as non-markup plain text.',
@@ -82,7 +82,7 @@ function tourney_schema() {
       'name' => array(
         'description' => 'The machine-readable name of this match.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 128,
         'not null' => TRUE),
       'title' => array(
         'description' => 'The title of a match, always treated as non-markup plain text.',
@@ -132,7 +132,7 @@ function tourney_schema() {
       'name' => array(
         'description' => 'The machine-readable name of this game.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 128,
         'not null' => TRUE),
       'title' => array(
         'description' => 'The title of a game, always treated as non-markup plain text.',
@@ -167,7 +167,7 @@ function tourney_schema() {
       'name' => array(
         'description' => 'The machine-readable name of this type.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 128,
         'not null' => TRUE,
       ),
       'label' => array(
@@ -490,6 +490,39 @@ function tourney_update_7004() {
   
   return t('Tournament content updated successfully.');
 }
+
+/**
+ * Increase machine name field size.
+ */
+function tourney_update_7005() {
+  db_change_field('tourney_tournament', 'name', 'name',
+    array(
+      'description' => 'The machine-readable name of this entity.',
+      'type' => 'varchar',
+      'length' => 128,
+      'not null' => TRUE,
+      'initial' => '',
+    ));
+  db_change_field('tourney_match', 'name', 'name',
+    array(
+      'description' => 'The machine-readable name of this entity.',
+      'type' => 'varchar',
+      'length' => 128,
+      'not null' => TRUE,
+      'initial' => '',
+    ));
+  db_change_field('tourney_game', 'name', 'name',
+    array(
+      'description' => 'The machine-readable name of this entity.',
+      'type' => 'varchar',
+      'length' => 128,
+      'not null' => TRUE,
+      'initial' => '',
+    ));
+  
+  return t('Updated field length for name successfully.');
+}
+
 
 /**
  * Helper functions

@@ -349,6 +349,7 @@ class TourneyTournament extends TourneyEntity {
   public function getNextMatch($match, $direction = 'winner') {
     // Get the callback for this match
     $callbacks = $this->tourneyFormatPlugin->getMatchCallbacks($match);
+    
     return $this->tourneyFormatPlugin->$callbacks['next_match']['callback']($match, $direction);
   }
   
@@ -380,7 +381,7 @@ class TourneyTournament extends TourneyEntity {
    * @return
    *   An array of all the rounds and matches.
    */
-  function buildMatches($raw = FALSE, $reset = FALSE) {
+  public function buildMatches($raw = FALSE, $reset = FALSE) {
     $relations = relation_query('tourney_tournament', $this->id)
       ->entityCondition('bundle', 'has_match')
       ->execute();
