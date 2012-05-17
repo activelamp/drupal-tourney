@@ -177,10 +177,12 @@ function tourney_action_game_is_won($match, $quotient) {
  *   The match the game belongs to
  */
 function tourney_action_set_all_matches($match) {
-  foreach ( $match->getContestants() as $contestant ) {
+  foreach ($match->getContestants() as $contestant) {
     $next = $match->nextMatch($contestant->slot);
+    
     if ( $next === NULL ) continue;
     $slot = $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, $contestant->slot);
+
     // If the slot is already taken, don't do anything
     if ( $next->getContestant($slot) ) continue;
     $next->addContestant($contestant, $slot);

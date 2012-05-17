@@ -54,5 +54,12 @@ class LadderController extends TourneyController implements TourneyControllerInt
 
     return $this;
   }
+  
+  /**
+   * 
+   */
+  public function getMatchCallbacks($match) {
+    
+  }
 
 }

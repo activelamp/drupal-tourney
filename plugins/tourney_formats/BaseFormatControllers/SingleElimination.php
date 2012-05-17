@@ -292,21 +292,6 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
   
   /**
-   * Theme implementations to register with tourney module.
-   * 
-   * @see hook_theme().
-   */
-  public static function theme($existing, $type, $theme, $path) {
-    return array(
-      'tourney_single_tree' => array(
-        'variables' => array('rounds' => NULL, 'small' => FALSE),
-        'file' => 'single.inc', 
-        'path' => $path . '/theme',
-      ),
-    );
-  }
-  
-  /**
    * Define the match callbacks implemented in this plugin.
    */
   protected function buildMatch($slots, $round_num, $match_num) {
@@ -331,6 +316,21 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
   
   /**
+   * Theme implementations to register with tourney module.
+   * 
+   * @see hook_theme().
+   */
+  public static function theme($existing, $type, $theme, $path) {
+    return array(
+      'tourney_single_tree' => array(
+        'variables' => array('rounds' => NULL, 'small' => FALSE),
+        'file' => 'single.inc', 
+        'path' => $path . '/theme',
+      ),
+    );
+  }
+  
+  /**
    * Renders the html for each round tournament
    * 
    * @param $tournament
@@ -340,8 +340,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function render() {
     drupal_add_js($this->pluginInfo['path'] . '/theme/single.js');
-    $output = theme('tourney_single_tree', array('tournament' => $this->tournament));
-    return $output;
+    return theme('tourney_single_tree', array('tournament' => $this->tournament));
   }
   
   /**
