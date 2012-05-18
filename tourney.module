@@ -141,7 +141,7 @@ function tourney_menu_alter(&$items) {
     $items['tourney/tournament/%tourney_tournament/devel'] = array(
       'title' => 'Devel',
       'page callback' => 'devel_load_object',
-      'page arguments' => array('tourney_tournament', 1),
+      'page arguments' => array('tourney_tournament', 2),
       'access arguments' => array('access devel information'),
       'type' => MENU_LOCAL_TASK,
       'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
@@ -154,7 +154,7 @@ function tourney_menu_alter(&$items) {
     $items['tourney/tournament/%tourney_tournament/devel/render'] = array(
       'title' => 'Render',
       'page callback' => 'devel_load_object',
-      'page arguments' => array('tourney_tournament', 1),
+      'page arguments' => array('tourney_tournament', 2),
       'access arguments' => array('access devel information'),
       'type' => MENU_LOCAL_TASK,
       'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
@@ -279,7 +279,7 @@ function tourney_entity_info() {
     $return[$entity_name] = array(
       'label' => $entity_name,
       'entity class' => $entity_class,
-      'controller class' => 'TourneyEntityAPIController',
+      'controller class' => 'EntityAPIController',
       'base table' => $entity_name,
       'fieldable' => TRUE,
       'uri callback' => 'tourney_uri',
@@ -289,7 +289,6 @@ function tourney_entity_info() {
       ),
       'entity keys' => array(
         'id' => 'id',
-        'name' => 'name',
         'bundle' => 'type',
         'label' => 'title',
       ),
