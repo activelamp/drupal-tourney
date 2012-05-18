@@ -73,7 +73,6 @@ function tourney_rules_action_info() {
  * Action function to get the number of won games.
  */
 function tourney_action_get_game_count($match) {
-  dpm($match);
   // Get the number of games each contestant has won.
   $winners = $match->fetchRanks(TRUE);
 
@@ -91,9 +90,8 @@ function tourney_action_get_game_count($match) {
  *   The number of games won by leader divided by total games in match.
  */
 function tourney_action_game_is_won($match, $quotient) {
-  dpm($match);
   $message = '';
-  
+
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
 
