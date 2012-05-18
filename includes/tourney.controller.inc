@@ -168,13 +168,22 @@ class TourneyController {
   /**
    * Retrieve a match by machine name.
    * 
+   * @todo: Get this working with EntityAPIControllerExportable.
+   *   Loading entities by name comes with EntityAPIControllerExportable, but
+   *   it EntityAPIControllerExportable removes rules integration, which we 
+   *   need also. For now, do a db_query to find the entity id to load.
+   * 
    * @param $args
    *   An array of variables passed from the plugin.
    * @return
    *   A full loaded match object. 
    */
   public function getMatchByName($args) {
-    return tourney_match_load($this->tournament->name . '_' . $args['match_name']);
+    $entity_id = db_query("SELECT id FROM {tourney_match} WHERE name = :name",
+      array(':name' => $this->tournament->name . '_' . $args['match_name']))
+      ->fetchField();
+      
+    return tourney_match_load($entity_id);
   } 
   
   /**
@@ -329,6 +338,7 @@ class TourneyEntityAPIController extends EntityAPIControllerExportable {
     }
     // Invoke rules.
     if (module_exists('rules')) {
+      dpm($this->entityType);
       rules_invoke_event($this->entityType . '_' . $hook, $entity);
     }
   }
