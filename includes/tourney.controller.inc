@@ -90,7 +90,8 @@ class TourneyController {
    * with their initial games and appropriate relations.
    * 
    * If a subclass changes the way matches are saved, the subclass will likely
-   * need to change the getMatch() method. getMatch() is dependent on saveMatches().
+   * need to change the getMatch() method. getMatch() and getMatchAddress() is 
+   * dependent on saveMatches().
    * 
    * @see TourneyController::getMatch()
    *
@@ -163,6 +164,18 @@ class TourneyController {
       }
     }
   }
+  
+  /**
+   * Retrieve a match by machine name.
+   * 
+   * @param $args
+   *   An array of variables passed from the plugin.
+   * @return
+   *   A full loaded match object. 
+   */
+  public function getMatchByName($args) {
+    return tourney_match_load($this->tournament->name . '_' . $args['match_name']);
+  } 
   
   /**
    * Return the match location in the bracket of a match object.

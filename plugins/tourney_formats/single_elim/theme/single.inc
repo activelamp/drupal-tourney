@@ -6,6 +6,7 @@
 
 function theme_tourney_single_tree($vars) {
   extract($vars);
+  
   $output = '';
   foreach ($tournament->data['bracket-top']['rounds'] as $round_name => &$round ) {
     $r = substr(strstr($round_name, '-'), 1);
@@ -55,10 +56,8 @@ function theme_tourney_single_tree($vars) {
     $m = 0; // A match iterator for each match rendered in round.
     foreach ($round['matches'] as $match_name => &$match_callbacks ) {
       $match = $tournament->tourneyFormatPlugin
-        ->$match_callbacks['current_match']['callback'](
-          $match_callbacks['current_match']['args']['round_num'],
-          $match_callbacks['current_match']['args']['match_num']);
-
+        ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
+      
       // Group match pairs together. This gives the match more direct ownership
       // of its set of flow lines, and lets us target them more easily.
       if ( $m % 2 == 0 ) {

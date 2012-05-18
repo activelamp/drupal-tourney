@@ -48,10 +48,14 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function build() {
     $matches = array();
-    foreach ( range(1, $this->rounds) as $round ) {
-      foreach ( range(1, $this->slots / pow(2, $round)) as $match )
-        $matches[] = array('bracket' => 'top', 'round' => $round, 'match' => $match);
+    $match_num = 1;
+    foreach (range(1, $this->rounds) as $round) {
+      foreach (range(1, $this->slots / pow(2, $round)) as $match) {
+        $matches[] = array('bracket' => 'top', 'round' => $round, 'match' => $match_num);
+        $match_num++;
+      }
     }
+    
     $this->matches = $matches;
     return $this->matches;
   }
@@ -256,7 +260,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   protected function buildRounds($slots) {
     $rounds    = array();
     $round_num = 1;
-
+    $static_match_num = &drupal_static('match_num_iterator', 1, TRUE);
+    
     for ($slots_left = $slots; $slots_left >= 2; $slots_left /= 2) {
       $rounds['rounds']['round-' . $round_num] = $this->buildRound($slots_left, $round_num);
       $round_num++;
@@ -266,6 +271,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   protected function buildRound($slots, $round_num) {
+    $static_match_num = &drupal_static('match_num_iterator', 1);
+    
     // The plugin defines a title for rounds and hard codes the title it into 
     // the structure array for every round except the first one.
     if ($round_num == 1) {
@@ -283,9 +290,10 @@ class SingleEliminationController extends TourneyController implements TourneyCo
         'title' => t('Round ') . $round_num,
       );
     }
-
+    
     for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
-      $round['matches']['match-' . $match_num] = $this->buildMatch($slots, $round_num, $match_num);
+      $round['matches']['match-' . $static_match_num] = $this->buildMatch($slots, $round_num, $static_match_num);
+      $static_match_num++;
     }
 
     return $round;
@@ -297,10 +305,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   protected function buildMatch($slots, $round_num, $match_num) {
     return array(
       'current_match' => array(
-        'callback' => 'getMatch',
+        'callback' => 'getMatchByName',
         'args' => array(
-          'round_num' => $round_num,
-          'match_num' => $match_num,
+          'match_name' => 'match-' . $match_num,
         ),
       ),
       'previous_match' => array(
@@ -345,6 +352,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   
   /**
    * Get the callbacks for this match from the structure of the plugin.
+   * 
+   * @param $match
+   *   Match object.
    */
   public function getMatchCallbacks($match) {
     $match_location = $this->getMatchAddress($match);
@@ -376,9 +386,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     $seed_2 = array();
     foreach ($matches as $match_callbacks) {
       $match = $this->tournament->tourneyFormatPlugin
-        ->$match_callbacks['current_match']['callback'](
-          $match_callbacks['current_match']['args']['round_num'],
-          $match_callbacks['current_match']['args']['match_num']);
+        ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
         
       $seed = 1;
       foreach ( $match->getContestants() as $eid => $contestant ) {
