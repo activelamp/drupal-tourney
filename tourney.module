@@ -275,7 +275,7 @@ function tourney_entity_info() {
     $return[$entity_name] = array(
       'label' => $entity_name,
       'entity class' => $entity_class,
-      'controller class' => 'EntityAPIControllerExportable',
+      'controller class' => 'TourneyEntityAPIController',
       'base table' => $entity_name,
       'fieldable' => TRUE,
       'uri callback' => 'tourney_uri',

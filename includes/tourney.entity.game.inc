@@ -160,7 +160,7 @@ class TourneyGame extends TourneyEntity {
   public function getContestants($key = NULL) {
     if (is_null($this->gameContestants)) {
       foreach ($this->getContestantIds() as $c_id) {
-        $this->gameContestants[$c_id['type'] . '.' . $c_id['id']] = array_pop(entity_load($c_id['type'], array($c_id['id'])));
+        $this->gameContestants[$c_id['type'] . '.' . $c_id['id']] = entity_load_single($c_id['type'], $c_id['id']);
       }
     }
 

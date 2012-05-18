@@ -281,3 +281,55 @@ abstract class TourneyEntity extends Entity {
     parent::delete();
   }
 }
+
+/**
+ * Provide the ability to load entities by name by extending the exportable
+ * class built into Entity, but don't skip Rules.
+ */
+class TourneyEntityAPIController extends EntityAPIControllerExportable {
+  
+  /**
+   * This is a direct copy from EntityAPIControllerExportable class with rules
+   * invocation added back in.
+   */
+  public function invoke($hook, $entity) {
+    if ($hook == 'delete') {
+      // To ease figuring out whether this is a revert, make sure that the
+      // entity status is updated in case the providing module has been
+      // disabled.
+      if (entity_has_status($this->entityType, $entity, ENTITY_IN_CODE) && !module_exists($entity->{$this->moduleKey})) {
+        $entity->{$this->statusKey} = ENTITY_CUSTOM;
+      }
+      $is_revert = entity_has_status($this->entityType, $entity, ENTITY_IN_CODE);
+    }
+
+    if (!empty($this->entityInfo['fieldable']) && function_exists($function = 'field_attach_' . $hook)) {
+      $function($this->entityType, $entity);
+    }
+
+    if (isset($this->entityInfo['bundle of']) && $type = $this->entityInfo['bundle of']) {
+      // Call field API bundle attachers for the entity we are a bundle of.
+      if ($hook == 'insert') {
+        field_attach_create_bundle($type, $entity->{$this->bundleKey});
+      }
+      elseif ($hook == 'delete' && !$is_revert) {
+        field_attach_delete_bundle($type, $entity->{$this->bundleKey});
+      }
+      elseif ($hook == 'update' && $id = $entity->{$this->nameKey}) {
+        if ($entity->original->{$this->bundleKey} != $entity->{$this->bundleKey}) {
+          field_attach_rename_bundle($type, $entity->original->{$this->bundleKey}, $entity->{$this->bundleKey});
+        }
+      }
+    }
+    // Invoke the hook.
+    module_invoke_all($this->entityType . '_' . $hook, $entity);
+    // Invoke the respective entity level hook.
+    if ($hook == 'presave' || $hook == 'insert' || $hook == 'update' || $hook == 'delete') {
+      module_invoke_all('entity_' . $hook, $entity, $this->entityType);
+    }
+    // Invoke rules.
+    if (module_exists('rules')) {
+      rules_invoke_event($this->entityType . '_' . $hook, $entity);
+    }
+  }
+}
