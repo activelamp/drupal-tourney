@@ -63,6 +63,9 @@ function tourney_schema() {
       'id' => array('id'),
       ),
     'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
   );
 
   $schema['tourney_match'] = array(
@@ -113,6 +116,9 @@ function tourney_schema() {
       'id' => array('id'),
       ),
     'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
   );
 
   $schema['tourney_game'] = array(
@@ -151,6 +157,9 @@ function tourney_schema() {
       'id' => array('id'),
       ),
     'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
   );
 
   // Defing the bundle schemas for all three entities
@@ -497,6 +506,9 @@ function tourney_update_7005() {
       'initial' => '',
     ));
   
+  db_add_unique_key('tourney_tournament', 'name', array('name'));
+  db_add_unique_key('tourney_match', 'name', array('name'));
+  db_add_unique_key('tourney_game', 'name', array('name'));
   return t('Updated field length for name successfully.');
 }
 
