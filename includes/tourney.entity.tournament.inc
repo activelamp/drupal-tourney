@@ -11,6 +11,7 @@ class TourneyTournament extends TourneyEntity {
   public  $gameIds = NULL;
   public  $uri;
   public  $data;
+  public  $contestants = NULL;
   private $tournamentStarted  = NULL;
   private $tournamentFinished = NULL;
   private $tournamentWinner = NULL;
@@ -349,7 +350,6 @@ class TourneyTournament extends TourneyEntity {
   public function getNextMatch($match, $direction = 'winner') {
     // Get the callback for this match
     $callbacks = $this->tourneyFormatPlugin->getMatchCallbacks($match);
-    
     return $this->tourneyFormatPlugin->$callbacks['next_match']['callback']($match, $direction);
   }
   

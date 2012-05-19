@@ -117,10 +117,9 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   protected function buildMatch($slots, $round_num, $match_num) {
     return array(
       'current_match' => array(
-        'callback' => 'getMatch',
+        'callback' => 'getMatchByName',
         'args' => array(
-          'round_num' => $round_num,
-          'match_num' => $match_num,
+          'match_name' => 'match-' . $match_num,
         ),
       ),
       'previous_match' => array(
@@ -328,10 +327,14 @@ class RoundRobinController extends TourneyController implements TourneyControlle
    */
   public function getMatchCallbacks($match) {
     $match_location = $this->getMatchAddress($match);
-    
     // Return just the portion of the structure array that we need. We know how 
     // this structure array is built, because this array was defined in this
     // plugin.
+    // 
+    // @todo: For some reason in round robin, this data variable isn't populated
+    // on instantiation.
+    $this->tournament->data = $this->tournament->tourneyFormatPlugin->structure();
+    
     return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
   }
 }

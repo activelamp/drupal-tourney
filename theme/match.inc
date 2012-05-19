@@ -69,14 +69,16 @@ function tourney_games_to_table($games) {
         }
         // Render a small form in the row
         else {
+          $form = drupal_get_form('tourney_game_win_form',
+          array(
+            'match' => $game->getMatch()->id, 
+            'game' => $game->id, 
+            'contestant' => $id, 
+            'name' => $contestant->entity_name,
+          ));
+          
           $rows[$id][] = count($game->getContestants()) < 2 || $game->getMatch()->winner 
-            ? '-' : drupal_render(drupal_get_form('tourney_game_win_form',
-            array(
-              'match' => $game->getMatch()->id, 
-              'game' => $game->id, 
-              'contestant' => $id, 
-              'name' => $contestant->entity_name,
-            )));
+            ? '-' : drupal_render($form);
         }
       }
     }

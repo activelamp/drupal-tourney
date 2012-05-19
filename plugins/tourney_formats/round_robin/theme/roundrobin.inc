@@ -23,12 +23,15 @@ function theme_tourney_roundrobin($vars) {
   $output = theme('tourney_roundrobin_standings', array(
     'tournament' => $tournament
   ));
-  dpm($tournament->data);
-  return;
+  
   // $matches = $tournament->buildMatches();
-  foreach ($matches['roundrobin'] as $r => $round) {
+  foreach ($tournament->data['bracket-roundrobin']['rounds'] as $round_name => $round) {
+    $r = substr(strstr($round_name, '-'), 1);
     $output .= "<h3 id='round-$r'>Round $r</h3>";
-    foreach ($round as $match) {
+    foreach ($round['matches'] as $match_name => $match_callbacks) {
+      $match = $tournament->tourneyFormatPlugin
+        ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
+        
       $output .= theme('tourney_matchblock', array('match' => $match));
     } 
     $output .= '<div class="clearfix"></div>';
@@ -41,6 +44,7 @@ function theme_tourney_roundrobin($vars) {
  */
 function theme_tourney_roundrobin_standings($vars) {
   $tournament = $vars['tournament'];
+  return;
   $matches = $tournament->buildMatches();
   
   $contestants = $tournament->getContestants();
