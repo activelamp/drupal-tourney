@@ -352,21 +352,6 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
   
   /**
-   * Get the callbacks for this match from the structure of the plugin.
-   * 
-   * @param $match
-   *   Match object.
-   */
-  public function getMatchCallbacks($match) {
-    $match_location = $this->getMatchAddress($match);
-    
-    // Return just the portion of the structure array that we need. We know how 
-    // this structure array is built, because this array was defined in this
-    // plugin.
-    return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
-  }
-  
-  /**
    * Get the round title
    */
   public function getRoundTitle($round_num) {
@@ -374,29 +359,5 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       return 'Qualifying Round';
     }
     return 'Round ' . $round_num;
-  }
-  
-  /**
-   * Method to get contestants for this plugin.
-   */
-  public function getContestants() {
-    // Take matches from only the first round, since those are the manually populated ones
-    $matches = $this->tournament->data['bracket-top']['rounds']['round-1']['matches'];
-    // Set up two arrays to fill for seed order
-    $seed_1 = array();
-    $seed_2 = array();
-    foreach ($matches as $match_callbacks) {
-      $match = $this->tournament->tourneyFormatPlugin
-        ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
-        
-      $seed = 1;
-      foreach ( $match->getContestants() as $eid => $contestant ) {
-        $group = "seed_" . $seed++;
-        ${$group}[$eid] = $contestant;
-      }
-    }
-    // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
-    $contestants = array_merge($seed_1, array_reverse($seed_2));
-    return $contestants;
   }
 }
