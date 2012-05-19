@@ -41,18 +41,19 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   /**
-   * Build the Single Elimination matchlist
+   * Build the Single Elimination (and Double Elimination) match list.
    *
    * @return $matches
-   *   The matches array completely built out.
+   *   A flat array that can be used by TourneyController::saveMatches().
    */
   public function build() {
     $matches = array();
-    $match_num = 1;
-    foreach (range(1, $this->rounds) as $round) {
-      foreach (range(1, $this->slots / pow(2, $round)) as $match) {
-        $matches[] = array('bracket' => 'top', 'round' => $round, 'match' => $match_num);
-        $match_num++;
+    $structure = $this->structure();
+    foreach ($structure as $bracket_name => $bracket_info) {
+      foreach ($bracket_info['rounds'] as $round_name => $round_info) {
+        foreach (array_keys($round_info['matches']) as $match_name) {
+          $matches[] = array('bracket_name' => $bracket_name, 'round_name' => $round_name, 'match_name' => $match_name);
+        }
       }
     }
     
@@ -330,7 +331,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   public static function theme($existing, $type, $theme, $path) {
     return array(
       'tourney_single_tree' => array(
-        'variables' => array('rounds' => NULL, 'small' => FALSE),
+        'variables' => array('tournament' => NULL),
         'file' => 'single.inc', 
         'path' => $path . '/theme',
       ),

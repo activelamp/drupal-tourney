@@ -87,6 +87,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   protected function buildRounds($slots) {
     $total_rounds = $slots - 1;
     $rounds = array();
+    $static_match_num = &drupal_static('match_num_iterator', 1, TRUE);
     
     for ($round_num = 1; $round_num <= $total_rounds; $round_num++) {
       $rounds['rounds']['round-' . $round_num] = $this->buildRound($slots, $round_num);
@@ -96,12 +97,15 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   }
   
   protected function buildRound($slots, $round_num) {
+    $static_match_num = &drupal_static('match_num_iterator', 1);
+    
     $round = array(
       'title' => t('Round ') . $round_num,
     );
 
     for ($match_num = 1; $match_num <= ($slots / 2); $match_num++) {
-      $round['matches']['match-' . $match_num] = $this->buildMatch($slots, $round_num, $match_num);
+      $round['matches']['match-' . $static_match_num] = $this->buildMatch($slots, $round_num, $static_match_num);
+      $static_match_num++;
     }
 
     return $round;
@@ -160,12 +164,14 @@ class RoundRobinController extends TourneyController implements TourneyControlle
    */
   public function build() {
     $matches = array();
+    $structure = $this->structure();
     // Number of rounds is (n - 1), n being contestants
     $rounds = $this->slots - 1;
-
-    for ($r = 1; $r <= $rounds; $r++) {
-      for ($m = 1; $m <= $this->slots / 2; $m++) {
-        $matches[] = array('bracket' => 'roundrobin', 'round' => $r, 'match' => $m);
+    foreach ($structure as $bracket_name => $bracket_info) {
+      foreach ($bracket_info['rounds'] as $round_name => $round_info) {
+        foreach (array_keys($round_info['matches']) as $match_name) {
+          $matches[] = array('bracket_name' => $bracket_name, 'round_name' => $round_name, 'match_name' => $match_name);
+        }
       }
     }
     $this->matches = $matches;

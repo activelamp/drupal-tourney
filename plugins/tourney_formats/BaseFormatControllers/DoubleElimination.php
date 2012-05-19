@@ -16,6 +16,11 @@ class DoubleEliminationController extends SingleEliminationController implements
    */
   public static function theme($existing, $type, $theme, $path) {
     return array(
+      'tourney_double_tree' => array(
+        'variables' => array('tournament' => NULL),
+        'file' => 'double.inc', 
+        'path' => $path . '/theme',
+      ),
       'tourney_dummy_rounds' => array(
         'variables' => array('count' => NULL, 'height' => NULL, 'small' => 1),
         'file' => 'double.inc', 
@@ -49,51 +54,9 @@ class DoubleEliminationController extends SingleEliminationController implements
    */
   public function render() {
     drupal_add_js($this->pluginInfo['path'] . '/theme/double.js');
-    $matches = $this->tournament->buildMatches();
-    $output = '';
-    if (!empty($matches['top'])  || !empty($matches['bottom'])) {
-      $output .= '<div class="bracket bracket-wrapper">';
-
-      if (!empty($matches['top'])) {
-        $output .= '<div class="bracket bracket-top">';
-        $output .=   theme('tourney_dummy_rounds', array('count' => count($matches['bottom']) - count($matches['top']), 'height' => $this->tournament->players));
-        $output .=   theme('tourney_double_top_bracket', array('rounds' => array_values($matches['top'])));
-        $output .= '</div>';
-      }
-
-      if (!empty($matches['bottom'])) {
-        $output .= '<div class="bracket bracket-bottom">';
-        $output .=   theme('tourney_double_bottom_bracket', array('rounds' => array_values($matches['bottom'])));
-        $output .= '</div>';
-      }
-
-      $output .= '</div>';
-    }
-
-    if (!empty($matches['champion'])) {
-      $output .= '<div class="bracket bracket-champion">';
-      $output .=   theme('tourney_double_champion_bracket', array('tournament' => $this->tournament, 'rounds' => array_values($matches['champion'])));
-      $output .= '</div>';
-    }
-    return $output;
+    return theme('tourney_double_tree', array('tournament' => $this->tournament));
   }
   
-  /**
-   * Build the double elim, calling the SingleElim build for its top bracket and
-   * internal buildBottomBracket for its bottom.
-   *
-   * @return $matches
-   *   An array containing all matches.
-   */
-  public function build() {
-    $matches = parent::build();
-    $matches = array_merge($matches, $this->buildBottomBracket());
-    $matches[] = array('bracket' => 'champion', 'round' => 1, 'match' => 1);
-    $matches[] = array('bracket' => 'champion', 'round' => 2, 'match' => 1);
-    $this->matches = $matches;
-    return $this->matches;
-  }
-
   /**
    * Build the double elim bottom bracket
    *
@@ -103,18 +66,96 @@ class DoubleEliminationController extends SingleEliminationController implements
   protected function buildBottomBracket() {
     $matches = array();
     // Rounds is a certain number, 2, 4, 6, based on the contestants participating
-    $rounds = ( log($this->slots, 2) - 1 ) * 2;
-    foreach ( range(1, $rounds) as $round ) {
+    $rounds = (log($this->slots, 2) - 1) * 2;
+    foreach (range(1, $rounds) as $round) {
       // Bring the round number down to a unique number per group of two
       $er = ceil($round/2);
       // Matches is a certain number based on the round number and slots
       // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
       $m = $this->slots / pow(2, $er+1);
       foreach ( range(1, $m) as $match ) {
-        $matches[] = array('bracket' => 'bottom', 'round' => $round, 'match' => $match);
+        $matches[] = array('bracket_name' => 'bracket-bottom', 'round_name' => $round, 'match_name' => $match);
       }
     } 
     return $matches;
+  }
+  
+  /**
+   * Build bracket structure and logic.
+   *
+   * @param $slots
+   *   The number of slots in the first round.
+   * @return
+   *   An array of bracket structure and logic.
+   */
+  public function buildBracketByRounds($slots) {
+    return array(
+      'bracket-top' => array(
+        'title'  => t('Main Bracket'),
+      ) + $this->buildRounds($slots),
+      'bracket-bottom' => $this->buildBottomRounds($slots),
+      'bracket-champion' => $this->buildChampionRounds($slots),
+    );
+  }
+  
+  /**
+   * Build rounds.
+   *
+   * @param $slots
+   *   The number of slots in the first round.
+   * @return
+   *   The rounds array completely built out.
+   */
+  protected function buildChampionRounds($slots) {
+    $rounds    = array();
+    $round_num = 1;
+    $static_match_num = &drupal_static('match_num_iterator', 1);
+    
+    foreach (array(1, 2) as $round_num) {
+      $rounds['rounds']['round-' . $round_num]['matches']['match-' . $static_match_num] = $this->buildMatch($slots, $round_num, $static_match_num);
+      $static_match_num++;
+    }
+    return $rounds;
+  }
+  
+  /**
+   * Build rounds.
+   *
+   * @param $slots
+   *   The number of slots in the first round.
+   * @return
+   *   The rounds array completely built out.
+   */
+  protected function buildBottomRounds($slots) {
+    $rounds    = array();
+    $round_num = 1;
+    $static_match_num = &drupal_static('match_num_iterator', 1);
+    
+    $num_rounds = (log($this->slots, 2) - 1) * 2;
+    foreach (range(1, $num_rounds) as $round_num) {
+      $rounds['rounds']['round-' . $round_num] = $this->buildBottomRound($slots, $round_num);
+    }
+    return $rounds;
+  }
+
+  protected function buildBottomRound($slots, $round_num) {
+    $static_match_num = &drupal_static('match_num_iterator', 1);
+    
+    $round = array(
+      'title' => t('Round ') . $round_num,
+    );
+    
+    // Bring the round number down to a unique number per group of two
+    $er = ceil($round_num/2);
+    // Matches is a certain number based on the round number and slots
+    // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
+    $match_count = $slots / pow(2, $er+1);
+    foreach ( range(1, $match_count) as $match ) {
+      $round['matches']['match-' . $static_match_num] = $this->buildMatch($slots, $round_num, $static_match_num);
+      $static_match_num++;
+    }
+
+    return $round;
   }
 
   /**
@@ -126,6 +167,7 @@ class DoubleEliminationController extends SingleEliminationController implements
    * @see SingleEliminationController::isFinished().
    */
   public function isFinished($tournament) {
+    return false;
     $finished = parent::isFinished($tournament);
 
     // Parent is authoritative if it reports tournament as already finished.

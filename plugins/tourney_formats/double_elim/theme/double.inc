@@ -3,6 +3,31 @@
 /*
  * @file
  */
+ 
+function theme_tourney_double_tree($vars) {
+  extract($vars);
+
+  $output = '';
+  $output .= '<div class="bracket bracket-wrapper">';
+  if (!empty($tournament->data['bracket-top'])) {
+    $output .= '<div class="bracket bracket-top">';
+    $output .=   theme('tourney_dummy_rounds', array('count' => count($tournament->data['bracket-bottom']) - count($tournament->data['bracket-top']), 'height' => $tournament->players));
+    $output .=   theme('tourney_double_top_bracket', array('tournament' => $tournament));
+    $output .= '</div>';
+  }
+  if (!empty($tournament->data['bracket-bottom'])) {
+    $output .= '<div class="bracket bracket-bottom">';
+    $output .=   theme('tourney_double_bottom_bracket', array('tournament' => $tournament));
+    $output .= '</div>';
+  }
+  if (!empty($tournament->data['bracket-champion'])) {
+    $output .= '<div class="bracket bracket-champion">';
+    $output .=   theme('tourney_double_champion_bracket', array('tournament' => $tournament));
+    $output .= '</div>';
+  }
+  $output .= '</div>';
+  return $output;
+}
 
 function theme_tourney_dummy_rounds($vars) {
   extract($vars);
@@ -13,11 +38,10 @@ function theme_tourney_dummy_rounds($vars) {
 
 
 function theme_tourney_double_top_bracket($vars) {
-  extract($vars);
-  $round = reset($rounds);
-  $match = reset($round);
+  extract($vars);  
   $views = FALSE;
-  if ( property_exists($match->getTournament(), 'views') && $match->getTournament()->views == TRUE ) $views = TRUE;
+
+  // if ( property_exists($match->getTournament(), 'views') && $match->getTournament()->views == TRUE ) $views = TRUE;
 
   // Note: copied with remarkable shamelessness from tourney_single_tree().
   // One alteration is rendering an extra flow line from the last round to
@@ -25,8 +49,9 @@ function theme_tourney_double_top_bracket($vars) {
 
   $small = TRUE;
   $output = '';
-  foreach ( $rounds as $r => $round ) {
-    $last = $r >= count($rounds) -1;  // is this the last round?
+  foreach ($tournament->data['bracket-top']['rounds'] as $round_name => &$round_info) {
+    $r = substr(strstr($round_name, '-'), 1);
+    $last = $r >= count($tournament->data['bracket-top']['rounds']) -1;  // is this the last round?
 
     // If a round isn't set to render small, then the default rendering looks
     // squished (and it's impossible to display a title on top of each match).
@@ -61,8 +86,11 @@ function theme_tourney_double_top_bracket($vars) {
     $pad_rows = pow(2, $r)-1;
 
     $output .= '<div class="round round-' . $r . '">';
-    foreach ( array_values($round) as $m => $match ) {
-
+    $m = 0; // A match iterator for each match rendered in round.
+    foreach ($round_info['matches'] as $match_name => &$match_callbacks ) {
+      $match = $tournament->tourneyFormatPlugin
+        ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
+        
       // Group match pairs together. This gives the match more direct ownership
       // of its set of flow lines, and lets us target them more easily.
       if ( $m % 2 == 0 ) {
@@ -139,6 +167,7 @@ function theme_tourney_double_top_bracket($vars) {
         // Empty padding to the bottom
         $output .= theme('tourney_spacer', array('height' => $pad_rows));
       }
+      $m++;
     }
     $output .= '</div>';
   }
@@ -150,13 +179,18 @@ function theme_tourney_double_bottom_bracket($vars) {
   $small = TRUE;
   $output = '';
   $views = FALSE;
+  
+  // $round = reset($rounds);
+  //   if ( !$round ) $round = next($rounds); 
+  //   $match = reset($round);
+  // if ( property_exists($match->getTournament(), 'views') && $match->getTournament()->views == TRUE ) $views = TRUE;
 
-  $round = reset($rounds);
-  if ( !$round ) $round = next($rounds); 
-  $match = reset($round);
-  if ( property_exists($match->getTournament(), 'views') && $match->getTournament()->views == TRUE ) $views = TRUE;
-
-  foreach ( $rounds as $r => $round ) {
+  foreach ($tournament->data['bracket-bottom']['rounds'] as $round_name => &$round_info) {
+    $r = substr(strstr($round_name, '-'), 1);
+    $cr = floor($r/2);
+    $last = $r >= count($tournament->data['bracket-bottom']['rounds']) -1;  // is this the last round?
+    $clast = $cr >= floor((count($tournament->data['bracket-bottom']['rounds']) - 1) / 2);  // is this the last round?
+    
     /*
      * The bottom bracket is a little more complicated to explain than the top
      * bracket. The main difference is that each even round (0, 2, 4) feeds
@@ -188,18 +222,18 @@ function theme_tourney_double_bottom_bracket($vars) {
      * Additionaly, even rounds render all matches with "lower match" flow
      * lines.
      */
-    $cr = floor($r/2);
     $feed_round = ($r % 2 == 0);
-    $clast = $cr >= floor((count($rounds) - 1) / 2);  // is this the last round?
-    $last = $r >= count($rounds) - 1;  // is this the absolute last round?
+    
 
     $pad_rows = pow(2, $cr)-1;
     $top_pad = 1 + $pad_rows - $cr;
     if (!$feed_round) $top_pad--;
 
     $output .= '<div class="round round-' . $r . '">';
-
-    foreach ( array_values($round) as $m => $match ) {
+    $m = 0; // A match iterator for each match rendered in round.
+    foreach ($round_info['matches'] as $match_name => &$match_callbacks ) {
+      $match = $tournament->tourneyFormatPlugin
+        ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
 
       // Group match pairs together. This gives the match more direct ownership
       // of its set of flow lines, and lets us target them more easily.
@@ -318,6 +352,7 @@ function theme_tourney_double_bottom_bracket($vars) {
         // Empty padding to the bottom
         $output .= theme('tourney_spacer', array('height' => $pad_rows));
       }
+      $m++;
     }
     $output .= '</div>';
   } 
@@ -326,11 +361,19 @@ function theme_tourney_double_bottom_bracket($vars) {
 
 function theme_tourney_double_champion_bracket($vars) {
   extract($vars); 
-  if ( property_exists($tournament, 'views') &&  $tournament->views == TRUE ) $tournament->players = 1;
+  // if ( property_exists($tournament, 'views') &&  $tournament->views == TRUE ) $tournament->players = 1;
 
-  $champ = array_pop($rounds[0]);
-  $extra = array_pop($rounds[1]);
+  // Get the champion match.
+  $match_callbacks = array_pop($tournament->data['bracket-champion']['rounds']['round-1']['matches']);
+  $champ = $tournament->tourneyFormatPlugin
+    ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
 
+  // Get the extra match.
+  $match_callbacks = array_pop($tournament->data['bracket-champion']['rounds']['round-2']['matches']);
+  $extra = $tournament->tourneyFormatPlugin
+    ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
+  
+  
   // Top padding is number of players minus one. We want to line this up at the
   // bottom of the top bracket, so we add padding the height of the top bracket.
   // Round 0 is the tallest and has a height equal to the number of players, so
