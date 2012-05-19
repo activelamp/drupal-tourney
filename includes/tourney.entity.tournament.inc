@@ -394,13 +394,13 @@ class TourneyTournament extends TourneyEntity {
 
       $match    = $relation->endpoints[LANGUAGE_NONE][1]['entity_id'];
       $match    = entity_load_single('tourney_match', $match);
-
+      
       if ( !array_key_exists($bracket, $brackets) )
         $brackets[$bracket] = array();
       if ( !array_key_exists($round, $brackets[$bracket]) )
         $brackets[$bracket][$round] = array();
-
-      $brackets[$bracket][$round][$match->entity_id] = $match;
+      if (is_object($match))
+        $brackets[$bracket][$round][$match->entity_id] = $match;
     }
 
     return $brackets;

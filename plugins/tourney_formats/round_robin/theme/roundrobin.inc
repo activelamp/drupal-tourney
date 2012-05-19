@@ -23,8 +23,9 @@ function theme_tourney_roundrobin($vars) {
   $output = theme('tourney_roundrobin_standings', array(
     'tournament' => $tournament
   ));
-  
-  $matches = $tournament->buildMatches();
+  dpm($tournament->data);
+  return;
+  // $matches = $tournament->buildMatches();
   foreach ($matches['roundrobin'] as $r => $round) {
     $output .= "<h3 id='round-$r'>Round $r</h3>";
     foreach ($round as $match) {
