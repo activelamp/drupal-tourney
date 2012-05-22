@@ -9,6 +9,7 @@ function theme_tourney_single_tree($vars) {
   
   $output = '';
   foreach ($tournament->data['bracket-top']['rounds'] as $round_name => &$round ) {
+    $small = false; // Switch to turn on small rendering.
     $r = substr(strstr($round_name, '-'), 1);
     $last = $r >= count($tournament->data['bracket-top']['rounds']);  // is this the last round?
     
@@ -48,7 +49,7 @@ function theme_tourney_single_tree($vars) {
     
     // Display the title of this round.
     if (!empty($round['title'])) {
-      $title = !is_array($round['title']) ? $round['title'] : $tournament->tourneyFormatPlugin->$round['title']['callback']($round['title']['args']['round_num']);
+      $title = !is_array($round['title']) ? $round['title'] : $tournament->tourneyFormatPlugin->$round['title']['callback']($round['title']['args']);
       $output .= "<h3>$title</h3>";
     }
     

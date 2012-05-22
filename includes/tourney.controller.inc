@@ -266,6 +266,39 @@ class TourneyController {
     // plugin.
     return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
   }
+  
+  /**
+   * Get round info for a match that is passed in. Traverses the structure of the 
+   * tournament until it finds the match and returns information about the round
+   * that contains the match
+   * 
+   * @param $match
+   *   Match object
+   * @param array
+   *   An array with information about the round the match is in.
+   */
+  public function getRoundInfo($match) {
+    @list(, $match_name) = explode('_', $match->name);
+    return $this->findItem($match_name, $this->tournament->data);
+  }
+  
+  /**
+   * Get the parent structure from structure array that contains the key element
+   * that is being looked for.
+   */
+  protected function findItem($key_value, $structure, $parent_structure = array()) {
+    static $return = array();
+    foreach ($structure as $key => $value) {
+      if ($key == $key_value){
+        $return = $parent_structure;
+        return;
+      }
+      elseif (is_array($value)) {
+        $this->findItem($key_value, $value, $structure);
+      }
+    }
+    return $return;
+  }
 }
 
 /**
