@@ -13,6 +13,7 @@ class TourneyMatch extends TourneyEntity {
   public  $contestant1 = NULL;
   public  $contestant2 = NULL;
   public  $uri;
+  public  $roundInfo;
   // @todo: rename the variable below to $tournament when backwardCompatibility
   // is no longer being used.
   private $matchTournament = NULL;
@@ -30,6 +31,7 @@ class TourneyMatch extends TourneyEntity {
       $this->gameIds = $this->getGameIds();
       // Add a url to the object
       $this->uri = $this->getUri();
+      $this->roundInfo = $this->getRoundInfo();
     }    
     
     // Remove this once I know for sure that modules aren't depending on
@@ -155,6 +157,16 @@ class TourneyMatch extends TourneyEntity {
       $this->matchTournament = relation_get_related_entity('tourney_match', $this->id, 'has_match', 1);
     }
     return $this->matchTournament;
+  }
+  
+  /**
+   * Lazy load a tournament object this match belongs to.
+   */
+  public function getRoundInfo() {
+    if (is_null($this->roundInfo)) {
+      $this->roundInfo = $this->getTournament()->tourneyFormatPlugin->getRoundInfo($this);
+    }
+    return $this->roundInfo;
   }
   
   /**

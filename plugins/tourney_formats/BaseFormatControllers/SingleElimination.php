@@ -273,23 +273,20 @@ class SingleEliminationController extends TourneyController implements TourneyCo
 
   protected function buildRound($slots, $round_num) {
     $static_match_num = &drupal_static('match_num_iterator', 1);
+    $round = array('name' => 'round-' . $round_num);
     
     // The plugin defines a title for rounds and hard codes the title it into 
     // the structure array for every round except the first one.
     if ($round_num == 1) {
-      $round = array(
-        'title' => array(
-          'callback' => 'getRoundTitle',
-          'args'     => array('round_num' => $round_num),
-        ),
+      $round['title'] = array(
+        'callback' => 'getRoundTitle',
+        'args'     => array('round_num' => $round_num),
       );
     }
     else {
       // This logic could have been handled in the callback above. It is hard
       // coded here to provide a concrete example of both implementations.
-      $round = array(
-        'title' => t('Round ') . $round_num,
-      );
+      $round['title'] = t('Round ') . $round_num;
     }
     
     for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
@@ -354,7 +351,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   /**
    * Get the round title
    */
-  public function getRoundTitle($round_num) {
+  public function getRoundTitle($vars) {
+    $round_num = $vars['round_num'];
     if ($round_num == 1) {
       return 'Qualifying Round';
     }
