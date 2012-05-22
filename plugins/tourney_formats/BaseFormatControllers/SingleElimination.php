@@ -170,7 +170,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * @return $place
    *   Match placement of the desired match, otherwise NULL 
    */
-  protected function calculateNextPosition($place, $direction) {
+  protected function calculateNextPosition($place, $direction = 'winner') {
     if ( $direction == 'loser' ) return NULL;
     // @todo find a better way to count matches
     $matches = $this->slots - 1;

@@ -80,10 +80,8 @@ function theme_tourney_matchblock($vars) {
   $output .= '</div>';
 
   // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
-  //    . '<div class="contestant contestant-1">' . ( $match->nextMatch(1) ? $match->nextMatch(1)->entity_id 
-  //     . '.' . $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, 1) : 'END' ) . '</div>'
-  //    . '<div class="contestant contestant-2">' . ( $match->nextMatch(2) ? $match->nextMatch(2)->entity_id 
-  //     . '.' . $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, 2) : 'END' ) . '</div>'
+  //    . '<div class="contestant contestant-1">' . $match->entity_id . ' : ' . ( $match->nextMatch('winner') ? $match->nextMatch('winner')->entity_id : '' ) . '</div>'
+  //    . '<div class="contestant contestant-2">' . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : '' ) . '</div>'
   //    . '</div>';
   
   $match_uri = $match->getUri();
