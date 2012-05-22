@@ -163,7 +163,7 @@ class TourneyMatch extends TourneyEntity {
    * Lazy load a tournament object this match belongs to.
    */
   public function getRoundInfo() {
-    if (is_null($this->roundInfo)) {
+    if (is_null($this->roundInfo) && is_object($this->getTournament()->tourneyFormatPlugin)) {
       $this->roundInfo = $this->getTournament()->tourneyFormatPlugin->getRoundInfo($this);
     }
     return $this->roundInfo;
