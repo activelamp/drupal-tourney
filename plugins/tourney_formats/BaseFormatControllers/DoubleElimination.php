@@ -211,7 +211,7 @@ class DoubleEliminationController extends SingleEliminationController implements
        if ( $place < $top_matches ) {
          // Last match in the top bracket goes to the champion bracket
          if ( $place == $bottom_matches ) return $matches - 2;
-         return parent::getNextMatch($place);
+         return parent::calculateNextPosition($place);
        }
        // Champion Bracket(s)
        elseif ( $place >= $matches - 2 ) {
@@ -231,7 +231,7 @@ class DoubleEliminationController extends SingleEliminationController implements
        if ( $place < $top_matches ) {
          // If we're in the first round of matches, it's rather simple
          if ( $place < $slots / 2 ) 
-           return parent::getNextMatch($place) + ($bottom_matches/2);          
+           return parent::calculateNextPosition($place) + ($bottom_matches/2);          
          // Otherwise, more magical math to determine placement
          return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));
        }
@@ -261,7 +261,8 @@ class DoubleEliminationController extends SingleEliminationController implements
         foreach ( range(1, $i) as $n ) $series[] = $i;
     }
     // Remove the unnecessary last element in the series (which is the start of the next iteration) 
-    array_pop($series);
+    while ( count($series) > $until ) 
+      array_pop($series);
     // Reverse it so we work down
     return array_reverse($series);
   }

@@ -123,7 +123,7 @@ class TourneyMatch extends TourneyEntity {
   }
 
   private static function contestantSort($a, $b) {
-    if ( $a['slot'] == $b['slot'] ) return 0;
+    if ( $a['slot'] == $b['slot'] ) return ( $a['id'] < $b['id'] ) ? -1 : 1;
     return ( $a['slot'] < $b['slot'] ) ? -1 : 1;
   }
   

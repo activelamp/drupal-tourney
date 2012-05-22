@@ -111,7 +111,6 @@ class TourneyController {
         'name' => $tournament->name . '_' . $match['match_name'],
         'games' => variable_get('tourney_games_all', TOURNEY_GAMES),
       );
-      dpm($values);
       $new_match = new TourneyMatch($values);
       $new_match->save();
 
@@ -261,8 +260,7 @@ class TourneyController {
    *   Match object.
    */
   public function getMatchCallbacks($match) {
-    $match_location = $this->getMatchAddress($match);
-    
+    $match_location = $this->getMatchAddress($match);    
     // Return just the portion of the structure array that we need. We know how 
     // this structure array is built, because this array was defined in this
     // plugin.

@@ -11,7 +11,7 @@ function theme_tourney_double_tree($vars) {
   $output .= '<div class="bracket bracket-wrapper">';
   if (!empty($tournament->data['bracket-top'])) {
     $output .= '<div class="bracket bracket-top">';
-    $output .=   theme('tourney_dummy_rounds', array('count' => count($tournament->data['bracket-bottom']) - count($tournament->data['bracket-top']), 'height' => $tournament->players));
+    $output .=   theme('tourney_dummy_rounds', array('count' => count($tournament->data['bracket-bottom']['rounds']) - count($tournament->data['bracket-top']['rounds']), 'height' => $tournament->players));
     $output .=   theme('tourney_double_top_bracket', array('tournament' => $tournament));
     $output .= '</div>';
   }
@@ -20,12 +20,12 @@ function theme_tourney_double_tree($vars) {
     $output .=   theme('tourney_double_bottom_bracket', array('tournament' => $tournament));
     $output .= '</div>';
   }
+  $output .= '</div>';
   if (!empty($tournament->data['bracket-champion'])) {
     $output .= '<div class="bracket bracket-champion">';
     $output .=   theme('tourney_double_champion_bracket', array('tournament' => $tournament));
     $output .= '</div>';
   }
-  $output .= '</div>';
   return $output;
 }
 
@@ -50,7 +50,7 @@ function theme_tourney_double_top_bracket($vars) {
   $small = TRUE;
   $output = '';
   foreach ($tournament->data['bracket-top']['rounds'] as $round_name => &$round_info) {
-    $r = substr(strstr($round_name, '-'), 1);
+    $r = substr(strstr($round_name, '-'), 1)-1;
     $last = $r >= count($tournament->data['bracket-top']['rounds']) -1;  // is this the last round?
 
     // If a round isn't set to render small, then the default rendering looks
@@ -186,7 +186,7 @@ function theme_tourney_double_bottom_bracket($vars) {
   // if ( property_exists($match->getTournament(), 'views') && $match->getTournament()->views == TRUE ) $views = TRUE;
 
   foreach ($tournament->data['bracket-bottom']['rounds'] as $round_name => &$round_info) {
-    $r = substr(strstr($round_name, '-'), 1);
+    $r = substr(strstr($round_name, '-'), 1)-1;
     $cr = floor($r/2);
     $last = $r >= count($tournament->data['bracket-bottom']['rounds']) -1;  // is this the last round?
     $clast = $cr >= floor((count($tournament->data['bracket-bottom']['rounds']) - 1) / 2);  // is this the last round?
@@ -398,6 +398,6 @@ function theme_tourney_double_champion_bracket($vars) {
     'match' => $extra,
     'small' => 1,
   ));
-  $output .= '</div></div>';
+  $output .= '</div></div></div>';
   return $output;
 }
