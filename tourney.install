@@ -385,6 +385,12 @@ function tourney_install() {
  * Implements hook_uninstall().
  */
 function tourney_uninstall() {
+  $relations = db_select('relation', 'rt')
+    ->fields('rt', array('rid'))
+    ->condition('relation_type', array('has_match', 'has_game', 'contestant'), 'in')
+    ->execute()->fetchCol('rid');
+  relation_delete_multiple($relations);
+
   relation_type_delete('has_match');
   relation_type_delete('has_game');
   relation_type_delete('contestant');
