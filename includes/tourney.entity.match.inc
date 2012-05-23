@@ -13,7 +13,8 @@ class TourneyMatch extends TourneyEntity {
   public  $contestant1 = NULL;
   public  $contestant2 = NULL;
   public  $uri;
-  public  $roundInfo;
+  public  $roundInfo = NULL;
+  public  $bracketInfo = NULL;
   // @todo: rename the variable below to $tournament when backwardCompatibility
   // is no longer being used.
   private $matchTournament = NULL;
@@ -31,6 +32,8 @@ class TourneyMatch extends TourneyEntity {
       $this->gameIds = $this->getGameIds();
       // Add a url to the object
       $this->uri = $this->getUri();
+      
+      // @todo: Do we really want to load this on instanstiation
       $this->roundInfo = $this->getRoundInfo();
     }    
     

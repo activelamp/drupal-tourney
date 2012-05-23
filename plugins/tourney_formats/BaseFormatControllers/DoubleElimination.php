@@ -198,7 +198,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     * @return $place
     *   Match placement of the desired match, otherwise NULL 
     */
-   protected function calculateNextPosition($place, $direction) {
+   protected function calculateNextPosition($place, $direction = "winner") {
      // @todo find a better way to count matches
      $slots = $this->slots;
      // Set up our handy values
