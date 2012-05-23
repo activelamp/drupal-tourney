@@ -605,4 +605,65 @@ class TourneyMatch extends TourneyEntity {
   public function nextMatch($direction = 'winner') {
     return $this->getTournament()->getNextMatch($this, $direction);
   }
+
+ /**
+  * Adds an empty game to this match
+  *
+  * @return $game
+  *   Newly created game entity 
+  */
+  public function addGame() {
+    $game_count = count($this->getGameIds());
+    $game = new TourneyGame(array(
+      'type'  => 'game',
+      'title' => 'Game ' . ++$game_count,
+      'name'  => $this->name . '_game-' . ++$game_count,
+    ));
+    $game->save();
+    // Add the relationship to the game.
+    $rid = tourney_create_relation('has_game', 'tourney_match', $this->id, 'tourney_game', $game->id);
+    return $game;
+  }
+
+ /**
+  * Iterates through this match's last games and trims the unplayed ones
+  */
+  public function cleanGames() {
+    $this->gameIds = NULL;
+    // Check all our games starting from the back to find the games that haven't been won
+    // Since we've already won the match, we're going to remove all the games that no longer serve purpose for the match
+    foreach ( array_reverse($this->getGameIds()) as $game_id ) {
+      $game = tourney_game_load($game_id);
+      // If we've run across a won game, it's almost certain the rest of the first matches have been played, so we don't need to continue
+      if ( $game->getWinner() ) break;
+      // @todo: find a way to just load in a single relation based on two related entities
+      // This code just runs through all the related games to the match to find the specific relation for the game to delete, and removes it
+      $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'has_game')->execute();
+      foreach ( array_reverse($relations) as $relation ) {
+        $relation = relation_load($relation->rid); 
+        $relation_game = tourney_game_load($relation->endpoints['und'][1]['entity_id']);
+        if ( $relation_game->id == $game_id ) {
+          $relation_game->delete();
+          relation_delete($relation->rid);
+          break;
+        }
+      }
+    }
+  }
+
+ /**
+  * Checks this match's games to determine if they've all been won
+  *
+  * @return $passed
+  *   Boolean of whether all the games have been won 
+  */
+  public function checkGames() {
+    foreach ( $this->getGameIds() as $game_id ) {
+      $game = tourney_game_load($game_id);
+      if ( !$game->getWinner() ) {
+        return FALSE;
+      }
+    } 
+    return TRUE;
+  } 
 }

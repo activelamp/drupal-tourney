@@ -195,17 +195,21 @@ class TourneyGame extends TourneyEntity {
   }
   
   /**
-    * Get the path to a tourney url without needing a tourney object loaded.
-    */
-   public static function path($id) {
-     return 'tourney/game/' . $id;
-   }
+   * Get the path to a tourney url without needing a tourney object loaded.
+   */
+  public static function path($id) {
+    return 'tourney/game/' . $id;
+  }
 
-   /**
-    * Return the uri to the entity object
-    */
-   public function getUri() {
-     return TourneyGame::path($this->id);
-   }
+  /**
+   * Return the uri to the entity object
+   */
+  public function getUri() {
+    return TourneyGame::path($this->id);
+  }   
+
+  public function delete() {
+    parent::delete();
+  }
 
 }

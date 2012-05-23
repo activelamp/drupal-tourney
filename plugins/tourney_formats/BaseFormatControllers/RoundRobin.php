@@ -337,4 +337,33 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     
     return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
   }
+
+  /**
+   * Runs related functions when a match is won, called from rules.
+   */
+  public function winMatch($match) {
+    $this->populateMatches($match);
+  }
+
+/**
+ * Recursive function that sets players in a RoundRobin tournament in all their
+ * matches once the first round has been setup.
+ *
+ * @param $match (object)
+ *   The match the game belongs to
+ */
+  public function populateMatches($match) {
+    foreach ($match->getContestants() as $contestant) {
+      $next = $match->nextMatch($contestant->slot);
+      
+      if ( $next === NULL ) continue;
+      $slot = $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, $contestant->slot);
+
+      // If the slot is already taken, don't do anything
+      if ( $next->getContestant($slot) ) continue;
+      $next->addContestant($contestant, $slot);
+      // Recurse
+      $this->populateMatches($next);
+    }
+  }
 }

@@ -110,6 +110,7 @@ function tourney_tournament_form_submit($form, &$form_state) {
  * Show the tournament page.
  */
 function tourney_tournament_page_view($tourney) {
+  dpm($tourney);
   return $tourney->view('full', NULL, TRUE);
 }
 

@@ -358,4 +358,13 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     }
     return 'Round ' . $round_num;
   }
+
+  /**
+   * Runs related functions when a match is won, called from rules.
+   */
+  public function winMatch($match) {
+    $match->cleanGames();
+    $match->moveContestants();
+    $match->determineWinner();
+  }
 }
