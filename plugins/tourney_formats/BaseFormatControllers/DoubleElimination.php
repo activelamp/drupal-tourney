@@ -108,13 +108,14 @@ class DoubleEliminationController extends SingleEliminationController implements
    */
   protected function buildChampionRounds($slots) {
     $rounds    = array();
-    $round_num = 1;
     $static_match_num = &drupal_static('match_num_iterator', 1);
     
-    foreach (array(1, 2) as $round_num) {
-      $rounds['rounds']['round-' . $round_num]['matches']['match-' . $static_match_num] = $this->buildMatch($slots, $round_num, $static_match_num);
-      $static_match_num++;
-    }
+    $tiebreaker = $this->buildMatch($static_match_num);
+    $tiebreaker['next_match']['callback'] = 'getNextMatchTiebreaker';
+
+    $rounds['rounds']['round-1']['matches']['match-' . $static_match_num++] = $tiebreaker;
+    $rounds['rounds']['round-2']['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num++);
+
     return $rounds;
   }
   
@@ -151,7 +152,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
     $match_count = $slots / pow(2, $er+1);
     foreach ( range(1, $match_count) as $match ) {
-      $round['matches']['match-' . $static_match_num] = $this->buildMatch($slots, $round_num, $static_match_num);
+      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num);
       $static_match_num++;
     }
 
@@ -167,24 +168,17 @@ class DoubleEliminationController extends SingleEliminationController implements
    * @see SingleEliminationController::isFinished().
    */
   public function isFinished($tournament) {
-    return false;
-    $finished = parent::isFinished($tournament);
-
-    // Parent is authoritative if it reports tournament as already finished.
-    if (!$finished) {
-      $ranks = $tournament->fetchRanks();
-      // If we have one outstanding match, tournament may be finished if no 
-      // tie-breaker is required.
-      if ((array_key_exists('NA', $ranks['match_wins'])) && ($ranks['match_wins']['NA'] == 1)) {
-        $keys = array_keys($ranks['match_wins']);
-        // If first and second place contestants do not report same win count.
-        if ($ranks['match_wins'][$keys[0]] != $ranks['match_wins'][$keys[1]]) {
-          $finished = TRUE;
-        }
-      }
+    $ids = $tournament->getMatchIds();
+    $tiebreaker = entity_load_single('tourney_match', array_pop($ids));
+    $champion   = entity_load_single('tourney_match', array_pop($ids));
+    if ( $tiebreaker->getContestantIds() ) {
+      if ( $tiebreaker->getWinner() ) return TRUE;
+      return FALSE;
     }
-
-    return $finished;
+    if ( $champion->getContestantIds() ) {
+      if ( $champion->getWinner() ) return TRUE;
+    }
+    return FALSE;
   }
   
   /**
@@ -265,5 +259,28 @@ class DoubleEliminationController extends SingleEliminationController implements
       array_pop($series);
     // Reverse it so we work down
     return array_reverse($series);
+  }
+
+  public function getNextMatchTiebreaker($match, $direction = NULL) {
+    $next = $this->getNextMatch($match, 'winner');
+    if ( $next->getContestantIds() ) return $next;
+    $matches = entity_load('tourney_match', $this->tournament->getMatchIds());
+    $contestant_matches = array();
+    foreach ( $matches as $entity_id => $tournament_match ) {
+      if ( $entity_id == $match->entity_id ) continue;
+      foreach ( $tournament_match->getContestants() as $eid => $contestant ) {
+        if ( $eid == $match->getLoser() ) $contestant_matches[$tournament_match->eid] = $tournament_match;
+      }
+    }
+    $first_loss = TRUE;
+    foreach ( $contestant_matches as $eid => $contestant_match ) {
+      if ( $contestant_match->getLoser() == $match->getLoser() ) {
+        $first_loss = FALSE;
+        break;
+      }
+    }
+    if ( !$first_loss ) return NULL;
+
+    return $next;
   }
 }

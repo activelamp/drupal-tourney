@@ -109,10 +109,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
 
     $keys = array_keys($winners);
     $tournament->winner = $keys[0];
-    //$tournament->tournamentWinner = $keys[0]; (is private);
     $tournament->save();
 
-    return $this;
+    return $tournament;
   }
 
   /**
@@ -211,7 +210,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       // @todo: Acocunt for byes.
     }
 
-    $tree = $this->buildMatch($slots, $round_num, $match_num);
+    $tree = $this->buildMatch($match_num);
     $tree['children'] = $this->buildChildren();
 
     return array(
@@ -223,7 +222,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   protected function buildChildren($slots, $round_num, $match_num) {
-    $tree = $this->buildMatch($slots, $round_num, $match_num);
+    $tree = $this->buildMatch($match_num);
 
     if ($round_num > 1) {
       $child_match_num = ($match_num - ($slots / 2)) * 2;
@@ -290,7 +289,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     }
     
     for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
-      $round['matches']['match-' . $static_match_num] = $this->buildMatch($slots, $round_num, $static_match_num);
+      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num);
       $static_match_num++;
     }
 
@@ -300,7 +299,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   /**
    * Define the match callbacks implemented in this plugin.
    */
-  protected function buildMatch($slots, $round_num, $match_num) {
+  protected function buildMatch($match_num) {
     return array(
       'current_match' => array(
         'callback' => 'getMatchByName',

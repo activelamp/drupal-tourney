@@ -104,7 +104,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     );
 
     for ($match_num = 1; $match_num <= ($slots / 2); $match_num++) {
-      $round['matches']['match-' . $static_match_num] = $this->buildMatch($slots, $round_num, $static_match_num);
+      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num);
       $static_match_num++;
     }
 
@@ -114,7 +114,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   /**
    * Define the match callbacks implemented in this plugin.
    */
-  protected function buildMatch($slots, $round_num, $match_num) {
+  protected function buildMatch($match_num) {
     return array(
       'current_match' => array(
         'callback' => 'getMatchByName',
@@ -224,7 +224,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     $tournament->winner = $keys[0];
     $tournament->save();
 
-    return $this;
+    return $tournament;
   }
 
   /**

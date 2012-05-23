@@ -21,6 +21,7 @@ class TourneyMatch extends TourneyEntity {
   private $matchStarted = NULL;
   private $matchFinished = NULL;
   private $matchWinner = NULL;
+  private $matchLoser = NULL;
   private $matchSetup = NULL;
 
   public function __construct($values = array(), $entityType = 'tourney_match') {
@@ -245,6 +246,17 @@ class TourneyMatch extends TourneyEntity {
     return $this->matchWinner;
   }
 
+  public function getLoser() {
+    if ( is_null($this->matchLoser) ) {
+      if ( !$this->getWinner() ) return NULL;
+      foreach ( $this->getContestantIds() as $contestant ) {
+        if ( $contestant['eid'] !== $this->getWinner() ) 
+          $this->matchLoser = $contestant['eid'];
+      }
+    }
+    return $this->matchLoser;
+  }
+
   /**
    * Helper getters
    */
@@ -256,12 +268,10 @@ class TourneyMatch extends TourneyEntity {
   }
   
   public function getLoserEntity() {
-    if ( !$this->getWinner() ) return NULL;
-    foreach ( $this->getContestantIds() as $contestant ) {
-      if ( $contestant['eid'] !== $this->getWinner() ) 
-        return entity_load_single_by_eid($contestant['eid']);
+    if ( !$this->getLoser() ) {
+      return NULL;
     }
-    return NULL;
+    return entity_load_single_by_eid($this->getLoser());
   }
 
 
@@ -390,11 +400,8 @@ class TourneyMatch extends TourneyEntity {
     parent::save();
     // Set the tournament winner if this was the last match.
     if ( $this->getTournament() ) {
-      if ( $this->getTournament()->isFinished() ) {
-        if ( !$this->getTournament()->winner ) {
-          $this->getTournament()->determineWinner();
-        }
-      }
+      $this->gameIds = NULL;
+      $this->getTournament()->determineWinner();
       if (method_exists($this, 'getTournament')) {
         cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
       }
@@ -613,6 +620,7 @@ class TourneyMatch extends TourneyEntity {
   *   Newly created game entity 
   */
   public function addGame() {
+    $this->cleanGames();
     $game_count = count($this->getGameIds());
     $game = new TourneyGame(array(
       'type'  => 'game',
@@ -649,6 +657,7 @@ class TourneyMatch extends TourneyEntity {
         }
       }
     }
+    $this->gameIds = NULL;
   }
 
  /**

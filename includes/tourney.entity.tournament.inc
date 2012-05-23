@@ -190,6 +190,12 @@ class TourneyTournament extends TourneyEntity {
     if ($this->isFinished()) {
       $this->tourneyFormatPlugin->determineWinner($this);
     }
+    else {
+      if ( $this->winner ) {
+        $this->winner = NULL;
+        $this->save();
+      }
+    }
 
     return $this;
   }
