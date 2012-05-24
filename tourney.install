@@ -255,7 +255,7 @@ function tourney_schema() {
     ),
     'indexes' => array('id' => array('id')),
   );
-  
+
   $schema['cache_tourney'] = drupal_get_schema_unprocessed('system', 'cache');
   return $schema;
 }
@@ -376,7 +376,10 @@ function tourney_uninstall() {
   relation_type_delete('contestant');
 }
 
-function tourney_update_7001(&$sandbox) {
+/**
+ * Add contestant relation.
+ */
+function tourney_update_7001() {
   $relation = new stdClass();
   $relation->relation_type = 'contestant';
   $relation->label = 'contestant';
@@ -400,17 +403,19 @@ function tourney_update_7001(&$sandbox) {
     'label' => st('Slot'),
   );
   field_create_instance($field_instance);
+
+  return t('Tournament contestant relation added.');
 }
 
 /**
  * Update the format column in tourney table with new class name.
  */
 function tourney_update_7002() {
-  // Append the word controller to any tournament formats that do not already 
+  // Append the word controller to any tournament formats that do not already
   // have it.
-  $rows = db_query("SELECT id, format FROM {tourney_tournament} 
+  $rows = db_query("SELECT id, format FROM {tourney_tournament}
     WHERE format NOT LIKE '%Controller'")->fetchAll();
-  
+
   // Update each row
   foreach ($rows as $row) {
     $num_updated = db_update('tourney_tournament') // Table name no longer needs {}
@@ -420,12 +425,12 @@ function tourney_update_7002() {
       ->condition('id', $row->id)
       ->execute();
   }
-  
+
   return t('Tournament formats updated successfully.');
 }
 
 /**
- * Add a settings table for tourney. Removes un-needed fields in the 
+ * Add a settings table for tourney. Removes un-needed fields in the
  * tourney_match table.
  */
 function tourney_update_7003() {
@@ -476,10 +481,9 @@ function tourney_update_7004() {
   foreach (array('tourney_tournament', 'tourney_match', 'tourney_game') as $table) {
     if (!db_field_exists($table, 'name')) {
       db_add_field($table, 'name', $field);
-      _tourney_update_name_field($table);
     }
   }
-  
+
   return t('Tournament content updated successfully.');
 }
 
@@ -511,7 +515,18 @@ function tourney_update_7005() {
       'not null' => TRUE,
       'initial' => '',
     ));
-  
+
+  foreach (array('tourney_tournament', 'tourney_match', 'tourney_game') as $table) {
+    if (db_field_exists($table, 'name')) {
+      _tourney_update_name_field($table);
+    }
+  }
+
+  // Remove previous index to prevent conflicts.
+  db_drop_unique_key('tourney_tournament', 'name');
+  db_drop_unique_key('tourney_match', 'name');
+  db_drop_unique_key('tourney_game', 'name');
+
   db_add_unique_key('tourney_tournament', 'name', array('name'));
   db_add_unique_key('tourney_match', 'name', array('name'));
   db_add_unique_key('tourney_game', 'name', array('name'));
@@ -522,19 +537,20 @@ function tourney_update_7005() {
 /**
  * Helper functions
  */
- 
+
 /**
  * Update machine name field
  */
 function _tourney_update_name_field($table) {
-  // Append the word controller to any tournament formats that do not already 
+  drupal_load('module', 'tourney');
+  // Append the word controller to any tournament formats that do not already
   // have it.
-  $rows = db_query("SELECT id, title FROM {$table}")->fetchAll();
-  
+  $rows = db_query("SELECT id, title FROM {$table}");
+
   // Update each row
   foreach ($rows as $row) {
     $machine_name = _tourney_machine_name($row->title);
-    
+
     // Fix machine name for matches
     if ($table == 'tourney_match') {
       $match = tourney_match_load($row->id);
@@ -546,7 +562,7 @@ function _tourney_update_name_field($table) {
       $match = tourney_match_load($game->getMatchId());
       $machine_name = $match->getTournament()->name . '_' . _tourney_machine_name($match->title) . '_' . $machine_name;
     }
-    
+
     $num_updated = db_update($table) // Table name no longer needs {}
       ->fields(array(
         'name' => $machine_name,

@@ -254,7 +254,7 @@ function tourney_page_title($tourney) {
 }
 
 function _tourney_machine_name($title) {
-  return preg_replace('/[^a-z0-9-]+/', '-', $title);
+  return trim(preg_replace('/[^a-z0-9-]/', '-', strtolower($title)), '-');
 }
 
 /**
@@ -266,7 +266,7 @@ function tourney_entity_info() {
   foreach ($entities as $entity_name => $bundle) {
     // Entity name minus the tourney_ prefix
     $entity_short = substr($entity_name, 8);
-    
+
     $entity_class = 'Entity';
     $entity_class = ($entity_short == 'tournament') ? 'TourneyTournament' : $entity_class;
     $entity_class = ($entity_short == 'match') ? 'TourneyMatch' : $entity_class;
@@ -762,7 +762,7 @@ function tourney_tournament_save(&$tourney) {
  */
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
-  
+
 
 }
 
@@ -1021,14 +1021,14 @@ function tourney_flush_caches() {
 }
 
 /**
- * Returns a single part of a full match name 
+ * Returns a single part of a full match name
  *
  * @param $name
  *   Full name of the match in bracket_round_match[_contestant] format
  * @param $part
  *   Which part of the name to return
  * @return $value
- *   Value of the part asked for 
+ *   Value of the part asked for
  */
 function tourney_get_name_part($name, $part) {
   foreach ( explode('_', $name) as $sub ) {
@@ -1068,7 +1068,7 @@ function tourney_entity_load($entities, $type) {
     $entity->eid         = $type . '.' . $id;
     $entity->entity_type = $type;
     $entity->entity_id   = $id;
-    $entity->entity_name = !property_exists($entity, 'title') 
+    $entity->entity_name = !property_exists($entity, 'title')
       ? (property_exists($entity, 'name') ? $entity->name : 'NONAME') : $entity->title;
   }
 }
