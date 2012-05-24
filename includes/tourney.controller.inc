@@ -283,18 +283,47 @@ class TourneyController {
   }
   
   /**
+   * Get round info for a match that is passed in. Traverses the structure of the 
+   * tournament until it finds the match and returns information about the round
+   * that contains the match
+   * 
+   * @param $match
+   *   Match object
+   * @param array
+   *   An array with information about the round the match is in.
+   */
+  public function getBracketInfo($match) {
+    @list(, $match_name) = explode('_', $match->name);
+    return $this->findItem($match_name, $this->tournament->data, array(), 4);
+  }
+  
+  /**
    * Get the parent structure from structure array that contains the key element
    * that is being looked for.
+   * 
+   * @param $key_value
+   *   The key to look for in the structure array.
+   * @param $structure
+   *   The structure array from the plugin.
+   * @param $parent_structure
+   *   The previous structure from the recursive function.
+   * @param $depth
+   *   The number of generations of parentage to return in the structure.
+   * @return
+   *   A portion of the structure array that contains the $key_value passed in.
    */
-  protected function findItem($key_value, $structure, $parent_structure = array()) {
+  protected function findItem($key_value, $structure, $parent_structures = array(), $depth = 1) {
     static $return = array();
+    
     foreach ($structure as $key => $value) {
       if ($key == $key_value){
-        $return = $parent_structure;
+        $index = count($parent_structures) - $depth;
+        $return = $parent_structures[$index];
         return;
       }
       elseif (is_array($value)) {
-        $this->findItem($key_value, $value, $structure);
+        $parent_structures[] = $structure;
+        $this->findItem($key_value, $value, $parent_structures, $depth);
       }
     }
     return $return;

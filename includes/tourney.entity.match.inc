@@ -36,6 +36,7 @@ class TourneyMatch extends TourneyEntity {
       
       // @todo: Do we really want to load this on instanstiation
       $this->roundInfo = $this->getRoundInfo();
+      $this->bracketInfo = $this->getBracketInfo();
     }    
     
     // Remove this once I know for sure that modules aren't depending on
@@ -171,6 +172,16 @@ class TourneyMatch extends TourneyEntity {
       $this->roundInfo = $this->getTournament()->tourneyFormatPlugin->getRoundInfo($this);
     }
     return $this->roundInfo;
+  }
+  
+  /**
+   * Lazy load a tournament object this match belongs to.
+   */
+  public function getBracketInfo() {
+    if (is_null($this->bracketInfo) && is_object($this->getTournament()->tourneyFormatPlugin)) {
+      $this->bracketInfo = $this->getTournament()->tourneyFormatPlugin->getBracketInfo($this);
+    }
+    return $this->bracketInfo;
   }
   
   /**
