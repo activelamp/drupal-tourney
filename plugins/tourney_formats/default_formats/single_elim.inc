@@ -159,6 +159,7 @@ class SingleElimination implements TourneyFactoryInterface {
             $new_matches[] = array($seed_position, $last_seed_position - $seed_position);
           }
           else {
+            // Create a bye match.
             $new_matches[] = array($seed_position, NULL);
           }
         }
