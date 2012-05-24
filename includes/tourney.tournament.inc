@@ -21,6 +21,19 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#maxlength' => 255,
     '#default_value' => isset($tourney->title) ? $tourney->title : '',
   );
+  
+  $form['name'] = array(
+    '#type' => 'machine_name',
+    '#default_value' => isset($tourney->title) ? $tourney->name : '',
+    '#maxlength' => 21,
+    '#description' => t('A unique name for tournaments. It must only contain lowercase letters, numbers and hyphens.'),
+    '#machine_name' => array(
+      'source' => array('title'),
+      'exists' => 'tourney_name_exists',
+      'replace_pattern' => '[^a-z0-9-]+',
+      'replace' => '-',
+    ),
+  );
 
   $form['format'] = array(
     '#type' => 'select',
@@ -64,6 +77,13 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   return $form;
 }
 
+/**
+ * Machine name callback to make sure it name does not already exist.
+ */
+function tourney_name_exists($value) {
+  return db_query_range('SELECT 1 FROM {tourney_tournament} WHERE name = :name', 0, 1, array(':name' => $value))->fetchField();
+}
+
 function tourney_tournament_delete_submit($form, &$form_state) {
   $destination = array();
   if (isset($_GET['destination'])) {
@@ -71,29 +91,26 @@ function tourney_tournament_delete_submit($form, &$form_state) {
     unset($_GET['destination']);
   }
   $tourney = $form_state['tourney'];
-  $form_state['redirect'] = array('tourney/' . $tourney->id . '/delete', array('query' => $destination));
+  $form_state['redirect'] = array($tourney->getUri() . '/delete', array('query' => $destination));
 }
 
 /**
  * Tournament form submit handler.
  */
 function tourney_tournament_form_submit($form, &$form_state) {
-  drupal_set_message(t('Your tournament has been saved.'));
-
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
   tourney_tournament_save($tourney);
-
-  $form_state['redirect'] = 'tourney/' . $tourney->id;
+  
+  drupal_set_message(t('Your tournament has been saved.'));
+  $form_state['redirect'] = $tourney->getUri();
 }
 
 /**
  * Show the tournament page.
  */
 function tourney_tournament_page_view($tourney) {
-  if  (TOURNEY_DEBUG_EXTENDS) {
-    // $tourney->determineWinner();
-  }
+  dpm($tourney);
   return $tourney->view('full', NULL, TRUE);
 }
 
@@ -101,6 +118,8 @@ function tourney_tournament_page_view($tourney) {
  * Implements hook_ENTITY_view().
  */
 function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode = 'en') {
+  $info = TourneyController::getPluginInfo($entity->format);
+  
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'
   );
@@ -110,7 +129,7 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   $entity->content['tourney_format'] = array(
    '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
    '#suffix' => '</div>',
-   '#markup' => $entity->format,
+   '#markup' => $info['name'],
   );
   $entity->content['tourney_players'] = array(
    '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
@@ -126,70 +145,9 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   // Add the matches for this tournament
   $entity->content['matches'] = array(
     '#prefix' => '<h2>Matches in this tournament</h2>',
-    '#theme' => 'tourney_render_tourney', // TODO matches
-    //'#matches' => tourney_tournament_build_matches($entity),
+    '#theme' => 'tourney_render_tourney',
     '#tournament' => $entity,
   );
-}
-
-/**
- * Return all the matches that have a relation 'has_match' with the passed in
- * tournament object.
- *
- * @param $entity
- *   A tournament object to check the 'has_match' relation on.
- * @param $raw
- *   If set to true only return the matches, do not return brackets and rounds
- *   with it.
- * @param $reset
- *   Boolean to reset the cache.
- * @return
- *   An array of all the rounds and matches.
- */
-function tourney_tournament_build_matches($entity, $raw = FALSE, $reset = FALSE) {
-  if ($reset || !$cache = cache_get('tourney_build_matches_' . $entity->id, 'tourney_cache')) {
-    $query = relation_query('tourney_tournament', $entity->id);
-    $results = $query->entityCondition('bundle', 'has_match')
-                      ->range(0, $entity->matches_created)
-                      ->execute();
-
-    $matches = $brackets = array();
-    foreach ($results as $id => $relation) {
-      $relation = relation_load($id);
-      $bracket = field_get_items('relation', $relation, 'bracket');
-      $round = field_get_items('relation', $relation, 'round');
-      $endpoints = field_get_items('relation', $relation, 'endpoints');
-
-      $match = tourney_match_load($endpoints[1]['entity_id']);
-      $matches[] = $match;
-
-      if ($bracket[0]['safe_value'] && $round[0]['safe_value']) {
-        $brackets[$bracket[0]['safe_value']][$round[0]['safe_value']][$match->id] = array(
-          'match' => $match,
-          'games' => tourney_tournament_get_match_games($match),
-        );
-      }
-      elseif ($round[0]['safe_value']) {
-        $brackets[$round[0]['safe_value']][$match->id] = array(
-          'match' => $match,
-          'games' => tourney_tournament_get_match_games($match),
-        );
-      }
-      else {
-        $brackets[$match->id] = array(
-          'match' => $match,
-          'games' => tourney_tournament_get_match_games($match),
-        );
-      }
-    }
-
-    cache_set('tourney_build_matches_' . $entity->id . '_raw', $matches, 'cache_tourney');
-    cache_set('tourney_build_matches_' . $entity->id, $brackets, 'cache_tourney');
-    return $raw ? $matches : $brackets;
-  }
-  $cache_raw = cache_get('tourney_build_matches_' . $entity->id . '_raw', 'cache_tourney');
-  return $raw ? $cache_raw->data : $cache->data;
-
 }
 
 /**

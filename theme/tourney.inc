@@ -2,11 +2,12 @@
 
 /*
  * @file
+ * Holds the theme implementations for rendering tournaments
  */
 
 /**
- * Theme function to return HTML output for a given tournament, pulls includes
- * based on tournament type
+ * Theme function to return HTML output for a given tournament, delegates the
+ * rendering to the tourney format plugin.
  *
  * @param $vars
  *   Should be a single-key array containing the tournament
@@ -14,28 +15,7 @@
  *   Tree in HTML output
  */
 function theme_tourney_render_tourney($vars) {
-  module_load_include('inc', 'tourney', 'includes/tourney.tournament');
-  $types = array(
-    'SingleElimination' => 'single',
-    'DoubleElimination' => 'double',
-    'RoundRobin'        => 'roundrobin',
-  );
-  $tournament = $vars['tournament'];
-  $format = $types[$tournament->format];
-  if (array_key_exists('matches', $vars)) {
-    $matches = $vars['matches'];
-  }
-  else {
-    $matches = tourney_tournament_build_matches($tournament);
-  }
-
-  $output = "<div class='tourney tourney-$format " . (variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES) ? 'hide-byes' : '') . "'>";
-  module_load_include('inc', 'tourney', "theme/type/$format");
-  if (function_exists($f = "tourney_render_tourney_$format")) {
-    $output .= call_user_func_array($f, array($tournament, $matches));
-  }
-  $output .= "</div>";
-  return $output;
+  return $vars['tournament']->render();
 }
 
 /**
@@ -73,37 +53,42 @@ function theme_tourney_flow_control($vars) {
  */
 function theme_tourney_matchblock($vars) {
   extract($vars);
-  $editable = ($match->previous_match1 == 'manual' && !is_object($match->contestant1)) ||
-    ($match->previous_match2 == 'manual' && !is_object($match->contestant2));
-  $bye = ($match->previous_match2 == 'bye');
-
-  $contestant1 = is_object($match->contestant1) ? $match->contestant1->_entity_name : 'team 1';
-  $contestant2 = is_object($match->contestant2) ? $match->contestant2->_entity_name : ($bye ? '' : 'team 2');
-  $title       = $match->title . ' ' . $match->id;
-
-  $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . ' ' . ($bye ? 'match-bye' : '') . '">';
-  // if ( !$small ) {
-  //     $output .= '<div class="match-title">' . $title . '</div>';
-  //   }
-
-  // Add extra classes to the contestant and flow containers to aid in highlighting
-  $contestant1_class = (!empty($match->contestant1) ? ' entity-' . $match->contestant1->_entity_type . '-' . $match->contestant1->_entity_id : '');
-  $contestant2_class = (!empty($match->contestant2) ? ' entity-' . $match->contestant2->_entity_type . '-' . $match->contestant2->_entity_id : ($bye ? 'contestant-bye' : ''));
-  $winner_class = '';
-  if (!empty($match->winner)) {
-    if ($match->contestant1 && $match->winner == $match->contestant1->name) $winner_class = $contestant1_class;
-    if ($match->contestant2 && $match->winner == $match->contestant2->name) $winner_class = $contestant2_class;
-  }
-
+  static $debug_val = 0;
+  $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . '">';
   $output .= theme('tourney_flow_control', array('flows' => $flow));
-  $output .= '<div class="contestant contestant-1 ' . $contestant1_class . '">' . $contestant1 . ( ($contestant1 && $match->winner == $contestant1) ? ' ♔' : '' ) . '</div>';
-  $output .= '<div class="contestant contestant-2 ' . $contestant2_class . '">' . $contestant2 . ( ($contestant2 && $match->winner == $contestant2) ? ' ♔' : '' ) . '</div>';
+
+  $cid = 1;
+
+  $contestants = $match->getContestants();
+  // If there is one contestants, pad the beginning if it's occupying slot 2
+  if ( count($contestants) == 1 ) {
+    $first = current($contestants);
+    if ( $first->slot == 2 ) array_unshift($contestants, NULL);
+  }
+  while ( count($contestants) < 2 ) $contestants[] = NULL;
+  $editable = in_array(NULL, $contestants) && $match->canSetContestants();
+  foreach ( $contestants as $eid => $contestant ) {
+    if ( $contestant == NULL ) {
+      $output .= '<div class="contestant contestant-' . $cid . '"> Team ' . $cid++ . ' </div>';
+    }
+    else {
+      $output .= '<div class="contestant contestant-' . $cid++ . ' entity-' . str_replace('.', '-', $eid) . '">' 
+        . $contestant->entity_name . ( $eid == $match->winner ? ' ♔' : '' ) 
+        . '</div>';
+    }
+  }
   $output .= '</div>';
 
-  return l($output, "tourney/match/{$match->id}" . ($editable ? "/edit" : ''), array(
+  // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
+  //    . '<div class="contestant contestant-1">' . $match->entity_id . ' : ' . ( $match->nextMatch('winner') ? $match->nextMatch('winner')->entity_id : '' ) . '</div>'
+  //    . '<div class="contestant contestant-2">' . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : '' ) . '</div>'
+  //    . '</div>';
+  
+  $match_uri = $match->getUri();
+  return l($output, $match_uri . ($editable ? "/edit" : ''), array(
     'html' => TRUE,
     'attributes' => array('class' => 'match-link'),
-    'query' => $editable ? array('destination' => "tourney/match/{$match->id}") : array()
+    'query' => $editable ? array('destination' => $match_uri) : array()
   ));
 }
 
@@ -143,52 +128,4 @@ function theme_tourney_spacer($vars) {
   else
     $output  = str_repeat(sprintf($div, ''), $height);
   return $output;
-}
-
-/**
- * Theme the match edit table of players
- */
-function theme_tourney_match_fix($vars) {
-  $element = $vars['element'];
-  
-  // Get the keys of the game form elements in this match render element
-  // @see tourney_match_form().
-  $children = element_children($element);
-  
-  // Initialize the header and rows
-  $header = array('Team Name');
-  $rows   = array();
-  
-  // Loop through all the games that have started.
-  for ($gn = 0; $gn < $element['#games']; $gn++) {
-    $header[] = "Game " . ( $gn + 1 );
-    
-    if ($gn < count($children)) {
-      // Get the form element for this game number.
-      $game = $element[$children[$gn]];
-      foreach (element_children($game) as $user) {
-        if (!isset($rows[$user])) {
-          $rows[$user][] = $game[$user]['#title'];
-        }
-        // Render the form element as a column in this row of the table.
-        $rows[$user][] = drupal_render($game[$user]);
-      }
-    }
-    else {
-      foreach ($rows as $id => &$row) {
-        $row[] = ' - ';
-      } 
-    }
-  }
-
-  $header[] = "Results";
-  foreach ( $rows as $id => &$row ) {
-    $row[] = ' - ';
-  }
-
-  return theme('table', array(
-    'attributes' => array('id' => 'game-list'),
-    'header' => $header,
-    'rows' => $rows,
-  ));
 }

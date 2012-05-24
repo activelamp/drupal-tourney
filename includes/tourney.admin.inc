@@ -67,6 +67,7 @@ function tourney_tournament_type_form_submit(&$form, &$form_state) {
  * Form API submit callback for the delete button.
  */
 function tourney_tournament_type_form_submit_delete(&$form, &$form_state) {
+  drupal_set_message(t('The tournament and all its matches and games have been deleted.'));
   $form_state['redirect'] = 'admin/structure/tournament/manage/' . $form_state['tourney_tournament_type']->type . '/delete';
 }
 
@@ -84,7 +85,7 @@ function tourney_admin_content() {
     'operations' => array('data' => t('Operations'), 'colspan' => '3'),
   );
 
-  // Grab all relations.
+  // Grab all tournaments.
   $query = db_select('tourney_tournament', 't')->extend('PagerDefault')->extend('TableSort');
   $query->fields('t', array('id', 'title', 'format', 'players', 'winner'))
     ->limit(50)
@@ -111,17 +112,21 @@ function theme_tourney_admin_content($variables) {
       array('data' => $message, 'colspan' => 8),
     );
   }
-  else foreach ( $tournaments as $tournament ) {
+  else foreach ($tournaments as $tournament) {
+    // $tournament is not a fully loaded object. Need to get the path via the
+    // static method on tournaments.
+    $uri = TourneyTournament::path($tournament->id);
+    $info = TourneyController::getPluginInfo($tournament->format);
     $rows[] = array(
-      l($tournament->id, 'tourney/' . $tournament->id),
-      l($tournament->title, 'tourney/' . $tournament->id),
-      $tournament->format,
+      l($tournament->id, $uri),
+      l($tournament->title, $uri),
+      $info['name'],
       $tournament->players,
       $tournament->winner,
-      user_access('access content') ? l(t('View'), 'tourney/' . $tournament->id . '') : '',
-      user_access('access content') ? l(t('Edit'), 'tourney/' . $tournament->id . '/edit') : '',
+      user_access('access tourney') ? l(t('View'), $uri . '') : '',
+      user_access('edit tourney') ? l(t('Edit'), $uri . '/edit') : '',
       //TODO : implement delete
-      user_access('access content') ? l(t('Delete'), 'tourney/' . $tournament->id . '/delete') : '',
+      user_access('delete tourney') ? l(t('Delete'), $uri . '/delete') : '',
     );
   }
 
@@ -183,6 +188,13 @@ function tourney_configuration($form, &$form_state) {
     '#title' => t('Turn debug mode on'),
     '#default_value' => variable_get('tourney_debug', FALSE),
   );
+  $form['tourney_backward_compatibility'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Backward Compatibility'),
+    '#default_value' => variable_get('tourney_backward_compatibility', FALSE),
+    '#description' => t('Tourney objects used to have properties available right on the object. There are now getter methods in place to get these properties. Check this box if you have code accessing these properties directly and still need to the data directly on the object.'),
+  );
+  
   
   $form['tourney_games'] = array(
     '#type' => 'textfield',
@@ -205,7 +217,7 @@ function tourney_configuration($form, &$form_state) {
     '#type' => 'vertical_tabs',
   );
   $form['tourney']['#attached']['css'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/config.css',
+    drupal_get_path('module', 'tourney') . '/theme/tourney.css',
   );
   foreach ($entities as $key => $entity) {
     $form['tourney'][$key] = array(
@@ -219,7 +231,7 @@ function tourney_configuration($form, &$form_state) {
       '#type' => 'tableselect',
       '#header' => $header,
       '#options' => tourney_relation_type_tableselect_options($key),
-      '#default_value' => tourney_relation_type_tableselect_values(TOURNEY_CONTESTANT_1, $key),
+      '#default_value' => tourney_relation_type_tableselect_values('contestant', $key),
     );
   }
   $form['actions']['submit'] = array(
@@ -247,7 +259,7 @@ function tourney_configuration($form, &$form_state) {
  * exist to be targeted.
  */
 function tourney_configuration_form_submit($form, &$form_state) {
-  $relation_types = array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2);
+  $relation_types = array('contestant');
   $entities = entity_get_info();
   $targets = array();
 
@@ -256,6 +268,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
     variable_set('tourney_games_all', $form_state['values']['tourney_games']);
     variable_set('tourney_hide_byes', $form_state['values']['tourney_hide_byes']);
     variable_set('tourney_debug', $form_state['values']['tourney_debug']);
+    variable_set('tourney_backward_compatibility', $form_state['values']['tourney_backward_compatibility']);
     
     // Set the relations.
     tourney_relation_type_untarget($relation_types);
@@ -285,7 +298,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
  * target bundles of user:* and node:*.
  */
 function tourney_configuration_defaults_submit($form, &$form_state) {
-  $relation_types = array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2);
+  $relation_types = array('contestant');
 
   try {
     tourney_relation_type_untarget($relation_types);

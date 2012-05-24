@@ -6,15 +6,15 @@
  */
 
 /**
- * Round Robin Tournament
+ * Double Elimination Format
  */
 $plugin = array(
-  'name' => t('Round Robin Tournament'),
-  'machine name' => 'round_robin',
+  'name' => t('Double Elimination'),
+  'machine name' => 'double',
   'description' => t('This is the description of the tournament'),
-  'weight' => 3,
+  'weight' => 1,
   'total games' => 5,
-  'builder controller' => 'RoundRobin',
+  'controller' => 'DoubleEliminationController',
 );
 
 // Define any classes below to extend default functionality in the controllers.

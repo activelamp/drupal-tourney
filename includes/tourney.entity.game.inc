@@ -8,71 +8,80 @@
 
 class TourneyGame extends TourneyEntity {
 
-  private $gameTournamentId = NULL;
-  private $gameMatchId = NULL;
+  public  $tournamentId = NULL;
+  public  $matchId = NULL;
+  public  $uri;
+  private $gameMatch = NULL;
   private $gameContestantIds = NULL;
   private $gameContestants = NULL;
-  private $gameStarted = NULL;
-  private $gameFinished = NULL;
-  private $gameWinner = NULL;
 
   /**
    * Constructor.
    */
-  public function __construct($values = array(), $entityType = NULL) {
+  public function __construct($values = array(), $entityType = 'tourney_game') {
     parent::__construct($values, $entityType);
+    
+    if (property_exists($this, 'id') && $this->id) {
+      $this->tournamentId = $this->getTournamentId();
+      $this->matchId = $this->getMatchId();
+      // Add a url to the object
+      $this->uri = $this->getUri();
+    }
+    
+    // Remove this once I know for sure that modules aren't depending on
+    // properties directly on the match object.
+    if (variable_get('tourney_backward_compatibility', false)) {
+      $this->backwardCompatibility();
+    }
   }
-
+  
   /**
-   * Report any match_id associated with the game ids specified.
-   *
-   * Example usage:
-   * @code
-   *   $game_ids  = array(25, 26);
-   *   $match_ids = TourneyGame::fetchMatchIds($game_ids);
-   *   $match_id  = $match_ids[25];
-   * @endcode
-   *
-   * @param array|integer $game_ids
-   * @return TourneyGame
-   *   A array of newly instantiated game entities.
+   * For backward compatibility I'm loading public properties on the object 
+   * that used to be in hook_entity_load().
+   * 
+   * The tourney module does not have any dependencies on these properties. 
+   * This is only here in case Riot is expecting these properties on the object
+   * and is not using one of the public API methods to retrieve property.
    */
-   public static function loadTourneyGame($game_ids = array()) {
-     $game_ids = (is_array($game_ids)) ? $game_ids : array($game_ids);
+  private function backwardCompatibility() {
+    // Set the parent match on the game entity.
+    $match = tourney_match_load($this->matchId, true);
+    $this->match = $match;
 
-     $new_game = entity_load('tourney_game', $game_ids);
-
-     return $new_game;
-   }
+    // Load the contestants property on the object.
+    foreach ( array(1, 2) as $i ) {
+      if (is_object($match) && is_object($match->getContestant($i))) {
+        $contestant = $match->getContestant($i);
+        $this->contestants[$contestant->eid] = entity_load_single_by_eid($contestant->eid);
+      }
+    }
+  }
 
   /**
    * Report the match entity_id related to a game.
    *
    * @return array $match_ids
-   *   An associative array, keyed by TourneyGame id, of TourneyMatch ids.
-   *   Array will be empty if no matches are found.
+   *  An integer or associative array, keyed by TourneyGame id, of TourneyMatch
+   *  ids. Array will be empty if no matches are found.
    */
-  public static function fetchMatchIds($game_ids) {
-    $game_ids  = (is_array($game_ids)) ? $game_ids : array($game_ids);
-    $match_ids = array();
-
-    $query = relation_query('tourney_game', $game_ids);
-    $query->entityCondition('bundle', 'has_game');
-    $results = $query->execute();
-    if (!empty($results)) {
-      foreach ($results as $relation) {
+  public function getMatchId() {
+    if ( !property_exists($this, 'id') || is_null($this->id) ) return NULL;
+    if ( is_null($this->matchId) ) {
+      $query = relation_query('tourney_game', $this->id);
+      $query->entityCondition('bundle', 'has_game');
+      $results = $query->execute();
+      
+      if ( !empty($results) ) {
+        $relation = array_pop($results);
         $r = relation_load($relation->rid);
-        $game_id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-        $match_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
-        $match_ids[$game_id] = $match_id;
+        $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
       }
     }
-
-    return $match_ids;
+    return $this->matchId;
   }
 
   /**
-   * Report the tournament entity_id related to a game.
+   * Get the tournament entity_id related to a game.
    *
    * @param integer $game_id
    * @param integer $match_id
@@ -80,59 +89,53 @@ class TourneyGame extends TourneyEntity {
    *
    * @return integer|NULL $tournament_id
    */
-  public static function fetchTournamentId($game_id, $match_id = NULL) {
-    $tournament_id = NULL;
-    $match_id = ($match_id) ? array($game_id => $match_id) : TourneyGame::fetchMatchIds($game_id);
-
-    if ($match_id) {
-      $query = relation_query('tourney_match', $match_id[$game_id]);
+  public function getTournamentId() {
+    if (is_null($this->tournamentId)) {
+      $query = relation_query('tourney_match', $this->getMatchId());
       $query->entityCondition('bundle', 'has_match');
       $results = $query->execute();
-      foreach ($results as $relation) {
+      
+      if (!empty($results)) {
+        $relation = array_pop($results);
         $r = relation_load($relation->rid);
-        $tournament_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+        $this->tournamentId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
       }
     }
-
-    return $tournament_id;
+    return $this->tournamentId;
   }
 
   /**
-   * Report the contestants related to a game.
+   * Determine if a game has started (contestant relationships exist).
    *
-   * @param integer $game_id
-   * @param integer $match_id
-   *   (optional) If provided will eliminate some work.
-   *
-   * @return array $contestants
-   *   An associative array containing:
-   *   - contestant: An array of entity type concatenated with entity id:
-   *     - type: String denoting the entity type.
-   *     - id: Integer denoting the specific entity id.
-   *   An empty array will be returned if no contestants are found.
+   * @return bool
    */
-  public static function fetchContestantIds($game_id, $match_id = NULL) {
-    $contestants = array();
-    $match_id = ($match_id) ? array($game_id => $match_id) : TourneyGame::fetchMatchIds($game_id);
+  public function isStarted() {
+    $started = !empty($this->getContestantId) ? TRUE : FALSE;
 
-    if ($match_id) {
-      $query = relation_query('tourney_match', $match_id[$game_id]);
-      $query->entityCondition('bundle', array(TOURNEY_CONTESTANT_1, TOURNEY_CONTESTANT_2), 'IN');
-      $results = $query->execute();
-      foreach ($results as $relation) {
-        $r = relation_load($relation->rid);
-        $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
-        $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-        $contestants[$type . '.' . $id] = array(
-          'type' => $type,
-          'id' => $id,
-        );
-      }
-    }
-    
-    return $contestants;
+    return $started;
   }
 
+  /**
+   * Determine if a game is finshed (if a winner has been set).
+   *
+   * @return bool
+   */
+  public function isFinished() {
+    $finished = strlen($this->getWinner());
+
+    return $finished;
+  }
+  
+  /**
+   * Lazy load a tournament object this match belongs to.
+   */
+  public function getMatch() {
+    if (is_null($this->gameMatch)) {
+      $this->gameMatch = relation_get_related_entity('tourney_game', $this->id, 'has_game', 1);
+    }
+    return $this->gameMatch;
+  }
+  
   /**
    * Retrieve property. (Lazy load contestant objects).
    *
@@ -149,15 +152,15 @@ class TourneyGame extends TourneyEntity {
    *   (optional) Associated key index, or simple integer offset index.
    *
    * @return array|object $contestant
-   *   If the $key paramater was NULL then an array of all contestants keyed 
-   *   by ["$obj_type.$obj_id"]. If $key parameter was string then only the
+   *   If the $key paramater is NULL then an array of all contestants keyed 
+   *   by ["$obj_type.$obj_id"]. If $key parameter is string then only the
    *   element [$key] of all contestants is returned. If $key parameter is an
    *   integer then only the element at offset [$key] is returned.
    */
   public function getContestants($key = NULL) {
     if (is_null($this->gameContestants)) {
-      foreach($this->getContestantIds() as $c_id) {
-        $this->gameContestants[$c_id['type'] . '.' . $c_id['id']] = entity_load($c_id['type'], array($c_id['id']));
+      foreach ($this->getContestantIds() as $c_id) {
+        $this->gameContestants[$c_id['type'] . '.' . $c_id['id']] = entity_load_single($c_id['type'], $c_id['id']);
       }
     }
 
@@ -178,66 +181,35 @@ class TourneyGame extends TourneyEntity {
   /**
    * Retrieve property. Pseudo caches result.
    */
-  public function getTournamentId() {
-    if (is_null($this->gameTournamentId)) {
-      $this->gameTournamentId = TourneyGame::fetchTournamentId($this->id, $this->getMatchId());
-    }
-    
-    return $this->gameTournamentId;
-  }
-
-  /**
-   * Retrieve property. Pseudo caches result.
-   */
-  public function getMatchId() {
-    if (is_null($this->gameMatchId)) {
-      $match_ids = TourneyGame::fetchMatchIds($this->id);
-      $this->gameMatchId = $match_ids[$this->id];
-    }
-
-    return $this->gameMatchId;
-  }
-
-  /**
-   * Retrieve property. Pseudo caches result.
-   */
   public function getContestantIds() {
     if (is_null($this->gameContestantIds)) {
-      $this->gameContestantIds = TourneyGame::fetchContestantIds($this->id, $this->getMatchId());
+      $this->gameContestantIds = TourneyMatch::fetchContestantIds($this->getMatchId());
     }
 
     return $this->gameContestantIds;
   }
 
+  public function save() {
+    parent::save();
+    cache_clear_all('tourney_winner_count_' . $this->getMatchId(), 'cache_tourney');
+  }
+  
   /**
-   * Determine if a game has started (contestant relationships exist).
-   *
-   * @return bool
+   * Get the path to a tourney url without needing a tourney object loaded.
    */
-  public function isStarted() {
-    $started = !empty($this->getContestantId) ? TRUE : FALSE;
-
-    if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->getStarted()) ? 'STARTED' : 'NOT STARTED (CLASS SETUP?)';
-      dpr('GAME ' . $this->id . ': ' . $output);
-    }
-
-    return $started;
+  public static function path($id) {
+    return 'tourney/game/' . $id;
   }
 
   /**
-   * Determine if a game is finshed (if a winner has been set).
-   *
-   * @return bool
+   * Return the uri to the entity object
    */
-  public function isFinished() {
-    $finished = strlen($this->getWinner());
+  public function getUri() {
+    return TourneyGame::path($this->id);
+  }   
 
-    if (TOURNEY_DEBUG_EXTENDS) {
-      $output = ($this->getFinished()) ? 'FINISHED: ' . $this->getWinner() : 'IN PROGRESS... (NO WINNER)';
-      dpr('GAME ' . $this->id . ': ' . $output);
-    }
-
-    return $finished;
+  public function delete() {
+    parent::delete();
   }
+
 }

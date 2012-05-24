@@ -41,7 +41,7 @@ function tourney_default_rules_configuration() {
   $rule->event('tourney_match_update')
        ->condition('data_is', array(
          'data:select' => 'tourney-match:relation-has-match-tourney-tournament-reverse:0:format',
-         'value' => 'RoundRobin'
+         'value' => 'RoundRobinController'
        ))
        ->action('tourney_action_set_all_matches', array(
          'match:select' => 'tourney-match'

@@ -4,10 +4,6 @@
  * Create tournament, match, and game entities for creating tournaments.
  */
 
-define('TOURNEY_CONTESTANT_1', 'contestant_1');
-define('TOURNEY_CONTESTANT_1_LABEL', 'contestant 1');
-define('TOURNEY_CONTESTANT_2', 'contestant_2');
-define('TOURNEY_CONTESTANT_2_LABEL', 'contestant 2');
 define('TOURNEY_GAMES', 5);
 define('TOURNEY_HIDE_BYES', FALSE);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
@@ -25,33 +21,33 @@ function tourney_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'includes/tourney.tournament.inc',
   );
-  $items['tourney/%tourney_tournament'] = array(
+  $items['tourney/tournament/%tourney_tournament'] = array(
     'title callback' => 'tourney_page_title',
-    'title arguments' => array(1),
+    'title arguments' => array(2),
     'page callback' => 'tourney_tournament_page_view',
-    'page arguments' => array(1),
+    'page arguments' => array(2),
     'access arguments' => array('access tourney'),
     'file' => 'includes/tourney.tournament.inc',
   );
-  $items['tourney/%tourney_tournament/view'] = array(
+  $items['tourney/tournament/%tourney_tournament/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  $items['tourney/%tourney_tournament/edit'] = array(
+  $items['tourney/tournament/%tourney_tournament/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'tourney_tournament_edit',
-    'page arguments' => array(1),
+    'page arguments' => array(2),
     'access arguments' => array('edit tourney'),
     'file' => 'includes/tourney.tournament.inc',
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
-  $items['tourney/%tourney_tournament/delete'] = array(
+  $items['tourney/tournament/%tourney_tournament/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'tourney_confirm_delete_page',
-    'page arguments' => array(1),
+    'page arguments' => array(2),
     'access arguments' => array('delete tourney'),
     'file' => 'includes/tourney.admin.inc',
     'weight' => 10,
@@ -133,6 +129,84 @@ function tourney_menu() {
 }
 
 /**
+ * Implements hook_menu_alter().
+ */
+function tourney_menu_alter(&$items) {
+  // Only alter when devel is available.
+  if (isset($items['node/%node/devel'])) {
+    // tourney_tournament entities.
+    $items['tourney/tournament/%tourney_tournament/devel'] = array(
+      'title' => 'Devel',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_tournament', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    $items['tourney/tournament/%tourney_tournament/devel/load'] = array(
+      'title' => 'Load',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['tourney/tournament/%tourney_tournament/devel/render'] = array(
+      'title' => 'Render',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_tournament', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    // tourney_match entities.
+    $items['tourney/match/%tourney_match/devel'] = array(
+      'title' => 'Devel',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_match', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    $items['tourney/match/%tourney_match/devel/load'] = array(
+      'title' => 'Load',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['tourney/match/%tourney_match/devel/render'] = array(
+      'title' => 'Render',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_match', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    // tourney_game entities.
+    $items['tourney/game/%tourney_match/devel'] = array(
+      'title' => 'Devel',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_game', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+    $items['tourney/match/%tourney_match/devel/load'] = array(
+      'title' => 'Load',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['tourney/match/%tourney_game/devel/render'] = array(
+      'title' => 'Render',
+      'page callback' => 'devel_load_object',
+      'page arguments' => array('tourney_game', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => drupal_get_path('module', 'devel') . '/devel.pages.inc',
+      'weight' => 100,
+    );
+  }
+}
+
+/**
  * Implements hook_admin_paths().
  */
 function tourney_admin_paths() {
@@ -178,6 +252,10 @@ function tourney_permission() {
  */
 function tourney_page_title($tourney) {
   return ucfirst($tourney->label());
+}
+
+function _tourney_machine_name($title) {
+  return preg_replace('/[^a-z0-9-]+/', '-', $title);
 }
 
 /**
@@ -413,9 +491,6 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'tourney.inc',
       'path' => $path . '/theme',
     ),
-    'tourney_roundrobin_standings' => array(
-      'variables' => array('tournament' => NULL, 'matches' => NULL),
-    ),
     'tourney_matchblock' => array(
       'variables' => array('match' => NULL, 'flow' => FALSE, 'small' => 0),
       'file' => 'tourney.inc',
@@ -433,55 +508,29 @@ function tourney_theme($existing, $type, $theme, $path) {
     ),
     'tourney_match_fix' => array(
       'render element' => 'element',
-      'file' => 'tourney.inc',
-      'path' => $path . '/theme',
+      'file' => 'tourney.match.inc',
+      'path' => $path . '/includes',
     ),
-  );
+  ) + _tourney_theme($existing, $type, $theme, $path);
 }
 
 /**
- * Implements hook_entity_load().
+ * Get the theme implementations defined in the plugins.
  */
-function tourney_entity_load($entities, $type) {
-  // Need consistent properties about the entity loaded
-  foreach ($entities as $id => $entity) {
-    $entity->_entity_type = $type;
-    $entity->_entity_id   = $id;
-    $entity->_entity_name = !property_exists($entity, 'title') 
-      ? (property_exists($entity, 'name') ? $entity->name : 'NONAME') : $entity->title;
-  }
-  if ($type === 'tourney_match') {
-    foreach ($entities as $entity) {
-      // Get the tournament this match is in
-      $tournament = relation_get_related_entity('tourney_match', $entity->id, 'has_match');
-      $entity->tournament = $tournament;
-      // Get the contestants in this match.
-      $contestant1 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_1);
-      $contestant2 = relation_get_related_entity('tourney_match', $entity->id, TOURNEY_CONTESTANT_2);
-      $entity->contestant1 = is_object($contestant1) ? $contestant1 : '';
-      $entity->contestant2 = is_object($contestant2) ? $contestant2 : '';
-      // Get all the games in this match.
-      module_load_include('inc', 'tourney', 'includes/tourney.tournament');
-      $entity->games_played = tourney_tournament_get_match_games($entity, FALSE);
+function _tourney_theme($existing, $type, $theme, $path) {
+  $hooks = array();
+  $plugins = tourney_get_types();
+  foreach ($plugins as $info) {
+    $class = ctools_plugin_get_class($info, 'controller');
+    if (method_exists($class, 'theme')) {
+      $hooks += $class::theme($existing, $type, $theme, $info['path']);
     }
   }
-  if ($type === 'tourney_game') {
-    foreach ($entities as $entity) {
-      // Set the parent match on the game entity.
-      $match = relation_get_related_entity('tourney_game', $entity->id, 'has_game');
-      $entity->match = $match;
-      if (is_object($match) && is_object($match->contestant1)) {
-        $entity->contestants[$match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id] = $match->contestant1->_entity_name;
-      }
-      if (is_object($match) && is_object($match->contestant2)) {
-        $entity->contestants[$match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id] = $match->contestant2->_entity_name;
-      }
-    }
-  }
+  return $hooks;
 }
 
 /**
- * Defines the entities and their  default bundles for the entities created by
+ * Defines the entities and their default bundles for the entities created by
  * this module.
  */
 function tourney_entities() {
@@ -511,9 +560,8 @@ function tourney_entities() {
  * What is this for?
  */
 function tourney_uri($entity) {
-  $path = $entity->type === 'tournament' ? 'tourney/' . $entity->id : 'tourney/' . $entity->type . '/' . $entity->id;
   return array(
-    'path' => $path,
+    'path' => 'tourney/' . $entity->type . '/' . $entity->id,
   );
 }
 
@@ -672,23 +720,11 @@ function tourney_game_load_multiple($ids = array(), $conditions = array(), $rese
   return entity_load('tourney_game', $ids, $conditions, $reset);
 }
 
+
 /**
  * Implements hook_entity_insert().
  */
 function tourney_entity_insert($entity, $type) {
-  $info = entity_get_info($type);
-
-  if ($type == 'tourney_tournament') {
-    // Build a nested array of matches for the tournament being saved.
-    $matches = new TourneyFactory($entity->players, $entity->format);
-    $matches->create();
-    // Create the actual match entities and the first game.
-    $matches_created = $matches->save($entity);
-    // Update the tournament with the number of matches created
-    $entity->matches_created = $matches_created;
-    drupal_write_record('tourney_tournament', $entity, 'id');
-  }
-
   if (is_subclass_of($entity, 'TourneyEntity')) {
     tourney_update_alias($entity, 'insert');
   }
@@ -727,66 +763,8 @@ function tourney_tournament_save(&$tourney) {
  */
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
-  // Set the tournament winner if this was the last match.
-  if (method_exists($match, 'isFinished') && $match->isFinished()) {
-    if ($match->tournament->isFinished()) {
-      if (!$match->tournament->winner) {
-        $match->tournament->determineWinner();
-      }
-    }
-  }
-  // Save the relation for contestants if one exists.
-  if (isset($match->contestant1) || isset($match->contestant2)) {
-    // Check to see if the relation is already added.
-    $c1 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_1);
-    $c2 = relation_get_related_entity('tourney_match', $match->id, TOURNEY_CONTESTANT_2);
+  
 
-    if ( $match->contestant1 && gettype($match->contestant1) == 'string' && $c1 && tourney_cid($c1) != $match->contestant1 ) {
-      $query = relation_query('tourney_match', $match->id);
-      $query->entityCondition('bundle', TOURNEY_CONTESTANT_1);
-      $results = $query->execute();
-      relation_delete(array_pop($results)->rid);
-      $c1 = FALSE;
-    }
-    // Create the new relation.
-    if (!is_object($c1) && !empty($match->contestant1)) {
-      // Get the entity and entity_id from contestant value
-      list($type, $id) = explode(".", is_object($match->contestant1)
-        ? $match->contestant1->_entity_type .'.'. $match->contestant1->_entity_id
-        : $match->contestant1);
-
-      $entity_keys = array(
-        array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
-        array('entity_type' => $type, 'entity_id' => $id),
-      );
-      $rid = relation_insert(TOURNEY_CONTESTANT_1, $entity_keys);
-    }
-
-    if ( $match->contestant2 && gettype($match->contestant2) == 'string' && $c2 && tourney_cid($c2) != $match->contestant2 ) {
-      $query = relation_query('tourney_match', $match->id);
-      $query->entityCondition('bundle', TOURNEY_CONTESTANT_2);
-      $results = $query->execute();
-      relation_delete(array_pop($results)->rid);
-      $c2 = FALSE;
-    }
-    if (!is_object($c2) && $match->contestant2) {
-      // Get the entity and entity_id from contestant value
-      list($type, $id) = explode(".", is_object($match->contestant2)
-        ? $match->contestant2->_entity_type .'.'. $match->contestant2->_entity_id
-        : $match->contestant2);
-
-      $entity_keys = array(
-        array('entity_type' => 'tourney_match', 'entity_id' => $match->id),
-        array('entity_type' => $type, 'entity_id' => $id),
-      );
-      $rid = relation_insert(TOURNEY_CONTESTANT_2, $entity_keys);
-    }
-    // Clear the match cache now to get the new contestants
-    cache_clear_all('tourney_match_games_' . $match->id, 'cache_tourney', TRUE);
-  }
-  if (property_exists($match, 'tournament')) {
-    cache_clear_all('tourney_build_matches_' . $match->tournament->id, 'cache_tourney', TRUE);
-  }
 }
 
 /**
@@ -797,7 +775,7 @@ function tourney_game_save(&$game) {
   if (isset($game->match) && is_object($game->match)) {
     cache_clear_all('tourney_winner_count_' . $game->match->id, 'cache_tourney');
     cache_clear_all('tourney_match_games_' . $game->match->id, 'cache_tourney', TRUE);
-    cache_clear_all('tourney_build_matches_' . $game->match->tournament->id, 'cache_tourney', TRUE);
+    cache_clear_all('tourney_build_matches_' . $game->match->getTournament()->id, 'cache_tourney', TRUE);
   }
 }
 
@@ -825,7 +803,7 @@ function tourney_tournament_calc_winner($tournaments, &$winners = array()) {
       throw new Exception(t('No such claass'));
     }
     $interfaces = class_implements($match_style);
-    if (!isset($interfaces['TourneyFactoryInterface'])) {
+    if (!isset($interfaces['TourneyControllerInterface'])) {
       throw new Exception(t('Wrong implementation.'));
     }
 
@@ -866,7 +844,7 @@ function tourney_tournament_count_finished($tournaments, &$finished = array()) {
 
   try {
     $tournament = is_int($tournaments) ? tourney_tournament_load($tournaments) : $tournaments;
-    $matches = tourney_tournament_build_matches($tournament, TRUE, TRUE);
+    $matches = $tournament->buildMatches(TRUE, TRUE);
   }
   catch (Exception $e) {
     throw new Exception(t('Can not load matches for tournament') . ': ' . $e->getMessage(), 'error');
@@ -881,89 +859,6 @@ function tourney_tournament_count_finished($tournaments, &$finished = array()) {
 }
 
 /**
- * Get the contestants playing in the tournament by looking at all the relations
- * to contestants from each match in the first round.
- *
- * @param $tournament
- *   The tournament object to get contestants for *
- * @return
- *   Returns an array of all the objects participating ordered by seed rank.
- */
-function tourney_get_contestants($tournament) {
-  $contestants = array();
-
-  $matches = tourney_tournament_build_matches($tournament);
-  // Shift off the rounds from the bracket
-  $rounds = array_shift($matches);
-
-  // Build the contestants array in the order the contestants are seeded.
-  $reverse = array_reverse($rounds['round-1']);
-  foreach ($reverse as $match) {
-    if (is_object($match['match']->contestant1)) {
-      $contestants = array_reverse($contestants, TRUE);
-      $contestants[$match['match']->contestant1->_entity_type . '.' . $match['match']->contestant1->_entity_id] = $match['match']->contestant1->_entity_name;
-      $contestants = array_reverse($contestants, TRUE);
-    }
-    if (is_object($match['match']->contestant2)) {
-      $contestants[$match['match']->contestant2->_entity_type . '.' . $match['match']->contestant2->_entity_id] = $match['match']->contestant2->_entity_name;
-    }
-  }
-
-  return $contestants;
-}
-
-/**
- * Figure out how many games each contestant has won.
- *
- * @param $match
- *   The match object to check games on
- * @param $reset
- *   Boolean to reset the cache.
- * @return
- *   Returns an array keyed by uid with value being the number of won games.
- */
-function tourney_get_winner_counts($match, $reset = FALSE) {
-  if ($reset || !$cache = cache_get('tourney_winner_count_' . $match->id, 'tourney_cache')) {
-    $games = array();
-    
-    // This is a bye
-    if ($match->previous_match2 == 'bye') {
-      $winners = array(
-        $match->contestant1 => 0,
-        'bye' => 0,
-      );
-    }
-    else {
-      // If there aren't two contestants in the match return
-      if (empty($match->contestant1->_entity_type) || empty($match->contestant2->_entity_type)) {
-        return array();
-      }
-
-      // Set up the default count array.
-      $winners = array(
-        $match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id => 0,
-        $match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id => 0,
-      );
-
-      foreach ($match->games_played as $entity_id) {
-        $games[$entity_id] = tourney_game_load($entity_id);
-        // Check to make sure the game has a winner
-        if ($games[$entity_id]->winner) {
-          // Tally up the winners in array keyed by uid
-          $winners[$games[$entity_id]->winner] =
-            array_key_exists($games[$entity_id]->winner, $winners)
-            ? ++$winners[$games[$entity_id]->winner] : 1;
-        }
-      }
-    }
-    
-    cache_set('tourney_winner_count_' . $match->id, $winners, 'tourney_cache');
-    return $winners;
-  }
-  return !empty($cache->data) ? $cache->data : array();
-}
-
-/**
  * Get the standings for a tournament
  *
  * @param $tournament
@@ -972,21 +867,21 @@ function tourney_get_winner_counts($match, $reset = FALSE) {
  *   An associative array keyed with wins, losses, and total played games.
  */
 function tourney_get_standings($tournament) {
-  $matches = tourney_tournament_build_matches($tournament, TRUE);
+  $matches = $tournament->buildMatches(TRUE);
   // Get the wins for each match
 
   $standings = array();
   $i = 0;
 
   foreach ($matches as $match) {
-    if ( $match->winner == '' ) continue;
-    $c1 = $match->contestant1->_entity_type . '.' . $match->contestant1->_entity_id;
-    $c2 = $match->contestant2->_entity_type . '.' . $match->contestant2->_entity_id;
+    if ( $match->getWinner() == '' ) continue;
+    $c1 = $match->getContestant(1)->eid;
+    $c2 = $match->getContestant(2)->eid;
     if ( !array_key_exists($c1, $standings) )
       $standings[$c1] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
     if ( !array_key_exists($c2, $standings) )
       $standings[$c2] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
-    if ( $match->winner == $match->contestant1->_entity_name ) {
+    if ( $match->winner == $c1 ) {
       $standings[$c1]['wins']++;
       $standings[$c2]['losses']++;
       if ( $standings[$c1]['first'] == -1 ) $standings[$c1]['first'] = $i++;
@@ -1027,7 +922,7 @@ function tourney_get_type_options($reset = FALSE) {
   $plugins = tourney_get_types();
   uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
-    $options[$info['builder controller']] = $info['name'];
+    $options[$info['controller']] = $info['name'];
   }
   return $options;
 }
@@ -1083,14 +978,6 @@ function tourney_views_api() {
   );
 }
 
-function tourney_cid_split($string) {
-  return explode('.', $string);
-}
-
-function tourney_cid($entity) {
-  return $entity->_entity_type . '.' . $entity->_entity_id;
-}
-
 /**
  * Update the URL aliases for an individual tourney entity.
  *
@@ -1126,4 +1013,63 @@ function tourney_update_alias($entity, $op, array $options = array()) {
   $uri = entity_uri($entity->type, $entity);
   //pathauto_create_alias($entity_type, $op, $uri['path'], array($entity_type => $entity), $entity_type, $options['language']);
   return pathauto_create_alias($entity->type, $op, $uri['path'], array($entity->type => $entity), $entity->type);
+}
+/**
+ * Implements hook_flush_caches().
+ */
+function tourney_flush_caches() {
+  return array('cache_tourney');
+}
+
+/**
+ * Returns a single part of a full match name 
+ *
+ * @param $name
+ *   Full name of the match in bracket_round_match[_contestant] format
+ * @param $part
+ *   Which part of the name to return
+ * @return $value
+ *   Value of the part asked for 
+ */
+function tourney_get_name_part($name, $part) {
+  foreach ( explode('_', $name) as $sub ) {
+    $sub = explode('-', $sub);
+    if ( $sub[0] == $part ) return $sub[1];
+  }
+}
+
+
+
+
+
+// POSSIBLE ENTITY MODULE PATCHES:
+
+function entity_load_by_eid($eids) {
+  $entities = array();
+  foreach ( $eids as $eid ) {
+    $entities[$eid] = entity_load_single_by_eid($eid);
+  }
+  return $entities;
+}
+
+function entity_load_single_by_eid($eid) {
+  @list($type, $id) = explode('.', $eid);
+  return entity_load_single($type, $id);
+}
+
+/**
+ * Implements hook_entity_load().
+ */
+function tourney_entity_load($entities, $type) {
+  // Need consistent properties about the entity loaded since contestants can
+  // be any entity.
+  // @todo: limit this logic just to entities that are setup in the contestant
+  //   relations.
+  foreach ($entities as $id => $entity) {
+    $entity->eid         = $type . '.' . $id;
+    $entity->entity_type = $type;
+    $entity->entity_id   = $id;
+    $entity->entity_name = !property_exists($entity, 'title') 
+      ? (property_exists($entity, 'name') ? $entity->name : 'NONAME') : $entity->title;
+  }
 }

@@ -6,15 +6,15 @@
  */
 
 /**
- * Double Elimination Tournament
+ * Ladder Format
  */
 $plugin = array(
-  'name' => t('Double Elimination Tournament'),
-  'machine name' => 'double_elim',
+  'name' => t('Ladder'),
+  'machine name' => 'ladder',
   'description' => t('This is the description of the tournament'),
-  'weight' => 1,
+  'weight' => 4,
   'total games' => 5,
-  'builder controller' => 'DoubleElimination',
+  'controller' => 'LadderController',
 );
 
 // Define any classes below to extend default functionality in the controllers.
