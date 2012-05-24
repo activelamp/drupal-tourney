@@ -168,7 +168,7 @@ class TourneyMatch extends TourneyEntity {
    * Lazy load a tournament object this match belongs to.
    */
   public function getRoundInfo() {
-    if (is_null($this->roundInfo) && is_object($this->getTournament()->tourneyFormatPlugin)) {
+    if (is_null($this->roundInfo) && is_object($this->getTournament())) {
       $this->roundInfo = $this->getTournament()->tourneyFormatPlugin->getRoundInfo($this);
     }
     return $this->roundInfo;
@@ -178,7 +178,7 @@ class TourneyMatch extends TourneyEntity {
    * Lazy load a tournament object this match belongs to.
    */
   public function getBracketInfo() {
-    if (is_null($this->bracketInfo) && is_object($this->getTournament()->tourneyFormatPlugin)) {
+    if (is_null($this->bracketInfo) && is_object($this->getTournament())) {
       $this->bracketInfo = $this->getTournament()->tourneyFormatPlugin->getBracketInfo($this);
     }
     return $this->bracketInfo;
