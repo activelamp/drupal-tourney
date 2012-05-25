@@ -92,10 +92,10 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * @return $matches
    *   An array of match pairs with seed numbers, or NULL for bye slots.
    */
-  public static function calculate_seed_positions($num_contestants) {    
+  public function calculateSeedPositions($num_contestants) {    
     // Initialize a the first match in the first round matches.
     $first_round_matches = array(array(1, 2));
-    $num_first_round_matches = pow(2, SingleElimination::calculate_rounds($num_contestants)) / 2;
+    $num_first_round_matches = pow(2, $this->rounds) / 2;
     
     // Continue to find seed positions until we have all the first round matches
     // populated, based on the number of "real" matches (w/o byes).
@@ -376,7 +376,21 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * Define the match callbacks implemented in this plugin.
    */
   protected function buildMatch($match_num) {
-    return array(
+    $match = array();
+    
+    $seed_positions = $this->calculateSeedPositions($this->tournament->players);
+    dpm($this->tournament->players);
+    dpm($seed_positions);
+    $match_position = $match_num - 1;
+    
+    if (!empty($seed_positions[$match_position])) {
+      $match = $match + array('seed_position' => array(
+        $seed_position[$match_position][0],
+        $seed_position[$match_position][1],
+      ));
+    }
+    
+    $match = $match + array(
       'current_match' => array(
         'callback' => 'getMatchByName',
         'args' => array(
@@ -393,6 +407,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
         ),
       ),
     );
+    
+    return $match;
   }
   
   /**
