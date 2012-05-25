@@ -5,7 +5,8 @@
  */
 
 define('TOURNEY_GAMES', 5);
-define('TOURNEY_DEBUG_EXTENDS', variable_get('tourney_debug', FALSE));
+define('TOURNEY_HIDE_BYES', FALSE);
+define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
 /**
  * Implements hook_menu().

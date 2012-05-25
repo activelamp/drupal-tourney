@@ -85,6 +85,82 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     $this->slots = pow(2, $this->rounds);
     return $this->rounds;
   }
+  
+  /**
+   * Calculate the starting seed positions.
+   *
+   * @return $matches
+   *   An array of match pairs with seed numbers, or NULL for bye slots.
+   */
+  public function calculateSeedPositions($num_contestants) {    
+    // Initialize a the first match in the first round matches.
+    $first_round_matches = array(array(1, 2));
+    $num_first_round_matches = pow(2, $this->rounds) / 2;
+    
+    // Continue to find seed positions until we have all the first round matches
+    // populated, based on the number of "real" matches (w/o byes).
+    // 
+    // $first_round_matches array contains that matches that have already been
+    // populated from this method.
+    while(count($first_round_matches) < $num_first_round_matches) {
+      // The $multiplier is the number we need to multiply the number of currently
+      // built rounds to get the seed position number of the very last place.
+      $multiplier = 4;
+      // Last seed position plus 1
+      $last_seed_position = (count($first_round_matches) * $multiplier) + 1;
+
+      $new_matches = array();
+      // Go through each match already created and update according to what the
+      // latest seed positions being added to tournament.
+      foreach ($first_round_matches as $match) {
+        foreach ($match as $seed_position) {
+          // Match the current seed_position being processed with the
+          // last_seed_position - this seed_position. If the last seed position
+          // doesn't exist, create a bye.
+          if ($last_seed_position - $seed_position <= $num_contestants) {
+            $new_matches[] = array($seed_position, $last_seed_position - $seed_position);
+          }
+          else {
+            // Create a bye match.
+            $new_matches[] = array($seed_position, NULL);
+          }
+        }
+      }
+      $first_round_matches = $new_matches;
+    }
+    return $first_round_matches;
+  }
+  
+  /**
+   * Determine if byes in the previous round create manual slots in this round
+   */
+  protected function set_bye_manuals($matches, $round = 2) {
+    foreach ($matches['round-'. $round] as $m => $match) {
+      // Look at each match in this round
+
+      foreach (array('previous-1', 'previous-2') as $previous) {
+        // set_match_path() gave us a path to follow back to the matches that
+        // fed into this one.
+
+        // Navigate to the previous match. $child will be the previous match.
+        $parents = explode('_', $match[$previous]);
+        array_shift($parents);  // shift off bracket
+        $child = $matches;
+        while ($parent = array_shift($parents)) {
+          $child = $child[$parent];
+        }
+
+        if ($child['contestant-2'] == 'bye') {
+          // Only contestant 2 can be a bye. If this match was a bye, set the
+          // current contestant to manual select
+
+          $current_contestant = ($previous == 'previous-1' ? 'contestant-1' : 'contestant-2');
+          $matches['round-'. $round][$m][$current_contestant] = 'manual';
+        }
+      }
+    }
+    return $matches;
+  }
 
   /**
    * Sets the winner property and saves tournament.
@@ -297,7 +373,21 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * Build out match data.
    */
   protected function buildMatch($match_num, $round, $bracket) {
-    return array(
+    $match = array();
+    $seed_positions = $this->calculateSeedPositions($this->tournament->players);
+    $match_position = $match_num - 1;
+    
+    if (!empty($seed_positions[$match_position])) {
+      $match += array('seed_position' => array(
+        $seed_positions[$match_position][0],
+        $seed_positions[$match_position][1],
+      ));
+      // Set a bye flag if this is a bye match
+      $match += array_search(NULL, $seed_positions[$match_position])
+        ? array('bye' => TRUE) : array();
+    }
+    
+    $match += array(
       'id' => $match_num,
       'name' => 'match-' . $match_num,
       'round' => $round,
@@ -318,6 +408,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
         ),
       ),
     );
+    
+    return $match;
   }
 
   /**

@@ -88,13 +88,30 @@ function tourney_match_form($form, &$form_state, $match) {
     '#required' => TRUE,
     '#disabled' => $match->isFinished(),
   );
+  
+  if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye'] == 'bye') {
+    $form['contestant1']['#title'] = t('Contestant');
+    $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
+
+    $form['contestant2'] = array(
+      '#type' => 'value',
+      '#value' => 0,
+    );
+
+    $form['games'] = array(
+      '#prefix' => '<h2>'. t('Games') .'</h2>',
+      '#suffix' => t('This match is a bye. No games to configure.'),
+      '#type' => 'value',
+      '#value' => 1,
+    );
+  }
     
-  if ( $match->isLocked() ) {
+  if ($match->isLocked()) {
     $form['fix_games'] = array(
       '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
     );
   }
-  elseif ( count($match->getGameIds()) > 1 ) {
+  elseif (count($match->getGameIds()) > 1) {
     $form['fix_games'] = array(
       '#theme' => 'tourney_match_fix',
       '#games' => $match->games,
@@ -121,7 +138,6 @@ function tourney_match_form($form, &$form_state, $match) {
   );
 
   $form['#submit'][] = 'tourney_match_form_submit';
-
   return $form;
 }
 
@@ -262,7 +278,7 @@ function tourney_match_form_validate($form, &$form_state) {
   if (!is_int($form_state['values']['games']) && $form_state['values']['games'] % 2 === 0) {
     form_set_error('games', t('The number of games must be an odd number'));
   }
-  if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] == $form_state['values']['contestant2']) {
+  if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] === $form_state['values']['contestant2']) {
     form_set_error('contestant1', t('Contestant 1 and Contestant 2 cannot be the same person.'));
   }
   $wins = array();
@@ -428,10 +444,12 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     );
   }
 
-  $entity->content['match_table'] = array(
-    '#theme' => 'tourney_render_match',
-    '#match' => $entity,
-  );
+  if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
+    $entity->content['match_table'] = array(
+      '#theme' => 'tourney_render_match',
+      '#match' => $entity,
+    );
+  }
 }
 
 /**

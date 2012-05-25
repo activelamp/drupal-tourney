@@ -9,7 +9,7 @@ function theme_tourney_single_tree($vars) {
   
   $output = '';
   foreach ($tournament->data['bracket-top']['rounds'] as $round_name => &$round ) {
-    $small = false; // Switch to turn on small rendering.
+    $small = true; // Switch to turn on small rendering.
     $r = substr(strstr($round_name, '-'), 1);
     $last = $r >= count($tournament->data['bracket-top']['rounds']);  // is this the last round?
     

@@ -126,7 +126,7 @@ function tourney_action_game_is_won($match, $quotient) {
   return array(
     'action_message' => $message,
   );
-} 
+}
 
 /**
  * Recursive function that sets players in a RoundRobin tournament in all their

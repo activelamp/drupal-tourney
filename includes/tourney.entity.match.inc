@@ -13,6 +13,7 @@ class TourneyMatch extends TourneyEntity {
   public  $contestant1 = NULL;
   public  $contestant2 = NULL;
   public  $uri;
+  public  $matchInfo = NULL;
   public  $roundInfo = NULL;
   public  $bracketInfo = NULL;
   // @todo: rename the variable below to $tournament when backwardCompatibility
@@ -35,6 +36,7 @@ class TourneyMatch extends TourneyEntity {
       $this->uri = $this->getUri();
       
       // @todo: Do we really want to load this on instanstiation
+      $this->matchInfo = $this->getMatchInfo();
       $this->roundInfo = $this->getRoundInfo();
       $this->bracketInfo = $this->getBracketInfo();
     }    
@@ -162,6 +164,16 @@ class TourneyMatch extends TourneyEntity {
       $this->matchTournament = relation_get_related_entity('tourney_match', $this->id, 'has_match', 1);
     }
     return $this->matchTournament;
+  }
+  
+  /**
+   * Lazy load a tournament object this match belongs to.
+   */
+  public function getMatchInfo() {
+    if (is_null($this->matchInfo) && is_object($this->getTournament())) {
+      $this->matchInfo = $this->getTournament()->tourneyFormatPlugin->getMatchInfo($this);
+    }
+    return $this->matchInfo;
   }
   
   /**

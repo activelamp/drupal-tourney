@@ -35,6 +35,10 @@
   position: relative;
 }
 
+.hide-byes .match-bye {
+  visibility: hidden;
+}
+
 .tourney .match-spacer.small {
   height: 2em;
 }
