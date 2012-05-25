@@ -54,7 +54,13 @@ function theme_tourney_flow_control($vars) {
 function theme_tourney_matchblock($vars) {
   extract($vars);
   static $debug_val = 0;
-  $output  = '<div class="match ' . ( $small ? 'small' : 'normal') . '">';
+  $is_bye = array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye'];
+  // Build a classes array for the match wrapper
+  $classes_array[] = 'match';
+  $classes_array[] = ($is_bye ? 'match-bye' : '');
+  $classes_array[] = ($small ? 'small' : 'normal');
+  
+  $output  = '<div class="' . join(" ", $classes_array) . '">';
   $output .= theme('tourney_flow_control', array('flows' => $flow));
 
   $cid = 1;
@@ -67,22 +73,26 @@ function theme_tourney_matchblock($vars) {
   }
   while ( count($contestants) < 2 ) $contestants[] = NULL;
   $editable = in_array(NULL, $contestants) && $match->canSetContestants();
-  foreach ( $contestants as $eid => $contestant ) {
-    if ( $contestant == NULL ) {
-      $output .= '<div class="contestant contestant-' . $cid . '"> Team ' . $cid++ . ' </div>';
+  
+  foreach ($contestants as $eid => $contestant) {
+    $classes_array = array('contestant');
+    if ($contestant == NULL) {
+      $classes_array[] = 'contestant-' . $cid;
+      $team_name = 'Team ' . $cid++;
     }
     else {
-      $output .= '<div class="contestant contestant-' . $cid++ . ' entity-' . str_replace('.', '-', $eid) . '">' 
-        . $contestant->entity_name . ( $eid == $match->winner ? ' ♔' : '' ) 
-        . '</div>';
+      $classes_array[] = 'contestant-' . $cid++;
+      $classes_array[] = 'entity-' . str_replace('.', '-', $eid);
+      $team_name = $contestant->entity_name . ( $eid == $match->winner ? ' ♔' : '' );
     }
+    // If this is a bye blank out second contestant.
+    if ($is_bye && $cid == 3) {
+      $classes_array[] = 'contestant-bye';
+      $team_name = '';
+    }
+    $output .= '<div class="' . join(" ", $classes_array) . '">' . $team_name . '</div>';
   }
   $output .= '</div>';
-
-  // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
-  //    . '<div class="contestant contestant-1">' . $match->entity_id . ' : ' . ( $match->nextMatch('winner') ? $match->nextMatch('winner')->entity_id : '' ) . '</div>'
-  //    . '<div class="contestant contestant-2">' . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : '' ) . '</div>'
-  //    . '</div>';
   
   $match_uri = $match->getUri();
   return l($output, $match_uri . ($editable ? "/edit" : ''), array(

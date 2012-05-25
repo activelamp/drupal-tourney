@@ -268,6 +268,20 @@ class TourneyController {
   }
   
   /**
+   * Get match info for a match that is passed in. Traverses the structure of the 
+   * tournament until it finds the match and returns information about the match
+   * 
+   * @param $match
+   *   Match object
+   * @param array
+   *   An array with information about the match
+   */
+  public function getMatchInfo($match) {
+    @list(, $match_name) = explode('_', $match->name);
+    return $this->findItem($match_name, $this->tournament->data, array(), 0);
+  }
+  
+  /**
    * Get round info for a match that is passed in. Traverses the structure of the 
    * tournament until it finds the match and returns information about the round
    * that contains the match
@@ -317,8 +331,13 @@ class TourneyController {
     
     foreach ($structure as $key => $value) {
       if ($key == $key_value){
-        $index = count($parent_structures) - $depth;
-        $return = $parent_structures[$index];
+        if ($depth === 0) {
+          $return = $value;
+        }
+        else {
+          $index = count($parent_structures) - $depth;
+          $return = $parent_structures[$index];
+        }
         return;
       }
       elseif (is_array($value)) {

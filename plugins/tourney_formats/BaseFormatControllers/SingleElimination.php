@@ -377,20 +377,20 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   protected function buildMatch($match_num) {
     $match = array();
-    
     $seed_positions = $this->calculateSeedPositions($this->tournament->players);
-    dpm($this->tournament->players);
-    dpm($seed_positions);
     $match_position = $match_num - 1;
     
     if (!empty($seed_positions[$match_position])) {
-      $match = $match + array('seed_position' => array(
-        $seed_position[$match_position][0],
-        $seed_position[$match_position][1],
+      $match += array('seed_position' => array(
+        $seed_positions[$match_position][0],
+        $seed_positions[$match_position][1],
       ));
+      // Set a bye flag if this is a bye match
+      $match += array_search(NULL, $seed_positions[$match_position])
+        ? array('bye' => TRUE) : array();
     }
     
-    $match = $match + array(
+    $match += array(
       'current_match' => array(
         'callback' => 'getMatchByName',
         'args' => array(

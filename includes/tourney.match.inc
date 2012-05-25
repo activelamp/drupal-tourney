@@ -89,7 +89,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#disabled' => $match->isFinished(),
   );
   
-  if ($match->previous_match2 == 'bye') {
+  if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye'] == 'bye') {
     $form['contestant1']['#title'] = t('Contestant');
     $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
 
@@ -444,7 +444,7 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     );
   }
 
-  if ($entity->previous_match2 != 'bye') {
+  if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
     $entity->content['match_table'] = array(
       '#theme' => 'tourney_render_match',
       '#match' => $entity,
