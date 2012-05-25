@@ -90,7 +90,11 @@ function theme_tourney_matchblock($vars) {
       $classes_array[] = 'contestant-bye';
       $team_name = '';
     }
-    $output .= '<div class="' . join(" ", $classes_array) . '">' . $team_name . '</div>';
+    $s = $cid - 2;
+    $output .= '<div class="' . join(" ", $classes_array) . '">'; 
+    $output .= '<span class="seed">' . $match->matchInfo['seed_position'][$s] . '</span>';
+    $output .= $team_name;
+    $output .= '</div>';
   }
   $output .= '</div>';
   
