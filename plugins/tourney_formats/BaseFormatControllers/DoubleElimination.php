@@ -89,12 +89,27 @@ class DoubleEliminationController extends SingleEliminationController implements
    *   An array of bracket structure and logic.
    */
   public function buildBracketByRounds($slots) {
+    $top_bracket_info = array(
+      'id'    => 'main',
+      'name'  => 'bracket-top',
+      'title' => t('Winners Bracket'),
+    );
+    
+    $bottom_bracket_info = array(
+      'id'    => 'bottom',
+      'name'  => 'bracket-bottom',
+      'title' => t('Losers Bracket'),
+    );
+    
+    $champion_bracket_info = array(
+      'id'    => 'champion',
+      'name'  => 'bracket-champion',
+      'title' => t('Champion Bracket'),
+    );
     return array(
-      'bracket-top' => array(
-        'title'  => t('Main Bracket'),
-      ) + $this->buildRounds($slots),
-      'bracket-bottom' => $this->buildBottomRounds($slots),
-      'bracket-champion' => $this->buildChampionRounds($slots),
+      'bracket-top' => $top_bracket_info + $this->buildRounds($slots, $top_bracket_info),
+      'bracket-bottom' => $bottom_bracket_info + $this->buildBottomRounds($slots, $bottom_bracket_info),
+      'bracket-champion' => $champion_bracket_info + $this->buildChampionRounds($slots, $champion_bracket_info),
     );
   }
   
@@ -106,15 +121,15 @@ class DoubleEliminationController extends SingleEliminationController implements
    * @return
    *   The rounds array completely built out.
    */
-  protected function buildChampionRounds($slots) {
+  protected function buildChampionRounds($slots, $bracket_info) {
     $rounds    = array();
     $static_match_num = &drupal_static('match_num_iterator', 1);
     
-    $tiebreaker = $this->buildMatch($static_match_num);
+    $tiebreaker = $this->buildMatch($static_match_num, array(), $bracket_info);
     $tiebreaker['next_match']['callback'] = 'getNextMatchTiebreaker';
 
     $rounds['rounds']['round-1']['matches']['match-' . $static_match_num++] = $tiebreaker;
-    $rounds['rounds']['round-2']['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num++);
+    $rounds['rounds']['round-2']['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num++, array(), $bracket_info);
 
     return $rounds;
   }
@@ -127,22 +142,22 @@ class DoubleEliminationController extends SingleEliminationController implements
    * @return
    *   The rounds array completely built out.
    */
-  protected function buildBottomRounds($slots) {
+  protected function buildBottomRounds($slots, $bracket_info) {
     $rounds    = array();
     $round_num = 1;
     $static_match_num = &drupal_static('match_num_iterator', 1);
     
     $num_rounds = (log($this->slots, 2) - 1) * 2;
     foreach (range(1, $num_rounds) as $round_num) {
-      $rounds['rounds']['round-' . $round_num] = $this->buildBottomRound($slots, $round_num);
+      $rounds['rounds']['round-' . $round_num] = $this->buildBottomRound($slots, $round_num, $bracket_info);
     }
     return $rounds;
   }
 
-  protected function buildBottomRound($slots, $round_num) {
+  protected function buildBottomRound($slots, $round_num, $bracket_info) {
     $static_match_num = &drupal_static('match_num_iterator', 1);
     
-    $round = array(
+    $round_info = array(
       'title' => t('Round ') . $round_num,
     );
     
@@ -152,15 +167,15 @@ class DoubleEliminationController extends SingleEliminationController implements
     // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
     $match_count = $slots / pow(2, $er+1);
     foreach ( range(1, $match_count) as $match ) {
-      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num);
+      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num, $round_info, $bracket_info);
       $static_match_num++;
     }
 
-    return $round;
+    return $round + $round_info;
   }
 
   /**
-   * Overrides SingleElemination::isFinished().
+   * Overrides SingleElimination::isFinished().
    *
    * If the top two ranking contestants are not tied in their number of wins
    * then we do not require the final match to be finished.
