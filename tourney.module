@@ -211,8 +211,7 @@ function tourney_menu_alter(&$items) {
 function tourney_admin_paths() {
   if (variable_get('node_admin_theme')) {
     return array(
-      'tourney/*/edit' => TRUE,
-      'tourney/*/*/edit' => TRUE,
+      'tourney/*/*/*' => TRUE,
       'tourney/add' => TRUE,
     );
   }
