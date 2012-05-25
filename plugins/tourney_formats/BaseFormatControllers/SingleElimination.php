@@ -23,7 +23,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function __construct(TourneyTournament $tournament) {
     $this->tournament = $tournament;
-    
+
     if (!empty($tournament->players) && $tournament->players > 0) {
       // Populate the object with some meta data.
       $this->calculateRounds($tournament->players);
@@ -37,7 +37,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * @return $slots
    */
   public function getSlots() {
-    return $this->slots;    
+    return $this->slots;
   }
 
   /**
@@ -56,7 +56,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
         }
       }
     }
-    
+
     $this->matches = $matches;
     return $this->matches;
   }
@@ -70,16 +70,16 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function calculateRounds($contestants = NULL) {
     // Populate contestants with our internal value if no argument given
-    if ( $contestants == NULL ) $contestants = $this->slots; 
+    if ( $contestants == NULL ) $contestants = $this->slots;
     // @todo: perhaps change this to a maximum contestants with validation to keep it a power of two?
     $max_contestants = pow(2, MAXIMUM_ROUNDS);
     // Display an error if the maximum was pushed over
     if ( $contestants > $max_contestants ) {
-      drupal_set_message(check_plain(t('Tournaments can only be !num rounds at the most with !player contestants. Some teams will not be able to play.', 
+      drupal_set_message(check_plain(t('Tournaments can only be !num rounds at the most with !player contestants. Some teams will not be able to play.',
         array('!num' => MAXIMUM_ROUNDS, '!player' => $maximum_contestants))), 'warning');
       $contestants = $max_contestants;
     }
-    // ceil(log2(n)) will get up the minimum number of rounds required for n contestants 
+    // ceil(log2(n)) will get up the minimum number of rounds required for n contestants
     $this->rounds = ceil(log($contestants, 2));
     // The rounded round count will reaffirm our contestants are a power of two
     $this->slots = pow(2, $this->rounds);
@@ -137,17 +137,17 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   /**
-   * Given a match place integer, returns the next match place based on either 
-   * 'winner' or 'loser' direction. Calls the necessary tournament format plugin 
+   * Given a match place integer, returns the next match place based on either
+   * 'winner' or 'loser' direction. Calls the necessary tournament format plugin
    * to get its result
    *
    * @param $match
-   *   Match object to compare with the internal matchIds property to get its 
+   *   Match object to compare with the internal matchIds property to get its
    *   match placement
    * @param $direction
    *   Either 'winner' or 'loser'
    * @return $match
-   *   Match entity of the desired match, otherwise NULL 
+   *   Match entity of the desired match, otherwise NULL
    */
   public function getNextMatch($match, $direction = NULL) {
     $ids = array_flip($this->tournament->getMatchIds());
@@ -157,9 +157,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     if ( !array_key_exists((int)$next, $ids) ) return NULL;
     return entity_load_single('tourney_match', $ids[$next]);
   }
-  
+
   /**
-   * Given a match place integer, returns the next match place based on either 
+   * Given a match place integer, returns the next match place based on either
    * 'winner' or 'loser' direction
    *
    * @param $place
@@ -167,7 +167,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * @param $direction
    *   Either 'winner' or 'loser'
    * @return $place
-   *   Match placement of the desired match, otherwise NULL 
+   *   Match placement of the desired match, otherwise NULL
    */
   protected function calculateNextPosition($place, $direction = 'winner') {
     if ( $direction == 'loser' ) return NULL;
@@ -178,7 +178,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     // Otherwise some math!
     return ( ($matches + 1) / 2 ) + floor($place / 2);
   }
-  
+
   /**
    * Build an array with tournament structure data.
    *
@@ -193,7 +193,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
         return $this->structure = $this->buildBracketByTree($this->slots);
     }
   }
-  
+
   /**
    * Build bracket structure and logic.
    *
@@ -203,31 +203,33 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    *   An array of bracket structure and logic.
    */
   protected function buildBracketByTree($slots) {
-    $num_matches = ($slots * 2) - 1;
+    $num_matches = $slots - 1;
     $num_rounds = log($slots, 2);
+    $bracket_info = array(
+      'id'    => 'main',
+      'name'  => 'bracket-main',
+      'title' => t('Main Bracket'),
+    );
 
     if (!is_int($num_rounds)) {
       // @todo: Acocunt for byes.
     }
 
-    $tree = $this->buildMatch($match_num);
-    $tree['children'] = $this->buildChildren();
-
-    return array(
-      'bracket-top' => array(
-        'title'    => t('Main Bracket'),
-        'children' => $this->buildChildren($slots, $num_rounds, $num_matches),
-      ),
-    );
+    return $this->buildChildren($slots, $num_rounds, $num_matches, $bracket_info);
   }
 
-  protected function buildChildren($slots, $round_num, $match_num) {
-    $tree = $this->buildMatch($match_num);
+  protected function buildChildren($slots, $round_num, $match_num, $bracket_info) {
+    $round_info = array(
+      'id'    => $round_num,
+      'name'  => 'round-' . $round_num,
+      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+    );
+    $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
 
     if ($round_num > 1) {
       $child_match_num = ($match_num - ($slots / 2)) * 2;
-      $tree['children'][] = $this->buildChildren($slots, $round_num - 1, $child_match_num - 1);
-      $tree['children'][] = $this->buildChildren($slots, $round_num - 1, $child_match_num);
+      $tree['children'][] = $this->buildChildren($slots, $round_num - 1, $child_match_num - 1, $bracket_info);
+      $tree['children'][] = $this->buildChildren($slots, $round_num - 1, $child_match_num, $bracket_info);
     }
 
     return $tree;
@@ -242,10 +244,13 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    *   An array of bracket structure and logic.
    */
   protected function buildBracketByRounds($slots) {
+    $bracket_info = array(
+      'id'    => 'main',
+      'name'  => 'bracket-main',
+      'title' => t('Main Bracket'),
+    );
     return array(
-      'bracket-top' => array(
-        'title'  => t('Main Bracket'),
-      ) + $this->buildRounds($slots),
+      'bracket-top' => $bracket_info + $this->buildRounds($slots, $bracket_info),
     );
   }
 
@@ -257,50 +262,46 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * @return
    *   The rounds array completely built out.
    */
-  protected function buildRounds($slots) {
-    $rounds    = array();
+  protected function buildRounds($slots, $bracket_info) {
+    $rounds = array();
     $round_num = 1;
     $static_match_num = &drupal_static('match_num_iterator', 1, TRUE);
-    
+
     for ($slots_left = $slots; $slots_left >= 2; $slots_left /= 2) {
-      $rounds['rounds']['round-' . $round_num] = $this->buildRound($slots_left, $round_num);
+      $round_info = array(
+        'id'    => $round_num,
+        'name'  => 'round-' . $round_num,
+        'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+      );
+      $rounds['rounds']['round-' . $round_num] = $this->buildRound($slots_left, $round_info, $bracket_info);
       $round_num++;
     }
 
     return $rounds;
   }
 
-  protected function buildRound($slots, $round_num) {
+  protected function buildRound($slots, $round_info, $bracket_info) {
     $static_match_num = &drupal_static('match_num_iterator', 1);
-    $round = array('name' => 'round-' . $round_num);
-    
-    // The plugin defines a title for rounds and hard codes the title it into 
-    // the structure array for every round except the first one.
-    if ($round_num == 1) {
-      $round['title'] = array(
-        'callback' => 'getRoundTitle',
-        'args'     => array('round_num' => $round_num),
-      );
-    }
-    else {
-      // This logic could have been handled in the callback above. It is hard
-      // coded here to provide a concrete example of both implementations.
-      $round['title'] = t('Round ') . $round_num;
-    }
-    
+    // Copy round info to the round level of the array for convenience.
+    $round = $round_info;
+
     for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
-      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num);
+      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num, $round_info, $bracket_info);
       $static_match_num++;
     }
 
     return $round;
   }
-  
+
   /**
-   * Define the match callbacks implemented in this plugin.
+   * Build out match data.
    */
-  protected function buildMatch($match_num) {
+  protected function buildMatch($match_num, $round, $bracket) {
     return array(
+      'id' => $match_num,
+      'name' => 'match-' . $match_num,
+      'round' => $round,
+      'bracket' => $bracket,
       'current_match' => array(
         'callback' => 'getMatchByName',
         'args' => array(
@@ -318,25 +319,25 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       ),
     );
   }
-  
+
   /**
    * Theme implementations to register with tourney module.
-   * 
+   *
    * @see hook_theme().
    */
   public static function theme($existing, $type, $theme, $path) {
     return array(
       'tourney_single_tree' => array(
         'variables' => array('tournament' => NULL),
-        'file' => 'single.inc', 
+        'file' => 'single.inc',
         'path' => $path . '/theme',
       ),
     );
   }
-  
+
   /**
    * Renders the html for each round tournament
-   * 
+   *
    * @param $tournament
    *   The tournament object
    * @param $matches
@@ -346,7 +347,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     drupal_add_js($this->pluginInfo['path'] . '/theme/single.js');
     return theme('tourney_single_tree', array('tournament' => $this->tournament));
   }
-  
+
   /**
    * Get the round title
    */
