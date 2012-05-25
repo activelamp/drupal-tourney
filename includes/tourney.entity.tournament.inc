@@ -256,47 +256,6 @@ class TourneyTournament extends TourneyEntity {
     }
   }
 
-
-/**
- * Goes through the tournament's matches to return one by name
- *
- * @param string $name
- *   Identifier of the match, $match->this_match
- * @return TourneyMatch $match 
- *   The desired match
- */
-  public function getMatchByName($name) {
-    if ($name == 'manual') {
-      return NULL;
-    }
-    
-    // Seperate the parts of the match path.
-    $parts = explode('_', $name);
-
-    // Get just the structure of the next match
-    $matches = $this->buildMatches();
-    $context = $matches[$parts[0]][$parts[1]];
-
-    // Set $id to the round number
-    $id = tourney_get_name_part($name, 'match');
-    
-    /**
-     * The bracket structure should be built in the order of matches. This for
-     * loop assumes that the matches will always be in order of match-1, match-2,
-     * and so on.
-     * 
-     * Create an iterator for each match, and return the match that has the same
-     * match number as the iterator.
-     */
-    $i = 1;
-    foreach($context as $match) {
-      if ($id == $i) {
-        return $match['match'];
-      }
-      $i++;
-    }
-  }
-
 /**
  * Gets a list of participating contestants in seed order
  *
@@ -357,6 +316,7 @@ class TourneyTournament extends TourneyEntity {
     // Get the callback for this match
     $info = $match->matchInfo;
     if ( !$info ) return NULL;
+    if ( !method_exists($this->tourneyFormatPlugin, $info['next_match']['callback']) ) return NULL;
     return $this->tourneyFormatPlugin->$info['next_match']['callback']($match, $direction);
   }
   

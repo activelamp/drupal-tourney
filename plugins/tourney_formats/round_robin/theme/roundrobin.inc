@@ -23,7 +23,7 @@ function theme_tourney_roundrobin($vars) {
   $output = theme('tourney_roundrobin_standings', array(
     'tournament' => $tournament
   ));
-  
+
   // $matches = $tournament->buildMatches();
   foreach ($tournament->data['bracket-roundrobin']['rounds'] as $round_name => $round) {
     $r = substr(strstr($round_name, '-'), 1);
@@ -44,9 +44,7 @@ function theme_tourney_roundrobin($vars) {
  */
 function theme_tourney_roundrobin_standings($vars) {
   $tournament = $vars['tournament'];
-  return;
-  $matches = $tournament->buildMatches();
-  
+
   $contestants = $tournament->getContestants();
   $standings = $tournament->getStandings();
   
@@ -59,5 +57,6 @@ function theme_tourney_roundrobin_standings($vars) {
     $table['rows'][] = array($contestants[$id]->entity_name, $standing['total'], $standing['wins'], $standing['losses']);
   }
 
+  if ( !$table['rows'] ) return NULL;
   return theme('table', $table);
 }

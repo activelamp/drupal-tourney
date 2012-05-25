@@ -237,7 +237,8 @@ class TourneyController {
   public function getContestants() {
     if (is_null($this->tournament->contestants)) {
       // Take matches from only the first round, since those are the manually populated ones
-      $brackets = array_shift($this->tournament->data);
+      $copy = $this->tournament->data;
+      $brackets = array_shift($copy);
       $matches = $brackets['rounds']['round-1']['matches'];
 
       // Set up two arrays to fill for seed order
