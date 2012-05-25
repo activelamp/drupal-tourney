@@ -51,8 +51,13 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     $structure = $this->structure();
     foreach ($structure as $bracket_name => $bracket_info) {
       foreach ($bracket_info['rounds'] as $round_name => $round_info) {
-        foreach (array_keys($round_info['matches']) as $match_name) {
-          $matches[] = array('bracket_name' => $bracket_name, 'round_name' => $round_name, 'match_name' => $match_name);
+        foreach ($round_info['matches'] as $match_name => $match_info) {
+          $matches[] = array(
+            'bracket_name' => $bracket_name, 
+            'round_name' => $round_name, 
+            'match_name' => $match_name,
+            'match_info' => $match_info,
+          );
         }
       }
     }
@@ -134,7 +139,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   /**
    * Determine if byes in the previous round create manual slots in this round
    */
-  protected function set_bye_manuals($matches, $round = 2) {
+  protected function setByeManuals($matches, $round = 2) {
     foreach ($matches['round-'. $round] as $m => $match) {
       // Look at each match in this round
 

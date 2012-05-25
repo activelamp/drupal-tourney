@@ -102,7 +102,7 @@ function tourney_match_form($form, &$form_state, $match) {
       '#prefix' => '<h2>'. t('Games') .'</h2>',
       '#suffix' => t('This match is a bye. No games to configure.'),
       '#type' => 'value',
-      '#value' => 1,
+      '#value' => 0,
     );
   }
     
@@ -299,13 +299,13 @@ function tourney_match_form_validate($form, &$form_state) {
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
 
-  if ( array_key_exists('contestant1', $form_state['input']) ) {
+  if (array_key_exists('contestant1', $form_state['input'])) {
     if ( $eid = $form_state['input']['contestant1'] ) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 1);
     }
-    if ( $eid = $form_state['input']['contestant2'] ) {
+    if (array_key_exists('contestant2', $form_state['input']) && $eid = $form_state['input']['contestant2']) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 2);

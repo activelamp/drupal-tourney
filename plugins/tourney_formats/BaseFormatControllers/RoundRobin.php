@@ -168,8 +168,13 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     $rounds = $this->slots - 1;
     foreach ($structure as $bracket_name => $bracket_info) {
       foreach ($bracket_info['rounds'] as $round_name => $round_info) {
-        foreach (array_keys($round_info['matches']) as $match_name) {
-          $matches[] = array('bracket_name' => $bracket_name, 'round_name' => $round_name, 'match_name' => $match_name);
+        foreach ($round_info['matches'] as $match_name => $match_info) {
+          $matches[] = array(
+            'bracket_name' => $bracket_name, 
+            'round_name' => $round_name, 
+            'match_name' => $match_name,
+            'match_info' => $match_info,
+          );
         }
       }
     }

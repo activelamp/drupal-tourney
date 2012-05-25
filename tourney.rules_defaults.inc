@@ -55,8 +55,8 @@ function tourney_default_rules_configuration() {
   $rule->active = TRUE;
   $rule->event('tourney_match_update')
        ->condition('data_is', array(
-         'data:select' => 'tourney-match:previous-match2',
-         'value' => 'bye'
+         'data:select' => 'tourney-match:games',
+         'value' => '0'
        ))
        ->action('tourney_action_game_is_won', array(
          'match:select' => 'tourney-match',

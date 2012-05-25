@@ -91,7 +91,6 @@ function tourney_action_get_game_count($match) {
  */
 function tourney_action_game_is_won($match, $quotient) {
   $message = '';
-
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
 

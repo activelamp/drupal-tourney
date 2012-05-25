@@ -105,11 +105,16 @@ class TourneyController {
       @list(, $bracket_id) = explode('-', $match['bracket_name']);
       @list(, $round_num) = explode('-', $match['round_name']);
       @list(, $match_num) = explode('-', $match['match_name']);
+
+      // Set the games to zero for byes.
+      $games = array_key_exists('bye', $match['match_info']) && $match['match_info']['bye']
+        ? 0 : variable_get('tourney_games_all', TOURNEY_GAMES);
+      
       $values = array(
         'type' => 'match',
         'title' => 'Match ' . $match_num,
         'name' => $tournament->name . '_' . $match['match_name'],
-        'games' => variable_get('tourney_games_all', TOURNEY_GAMES),
+        'games' => $games,
       );
       $new_match = new TourneyMatch($values);
       $new_match->save();
@@ -122,13 +127,15 @@ class TourneyController {
       relation_save($relation);
 
       // Create the Match/Game relation
-      $game = new TourneyGame(array(
-        'type' => 'game',
-        'title' => 'Game 1',
-        'name' => $tournament->name . '_match-' . $new_match->id . '_game-1',
-      ));
-      $game->save();
-      tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
+      if ($games > 0) {
+        $game = new TourneyGame(array(
+          'type' => 'game',
+          'title' => 'Game 1',
+          'name' => $new_match->name . '_game-1',
+        ));
+        $game->save();
+        tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
+      }
     }
   }
   

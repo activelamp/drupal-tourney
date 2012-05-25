@@ -361,7 +361,9 @@ class TourneyMatch extends TourneyEntity {
    */
   public function isFinished() {
     $games = tourney_game_load_multiple($this->getGameIds());
-    // Had to implement a tally count to double-check for a winner. For some reason, the second match of a match group was saying it was finished before it actually was
+    // Had to implement a tally count to double-check for a winner. For some 
+    // reason, the second match of a match group was saying it was finished 
+    // before it actually was.
     $tally = array();
     if (!empty($games)) {
       foreach ($games as $game) {
@@ -377,8 +379,8 @@ class TourneyMatch extends TourneyEntity {
       asort($tally);
       $top = array_pop($tally);
       if ( $top < $this->games / 2 ) return FALSE;
-      return TRUE;
     }
+    return TRUE;
   }
 
   /**
@@ -598,7 +600,8 @@ class TourneyMatch extends TourneyEntity {
   public function moveContestants() {
     // If this match hasn't been won, we shouldn't be doing anything with the 
     // next matches.
-    if ( !$this->isFinished() ) return;
+    if (!$this->isFinished()) return;
+    
     // Set the matchWinner back to NULL so it has to be reloaded
     $this->matchWinner = NULL;
     // Instantiate the two origin contestants
@@ -607,15 +610,17 @@ class TourneyMatch extends TourneyEntity {
     // This loop goes through 'all' the contestants and fills them in the 
     // appropriate winner/loser variables. Since we've only got two contestants,
     // it's just a glorified abstraction in case we have more contestants later
-    foreach ( $this->getContestantIds() as $slot => $contestant ) {
+    foreach ($this->getContestantIds() as $slot => $contestant) {
       $entity = entity_load_single($contestant['type'], $contestant['id']);
-      if ($this->getWinner() == $contestant['eid']) {
+      if ($this->getWinner() == $contestant['eid'] 
+        || array_key_exists('bye', $this->matchInfo) && $this->matchInfo['bye']) {
         $winner = $entity;
       }
       else {
         $loser = $entity;
       }
     }
+
     // Another code-saving abstraction, use the handy new setContestant to easily 
     // apply the entities to their targets
     if ($this->nextMatch()) {
@@ -664,15 +669,21 @@ class TourneyMatch extends TourneyEntity {
   */
   public function cleanGames() {
     $this->gameIds = NULL;
-    // Check all our games starting from the back to find the games that haven't been won
-    // Since we've already won the match, we're going to remove all the games that no longer serve purpose for the match
+    // Check all our games starting from the back to find the games that haven't
+    // been won. Since we've already won the match, we're going to remove all 
+    // the games that no longer serve purpose for the match
     foreach ( array_reverse($this->getGameIds()) as $game_id ) {
       $game = tourney_game_load($game_id);
-      // If we've run across a won game, it's almost certain the rest of the first matches have been played, so we don't need to continue
+      // If we've run across a won game, it's almost certain the rest of the 
+      // first matches have been played, so we don't need to continue
       if ( $game->getWinner() ) break;
-      // @todo: find a way to just load in a single relation based on two related entities
-      // This code just runs through all the related games to the match to find the specific relation for the game to delete, and removes it
-      $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'has_game')->execute();
+      // @todo: find a way to just load in a single relation based on two 
+      // related entities. This code just runs through all the related games to
+      // the match to find the specific relation for the game to delete, and 
+      // removes it.
+      $relations = relation_query('tourney_match', $this->id)
+        ->entityCondition('bundle', 'has_game')->execute();
+      
       foreach ( array_reverse($relations) as $relation ) {
         $relation = relation_load($relation->rid); 
         $relation_game = tourney_game_load($relation->endpoints['und'][1]['entity_id']);

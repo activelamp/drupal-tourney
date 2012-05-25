@@ -79,9 +79,10 @@ function theme_tourney_single_tree($vars) {
           // The last padding row needs an evenright flow control, so we render
           // vertical flow rows up until the last one and then do one row with
           // the evenright.
-
+          $is_bye = array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye'];
+          
           $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
-          $output .= theme('tourney_spacer', array('flow' => 'vertical evenright,special,bottom'));
+          $output .= theme('tourney_spacer', array('flow' => $is_bye ? 'no-vertical' : 'vertical' . ' evenright,special,bottom'));
         }
         $output .= '</div>'; // <!-- /match-contestant -->
 
