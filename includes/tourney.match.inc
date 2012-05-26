@@ -61,7 +61,7 @@ function tourney_match_form($form, &$form_state, $match) {
   $games = tourney_tournament_get_match_games($match);
 
 
-  if ( $match->canSetContestants() ) {
+  if ($match->canSetContestants()) {
     $contestants = $match->getContestants();
     while ( count($contestants) < 2 ) $contestants[] = NULL;
 

@@ -58,6 +58,7 @@ class TourneyTournament extends TourneyEntity {
   public static function fetchMatchIds($tournament_id) {
     $query = relation_query('tourney_tournament', $tournament_id);
     $query->entityCondition('bundle', 'has_match');
+    $query->range(0, 1000); // Override the default RelationQuery class.
     $results = $query->execute();
 
     $match_ids = array();

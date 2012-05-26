@@ -54,6 +54,7 @@ function theme_tourney_flow_control($vars) {
 function theme_tourney_matchblock($vars) {
   extract($vars);
   static $debug_val = 0;
+
   $is_bye = array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye'];
   // Build a classes array for the match wrapper
   $classes_array[] = 'match';
