@@ -355,14 +355,20 @@ class TourneyTournament extends TourneyEntity {
   */
   public function getNextMatch($match, $direction = 'winner') {
     // Get the callback for this match
-    $callbacks = $this->tourneyFormatPlugin->getMatchCallbacks($match);
-    if ( !$callbacks ) return NULL;
-    return $this->tourneyFormatPlugin->$callbacks['next_match']['callback']($match, $direction);
+    $info = $match->matchInfo;
+    if ( !$info ) return NULL;
+    return $this->tourneyFormatPlugin->$info['next_match']['callback']($match, $direction);
   }
   
   public function render() {
     $info = $this->tourneyFormatPlugin->getPluginInfo(get_class($this->tourneyFormatPlugin));
-    $output = "<div class='tourney tourney-" . $info['machine name'] ."'><div class='tourney-inner'>";
+    
+    // Build a classes array for the tournament wrapper
+    $classes_array = array('tourney', "tourney-" . $info['machine name']);
+    $classes_array[] = variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES) 
+        ? 'hide-byes' : '';
+    
+    $output = "<div class='". join(" ", $classes_array)."'><div class='tourney-inner'>";
     $output .= $this->tourneyFormatPlugin->render();
     $output .= "</div></div>";
     return $output;

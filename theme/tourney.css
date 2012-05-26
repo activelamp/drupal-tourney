@@ -23,6 +23,11 @@
   background: #E8E8E8;
 }
 
+.seed {
+  padding:0 5px 0 0;
+  font-size:0.7em;
+}
+
 /**
  * Match theming should update .match-spacer.small as well to exactly 50% of .match height
  */
@@ -33,6 +38,10 @@
   float: left;
   border: none;
   position: relative;
+}
+
+.hide-byes .match-bye {
+  visibility: hidden;
 }
 
 .tourney .match-spacer.small {
