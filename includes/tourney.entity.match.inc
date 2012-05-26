@@ -14,8 +14,6 @@ class TourneyMatch extends TourneyEntity {
   public  $contestant2 = NULL;
   public  $uri;
   public  $matchInfo = NULL;
-  public  $roundInfo = NULL;
-  public  $bracketInfo = NULL;
   // @todo: rename the variable below to $tournament when backwardCompatibility
   // is no longer being used.
   private $matchTournament = NULL;
@@ -37,8 +35,6 @@ class TourneyMatch extends TourneyEntity {
       
       // @todo: Do we really want to load this on instanstiation
       $this->matchInfo = $this->getMatchInfo();
-      $this->roundInfo = $this->getRoundInfo();
-      $this->bracketInfo = $this->getBracketInfo();
     }    
     
     // Remove this once I know for sure that modules aren't depending on
@@ -175,27 +171,7 @@ class TourneyMatch extends TourneyEntity {
     }
     return $this->matchInfo;
   }
-  
-  /**
-   * Lazy load a tournament object this match belongs to.
-   */
-  public function getRoundInfo() {
-    if (is_null($this->roundInfo) && is_object($this->getTournament())) {
-      $this->roundInfo = $this->getTournament()->tourneyFormatPlugin->getRoundInfo($this);
-    }
-    return $this->roundInfo;
-  }
-  
-  /**
-   * Lazy load a tournament object this match belongs to.
-   */
-  public function getBracketInfo() {
-    if (is_null($this->bracketInfo) && is_object($this->getTournament())) {
-      $this->bracketInfo = $this->getTournament()->tourneyFormatPlugin->getBracketInfo($this);
-    }
-    return $this->bracketInfo;
-  }
-  
+    
   /**
    * Get a contestant on the match.
    * 

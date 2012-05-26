@@ -286,37 +286,7 @@ class TourneyController {
    */
   public function getMatchInfo($match) {
     @list(, $match_name) = explode('_', $match->name);
-    return $this->findItem($match_name, $this->tournament->tourneyFormatPlugin->structure(), array(), 0);
-  }
-  
-  /**
-   * Get round info for a match that is passed in. Traverses the structure of the 
-   * tournament until it finds the match and returns information about the round
-   * that contains the match
-   * 
-   * @param $match
-   *   Match object
-   * @param array
-   *   An array with information about the round the match is in.
-   */
-  public function getRoundInfo($match) {
-    @list(, $match_name) = explode('_', $match->name);
-    return $this->findItem($match_name, $this->tournament->data);
-  }
-  
-  /**
-   * Get round info for a match that is passed in. Traverses the structure of the 
-   * tournament until it finds the match and returns information about the round
-   * that contains the match
-   * 
-   * @param $match
-   *   Match object
-   * @param array
-   *   An array with information about the round the match is in.
-   */
-  public function getBracketInfo($match) {
-    @list(, $match_name) = explode('_', $match->name);
-    return $this->findItem($match_name, $this->tournament->data, array(), 4);
+    return $this->findMatchInfo($match_name, $this->tournament->tourneyFormatPlugin->structure());
   }
   
   /**
@@ -327,30 +297,21 @@ class TourneyController {
    *   The key to look for in the structure array.
    * @param $structure
    *   The structure array from the plugin.
-   * @param $parent_structure
-   *   The previous structure from the recursive function.
-   * @param $depth
-   *   The number of generations of parentage to return in the structure.
    * @return
    *   A portion of the structure array that contains the $key_value passed in.
    */
-  protected function findItem($key_value, $structure, $parent_structures = array(), $depth = 1) {
+  protected function findMatchInfo($key_value, $structure) {
     static $return = array();
     
     foreach ($structure as $key => $value) {
-      if ($key == $key_value){
-        if ($depth === 0) {
+      if (is_array($value)) {
+        if ($key == $key_value) {
           $return = $value;
+          return;
         }
-        else {
-          $index = count($parent_structures) - $depth;
-          $return = $parent_structures[$index];
-        }
-        return;
-      }
-      elseif (is_array($value)) {
-        $parent_structures[] = $structure;
-        $this->findItem($key_value, $value, $parent_structures, $depth);
+        
+        // Recurse
+        $this->findMatchInfo($key_value, $value);
       }
     }
     return $return;
