@@ -239,6 +239,13 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     return entity_load_single('tourney_match', $ids[$next]);
   }
 
+  public function getPreviousMatches($match) {
+    $ids = array_flip($this->tournament->getMatchIds());
+    $prevs = $this->calculatePreviousPositions($ids[$match->entity_id]);
+    if ( $prevs === NULL ) return array(NULL, NULL);
+    $ids = array_flip($ids);
+    return array_values(entity_load('tourney_match', array($ids[$prevs[0]], $ids[$prevs[1]])));
+  }
   /**
    * Given a match place integer, returns the next match place based on either
    * 'winner' or 'loser' direction
@@ -252,12 +259,18 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   protected function calculateNextPosition($place, $direction = 'winner') {
     if ( $direction == 'loser' ) return NULL;
-    // @todo find a better way to count matches
     $matches = $this->slots - 1;
     // If it's the last match, it doesn't go anywhere
     if ( $place == $matches - 1 ) return NULL;
     // Otherwise some math!
     return ( ($matches + 1) / 2 ) + floor($place / 2);
+  }
+
+  protected function calculatePreviousPositions($place) {
+    $matches = $this->slots - 1;
+    if ( $place < $this->slots / 2 ) return NULL;
+    $first = ( $place * 2 ) - $this->slots;
+    return array($first, $first + 1);
   }
 
   /**
@@ -403,8 +416,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
           'match_name' => 'match-' . $match_num,
         ),
       ),
-      'previous_match' => array(
-        'callback' => 'getPreviousMatch',
+      'previous_matches' => array(
+        'callback' => 'getPreviousMatches',
       ),
       'next_match' => array(
         'callback' => 'getNextMatch',

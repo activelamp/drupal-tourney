@@ -16,12 +16,12 @@ class TourneyTournament extends TourneyEntity {
   private $tournamentFinished = NULL;
   private $tournamentWinner = NULL;
   private $tournamentMatches = NULL;
+  public  $status;
 
   public $tourneyFormatPlugin = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
-    
     // Instantiate the plugin, but only if our entity has been created
     // via entity_load(). If our entity has been constructed by another
     // means, like entity_create(), required properties will not yet be
@@ -319,6 +319,14 @@ class TourneyTournament extends TourneyEntity {
     if ( !method_exists($this->tourneyFormatPlugin, $info['next_match']['callback']) ) return NULL;
     return $this->tourneyFormatPlugin->$info['next_match']['callback']($match, $direction);
   }
+
+  public function getPreviousMatches($match, $direction = 'winner') {
+    // Get the callback for this match
+    $info = $match->matchInfo;
+    if ( !$info ) return NULL;
+    if ( !method_exists($this->tourneyFormatPlugin, $info['previous_matches']['callback']) ) return NULL;
+    return $this->tourneyFormatPlugin->$info['previous_matches']['callback']($match, $direction);
+  }
   
   public function render() {
     $info = $this->tourneyFormatPlugin->getPluginInfo(get_class($this->tourneyFormatPlugin));
@@ -335,6 +343,7 @@ class TourneyTournament extends TourneyEntity {
   }
 
   public function canSetContestants($match) {
+    if ( user_access("edit tourney") == FALSE ) return FALSE;
     $ids = array_flip($this->getMatchIds());
     $place = $ids[$match->entity_id];
     return $place < $this->tourneyFormatPlugin->getSlots() / 2; 

@@ -54,6 +54,12 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => isset($tourney->players) ? $tourney->players : '',
   );
 
+  $form['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($tourney->status) ? $tourney->status : 0,
+  );
+
   field_attach_form('tourney_tournament', $tourney, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');

@@ -23,6 +23,11 @@ function tourney_schema() {
         'length' => 32,
         'not null' => TRUE,
         'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
       'name' => array(
         'description' => 'The machine-readable name of this tournament.',
         'type' => 'varchar',
@@ -533,6 +538,16 @@ function tourney_update_7005() {
   return t('Updated field length for name successfully.');
 }
 
+function tourney_update_7006() {
+  db_add_field('tourney_tournament', 'status', 
+    array(
+    'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+  return t('Tournament content updated successfully.');
+}
 
 /**
  * Helper functions

@@ -644,6 +644,9 @@ class TourneyMatch extends TourneyEntity {
     return $this->getTournament()->getNextMatch($this, $direction);
   }
 
+  public function previousMatches() {
+    return $this->getTournament()->getPreviousMatches($this);
+  }
  /**
   * Adds an empty game to this match
   *

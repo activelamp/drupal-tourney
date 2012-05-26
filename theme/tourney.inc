@@ -100,6 +100,12 @@ function theme_tourney_matchblock($vars) {
     $output .= '</div>';
   }
   $output .= '</div>';
+
+  //$previousMatches = $match->previousMatches();
+  // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
+  //    . '<div class="contestant contestant-1">' . ( $previousMatches[0] ? $previousMatches[0]->eid : 'START' ) . '</div>'
+  //    . '<div class="contestant contestant-2">' . ( $previousMatches[1] ? $previousMatches[1]->eid : 'START' ) . '</div>'
+  //    . '</div>';
   
   $match_uri = $match->getUri();
   return l($output, $match_uri . ($editable ? "/edit" : ''), array(
