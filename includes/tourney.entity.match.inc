@@ -14,6 +14,7 @@ class TourneyMatch extends TourneyEntity {
   public  $contestant2 = NULL;
   public  $uri;
   public  $matchInfo = NULL;
+  public  $hasByes = NULL;
   // @todo: rename the variable below to $tournament when backwardCompatibility
   // is no longer being used.
   private $matchTournament = NULL;
@@ -691,4 +692,27 @@ class TourneyMatch extends TourneyEntity {
     } 
     return TRUE;
   } 
+  
+  public function findSeedInfo($slot = NULL) {
+    // @todo: previousMatches() doesn't work in the bottom bracket yet
+    if ($this->matchInfo['bracket']['id'] != 'main') {
+      return;
+    }
+    // If this tournament doesn't have any byes, bail out.
+    if ($this->hasByes || !is_int(log($this->getTournament()->players, 2))) {
+      $this->hasByes = true;
+      $matches = $this->previousMatches();
+      
+      if (!is_null($slot) && array_key_exists('bye', $matches[$slot]->matchInfo)) {
+        $this->matchInfo['seed_position'][$slot] = $matches[$slot]->matchInfo['seed_position'][0];
+        return;
+      }
+      
+      foreach ($matches as $slot => $info) {
+        if (array_key_exists('bye', $info->matchInfo)) {
+          $this->matchInfo['seed_position'][$slot] = $info->matchInfo['seed_position'][0];
+        }
+      }
+    }
+  }
 }

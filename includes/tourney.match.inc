@@ -60,7 +60,6 @@ function tourney_match_form($form, &$form_state, $match) {
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
-
   if ($match->canSetContestants()) {
     $contestants = $match->getContestants();
     while ( count($contestants) < 2 ) $contestants[] = NULL;
@@ -68,6 +67,14 @@ function tourney_match_form($form, &$form_state, $match) {
     $cid = 1;
     foreach ( $contestants as $eid => $contestant ) {
       if ( $contestant != NULL ) continue;
+      
+      // Dont create a field for non-byes
+      if (array_key_exists('seed_position', $match->matchInfo) 
+        && !array_key_exists($cid - 1, $match->matchInfo['seed_position'])) {
+          $cid++;
+          continue;
+        }
+      
       // @todo: replace code below with a scalable contestant field code with a list of text boxes
       $form['contestant'.$cid++] = array(
         '#title' => t('Contestant '.($cid-1)),
@@ -89,7 +96,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#disabled' => $match->isFinished(),
   );
   
-  if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye'] == 'bye') {
+  if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) {
     $form['contestant1']['#title'] = t('Contestant');
     $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
 

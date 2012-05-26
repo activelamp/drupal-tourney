@@ -344,10 +344,14 @@ class TourneyTournament extends TourneyEntity {
   }
 
   public function canSetContestants($match) {
-    if ( user_access("edit tourney") == FALSE ) return FALSE;
-    $ids = array_flip($this->getMatchIds());
-    $place = $ids[$match->entity_id];
-    return $place < $this->tourneyFormatPlugin->getSlots() / 2; 
+    if (user_access("edit tourney") == FALSE) return FALSE;
+    
+    if (variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES)
+      && $match->matchInfo['round']['id'] == 2) {
+       $match->findSeedInfo(); 
+    }
+      
+    return ($match->matchInfo['round']['id'] == 1) || array_key_exists('seed_position', $match->matchInfo);
   }
   
   /**

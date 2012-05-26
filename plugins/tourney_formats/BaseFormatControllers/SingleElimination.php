@@ -245,7 +245,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
 
   public function getPreviousMatches($match) {
     $ids = array_flip($this->tournament->getMatchIds());
-    $prevs = $this->calculatePreviousPositions($ids[$match->entity_id]);
+    $prevs = $this->calculatePreviousPositions($ids[$match->id]);
     if ( $prevs === NULL ) return array(NULL, NULL);
     $ids = array_flip($ids);
     return array_values(entity_load('tourney_match', array($ids[$prevs[0]], $ids[$prevs[1]])));

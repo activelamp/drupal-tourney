@@ -94,7 +94,15 @@ function theme_tourney_matchblock($vars) {
     
     $s = $cid - 2;
     $output .= '<div class="' . join(" ", $classes_array) . '">'; 
-    if (!empty($match->matchInfo['seed_position'])) {
+    
+    // Set seed info from bye
+    if (variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES) 
+      && !empty($match->matchInfo['round']['id']) 
+      && $match->matchInfo['round']['id'] == 2) {
+      $match->findSeedInfo($s);
+    }    
+    
+    if (!empty($match->matchInfo['seed_position'][$s])) {
       $output .= '<span class="seed">' . $match->matchInfo['seed_position'][$s] . '</span>';
     }
     $output .= $team_name;

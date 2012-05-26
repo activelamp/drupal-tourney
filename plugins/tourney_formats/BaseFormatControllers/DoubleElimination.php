@@ -158,7 +158,9 @@ class DoubleEliminationController extends SingleEliminationController implements
     $static_match_num = &drupal_static('match_num_iterator', 1);
     $round = array();
     $round_info = array(
-      'title' => t('Round ') . $round_num,
+      'id'    => $round_num,
+      'name'  => 'round-' . $round_num,
+      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
     );
 
     $match_count = $this->calculateBottomRound($slots, $round_num);
