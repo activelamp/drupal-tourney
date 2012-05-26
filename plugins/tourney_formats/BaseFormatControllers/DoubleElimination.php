@@ -156,17 +156,13 @@ class DoubleEliminationController extends SingleEliminationController implements
 
   protected function buildBottomRound($slots, $round_num, $bracket_info) {
     $static_match_num = &drupal_static('match_num_iterator', 1);
-    
+    $round = array();
     $round_info = array(
       'title' => t('Round ') . $round_num,
     );
-    
-    // Bring the round number down to a unique number per group of two
-    $er = ceil($round_num/2);
-    // Matches is a certain number based on the round number and slots
-    // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
-    $match_count = $slots / pow(2, $er+1);
-    foreach ( range(1, $match_count) as $match ) {
+
+    $match_count = $this->calculateBottomRound($slots, $round_num);
+    for ($i = 1; $i <= $match_count; $i++) {
       $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num, $round_info, $bracket_info);
       $static_match_num++;
     }
@@ -207,46 +203,77 @@ class DoubleEliminationController extends SingleEliminationController implements
     * @return $place
     *   Match placement of the desired match, otherwise NULL 
     */
-   protected function calculateNextPosition($place, $direction = "winner") {
-     // @todo find a better way to count matches
-     $slots = $this->slots;
-     // Set up our handy values
-     $matches = $slots * 2 - 1;
-     $top_matches = $slots - 1;
-     $bottom_matches = $top_matches - 1;
+  protected function calculateNextPosition($place, $direction = "winner") {
+    // @todo find a better way to count matches
+    $slots = $this->slots;
+    // Set up our handy values
+    $matches = $slots * 2 - 1;
+    $top_matches = $slots - 1;
+    $bottom_matches = $top_matches - 1;
 
-     if ( $direction == 'winner' ) {
-       // Top Bracket
-       if ( $place < $top_matches ) {
-         // Last match in the top bracket goes to the champion bracket
-         if ( $place == $bottom_matches ) return $matches - 2;
-         return parent::calculateNextPosition($place);
-       }
-       // Champion Bracket(s)
-       elseif ( $place >= $matches - 2 ) {
-         // Last match goes nowhere
-         if ( $place == $matches - 1 ) return NULL;
-         return $place + 1;
-       }
-       // Bottom Bracket
-       else {
-         // Get out series to find out how to adjust our place
-         $series = $this->magicSeries($bottom_matches);
-         return $place + $series[$place-$top_matches];
-       }
+    if ( $direction == 'winner' ) {
+     // Top Bracket
+     if ( $place < $top_matches ) {
+       // Last match in the top bracket goes to the champion bracket
+       if ( $place == $bottom_matches ) return $matches - 2;
+       return parent::calculateNextPosition($place);
      }
-     elseif ( $direction == 'loser' ) {
-       // Top Bracket
-       if ( $place < $top_matches ) {
-         // If we're in the first round of matches, it's rather simple
-         if ( $place < $slots / 2 ) 
-           return parent::calculateNextPosition($place) + ($bottom_matches/2);          
-         // Otherwise, more magical math to determine placement
-         return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));
-       }
+     // Champion Bracket(s)
+     elseif ( $place >= $matches - 2 ) {
+       // Last match goes nowhere
+       if ( $place == $matches - 1 ) return NULL;
+       return $place + 1;
      }
-     return NULL;
-   }
+     // Bottom Bracket
+     else {
+       // Get out series to find out how to adjust our place
+       $series = $this->magicSeries($bottom_matches);
+       return $place + $series[$place-$top_matches];
+     }
+    }
+    elseif ( $direction == 'loser' ) {
+     // Top Bracket
+     if ( $place < $top_matches ) {
+       // If we're in the first round of matches, it's rather simple
+       if ( $place < $slots / 2 ) 
+         return parent::calculateNextPosition($place) + ($bottom_matches/2);          
+       // Otherwise, more magical math to determine placement
+       return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));
+     }
+    }
+    return NULL;
+  }
+  
+  /**
+   * Calculate number of players playing in bottom round.
+   */
+  protected function calculateBottomRound($slots, $round_num) {
+    static $byes = NULL;
+    
+    // Bring the round number down to a unique number per group of two
+    $er = ceil($round_num/2);
+    // Matches is a certain number based on the round number and slots
+    // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
+    $num_matches = $slots / pow(2, $er+1);
+    
+    // The first round we need half the number of players from top round
+    if ($round_num <= 2) {
+      if (is_null($byes)) {
+        $seed_positions = $this->calculateSeedPositions($this->slots);
+        $byes = 0;
+        foreach ($seed_positions as $seed) {
+          if (in_array(NULL, $seed)) {
+            $byes++;
+          }
+        }
+      }
+      $deductor = min($num_matches, $byes);
+      $byes -= $deductor;
+      $num_matches -= $deductor;
+    }
+    
+    return $num_matches;
+  }
 
  /**
   * This is a special function that I could have just stored as a fixed array, but I wanted it to scale
