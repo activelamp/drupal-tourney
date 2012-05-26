@@ -14,6 +14,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   protected $slots;
   protected $rounds;
   protected $matches;
+  protected $seedPositions = NULL;
 
   /**
    * Constructor
@@ -98,42 +99,45 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    *   An array of match pairs with seed numbers, or NULL for bye slots.
    */
   public function calculateSeedPositions($num_contestants) {    
-    // Initialize a the first match in the first round matches.
-    $first_round_matches = array(array(1, 2));
-    $num_first_round_matches = pow(2, $this->rounds) / 2;
-    
-    // Continue to find seed positions until we have all the first round matches
-    // populated, based on the number of "real" matches (w/o byes).
-    // 
-    // $first_round_matches array contains that matches that have already been
-    // populated from this method.
-    while(count($first_round_matches) < $num_first_round_matches) {
-      // The $multiplier is the number we need to multiply the number of currently
-      // built rounds to get the seed position number of the very last place.
-      $multiplier = 4;
-      // Last seed position plus 1
-      $last_seed_position = (count($first_round_matches) * $multiplier) + 1;
+    if (is_null($this->seedPositions)) {
+      // Initialize a the first match in the first round matches.
+      $first_round_matches = array(array(1, 2));
+      $num_first_round_matches = pow(2, $this->rounds) / 2;
 
-      $new_matches = array();
-      // Go through each match already created and update according to what the
-      // latest seed positions being added to tournament.
-      foreach ($first_round_matches as $match) {
-        foreach ($match as $seed_position) {
-          // Match the current seed_position being processed with the
-          // last_seed_position - this seed_position. If the last seed position
-          // doesn't exist, create a bye.
-          if ($last_seed_position - $seed_position <= $num_contestants) {
-            $new_matches[] = array($seed_position, $last_seed_position - $seed_position);
-          }
-          else {
-            // Create a bye match.
-            $new_matches[] = array($seed_position, NULL);
+      // Continue to find seed positions until we have all the first round matches
+      // populated, based on the number of "real" matches (w/o byes).
+      // 
+      // $first_round_matches array contains that matches that have already been
+      // populated from this method.
+      while(count($first_round_matches) < $num_first_round_matches) {
+        // The $multiplier is the number we need to multiply the number of currently
+        // built rounds to get the seed position number of the very last place.
+        $multiplier = 4;
+        // Last seed position plus 1
+        $last_seed_position = (count($first_round_matches) * $multiplier) + 1;
+
+        $new_matches = array();
+        // Go through each match already created and update according to what the
+        // latest seed positions being added to tournament.
+        foreach ($first_round_matches as $match) {
+          foreach ($match as $seed_position) {
+            // Match the current seed_position being processed with the
+            // last_seed_position - this seed_position. If the last seed position
+            // doesn't exist, create a bye.
+            if ($last_seed_position - $seed_position <= $num_contestants) {
+              $new_matches[] = array($seed_position, $last_seed_position - $seed_position);
+            }
+            else {
+              // Create a bye match.
+              $new_matches[] = array($seed_position, NULL);
+            }
           }
         }
+        $first_round_matches = $new_matches;
       }
-      $first_round_matches = $new_matches;
+      $this->seedPositions = $first_round_matches;
     }
-    return $first_round_matches;
+    return $this->seedPositions;
   }
   
   /**
@@ -403,8 +407,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
           'match_name' => 'match-' . $match_num,
         ),
       ),
-      'previous_match' => array(
-        'callback' => 'getPreviousMatch',
+      'previous_matches' => array(
+        'callback' => 'getPreviousMatches',
       ),
       'next_match' => array(
         'callback' => 'getNextMatch',
