@@ -58,6 +58,35 @@ class DoubleEliminationController extends SingleEliminationController implements
   }
   
   /**
+   * Build the Double Elimination match list.
+   *
+   * @return $matches
+   *   A flat array that can be used by TourneyController::saveMatches().
+   */
+  public function build() {
+    $matches = array();
+    $structure = $this->structure();
+    foreach ($structure as $bracket_name => $bracket_info) {
+      foreach ($bracket_info['rounds'] as $round_name => $round_info) {
+        // It's possible in double elim that a bottom round has not matches.
+        if (array_key_exists('matches', $round_info)) {
+          foreach ($round_info['matches'] as $match_name => $match_info) {
+            $matches[] = array(
+              'bracket_name' => $bracket_name, 
+              'round_name' => $round_name, 
+              'match_name' => $match_name,
+              'match_info' => $match_info,
+            );
+          }
+        }
+      }
+    }
+
+    $this->matches = $matches;
+    return $this->matches;
+  }
+  
+  /**
    * Build the double elim bottom bracket
    *
    * @return $matches

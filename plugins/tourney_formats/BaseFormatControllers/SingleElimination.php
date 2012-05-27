@@ -42,7 +42,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   /**
-   * Build the Single Elimination (and Double Elimination) match list.
+   * Build the Single Elimination match list.
    *
    * @return $matches
    *   A flat array that can be used by TourneyController::saveMatches().

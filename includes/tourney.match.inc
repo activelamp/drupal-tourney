@@ -311,11 +311,17 @@ function tourney_match_form_submit($form, &$form_state) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 1);
+      if (variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES)) {
+        $match->addContestantPrevious($entity, 1);
+      }
     }
     if (array_key_exists('contestant2', $form_state['input']) && $eid = $form_state['input']['contestant2']) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 2);
+      if (variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES)) {
+        $match->addContestantPrevious($entity, 2);
+      }
     }
   }
 

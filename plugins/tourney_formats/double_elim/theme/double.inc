@@ -186,6 +186,9 @@ function theme_tourney_double_bottom_bracket($vars) {
   // if ( property_exists($match->getTournament(), 'views') && $match->getTournament()->views == TRUE ) $views = TRUE;
 
   foreach ($tournament->data['bracket-bottom']['rounds'] as $round_name => &$round_info) {
+    // It's possible in double elim that a bottom round has not matches.
+    if (!array_key_exists('matches', $round_info)) continue;
+    
     $r = substr(strstr($round_name, '-'), 1)-1;
     $cr = floor($r/2);
     $last = $r >= count($tournament->data['bracket-bottom']['rounds']) -1;  // is this the last round?

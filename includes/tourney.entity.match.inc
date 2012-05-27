@@ -548,14 +548,14 @@ class TourneyMatch extends TourneyEntity {
     $this->contestantIds = NULL;
   }
 
-/**
- * Adds a contestant entity to an object by creating the necessary relation
- *
- * @param integer $slot
- *   Contestant slot to target
- * @param Object entity
- *   Any type of entity to fill the target slot with
- */
+  /**
+   * Adds a contestant entity to an object by creating the necessary relation
+   *
+   * @param integer $slot
+   *   Contestant slot to target
+   * @param Object entity
+   *   Any type of entity to fill the target slot with
+   */
   public function addContestant($entity, $slot = NULL) {
     //@todo logic to remove existing conflicting contestant(s)
     $entity_keys = array(
@@ -569,6 +569,26 @@ class TourneyMatch extends TourneyEntity {
       relation_save($relation);
     }
     $this->contestantIds = NULL;
+  }
+  
+  /**
+   * Add contestant to previous match
+   * 
+   * @param $entity
+   *   The contestant entity to add to a match
+   * @param $slot
+   *   The slot to add the contestant to.
+   */
+  public function addContestantPrevious($entity, $slot = NULL) {
+    $roundinfo = $this->matchInfo['round'];
+    if (array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
+      $this->findSeedInfo();
+      if (array_key_exists('seed_position', $this->matchInfo) 
+        && array_key_exists($slot - 1, $this->matchInfo['seed_position'])) {
+          $matches = $this->previousMatches();
+          $matches[$slot - 1]->addContestant($entity, 1);
+      }
+    }
   }
 
 /**
@@ -604,7 +624,7 @@ class TourneyMatch extends TourneyEntity {
       $this->nextMatch()->addContestant($winner);
     }
     
-    if ($this->nextMatch('loser')) {
+    if ($this->nextMatch('loser') && is_object($loser)) {
       $this->nextMatch('loser')->addContestant($loser);
     } 
   }
