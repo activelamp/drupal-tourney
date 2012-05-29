@@ -26,6 +26,11 @@ class DoubleEliminationController extends SingleEliminationController implements
         'file' => 'double.inc', 
         'path' => $path . '/theme',
       ),
+      'tourney_dummy_match' => array(
+        'variables' => array('count' => NULL, 'height' => NULL, 'small' => 1),
+        'file' => 'double.inc', 
+        'path' => $path . '/theme',
+      ),
       'tourney_double_top_bracket' => array(
         'variables' => array('rounds' => NULL),
         'file' => 'double.inc', 
@@ -192,7 +197,7 @@ class DoubleEliminationController extends SingleEliminationController implements
       'title' => $this->getRoundTitle(array('round_num' => $round_num)),
     );
 
-    $match_count = $this->calculateBottomRound($slots, $round_num);
+    $match_count = $this->getBottomMatchCount($slots, $round_num);
     for ($i = 1; $i <= $match_count; $i++) {
       $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num, $round_info, $bracket_info);
       $static_match_num++;
@@ -277,15 +282,24 @@ class DoubleEliminationController extends SingleEliminationController implements
   
   /**
    * Calculate number of players playing in bottom round.
+   * 
+   * @param $slots
+   *   The number of slots in the tournament
+   * @param $round_num
+   *   The round number integer to calculate.
+   * @param $use_byes
+   *   Allow byes to remove some rounds
+   * @return
+   *   The number of matches in the first round of bottom round.
    */
-  protected function calculateBottomRound($slots, $round_num) {
+  protected function getBottomMatchCount($slots, $round_num, $use_byes = TRUE) {
     static $byes = NULL;
     
-    // Bring the round number down to a unique number per group of two
-    $er = ceil($round_num/2);
-    // Matches is a certain number based on the round number and slots
-    // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
-    $num_matches = $slots / pow(2, $er+1);
+    $num_matches = $this->calculateBottomRound($slots, $round_num);
+    
+    if (!$use_byes) {
+      return $num_matches;
+    }
     
     // The first round we need half the number of players from top round
     if ($round_num <= 2) {
@@ -304,6 +318,14 @@ class DoubleEliminationController extends SingleEliminationController implements
     }
     
     return $num_matches;
+  }
+  
+  public function calculateBottomRound($slots, $round_num) {
+    // Bring the round number down to a unique number per group of two
+    $er = ceil($round_num/2);
+    // Matches is a certain number based on the round number and slots
+    // The pattern is powers of two, counting down: 8 8 4 4 2 2 1 1
+    return $slots / pow(2, $er+1);
   }
 
  /**
@@ -355,5 +377,41 @@ class DoubleEliminationController extends SingleEliminationController implements
     if ( !$first_loss ) return NULL;
 
     return $next;
+  }
+  
+  /**
+   * Fill matches in the bottom bracket that are produced as a result of a bye.
+   * Dummy matches are created in the same order that players are seeded. This
+   * method fills up an entire round to contain the number of matches without
+   * byes, fills the spaces with the string 'dummy'.
+   * 
+   * @param $round_info
+   *   The round information from the plugin.
+   */
+  public function fillMatches(&$round_info) {
+    // Byes only affect the first two rounds of the bottom bracket.
+    if ($round_info['id'] > 2) {
+      return;
+    }
+    
+    $seed_positions = $this->calculateSeedPositions($this->slots);
+    $num_matches = count($round_info['matches']);
+    // Retrieve the number of matches there is supposed to be w/o byes.
+    $num_matches_total = $this->calculateBottomRound($this->slots, $round_info['id']);
+
+    // The number of matches to render dummy matches
+    $dummy_match_count = $num_matches_total - $num_matches;
+    
+    $new_matches = array();
+    for ($i = 0; $i < count($seed_positions); $i += 2) {
+      if ($seed_positions[$i][0] <= $dummy_match_count) {
+        $new_matches[] = 'dummy';
+      }
+      else {
+        $new_matches[] = array_shift($round_info['matches']);
+      }
+    }
+    
+    $round_info['matches'] = $new_matches;
   }
 }
