@@ -10,8 +10,8 @@
  */
 class SingleEliminationController extends TourneyController implements TourneyControllerInterface {
 
+  public $slots;
   protected $tournament;
-  protected $slots;
   protected $rounds;
   protected $matches;
   protected $seedPositions = NULL;
@@ -98,8 +98,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * @return $matches
    *   An array of match pairs with seed numbers, or NULL for bye slots.
    */
-  public function calculateSeedPositions($num_contestants) {    
-    if (is_null($this->seedPositions)) {
+  public function calculateSeedPositions($num_contestants, $reset = FALSE) {    
+    if ($reset || is_null($this->seedPositions)) {
       // Initialize a the first match in the first round matches.
       $first_round_matches = array(array(1, 2));
       $num_first_round_matches = pow(2, $this->rounds) / 2;
