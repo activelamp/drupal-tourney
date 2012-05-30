@@ -268,14 +268,27 @@ class DoubleEliminationController extends SingleEliminationController implements
      }
     }
     elseif ( $direction == 'loser' ) {
-     // Top Bracket
-     if ( $place < $top_matches ) {
-       // If we're in the first round of matches, it's rather simple
-       if ( $place < $slots / 2 ) 
-         return parent::calculateNextPosition($place) + ($bottom_matches/2);          
-       // Otherwise, more magical math to determine placement
-       return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));
-     }
+      // Top Bracket
+      if ( $place < $top_matches ) {
+        // If we're in the first round of matches, it's rather simple
+        if ( $place < $slots / 2 ) 
+          return parent::calculateNextPosition($place) + ($bottom_matches/2);          
+        // Otherwise, more magical math to determine placement
+        $rev_round = floor(log($top_matches - $place,2));
+        if ( $rev_round % 2 == 0 ) {
+          $round_matches = pow(2, $rev_round);
+          $first_match = $top_matches - $round_matches * 2 + 1;
+          $this_match = $place - $first_match;
+
+          //return 3 * $first_match + 2 * $round_matches - $place - 2;
+          //return 1 - $place - ( 4 * pow(2, $rev_round) ) + 3 * $top_matches;
+          return $place + $top_matches - ( $this_match * 2 + 1);
+          //krumo(pow(2, floor(log($top_matches - $place, 2))));
+          //krumo($rev_round);
+        }
+        //krumo(floor(log($top_matches - $place, 2)));
+        return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));
+      }
     }
     return NULL;
   }
@@ -389,11 +402,16 @@ class DoubleEliminationController extends SingleEliminationController implements
    *   The round information from the plugin.
    */
   public function fillMatches(&$round_info) {
+
     // Byes only affect the first two rounds of the bottom bracket.
     if ($round_info['id'] > 2) {
       return;
     }
-    
+
+    if (!array_key_exists('matches', $round_info) || !$round_info['matches']) {
+      return;
+    }
+
     $seed_positions = $this->calculateSeedPositions($this->slots);
     $num_matches = count($round_info['matches']);
     // Retrieve the number of matches there is supposed to be w/o byes.
@@ -413,5 +431,75 @@ class DoubleEliminationController extends SingleEliminationController implements
     }
     
     $round_info['matches'] = $new_matches;
+  }
+
+  public function getFullMatchIds() {
+    static $fullMatchIds = '';
+    if ( !$fullMatchIds ) {
+      $new_ids = array();
+      $ids = $this->tournament->getMatchIds();
+      $rounds = array();
+      foreach ( $this->tournament->data['bracket-bottom']['rounds'] as $r => $round ) {
+        $rounds[$r] = $this->fillMatches($round);
+        if ( !$rounds[$r] ) $rounds[$r] = $round['matches'];
+      }
+      if ( $rounds['round-1'] == NULL ) {
+        while ( count($rounds['round-1']) < count($rounds['round-2']) ) {
+          $rounds['round-1'][] = 'dummy';
+        }
+      }
+      $matches = array();
+      $x = -1;
+      foreach ( $rounds as $round ) {
+        foreach ( $round as $match ) {
+          if ( $match !== 'dummy' ) {
+            $matches[] = $match['id'];
+          }
+          else {
+            $matches[] = $x--;
+          }
+        }
+      }
+      foreach ( $ids as $n => $id ) {
+        if ( $n < $this->slots - 1 ) {
+          $new_ids[] = array_shift($ids);
+        }
+        else {
+          while ( $matches && ($i = array_shift($matches)) < $n ) {
+            $new_ids[] = $i;
+          }
+          $new_ids[] = array_shift($ids);
+        }
+      }
+      $fullMatchIds = $new_ids;
+    }
+    return $fullMatchIds;
+  } 
+
+  /**
+   * Given a match place integer, returns the next match place based on either
+   * 'winner' or 'loser' direction. Calls the necessary tournament format plugin
+   * to get its result
+   *
+   * @param $match
+   *   Match object to compare with the internal matchIds property to get its
+   *   match placement
+   * @param $direction
+   *   Either 'winner' or 'loser'
+   * @return $match
+   *   Match entity of the desired match, otherwise NULL
+   */
+  public function getNextMatch($match, $direction = NULL) {
+    if ( $direction == 'loser' && array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye'] == TRUE )
+      return NULL;
+    $ids = array_flip($this->getFullMatchIds());
+    $next = $this->calculateNextPosition($ids[$match->entity_id], $direction);
+    if ( $next === NULL ) return NULL;
+    $ids = array_flip($ids);
+    while ( $ids[$next] < 0 ) {
+      $next = $this->calculateNextPosition($next, 'winner');
+    }
+    if ( !array_key_exists((int)$next, $ids) ) return NULL;
+    return entity_load_single('tourney_match', $ids[$next]);
   }
 }
