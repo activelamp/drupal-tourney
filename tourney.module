@@ -339,7 +339,7 @@ function tourney_entity_info() {
         'name' => 'name',
         'label' => 'label',
       ),
-      'access callback' => 'tourney_access',
+      'access callback' => 'tourney_type_access',
       'module' => 'tourney',
       // Enable the entity API's admin UI.
       'admin ui' => array(
@@ -350,6 +350,13 @@ function tourney_entity_info() {
   }
 
   return $return;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function tourney_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer tourney', $account);
 }
 
 /**
