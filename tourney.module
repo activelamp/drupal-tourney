@@ -339,7 +339,7 @@ function tourney_entity_info() {
         'name' => 'name',
         'label' => 'label',
       ),
-      'access callback' => 'tourney_access',
+      'access callback' => 'tourney_type_access',
       'module' => 'tourney',
       // Enable the entity API's admin UI.
       'admin ui' => array(
@@ -350,6 +350,13 @@ function tourney_entity_info() {
   }
 
   return $return;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function tourney_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer tourney', $account);
 }
 
 /**
@@ -1010,7 +1017,7 @@ function tourney_views_api() {
  */
 function tourney_update_alias($entity, $op, array $options = array()) {
   // Skip processing if the user has disabled pathauto for the node.
-  if (!module_exists('pathauto') || isset($node->path['pathauto']) && empty($node->path['pathauto'])) {
+  if (!module_exists('pathauto')) {
     return;
   }
 
@@ -1022,17 +1029,17 @@ function tourney_update_alias($entity, $op, array $options = array()) {
 
   // Skip processing if the node has no pattern.
   //if (!pathauto_pattern_load_by_entity($entity->_entity_type, $entity->_entity_type, $options['language'])) {
-  if (!pathauto_pattern_load_by_entity($entity->type, $entity->type)) {
+  if (!pathauto_pattern_load_by_entity($entity->entity_type, $entity->type)) {
     // Remove the alias if a pattern is no longer given.
     $uri = tourney_uri($entity);
-    pathauto_entity_path_delete_all($entity->type, $entity, $uri);
+    pathauto_entity_path_delete_all($entity->entity_type, $entity, $uri);
     return;
   }
 
   module_load_include('inc', 'pathauto');
-  $uri = entity_uri($entity->type, $entity);
+  $uri = entity_uri($entity->entity_type, $entity);
   //pathauto_create_alias($entity_type, $op, $uri['path'], array($entity_type => $entity), $entity_type, $options['language']);
-  return pathauto_create_alias($entity->type, $op, $uri['path'], array($entity->type => $entity), $entity->type);
+  return pathauto_create_alias($entity->entity_type, $op, $uri['path'], array($entity->entity_type => $entity), $entity->type);
 }
 /**
  * Implements hook_flush_caches().

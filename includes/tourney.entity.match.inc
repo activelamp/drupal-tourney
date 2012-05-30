@@ -240,6 +240,18 @@ class TourneyMatch extends TourneyEntity {
   }
 
   /**
+   * Load contestants on match entity object.
+   */
+  public function loadContestants() {
+    if (empty($this->contestant1) && empty($this->contestant2)) {
+      foreach ($this->getContestantIds() as $contestant) {
+        $entity = entity_load_single_by_eid($contestant['eid']);
+        $this->{'contestant' . $contestant['slot']} = $entity;
+      }
+    }
+  }
+
+  /**
    * Retrieve property.
    */
   public function getWinner() {
