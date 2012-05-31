@@ -236,6 +236,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function getNextMatch($match, $direction = NULL) {
     $ids = array_flip($this->tournament->getMatchIds());
+    //krumo($ids);
     $next = $this->calculateNextPosition($ids[$match->entity_id], $direction);
     if ( $next === NULL ) return NULL;
     $ids = array_flip($ids);
