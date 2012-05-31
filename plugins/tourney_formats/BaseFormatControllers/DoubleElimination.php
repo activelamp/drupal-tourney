@@ -11,47 +11,47 @@
 class DoubleEliminationController extends SingleEliminationController implements TourneyControllerInterface {
   /**
    * Theme implementations to register with tourney module.
-   * 
+   *
    * @see hook_theme().
    */
   public static function theme($existing, $type, $theme, $path) {
     return array(
       'tourney_double_tree' => array(
         'variables' => array('tournament' => NULL),
-        'file' => 'double.inc', 
+        'file' => 'double.inc',
         'path' => $path . '/theme',
       ),
       'tourney_dummy_rounds' => array(
         'variables' => array('count' => NULL, 'height' => NULL, 'small' => 1),
-        'file' => 'double.inc', 
+        'file' => 'double.inc',
         'path' => $path . '/theme',
       ),
       'tourney_dummy_match' => array(
         'variables' => array('count' => NULL, 'height' => NULL, 'small' => 1),
-        'file' => 'double.inc', 
+        'file' => 'double.inc',
         'path' => $path . '/theme',
       ),
       'tourney_double_top_bracket' => array(
         'variables' => array('rounds' => NULL),
-        'file' => 'double.inc', 
+        'file' => 'double.inc',
         'path' => $path . '/theme',
       ),
       'tourney_double_bottom_bracket' => array(
         'variables' => array('rounds' => NULL),
-        'file' => 'double.inc', 
+        'file' => 'double.inc',
         'path' => $path . '/theme',
       ),
       'tourney_double_champion_bracket' => array(
         'variables' => array('tournament' => NULL, 'rounds' => NULL),
-        'file' => 'double.inc', 
+        'file' => 'double.inc',
         'path' => $path . '/theme',
       ),
     );
   }
-  
+
   /**
    * Renders the html for each round tournament
-   * 
+   *
    * @param $tournament
    *   The tournament object
    * @param $matches
@@ -61,7 +61,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     drupal_add_js($this->pluginInfo['path'] . '/theme/double.js');
     return theme('tourney_double_tree', array('tournament' => $this->tournament));
   }
-  
+
   /**
    * Build the Double Elimination match list.
    *
@@ -77,8 +77,8 @@ class DoubleEliminationController extends SingleEliminationController implements
         if (array_key_exists('matches', $round_info)) {
           foreach ($round_info['matches'] as $match_name => $match_info) {
             $matches[] = array(
-              'bracket_name' => $bracket_name, 
-              'round_name' => $round_name, 
+              'bracket_name' => $bracket_name,
+              'round_name' => $round_name,
               'match_name' => $match_name,
               'match_info' => $match_info,
             );
@@ -90,7 +90,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     $this->matches = $matches;
     return $this->matches;
   }
-  
+
   /**
    * Build the double elim bottom bracket
    *
@@ -110,10 +110,85 @@ class DoubleEliminationController extends SingleEliminationController implements
       foreach ( range(1, $m) as $match ) {
         $matches[] = array('bracket_name' => 'bracket-bottom', 'round_name' => $round, 'match_name' => $match);
       }
-    } 
+    }
     return $matches;
   }
-  
+
+  /**
+   * Build bracket structure and logic.
+   *
+   * @param $slots
+   *   The number of slots in the first round.
+   * @return
+   *   An array of bracket structure and logic.
+   */
+  protected function buildBracketByTree($slots) {
+    $bw_num_matches = $slots - 1;
+    $bl_num_matches = $slots - 2;
+    $bw_num_rounds = log($slots, 2);
+    $bl_num_rounds = ($bw_num_rounds - 1) * 2;
+    $bracketw_info = array(
+      'id'    => 'main',
+      'name'  => 'bracket-top',
+      'title' => t('Winners Bracket'),
+    );
+    $bracketl_info = array(
+      'id'    => 'bottom',
+      'name'  => 'bracket-bottom',
+      'title' => t('Losers Bracket'),
+    );
+    $bracketc_info = array(
+      'id'    => 'champion',
+      'name'  => 'bracket-champion',
+      'title' => t('Champion Bracket'),
+    );
+
+    // Championship
+    $champ_match_num = $bw_num_matches + $bl_num_matches + 1;
+    $champ_round_info = array(
+      'id'    => 1,
+      'name'  => 'round-1',
+      'title' => 'Championship',
+    );
+    $tree = $this->buildMatch($champ_match_num, $champ_round_info, $bracketc_info);
+    // Winner bracket
+    $tree['children'][] = parent::buildBracketByTree($slots);
+    // Loser bracket
+    $tree['children'][] = $this->buildLoserChildren($slots / 2, $bl_num_rounds, $champ_match_num - 1, $bracketl_info);
+
+    return $tree;
+  }
+
+  protected function buildLoserChildren($slots, $round_num, $match_num, $bracket_info) {
+    $round_info = array(
+      'id'    => $round_num,
+      'name'  => 'round-' . $round_num,
+      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+    );
+    $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
+
+    if ($round_num > 1) {
+      $matches_in_round = $this->getNumMatchesInLoserRound($slots, $round_num);
+      for ($i = 0; $i < $matches_in_round; ++$i) {
+        $child_match_num = ($match_num - $matches_in_round) + $i;
+        $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $bracket_info);
+      }
+    }
+
+    return $tree;
+  }
+
+  protected function getNumMatchesInLoserRound($slots, $round_num) {
+    $num_rounds = log($slots * 2, 2) - 1;
+    $matches_in_rounds = array();
+    for ($i = 0; $i < $num_rounds; ++$i) {
+      $matches_in_rounds[] = pow(2, $i);
+      $matches_in_rounds[] = pow(2, $i);
+    }
+    $matches_in_rounds = array_reverse($matches_in_rounds);
+    return $matches_in_rounds[$round_num - 1];
+  }
+
   /**
    * Build bracket structure and logic.
    *
@@ -128,13 +203,13 @@ class DoubleEliminationController extends SingleEliminationController implements
       'name'  => 'bracket-top',
       'title' => t('Winners Bracket'),
     );
-    
+
     $bottom_bracket_info = array(
       'id'    => 'bottom',
       'name'  => 'bracket-bottom',
       'title' => t('Losers Bracket'),
     );
-    
+
     $champion_bracket_info = array(
       'id'    => 'champion',
       'name'  => 'bracket-champion',
@@ -146,7 +221,7 @@ class DoubleEliminationController extends SingleEliminationController implements
       'bracket-champion' => $champion_bracket_info + $this->buildChampionRounds($slots, $champion_bracket_info),
     );
   }
-  
+
   /**
    * Build rounds.
    *
@@ -158,7 +233,7 @@ class DoubleEliminationController extends SingleEliminationController implements
   protected function buildChampionRounds($slots, $bracket_info) {
     $rounds    = array();
     $static_match_num = &drupal_static('match_num_iterator', 1);
-    
+
     $tiebreaker = $this->buildMatch($static_match_num, array(), $bracket_info);
     $tiebreaker['next_match']['callback'] = 'getNextMatchTiebreaker';
 
@@ -167,7 +242,7 @@ class DoubleEliminationController extends SingleEliminationController implements
 
     return $rounds;
   }
-  
+
   /**
    * Build rounds.
    *
@@ -180,7 +255,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     $rounds    = array();
     $round_num = 1;
     $static_match_num = &drupal_static('match_num_iterator', 1);
-    
+
     $num_rounds = (log($this->slots, 2) - 1) * 2;
     foreach (range(1, $num_rounds) as $round_num) {
       $rounds['rounds']['round-' . $round_num] = $this->buildBottomRound($slots, $round_num, $bracket_info);
@@ -227,9 +302,9 @@ class DoubleEliminationController extends SingleEliminationController implements
     }
     return FALSE;
   }
-  
+
   /**
-    * Given a match place integer, returns the next match place based on either 
+    * Given a match place integer, returns the next match place based on either
     * 'winner' or 'loser' direction
     *
     * @param $place
@@ -237,7 +312,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     * @param $direction
     *   Either 'winner' or 'loser'
     * @return $place
-    *   Match placement of the desired match, otherwise NULL 
+    *   Match placement of the desired match, otherwise NULL
     */
   protected function calculateNextPosition($place, $direction = "winner") {
     // @todo find a better way to count matches
@@ -271,18 +346,18 @@ class DoubleEliminationController extends SingleEliminationController implements
      // Top Bracket
      if ( $place < $top_matches ) {
        // If we're in the first round of matches, it's rather simple
-       if ( $place < $slots / 2 ) 
-         return parent::calculateNextPosition($place) + ($bottom_matches/2);          
+       if ( $place < $slots / 2 )
+         return parent::calculateNextPosition($place) + ($bottom_matches/2);
        // Otherwise, more magical math to determine placement
        return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));
      }
     }
     return NULL;
   }
-  
+
   /**
    * Calculate number of players playing in bottom round.
-   * 
+   *
    * @param $slots
    *   The number of slots in the tournament
    * @param $round_num
@@ -294,13 +369,13 @@ class DoubleEliminationController extends SingleEliminationController implements
    */
   protected function getBottomMatchCount($slots, $round_num, $use_byes = TRUE) {
     static $byes = NULL;
-    
+
     $num_matches = $this->calculateBottomRound($slots, $round_num);
-    
+
     if (!$use_byes) {
       return $num_matches;
     }
-    
+
     // The first round we need half the number of players from top round
     if ($round_num <= 2) {
       if (is_null($byes)) {
@@ -316,10 +391,10 @@ class DoubleEliminationController extends SingleEliminationController implements
       $byes -= $deductor;
       $num_matches -= $deductor;
     }
-    
+
     return $num_matches;
   }
-  
+
   public function calculateBottomRound($slots, $round_num) {
     // Bring the round number down to a unique number per group of two
     $er = ceil($round_num/2);
@@ -340,7 +415,7 @@ class DoubleEliminationController extends SingleEliminationController implements
   private function magicSeries($until) {
     $series = array();
     $i = 0;
-    // We're working to 8 if until is 16, 4 if until is 8 
+    // We're working to 8 if until is 16, 4 if until is 8
     while ( $i < $until / 2 ) {
       // Add in this next double entry of numbers
       $series[] = ++$i;
@@ -349,8 +424,8 @@ class DoubleEliminationController extends SingleEliminationController implements
       if ( ($i & ($i - 1)) == 0 )
         foreach ( range(1, $i) as $n ) $series[] = $i;
     }
-    // Remove the unnecessary last element in the series (which is the start of the next iteration) 
-    while ( count($series) > $until ) 
+    // Remove the unnecessary last element in the series (which is the start of the next iteration)
+    while ( count($series) > $until )
       array_pop($series);
     // Reverse it so we work down
     return array_reverse($series);
@@ -378,13 +453,13 @@ class DoubleEliminationController extends SingleEliminationController implements
 
     return $next;
   }
-  
+
   /**
    * Fill matches in the bottom bracket that are produced as a result of a bye.
    * Dummy matches are created in the same order that players are seeded. This
    * method fills up an entire round to contain the number of matches without
    * byes, fills the spaces with the string 'dummy'.
-   * 
+   *
    * @param $round_info
    *   The round information from the plugin.
    */
@@ -393,7 +468,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     if ($round_info['id'] > 2) {
       return;
     }
-    
+
     $seed_positions = $this->calculateSeedPositions($this->slots);
     $num_matches = count($round_info['matches']);
     // Retrieve the number of matches there is supposed to be w/o byes.
@@ -401,7 +476,7 @@ class DoubleEliminationController extends SingleEliminationController implements
 
     // The number of matches to render dummy matches
     $dummy_match_count = $num_matches_total - $num_matches;
-    
+
     $new_matches = array();
     for ($i = 0; $i < count($seed_positions); $i += 2) {
       if ($seed_positions[$i][0] <= $dummy_match_count) {
@@ -411,7 +486,7 @@ class DoubleEliminationController extends SingleEliminationController implements
         $new_matches[] = array_shift($round_info['matches']);
       }
     }
-    
+
     $round_info['matches'] = $new_matches;
   }
 }
