@@ -627,16 +627,28 @@ function tourney_entity_get_types($entity_name, $type_name = NULL) {
  * Access callback for tourney module.
  */
 function tourney_access($op = 'view', $group = NULL, $account = NULL) {
+  // @todo: this is bad should get this from menu item passed.
   $entity_id = arg(2);
-  if ( $op == 'view' ) {
-    if ( !$group ) return FALSE;
-    $entity = entity_load_single('tourney_' . $group, $entity_id);
-    if ( property_exists($entity, 'status') && $entity->status == 0 ) return user_access('view unpublished tourney');
-    else return user_access('access tourney');
+  switch ($op) {
+    case 'view':
+      if (!$group) {
+        return FALSE;
+      }
+      $entity = entity_load_single('tourney_' . $group, $entity_id);
+      if (property_exists($entity, 'status') && $entity->status == 0) {
+        return user_access('view unpublished tourney');
+      }
+      else {
+        return user_access('access tourney');
+      }
+
+    case 'edit':
+      return user_access('edit tournament');
+
+    case 'delete':
+     return user_access('delete tournament');
   }
-  if ( $op == 'edit' ) {
-    return user_access('edit tournament');
-  }
+
   return FALSE;
 }
 
