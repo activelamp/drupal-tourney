@@ -57,6 +57,18 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['match'] = $match;
+  
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#description' => t('The title you enter here appears on the page.'),
+    '#size' => 40,
+    '#maxlength' => 255,
+    '#default_value' => $match->title,
+    '#weight' => -10
+  );
+  
+  
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
@@ -67,14 +79,14 @@ function tourney_match_form($form, &$form_state, $match) {
     $cid = 1;
     foreach ( $contestants as $eid => $contestant ) {
       if ( $contestant != NULL ) continue;
-      
+
       // Dont create a field for non-byes
-      if (array_key_exists('seed_position', $match->matchInfo) 
+      if (array_key_exists('seed_position', $match->matchInfo)
         && !array_key_exists($cid - 1, $match->matchInfo['seed_position'])) {
           $cid++;
           continue;
         }
-      
+
       // @todo: replace code below with a scalable contestant field code with a list of text boxes
       $form['contestant'.$cid++] = array(
         '#title' => t('Contestant '.($cid-1)),
@@ -95,7 +107,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#required' => TRUE,
     '#disabled' => $match->isFinished(),
   );
-  
+
   if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) {
     $form['contestant1']['#title'] = t('Contestant');
     $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
@@ -112,7 +124,7 @@ function tourney_match_form($form, &$form_state, $match) {
       '#value' => 0,
     );
   }
-    
+
   if (!array_key_exists('bye', $match->matchInfo) && $match->isLocked()) {
     $form['fix_games'] = array(
       '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
@@ -150,12 +162,12 @@ function tourney_match_form($form, &$form_state, $match) {
 
 /**
  * Create an entity field select box for contestants on the match edit form.
- * 
+ *
  * @param $match
  *   The match object for the match being edited
  * @return array
  *   Returns a form element to be used in a form.
- * 
+ *
  * @see tourney_match_form().
  * @see _tourney_match_contestants().
  */
@@ -170,15 +182,15 @@ function _tourney_match_contestant($match) {
 /**
  * Get the bundles that can be contestants in a match and build an options
  * array to be used on the match edit form.
- * 
+ *
  * @param $match
  *   The match object for the match being edited.
  * @return array
  *   Returns an $options array of contestants that have not been added to a
  *   tournament yet.
- * 
+ *
  * @see _tourney_match_contestant().
- * @see _tourney_match_contestants_sanitize(). 
+ * @see _tourney_match_contestants_sanitize().
  */
 function _tourney_match_contestants($match) {
   $query = db_select('relation_bundles', 'rb');
@@ -202,7 +214,7 @@ function _tourney_match_contestants($match) {
       // Users don't have bundles, don't look for a bundle on user entities.
       if ($entity_type != 'user') {
         $query->propertyCondition('type', $row->bundle, '=');
-      }            
+      }
       $result = $query->execute();
 
       $entities = array();
@@ -233,16 +245,16 @@ function _tourney_match_contestants($match) {
 
 /**
  * Helper function for a select element options array.
- * 
+ *
  * Ensure that the contestant is not related to any other match in the first
  * round. Remove contestant if already associated with a match in first round.
  * This means that they are already playing in the tournament.
- * 
+ *
  * @param $match
  *   The match object the select options will display on.
  * @param $options
  *   The options array for the select form element.
- * 
+ *
  * @see _tourney_match_contestant().
  */
 function _tourney_match_contestants_sanitize($match, &$options) {
@@ -267,7 +279,7 @@ function _tourney_match_contestants_sanitize($match, &$options) {
       }
     }
   }
-  
+
   // Remove admin accounts from the contestant choices
   if (array_key_exists('user', $options)) {
     foreach ($options['user'] as $id => $user) {
@@ -292,10 +304,10 @@ function tourney_match_form_validate($form, &$form_state) {
   foreach ($form_state['input'] as $id => $value) {
     if (!$value || substr($id, 0, 5) != 'game_') continue;
     if ( !array_key_exists($value, $wins) ) $wins[$value] = 0;
-    $wins[$value]++; 
+    $wins[$value]++;
   }
   foreach ( $wins as $id => $count ) {
-    if ( $count - 1 > $form_state['match']->games / 2 ) 
+    if ( $count - 1 > $form_state['match']->games / 2 )
       form_set_error('', t('A contestant cannot win more games than neccesary to win a match'));
   }
 }
@@ -340,11 +352,11 @@ function tourney_match_form_submit($form, &$form_state) {
       $match->winner = '';
     }
   }
-  
+
   entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
 
   $match->save();
-  
+
   $form_state['redirect'] = $match->getUri();
   drupal_set_message(t('Your match has been saved.'));
 }
@@ -367,7 +379,7 @@ function tourney_game_edit($game) {
 
 /**
  * Format objects to populate a select list
- * 
+ *
  * @param $contestants
  *   An array of contestant objects to format.
  * @return array
@@ -387,11 +399,21 @@ function tourney_format_contestant_options($contestants) {
 function tourney_game_form($form, &$form_state, $game) {
   $game->type = 'game';
   $form_state['game'] = $game;
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#description' => t('The title you enter here appears on the page.'),
+    '#size' => 40,
+    '#maxlength' => 255,
+    '#default_value' => $game->title,
+    '#weight' => -10,
+  );
+  
   $form['winner'] = array(
     '#type' => 'select',
     '#title' => t('Winner'),
     '#description' => t('The winner of this game.'),
-    '#options' => isset($game->contestants) 
+    '#options' => isset($game->contestants)
       ? array('' => t('- Choose Winner -')) + tourney_format_contestant_options($game->contestants)
       : array(),
     '#default_value' => isset($game->winner) ? $game->winner : -1,
@@ -449,12 +471,13 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     '#markup' => $entity->getWinner(),
   );
   $i = 1;
-  foreach ( $entity->getContestants() as $eid => $contestant ) {
-    $entity->content['match_contestants'][$eid] = array(
-      '#prefix' => '<div class="field-label">Contestant ' . $i++ . ':</div><div class="field-content">',
+  foreach ($entity->getContestants() as $eid => $contestant) {
+    $entity->content['match_contestant' . $i] = array(
+      '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="field-content">',
       '#suffix' => '</div>',
       '#markup' => $contestant->entity_name,
     );
+    $i++;
   }
 
   if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
@@ -511,28 +534,28 @@ function tourney_match_get_parents($mid, $depth) {
  * @param $path
  *   The path to the next match in the bracket structure.
  * @return $array
- *   Returns the match object that is on the portion of the bracket stucture 
+ *   Returns the match object that is on the portion of the bracket stucture
  *   that contains the match object and a games array of game objects.
  */
 function tourney_get_match_by_name($bracket_structure, $path) {
   if ($path == 'manual') {
     return NULL;
   }
-  
+
   // Seperate the parts of the match path.
   $parts = explode('_', $path);
 
   // Get just the structure of the next match
   $next_match_structure = $bracket_structure[$parts[0]][$parts[1]];
-  
+
   // Set $id to the round number
   @list(, $id) = explode('-', $parts[3]);
-  
+
   /**
    * The bracket structure should be built in the order of matches. This for
    * loop assumes that the matches will always be in order of match-1, match-2,
    * and so on.
-   * 
+   *
    * Create an iterator for each match, and return the match that has the same
    * match number as the iterator.
    */
@@ -550,19 +573,19 @@ function tourney_get_match_by_name($bracket_structure, $path) {
  */
 function theme_tourney_match_fix($vars) {
   $element = $vars['element'];
-  
+
   // Get the keys of the game form elements in this match render element
   // @see tourney_match_form().
   $children = element_children($element);
-  
+
   // Initialize the header and rows
   $header = array('Team Name');
   $rows   = array();
-  
+
   // Loop through all the games that have started.
   for ($gn = 0; $gn < $element['#games']; $gn++) {
     $header[] = "Game " . ( $gn + 1 );
-    
+
     if ($gn < count($children)) {
       // Get the form element for this game number.
       $game = $element[$children[$gn]];
@@ -577,7 +600,7 @@ function theme_tourney_match_fix($vars) {
     else {
       foreach ($rows as $id => &$row) {
         $row[] = ' - ';
-      } 
+      }
     }
   }
 
