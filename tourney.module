@@ -297,7 +297,7 @@ function tourney_entity_info() {
       'entity keys' => array(
         'id' => 'id',
         'bundle' => 'type',
-        'label' => 'title',
+        'label' => 'label',
       ),
       'bundles' => array(),
       'bundle keys' => array(
