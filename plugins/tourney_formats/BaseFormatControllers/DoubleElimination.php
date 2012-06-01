@@ -9,6 +9,8 @@
  * A class defining how matches are created for this style tournament.
  */
 class DoubleEliminationController extends SingleEliminationController implements TourneyControllerInterface {
+
+  public $directions = array('winner', 'loser');
   /**
    * Theme implementations to register with tourney module.
    * 
@@ -159,11 +161,11 @@ class DoubleEliminationController extends SingleEliminationController implements
     $rounds    = array();
     $static_match_num = &drupal_static('match_num_iterator', 1);
     
-    $tiebreaker = $this->buildMatch($static_match_num, array(), $bracket_info);
+    $tiebreaker = $this->buildMatch($static_match_num, array('id' => 1, 'round-1', 'title' => 'Championship'), $bracket_info);
     $tiebreaker['next_match']['callback'] = 'getNextMatchTiebreaker';
 
     $rounds['rounds']['round-1']['matches']['match-' . $static_match_num++] = $tiebreaker;
-    $rounds['rounds']['round-2']['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num++, array(), $bracket_info);
+    $rounds['rounds']['round-2']['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num++, array('id' => 2, 'round-2', 'title' => 'Tiebreaker'), $bracket_info);
 
     return $rounds;
   }
@@ -251,7 +253,7 @@ class DoubleEliminationController extends SingleEliminationController implements
      // Top Bracket
      if ( $place < $top_matches ) {
        // Last match in the top bracket goes to the champion bracket
-       if ( $place == $bottom_matches ) return $matches - 2;
+       if ( $place == $top_matches - 1 ) return $matches - 2;
        return parent::calculateNextPosition($place);
      }
      // Champion Bracket(s)
@@ -263,7 +265,7 @@ class DoubleEliminationController extends SingleEliminationController implements
      // Bottom Bracket
      else {
        // Get out series to find out how to adjust our place
-       $series = $this->magicSeries($bottom_matches);
+       $series = $this->magicSeries($top_matches - 1);
        return $place + $series[$place-$top_matches];
      }
     }
@@ -271,22 +273,41 @@ class DoubleEliminationController extends SingleEliminationController implements
       // Top Bracket
       if ( $place < $top_matches ) {
         // If we're in the first round of matches, it's rather simple
-        if ( $place < $slots / 2 ) 
-          return parent::calculateNextPosition($place) + ($bottom_matches/2);          
+        $bottom_bracket = $this->tournament->data['bracket-bottom'];
+        if ( $place < $slots / 2 ) {
+          $adj = 0;
+          // Some special adjustment comes in to bump the matches if the first round
+          // of the bottom bracket has no matches.
+          if ( !array_key_exists('matches', $bottom_bracket['rounds']['round-1']) ) {
+            $adj = 1;
+          } 
+          return parent::calculateNextPosition($place) + ($bottom_matches/2) + $adj;
+        }
         // Otherwise, more magical math to determine placement
-        $rev_round = floor(log($top_matches - $place,2));
-        if ( $rev_round % 2 == 0 ) {
+        $rev_round = floor(log($top_matches - $place, 2)) ;
+        // Special adjustments come in on certain rounds of matches that generally
+        // flips them around as such:
+        //
+        // 1, 2, 3, 4, 5, 6, 7, 8
+        //          \/
+        // 5, 6, 7, 8, 1, 2, 3, 4
+        //
+        // and on the special occasions with byes, it can go:
+        //
+        // 6, 5, 8, 7, 2, 1, 4, 3
+        //
+        if ( ( $rev_round - count($this->structure['bracket-top']['rounds']) ) % 2 == 0 ) {
           $round_matches = pow(2, $rev_round);
           $first_match = $top_matches - $round_matches * 2 + 1;
           $this_match = $place - $first_match;
-
-          //return 3 * $first_match + 2 * $round_matches - $place - 2;
-          //return 1 - $place - ( 4 * pow(2, $rev_round) ) + 3 * $top_matches;
-          return $place + $top_matches - ( $this_match * 2 + 1);
-          //krumo(pow(2, floor(log($top_matches - $place, 2))));
-          //krumo($rev_round);
+          $half_matches = $round_matches / 2;
+          $adj = 0;
+          // Same special adjustment from the first round comes into play here in the second round
+          if ( $place < $slots * 0.75 && !array_key_exists('matches', $bottom_bracket['rounds']['round-1']) ) {
+            $adj = $this_match % 2 ? -1 : 1;
+          }
+          return $place + $top_matches - $round_matches + ( ( $this_match < $half_matches ) ? $half_matches : -$half_matches ) + $adj;
         }
-        //krumo(floor(log($top_matches - $place, 2)));
         return $place + $top_matches - pow(2, floor(log($top_matches - $place, 2)));
       }
     }
@@ -369,9 +390,29 @@ class DoubleEliminationController extends SingleEliminationController implements
     return array_reverse($series);
   }
 
+  /**
+   * Given a match place integer, returns the next match place based on either
+   * 'winner' or 'loser' direction. Calls the necessary tournament format plugin
+   * to get its result. This function is specific to the first match in the 
+   * champion bracket.
+   *
+   * @param $match
+   *   Match object to compare with the internal matchIds property to get its
+   *   match placement
+   * @param $direction
+   *   Either 'winner' or 'loser'
+   * @return $match
+   *   Match entity of the desired match, otherwise NULL
+   */
   public function getNextMatchTiebreaker($match, $direction = NULL) {
+    // Get the default next match
     $next = $this->getNextMatch($match, 'winner');
+    // If that match already has contestants, we should return that since it's been started
     if ( $next->getContestantIds() ) return $next;
+    // Otherwise, we're going to load in the other matches and check all the
+    // ones this match's winner has played in to see if he's lost one.
+    // @todo: load in just the last match of the top bracket. If he's in it,
+    // he's won them all.
     $matches = entity_load('tourney_match', $this->tournament->getMatchIds());
     $contestant_matches = array();
     foreach ( $matches as $entity_id => $tournament_match ) {
@@ -387,8 +428,8 @@ class DoubleEliminationController extends SingleEliminationController implements
         break;
       }
     }
+    // If he hasn't lost, return nothing because he's won.
     if ( !$first_loss ) return NULL;
-
     return $next;
   }
   
@@ -429,19 +470,25 @@ class DoubleEliminationController extends SingleEliminationController implements
         $new_matches[] = array_shift($round_info['matches']);
       }
     }
-    
     $round_info['matches'] = $new_matches;
   }
 
+  /**
+   * Emulated an n**2 contestant match, filling in placeholders to take the
+   * place of matches that don't exist in the bottom bracket because of byes.
+   * 
+   */
   public function getFullMatchIds() {
+    // Store the data for quick access on subsequent calls
     static $fullMatchIds = '';
     if ( !$fullMatchIds ) {
       $new_ids = array();
       $ids = $this->tournament->getMatchIds();
+      // Get all the dummy'd up rounds for the bottom bracket.
       $rounds = array();
       foreach ( $this->tournament->data['bracket-bottom']['rounds'] as $r => $round ) {
         $rounds[$r] = $this->fillMatches($round);
-        if ( !$rounds[$r] ) $rounds[$r] = $round['matches'];
+        if ( !$rounds[$r] ) $rounds[$r] = array_key_exists('matches', $round) ? $round['matches'] : NULL;
       }
       if ( $rounds['round-1'] == NULL ) {
         while ( count($rounds['round-1']) < count($rounds['round-2']) ) {
@@ -449,6 +496,9 @@ class DoubleEliminationController extends SingleEliminationController implements
         }
       }
       $matches = array();
+      // Go through our rounds and replace all 'dummy's with negative numbers.
+      // In this way they're unique numbers can can be array flipped, and also
+      // distinct from the (positive) normal match numbers
       $x = -1;
       foreach ( $rounds as $round ) {
         foreach ( $round as $match ) {
@@ -460,6 +510,7 @@ class DoubleEliminationController extends SingleEliminationController implements
           }
         }
       }
+      // Go through all our ids and throw the dummies in when necessary
       foreach ( $ids as $n => $id ) {
         if ( $n < $this->slots - 1 ) {
           $new_ids[] = array_shift($ids);

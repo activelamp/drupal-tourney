@@ -110,12 +110,21 @@ function theme_tourney_matchblock($vars) {
   }
   $output .= '</div>';
 
-  //$previousMatches = $match->previousMatches();
+  // $previousMatches = $match->previousMatches();
   // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
   //    . '<div class="contestant contestant-1">' . $match->entity_id . '</div>'
-  //    . '<div class="contestant contestant-2">' . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : 'NULL' ) . '</div>'
+  //    . '<div class="contestant contestant-2">' 
+  //    . ( array_key_exists(0, $previousMatches) ? $previousMatches[0]->entity_id : 'NULL' ) . ' . ' 
+  //    . ( array_key_exists(1, $previousMatches) ? $previousMatches[1]->entity_id : 'NULL' ) . '</div>'
   //    . '</div>';
-  
+
+  // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
+  //    . '<div class="contestant contestant-1">' . $match->entity_id . '</div>'
+  //    . '<div class="contestant contestant-2">' 
+  //    . ( $match->nextMatch() ? $match->nextMatch()->entity_id : 'NULL' ) . ' . ' 
+  //    . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : (array_key_exists('bye', $match->matchInfo) ? 'BYE' : 'NULL') ) . '</div>'
+  //    . '</div>';
+
   $match_uri = $match->getUri();
   return l($output, $match_uri . ($editable ? "/edit" : ''), array(
     'html' => TRUE,
