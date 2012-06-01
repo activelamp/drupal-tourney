@@ -301,21 +301,17 @@ class TourneyController {
    *   A portion of the structure array that contains the $key_value passed in.
    */
   protected function findMatchInfo($key_value, $structure) {
-    static $return = array();
-    
-    foreach ($structure as $key => $value) {
-      if (is_array($value)) {
-        if ($key == $key_value) {
-          $return = $value;
-          return;
+    // Rewritten, since we know the structure of the brackets
+    foreach ( $structure as $b_name => $bracket ) {
+      foreach ( $bracket['rounds'] as $r_name => $round ) {
+        if ( !array_key_exists('matches', $round) ) continue;
+        foreach ( $round['matches'] as $m_name => $match ) {
+          if ( $m_name == $key_value ) return $match;
         }
-        
-        // Recurse
-        $this->findMatchInfo($key_value, $value);
       }
     }
-    return $return;
   }
+
 }
 
 /**

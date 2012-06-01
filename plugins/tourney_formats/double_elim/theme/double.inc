@@ -237,13 +237,12 @@ function theme_tourney_double_bottom_bracket($vars) {
     // If this is not a feed round, remove one spacing
     if (!$feed_round) $top_pad--;
 
-    $output .= '<div class="round round-' . $r . '">';
     // It's possible in double elim that a bottom round has no matches because
     // byes have eliminated them.
     if (!array_key_exists('matches', $round_info)) {
-      $output .= '</div>';
       continue;
     }
+    $output .= '<div class="round round-' . $r . '">';
     
     // Add spacer matches for bye matches
     $tournament->tourneyFormatPlugin->fillMatches($round_info);
@@ -407,7 +406,7 @@ function theme_tourney_double_champion_bracket($vars) {
   // bracket.
   $output  = '';
   $output .= '<div class="round round-champion">';
-  $output .= theme('tourney_spacer', array('height' => $tournament->players - 1));
+  $output .= theme('tourney_spacer', array('height' => $tournament->tourneyFormatPlugin->slots - 1));
   $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
   //$output .= tourney_matchblock($champ, 'horizontal', 1);
   $output .= theme('tourney_matchblock', array(
@@ -417,7 +416,7 @@ function theme_tourney_double_champion_bracket($vars) {
   ));
   $output .= '</div></div></div>';
   $output .= '<div class="round round-extra">';
-  $output .= theme('tourney_spacer', array('height' => $tournament->players - 1));
+  $output .= theme('tourney_spacer', array('height' => $tournament->tourneyFormatPlugin->slots - 1));
   $output .= '<div class="match-pair"><div class="match-contestant match-contestant-1">';
   //$output .= tourney_matchblock($extra, NULL, 1);
   $output .= theme('tourney_matchblock', array(

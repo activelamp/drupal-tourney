@@ -40,7 +40,7 @@ class TourneyTournament extends TourneyEntity {
       }   
       $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this);
       $this->data = $this->tourneyFormatPlugin->structure();
-      
+
       // Add a url to the object
       $this->uri = $this->getUri();
     }
@@ -314,19 +314,60 @@ class TourneyTournament extends TourneyEntity {
   *   Match entity of the desired match, otherwise NULL 
   */
   public function getNextMatch($match, $direction = 'winner') {
-    // Get the callback for this match
-    $info = $match->matchInfo;
-    if ( !$info ) return NULL;
-    if ( !method_exists($this->tourneyFormatPlugin, $info['next_match']['callback']) ) return NULL;
-    return $this->tourneyFormatPlugin->$info['next_match']['callback']($match, $direction);
+    $plugin =& $this->tourneyFormatPlugin;
+    if ( !array_key_exists($match->entity_id, $plugin->flowMap) ) {
+      $plugin->flowMap[$match->entity_id] = array();
+    }
+    if ( !array_key_exists($direction, $plugin->flowMap[$match->entity_id]) ) {
+      // Get the callback for this match
+      $info = $match->matchInfo;
+      if ( !$info ) return NULL;
+      if ( !method_exists($plugin, $info['next_match']['callback']) ) return NULL;
+      $plugin->flowMap[$match->entity_id][$direction] = $plugin->$info['next_match']['callback']($match, $direction);
+    }
+    return $plugin->flowMap[$match->entity_id][$direction];
   }
 
-  public function getPreviousMatches($match, $direction = 'winner') {
-    // Get the callback for this match
-    $info = $match->matchInfo;
-    if ( !$info ) return NULL;
-    if ( !method_exists($this->tourneyFormatPlugin, $info['previous_matches']['callback']) ) return NULL;
-    return $this->tourneyFormatPlugin->$info['previous_matches']['callback']($match, $direction);
+ /**
+  * Iterate and cache all the tournament's matches' next matches.
+  *
+  */
+  public function populateFlowMap() {
+    static $populated = FALSE;
+    $plugin =& $this->tourneyFormatPlugin;
+    if ( !$populated ) { 
+      $matches = entity_load('tourney_match', $this->getMatchIds());
+      foreach ( $matches as $match ) {
+        foreach ( $plugin->directions as $direction ) {
+          $this->getNextMatch($match, $direction);
+        }
+      }
+      $populated = TRUE;
+    }
+    return $plugin->flowMap;
+  }
+
+ /**
+  * Get the parent matched to the provided match. Logic will go through
+  * and populate the flow map to obtain all next matches and get all
+  * matches who lead to the provided.
+  *
+  * @param $match
+  *   Match object
+  * @return $match
+  *   Array of entities of the desired match
+  */
+  public function getPreviousMatches($match) {
+    $this->populateFlowMap();
+    $plugin =& $this->tourneyFormatPlugin;
+    $matches = array();
+    foreach ( $plugin->flowMap as $pid => $flow ) {
+      foreach ( $flow as $dir => $child ) {
+        if ( $child && $child->entity_id == $match->entity_id )
+          $matches[] = $pid;
+      }
+    }
+    return array_values(entity_load('tourney_match', $matches));
   }
   
   public function render() {
@@ -343,6 +384,14 @@ class TourneyTournament extends TourneyEntity {
     return $output;
   }
 
+  /**
+   * Function to determine if a match can be edited
+   *
+   * @param $match
+   *   Match object
+   * @return
+   *   Boolean of whether the user can edit the match.
+   */
   public function canSetContestants($match) {
     if (user_access("edit tourney") == FALSE) return FALSE;
     $roundinfo = $match->matchInfo['round'];

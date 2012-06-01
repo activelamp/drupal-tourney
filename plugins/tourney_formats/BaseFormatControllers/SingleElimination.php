@@ -15,6 +15,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   protected $rounds;
   protected $matches;
   protected $seedPositions = NULL;
+  public $flowMap = array();
+  public $directions = array('winner');
 
   /**
    * Constructor
@@ -99,7 +101,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    *   An array of match pairs with seed numbers, or NULL for bye slots.
    */
   public function calculateSeedPositions($num_contestants, $reset = FALSE) {    
-    if ($reset || is_null($this->seedPositions)) {
+    if ( $reset || $this->seedPositions === NULL ) {
       // Initialize a the first match in the first round matches.
       $first_round_matches = array(array(1, 2));
       $num_first_round_matches = pow(2, $this->rounds) / 2;
@@ -236,7 +238,6 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function getNextMatch($match, $direction = NULL) {
     $ids = array_flip($this->tournament->getMatchIds());
-    //krumo($ids);
     $next = $this->calculateNextPosition($ids[$match->entity_id], $direction);
     if ( $next === NULL ) return NULL;
     $ids = array_flip($ids);
@@ -285,6 +286,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    *   An array of the tournament structure and meta data.
    */
   public function structure($type = 'rounds') {
+    static $last_type = '';
+    if ( $last_type === $type ) return $this->structure;
+    $last_type = $type; 
     switch ($type) {
       case 'rounds':
         return $this->structure = $this->buildBracketByRounds($this->slots);
