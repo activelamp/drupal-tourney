@@ -1040,13 +1040,13 @@ function tourney_update_alias($entity, $op, array $options = array()) {
       $path['alias'] = trim($path['alias']);
       if ( !empty($path['pid']) && empty($path['alias']) ) {
         path_delete($path['pid']);
-      } 
+      }
       if ( !empty($path['alias']) ) {
         $path['source'] = 'tourney/' . $entity->type . '/' . $entity->id;
         $path['language'] = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
         path_save($path);
       }
-    } 
+    }
     return;
   }
 
@@ -1125,7 +1125,7 @@ function tourney_entity_load($entities, $type) {
     $entity->eid         = $type . '.' . $id;
     $entity->entity_type = $type;
     $entity->entity_id   = $id;
-    $entity->entity_name = !property_exists($entity, 'title')
-      ? (property_exists($entity, 'name') ? $entity->name : 'NONAME') : $entity->title;
+    $entity->entity_name = property_exists($entity, 'name')
+      ? $entity->name : $entity->title;
   }
 }
