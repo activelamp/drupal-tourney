@@ -434,6 +434,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
           'direction' => 'winner',
         ),
       ),
+      'is_won' => array(
+        'callback' => 'matchIsWon',
+      ),
     );
     
     return $match;
@@ -479,11 +482,16 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   }
 
   /**
-   * Runs related functions when a match is won, called from rules.
+   * Callback when a match is won, handles moving contestants
+   *
+   * @param $match
+   *   Match object to win
    */
-  public function winMatch($match) {
-    $match->cleanGames();
-    $match->moveContestants();
-    $match->determineWinner();
+  public function matchIsWon($match) {
+    if (!$match->isFinished()) return;
+    $match->clearWinner();
+    $winner = $match->getWinnerEntity();
+    if ( $match->nextMatch() )
+      $match->nextMatch()->addContestant($winner);
   }
 }

@@ -117,8 +117,7 @@ function tourney_action_game_is_won($match, $quotient) {
     }
   }
   else {
-    $match->getTournament()->tourneyFormatPlugin->winMatch($match);
-    $match->getTournament()->determineWinner();
+    $match->getTournament()->matchIsWon($match);
     $message = t('Players moved to next round');
   }
 

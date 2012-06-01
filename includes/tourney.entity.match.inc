@@ -261,6 +261,14 @@ class TourneyMatch extends TourneyEntity {
     return $this->matchWinner;
   }
 
+  /**
+   * Clears internal properties to reload winner/loser.
+   */
+  public function clearWinner() {
+    $this->matchWinner = NULL;
+    $this->matchLoser = NULL;
+  }
+
   public function getLoser() {
     if ( is_null($this->matchLoser) ) {
       if ( !$this->getWinner() ) return NULL;
@@ -354,21 +362,21 @@ class TourneyMatch extends TourneyEntity {
     // reason, the second match of a match group was saying it was finished
     // before it actually was.
     $tally = array();
-    if (!empty($games)) {
-      foreach ($games as $game) {
-        // Delegate the checking to the game to see if each game is finished
-        if ( array_key_exists($game->winner, $tally) )
-          $tally[$game->winner]++;
-        else
-          $tally[$game->winner] = 1;
-        if (!$game->isFinished()) {
-          return FALSE;
-        }
+    // if empty, it still needs to load games into, therefore is unfinished
+    if ( empty($games) ) return FALSE;
+    foreach ($games as $game) {
+      // Delegate the checking to the game to see if each game is finished
+      if ( array_key_exists($game->winner, $tally) )
+        $tally[$game->winner]++;
+      else
+        $tally[$game->winner] = 1;
+      if (!$game->isFinished()) {
+        return FALSE;
       }
-      asort($tally);
-      $top = array_pop($tally);
-      if ( $top < $this->games / 2 ) return FALSE;
     }
+    asort($tally);
+    $top = array_pop($tally);
+    if ( $top < $this->games / 2 ) return FALSE;
     return TRUE;
   }
 
@@ -382,8 +390,10 @@ class TourneyMatch extends TourneyEntity {
       $keys = array_keys($ranks);
       $this->matchWinner = array_pop($keys);
       // @todo: Why are we using matchWinner instead of winner?
-      $this->winner = $this->matchWinner;
-      $this->save();
+      if ( $this->winner !== $this->matchWinner ) {
+        $this->winner = $this->matchWinner;
+        $this->save();
+      }
     }
     return $this->matchWinner;
   }
@@ -603,44 +613,6 @@ class TourneyMatch extends TourneyEntity {
           $matches = $this->previousMatches();
           $matches[$slot - 1]->addContestant($entity, 1);
       }
-    }
-  }
-
-/**
- * Automatically populate the next matches to this match with the necessary contestants
- */
-  public function moveContestants() {
-    // If this match hasn't been won, we shouldn't be doing anything with the
-    // next matches.
-    if (!$this->isFinished()) return;
-
-    // Set the matchWinner back to NULL so it has to be reloaded
-    $this->matchWinner = NULL;
-    // Instantiate the two origin contestants
-    $winner = NULL;
-    $loser  = NULL;
-    // This loop goes through 'all' the contestants and fills them in the
-    // appropriate winner/loser variables. Since we've only got two contestants,
-    // it's just a glorified abstraction in case we have more contestants later
-    foreach ($this->getContestantIds() as $slot => $contestant) {
-      $entity = entity_load_single($contestant['type'], $contestant['id']);
-      if ($this->getWinner() == $contestant['eid']
-        || array_key_exists('bye', $this->matchInfo) && $this->matchInfo['bye']) {
-        $winner = $entity;
-      }
-      else {
-        $loser = $entity;
-      }
-    }
-
-    // Another code-saving abstraction, use the handy new setContestant to easily
-    // apply the entities to their targets
-    if ($this->nextMatch()) {
-      $this->nextMatch()->addContestant($winner);
-    }
-
-    if ($this->nextMatch('loser') && is_object($loser)) {
-      $this->nextMatch('loser')->addContestant($loser);
     }
   }
 
