@@ -246,7 +246,7 @@ class TourneyTournament extends TourneyEntity {
     //   Patch at - http://drupal.org/node/1558266
     $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
     parent::save();
-    
+
     // Create the matches and first game if new tournament.
     if ($new) {
       $controller = new TourneyController($this);
@@ -334,7 +334,7 @@ class TourneyTournament extends TourneyEntity {
   *
   */
   public function populateFlowMap() {
-    static $populated = FALSE;
+    $populated = &drupal_static(__FUNCTION__, FALSE);
     $plugin =& $this->tourneyFormatPlugin;
     if ( !$populated ) { 
       $matches = entity_load('tourney_match', $this->getMatchIds());
@@ -441,5 +441,14 @@ class TourneyTournament extends TourneyEntity {
     }
 
     return $brackets;
+  }
+
+  public function matchIsWon($match) {
+    $plugin = $this->tourneyFormatPlugin;
+    $info = $match->matchInfo;
+    if ( !$info ) return NULL;
+    if ( !method_exists($plugin, $info['is_won']['callback']) ) return NULL;
+    $plugin->$info['is_won']['callback']($match);
+    $this->determineWinner();
   }
 }

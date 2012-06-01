@@ -238,7 +238,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     $static_match_num = &drupal_static('match_num_iterator', 1);
 
     $tiebreaker = $this->buildMatch($static_match_num, array('id' => 1, 'round-1', 'title' => 'Championship'), $bracket_info);
-    $tiebreaker['next_match']['callback'] = 'getNextMatchTiebreaker';
+    $tiebreaker['is_won']['callback'] = 'tiebreakerIsWon';
 
     $rounds['rounds']['round-1']['matches']['match-' . $static_match_num++] = $tiebreaker;
     $rounds['rounds']['round-2']['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num++, array('id' => 2, 'round-2', 'title' => 'Tiebreaker'), $bracket_info);
@@ -325,18 +325,19 @@ class DoubleEliminationController extends SingleEliminationController implements
     $top_matches = $slots - 1;
     $bottom_matches = $top_matches - 1;
 
+    // Champion Bracket
+    if ( $place >= $matches - 2 ) {
+      // Last match goes nowhere
+      if ( $place == $matches - 1 ) return NULL;
+      return $place + 1;
+    }  
+
     if ( $direction == 'winner' ) {
      // Top Bracket
      if ( $place < $top_matches ) {
        // Last match in the top bracket goes to the champion bracket
        if ( $place == $top_matches - 1 ) return $matches - 2;
        return parent::calculateNextPosition($place);
-     }
-     // Champion Bracket(s)
-     elseif ( $place >= $matches - 2 ) {
-       // Last match goes nowhere
-       if ( $place == $matches - 1 ) return NULL;
-       return $place + 1;
      }
      // Bottom Bracket
      else {
@@ -467,49 +468,6 @@ class DoubleEliminationController extends SingleEliminationController implements
   }
 
   /**
-   * Given a match place integer, returns the next match place based on either
-   * 'winner' or 'loser' direction. Calls the necessary tournament format plugin
-   * to get its result. This function is specific to the first match in the 
-   * champion bracket.
-   *
-   * @param $match
-   *   Match object to compare with the internal matchIds property to get its
-   *   match placement
-   * @param $direction
-   *   Either 'winner' or 'loser'
-   * @return $match
-   *   Match entity of the desired match, otherwise NULL
-   */
-  public function getNextMatchTiebreaker($match, $direction = NULL) {
-    // Get the default next match
-    $next = $this->getNextMatch($match, 'winner');
-    // If that match already has contestants, we should return that since it's been started
-    if ( $next->getContestantIds() ) return $next;
-    // Otherwise, we're going to load in the other matches and check all the
-    // ones this match's winner has played in to see if he's lost one.
-    // @todo: load in just the last match of the top bracket. If he's in it,
-    // he's won them all.
-    $matches = entity_load('tourney_match', $this->tournament->getMatchIds());
-    $contestant_matches = array();
-    foreach ( $matches as $entity_id => $tournament_match ) {
-      if ( $entity_id == $match->entity_id ) continue;
-      foreach ( $tournament_match->getContestants() as $eid => $contestant ) {
-        if ( $eid == $match->getLoser() ) $contestant_matches[$tournament_match->eid] = $tournament_match;
-      }
-    }
-    $first_loss = TRUE;
-    foreach ( $contestant_matches as $eid => $contestant_match ) {
-      if ( $contestant_match->getLoser() == $match->getLoser() ) {
-        $first_loss = FALSE;
-        break;
-      }
-    }
-    // If he hasn't lost, return nothing because he's won.
-    if ( !$first_loss ) return NULL;
-    return $next;
-  }
-
-  /**
    * Fill matches in the bottom bracket that are produced as a result of a bye.
    * Dummy matches are created in the same order that players are seeded. This
    * method fills up an entire round to contain the number of matches without
@@ -628,5 +586,38 @@ class DoubleEliminationController extends SingleEliminationController implements
     }
     if ( !array_key_exists((int)$next, $ids) ) return NULL;
     return entity_load_single('tourney_match', $ids[$next]);
+  }
+
+  /**
+   * Callback when a match is won, handles moving contestants
+   *
+   * @param $match
+   *   Match object to win
+   */
+  public function matchIsWon($match) {
+    if (!$match->isFinished()) return;
+    $match->clearWinner();
+    $winner = $match->getWinnerEntity();
+    $loser  = $match->getLoserEntity();
+    if ( $match->nextMatch() )
+      $match->nextMatch()->addContestant($winner);
+    if ( $match->nextMatch('loser') )
+      $match->nextMatch('loser')->addContestant($loser);
+  }
+
+  /**
+   * Callback when a match is won, handles moving contestants
+   * Override for tiebreaker match
+   *
+   * @param $match
+   *   Match object to win
+   */
+  public function tiebreakerIsWon($match) {
+    $match->clearWinner();
+    $winner = $match->getWinnerEntity();
+    $previousMatches = $match->previousMatches();
+    $top    = $previousMatches[0];
+    if ( $top->getWinner() == $winner->eid ) return;
+    return $this->matchIsWon($match);
   }
 }
