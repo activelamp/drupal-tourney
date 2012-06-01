@@ -54,7 +54,77 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => isset($tourney->players) ? $tourney->players : '',
   );
 
-  $form['status'] = array(
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#weight' => 99,
+  );
+
+  $path = array();
+  if ( !empty($tourney->entity_id) ) {
+    $conditions = array('source' => 'tourney/tournament/' . $tourney->entity_id);
+    $path = path_load($conditions);
+    if ( $path === FALSE ) {
+      $path = array();
+    }
+  }
+
+  $form['path'] = array(    
+    '#type' => 'fieldset', 
+    '#title' => t('URL path settings'), 
+    '#collapsible' => TRUE, 
+    '#collapsed' => empty($path['alias']), 
+    '#group' => 'additional_settings', 
+    '#attributes' => array(
+      'class' => array('path-form'),
+    ), 
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'path') . '/path.js'),
+    ), 
+    '#access' => user_access('create url aliases') || user_access('administer url aliases'), 
+    '#weight' => 30, 
+    '#tree' => TRUE, 
+    '#element_validate' => array('path_form_element_validate'),
+  );
+
+  $path += array(
+    'pid' => NULL, 
+    'source' => isset($tourney->entity_id) ? 'tourney/tournament/' . $tourney->entity_id : NULL, 
+    'alias' => '', 
+    'language' => isset($tourney->language) ? $tourney->language : LANGUAGE_NONE,
+  );
+
+  $form['path']['alias'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('URL alias'), 
+    '#default_value' => $path['alias'], 
+    '#maxlength' => 255, 
+    '#collapsible' => TRUE, 
+    '#collapsed' => TRUE, 
+    '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
+  );
+  $form['path']['pid'] = array(
+    '#type' => 'value',
+    '#value' => $path['pid'],
+  );
+  $form['path']['source'] = array(
+    '#type' => 'value',
+    '#value' => $path['source'],
+  );
+  $form['path']['language'] = array(
+    '#type' => 'value',
+    '#value' => $path['language'],
+  );
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 95,
+  );
+
+  $form['options']['status'] = array(
     '#type' => 'checkbox',
     '#title' => t('Published'),
     '#default_value' => isset($tourney->status) ? $tourney->status : 0,

@@ -287,7 +287,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function structure($type = 'rounds') {
     static $last_type = '';
-    if ( $last_type === $type ) return $this->structure;
+    if ( $last_type === $type && property_exists($this, 'structure') ) return $this->structure;
     $last_type = $type; 
     switch ($type) {
       case 'rounds':
