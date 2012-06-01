@@ -57,6 +57,18 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['match'] = $match;
+  
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#description' => t('The title you enter here appears on the page.'),
+    '#size' => 40,
+    '#maxlength' => 255,
+    '#default_value' => $match->title,
+    '#weight' => -10
+  );
+  
+  
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
@@ -387,6 +399,16 @@ function tourney_format_contestant_options($contestants) {
 function tourney_game_form($form, &$form_state, $game) {
   $game->type = 'game';
   $form_state['game'] = $game;
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#description' => t('The title you enter here appears on the page.'),
+    '#size' => 40,
+    '#maxlength' => 255,
+    '#default_value' => $game->title,
+    '#weight' => -10,
+  );
+  
   $form['winner'] = array(
     '#type' => 'select',
     '#title' => t('Winner'),
