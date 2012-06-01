@@ -57,18 +57,17 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['match'] = $match;
-  
-  $form['title'] = array(
+
+  $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
     '#description' => t('The title you enter here appears on the page.'),
     '#size' => 40,
     '#maxlength' => 255,
     '#default_value' => $match->title,
-    '#weight' => -10
+    '#weight' => -10,
   );
-  
-  
+
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
@@ -101,7 +100,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#type' => 'textfield',
     '#title' => t('Games'),
     '#description' => t('Enter the number of games in this match'),
-    '#size' => 40,
+    '#size' => 4,
     '#maxlength' => 255,
     '#default_value' => $match->games,
     '#required' => TRUE,
@@ -318,6 +317,8 @@ function tourney_match_form_validate($form, &$form_state) {
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
 
+  $match->title = $form_state['input']['label'];
+
   if (array_key_exists('contestant1', $form_state['input'])) {
     if ( $eid = $form_state['input']['contestant1'] ) {
       @list($type, $id) = explode('.', $eid);
@@ -399,7 +400,7 @@ function tourney_format_contestant_options($contestants) {
 function tourney_game_form($form, &$form_state, $game) {
   $game->type = 'game';
   $form_state['game'] = $game;
-  $form['title'] = array(
+  $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
     '#description' => t('The title you enter here appears on the page.'),
@@ -408,7 +409,7 @@ function tourney_game_form($form, &$form_state, $game) {
     '#default_value' => $game->title,
     '#weight' => -10,
   );
-  
+
   $form['winner'] = array(
     '#type' => 'select',
     '#title' => t('Winner'),
@@ -441,6 +442,7 @@ function tourney_game_form_submit($form, &$form_state) {
   drupal_set_message(t('Your game has been saved.'));
 
   $game = $form_state['game'];
+  $game->title = $form_state['input']['label'];
   entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
   tourney_game_save($game);
 
@@ -456,6 +458,11 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   );
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+  );
+  $entity->content['title'] = array(
+    '#prefix' => '<div class="title">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->title,
   );
   $entity->content['tournament'] = array(
     '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
@@ -492,6 +499,11 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
  * Implements hook_ENTITY_view().
  */
 function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en') {
+  $entity->content['title'] = array(
+    '#prefix' => '<div class="title">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->title,
+  );
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'
   );
