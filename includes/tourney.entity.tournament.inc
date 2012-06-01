@@ -17,6 +17,7 @@ class TourneyTournament extends TourneyEntity {
   private $tournamentWinner = NULL;
   private $tournamentMatches = NULL;
   public  $status;
+  public  $path = array();
 
   public $tourneyFormatPlugin = NULL;
 

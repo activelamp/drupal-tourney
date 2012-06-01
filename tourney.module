@@ -764,6 +764,7 @@ function tourney_game_load_multiple($ids = array(), $conditions = array(), $rese
  * Implements hook_entity_insert().
  */
 function tourney_entity_insert($entity, $type) {
+  $entity->entity_type = $type;
   if (is_subclass_of($entity, 'TourneyEntity')) {
     tourney_update_alias($entity, 'insert');
   }
@@ -1033,6 +1034,22 @@ function tourney_update_alias($entity, $op, array $options = array()) {
     return;
   }
 
+  if ( isset($entity->path['pathauto']) && empty($entity->path['pathauto']) ) {
+    if ( isset($entity->path) ) {
+      $path = $entity->path;
+      $path['alias'] = trim($path['alias']);
+      if ( !empty($path['pid']) && empty($path['alias']) ) {
+        path_delete($path['pid']);
+      } 
+      if ( !empty($path['alias']) ) {
+        $path['source'] = 'tourney/' . $entity->type . '/' . $entity->id;
+        $path['language'] = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+        path_save($path);
+      }
+    } 
+    return;
+  }
+
   /*
   $options += array(
     'language' => isset($node->language) ? $node->language : LANGUAGE_NONE,
@@ -1044,7 +1061,7 @@ function tourney_update_alias($entity, $op, array $options = array()) {
   if (!pathauto_pattern_load_by_entity($entity->entity_type, $entity->type)) {
     // Remove the alias if a pattern is no longer given.
     $uri = tourney_uri($entity);
-    pathauto_entity_path_delete_all($entity->entity_type, $entity, $uri);
+    pathauto_entity_path_delete_all($entity->type, $entity, $uri);
     return;
   }
 

@@ -118,6 +118,9 @@ class RoundRobinController extends TourneyController implements TourneyControlle
    */
   protected function buildMatch($match_num, $round_num) {
     return array(
+      'bracket' => array(
+        'id' => 'main',
+      ),
       'round' => array(
         'id' => $round_num
       ),
