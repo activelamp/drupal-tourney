@@ -169,7 +169,8 @@ class DoubleEliminationController extends SingleEliminationController implements
 
     if ($round_num > 1) {
       $matches_in_round = $this->getNumMatchesInLoserRound($slots, $round_num);
-      for ($i = 0; $i < $matches_in_round; ++$i) {
+      $children = ($round_num % 2) + 1;
+      for ($i = 0; $i < $children; ++$i) {
         $child_match_num = ($match_num - $matches_in_round) + $i;
         $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $bracket_info);
       }
@@ -346,8 +347,8 @@ class DoubleEliminationController extends SingleEliminationController implements
       // Top Bracket
       if ( $place < $top_matches ) {
         // If we're in the first round of matches, it's rather simple
-        if ( $place < $slots / 2 ) 
-          return parent::calculateNextPosition($place) + ($bottom_matches/2);          
+        if ( $place < $slots / 2 )
+          return parent::calculateNextPosition($place) + ($bottom_matches/2);
         // Otherwise, more magical math to determine placement
         $rev_round = floor(log($top_matches - $place,2));
         if ( $rev_round % 2 == 0 ) {
@@ -549,7 +550,7 @@ class DoubleEliminationController extends SingleEliminationController implements
       $fullMatchIds = $new_ids;
     }
     return $fullMatchIds;
-  } 
+  }
 
   /**
    * Given a match place integer, returns the next match place based on either
