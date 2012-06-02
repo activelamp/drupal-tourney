@@ -1126,6 +1126,6 @@ function tourney_entity_load($entities, $type) {
     $entity->entity_type = $type;
     $entity->entity_id   = $id;
     $entity->entity_name = property_exists($entity, 'name')
-      ? $entity->name : $entity->title;
+      ? $entity->name : ( property_exists($entity, 'title') ? $entity->title : NULL );
   }
 }
