@@ -448,6 +448,7 @@ class TourneyTournament extends TourneyEntity {
     $info = $match->matchInfo;
     if ( !$info ) return NULL;
     if ( !method_exists($plugin, $info['is_won']['callback']) ) return NULL;
+    $match->cleanGames();
     $plugin->$info['is_won']['callback']($match);
     $this->determineWinner();
   }

@@ -384,6 +384,7 @@ class TourneyMatch extends TourneyEntity {
    * Set the winner property to the winner of this match.
    */
   public function determineWinner() {
+    $this->MatchWinner = NULL;
     if ($this->isFinished()) {
       $ranks = $this->fetchRanks();
       asort($ranks);

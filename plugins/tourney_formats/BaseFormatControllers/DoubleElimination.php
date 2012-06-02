@@ -278,6 +278,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     $match_count = $this->getBottomMatchCount($slots, $round_num);
     for ($i = 1; $i <= $match_count; $i++) {
       $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num, $round_info, $bracket_info);
+      $round['matches']['match-' . $static_match_num]['is_won']['callback'] = 'bottomMatchIsWon';
       $static_match_num++;
     }
 
@@ -293,15 +294,27 @@ class DoubleEliminationController extends SingleEliminationController implements
    * @see SingleEliminationController::isFinished().
    */
   public function isFinished($tournament) {
+    // dpm(debug_backtrace());
     $ids = $tournament->getMatchIds();
+    // dpm("A");
     $tiebreaker = entity_load_single('tourney_match', array_pop($ids));
     $champion   = entity_load_single('tourney_match', array_pop($ids));
+    // dpm("B");
+    // dpm($tiebreaker);
+    $tiebreaker->contestantIds = NULL;
     if ( $tiebreaker->getContestantIds() ) {
+    // dpm("J");
       if ( $tiebreaker->getWinner() ) return TRUE;
+    // dpm("C");
       return FALSE;
     }
+    // dpm("D");
+    $champion->contestantIds = NULL;
     if ( $champion->getContestantIds() ) {
+    // dpm("E");
+    // dpm($champion->getWinner());
       if ( $champion->getWinner() ) return TRUE;
+    // dpm("F");
     }
     return FALSE;
   }
@@ -599,10 +612,36 @@ class DoubleEliminationController extends SingleEliminationController implements
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
     $loser  = $match->getLoserEntity();
+    $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
     if ( $match->nextMatch() )
-      $match->nextMatch()->addContestant($winner);
-    if ( $match->nextMatch('loser') )
-      $match->nextMatch('loser')->addContestant($loser);
+      $match->nextMatch()->addContestant($winner, $slot);
+    if ( $match->nextMatch('loser') ) {
+      if ( $match->matchInfo['round']['id'] > 1 ) $slot = 1;
+      $match->nextMatch('loser')->addContestant($loser, $slot);
+    }
+  }
+
+  public function bottomMatchIsWon($match) {
+    if (!$match->isFinished()) return;
+    $tournament = $match->getTournament();
+    $bottomBracket = $tournament->data['bracket-bottom']['rounds'];
+    $roundId = $match->matchInfo['round']['id'];
+
+    $thisRound = $bottomBracket['round-' . $roundId];
+    $nextRound = NULL;
+    if ( array_key_exists('round-' . ($roundId + 1), $bottomBracket) )
+      $nextRound = $bottomBracket['round-' . ($roundId + 1)];
+
+    $match->clearWinner();
+    $winner = $match->getWinnerEntity();
+    if ( !$winner ) return;
+    $slot = $match->matchInfo['id'] % 2 ? 2 : 1;
+    if ( $nextRound && count($thisRound['matches']) == count($nextRound['matches']) ) {
+      $slot = 2;
+    }
+    krumo($winner);
+    if ( $match->nextMatch() )
+      $match->nextMatch()->addContestant($winner, $slot);
   }
 
   /**
@@ -615,6 +654,7 @@ class DoubleEliminationController extends SingleEliminationController implements
   public function tiebreakerIsWon($match) {
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
+    if ( !$winner ) return;
     $previousMatches = $match->previousMatches();
     $top    = $previousMatches[0];
     if ( $top->getWinner() == $winner->eid ) return;

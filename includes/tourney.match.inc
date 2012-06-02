@@ -11,6 +11,7 @@
  * Show the tournament page.
  */
 function tourney_match_page_view($match) {
+  // krumo($match->matchInfo);
   return $match->view('full', NULL, TRUE);
 }
 
@@ -279,11 +280,13 @@ function _tourney_match_contestants_sanitize($match, &$options) {
     }
   }
 
+  // special case naming occurs with different bundled node types
+  $userkey = array_key_exists('user', $options) ? 'user' : ( array_key_exists('user - user', $options) ? 'user - user' : NULL );
   // Remove admin accounts from the contestant choices
-  if (array_key_exists('user', $options)) {
-    foreach ($options['user'] as $id => $user) {
+  if ( $userkey ) {
+    foreach ($options[$userkey] as $id => $user) {
       if (str_replace("user.", "", $id) <= 1) {
-        unset($options['user'][$id]);
+        unset($options[$userkey][$id]);
       }
     }
   }
