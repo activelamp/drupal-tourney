@@ -1095,7 +1095,7 @@ function tourney_get_name_part($name, $part) {
 }
 
 function tourney_initialize_configuration() {
-  global $tourney_config;
+  global $_tourney_config;
 
   if ( $cached = cache_get('configuration', 'cache_tourney') ) {
     $config = $cached->data;
@@ -1117,7 +1117,7 @@ function tourney_initialize_configuration() {
     }
   }
 
-  $tourney_config = $config;
+  $_tourney_config = $config;
   return $config;
 }
 

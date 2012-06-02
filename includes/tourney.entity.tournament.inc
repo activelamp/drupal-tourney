@@ -379,7 +379,7 @@ class TourneyTournament extends TourneyEntity {
     $classes_array[] = $this->get('hide_byes', TOURNEY_HIDE_BYES) 
         ? 'hide-byes' : '';
     
-    $output = "<div class='". join(" ", $classes_array)."'><div class='tourney-inner'>";
+    $output = "<div class='" . join(" ", $classes_array) . "'><div class='tourney-inner'>";
     $output .= $this->tourneyFormatPlugin->render();
     $output .= "</div></div>";
     return $output;
@@ -465,15 +465,15 @@ class TourneyTournament extends TourneyEntity {
     if ( !property_exists($this, 'entity_id') )
       return isset($this->config[$name]) ? $this->config[$name] : $default;
 
-    global $tourney_config;
-    if ( !isset($tourney_config) ) tourney_initialize_configuration();
+    global $_tourney_config;
+    if ( !isset($_tourney_config) ) tourney_initialize_configuration();
 
-    return isset($tourney_config[$this->id][$name]) ? $tourney_config[$this->id][$name] : $default;
+    return isset($_tourney_config[$this->id][$name]) ? $_tourney_config[$this->id][$name] : $default;
   }
 
   public function set($name, $value) {
-    global $tourney_config;
-    if ( !isset($tourney_config) ) tourney_initialize_configuration();
+    global $_tourney_config;
+    if ( !isset($_tourney_config) ) tourney_initialize_configuration();
 
     db_merge('tourney')
       ->key(array(
@@ -487,6 +487,6 @@ class TourneyTournament extends TourneyEntity {
 
     cache_clear_all('configuration', 'cache_tourney');
 
-    $tourney_config[$this->id][$name] = $value;
+    $_tourney_config[$this->id][$name] = $value;
   }
 }

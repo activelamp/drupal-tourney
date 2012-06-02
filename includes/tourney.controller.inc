@@ -13,7 +13,7 @@ define('MAXIMUM_ROUNDS', 5);
  * tourney tournament.
  */
 class TourneyController {
-  private static $controller = null;
+  private static $controller = NULL;
   protected $tourneyFormatPlugin;
   protected $matches;
   protected $tournament;
@@ -170,7 +170,7 @@ class TourneyController {
     $matches = tourney_match_load_multiple($match_ids);
     
     foreach ($matches as $match) {
-      if ($match->name == $this->tournament->name . '_match-'. $match_num) {
+      if ( $match->name == $this->tournament->name . '_match-' . $match_num ) {
         return $match;
       }
     }
