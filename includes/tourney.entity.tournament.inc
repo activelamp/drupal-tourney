@@ -462,10 +462,13 @@ class TourneyTournament extends TourneyEntity {
   }
 
   public function get($name, $default = NULL) {
+    if ( !property_exists($this, 'entity_id') )
+      return isset($this->config[$name]) ? $this->config[$name] : $default;
+
     global $tourney_config;
     if ( !isset($tourney_config) ) tourney_initialize_configuration();
 
-    return isset($tourney_config[$this->entity_id][$name]) ? $tourney_config[$this->entity_id][$name] : $default;
+    return isset($tourney_config[$this->id][$name]) ? $tourney_config[$this->id][$name] : $default;
   }
 
   public function set($name, $value) {
@@ -474,7 +477,7 @@ class TourneyTournament extends TourneyEntity {
 
     db_merge('tourney')
       ->key(array(
-        'id'   => $this->entity_id,
+        'id'   => $this->id,
         'type' => $name,
       ))
       ->fields(array(
@@ -484,6 +487,6 @@ class TourneyTournament extends TourneyEntity {
 
     cache_clear_all('configuration', 'cache_tourney');
 
-    $tourney_config[$this->entity_id][$name] = $value;
+    $tourney_config[$this->id][$name] = $value;
   }
 }

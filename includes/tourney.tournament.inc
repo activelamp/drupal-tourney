@@ -95,7 +95,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#type' => 'select',
     '#title' => t('Match Bundle'),
     '#description' => t('Select which bundle to use for this tournament\'s matches'),
-    '#options' => array_keys(field_info_bundles('tourney_match')),
+    '#options' => drupal_map_assoc(array_keys(field_info_bundles('tourney_match'))),
     '#default_value' => $tourney->get('match_bundle', 'match'),
   );
 
@@ -103,7 +103,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#type' => 'select',
     '#title' => t('Game Bundle'),
     '#description' => t('Select which bundle to use for this tournament\'s games'),
-    '#options' => array_keys(field_info_bundles('tourney_game')),
+    '#options' => drupal_map_assoc(array_keys(field_info_bundles('tourney_game'))),
     '#default_value' => $tourney->get('game_bundle', 'game'),
   );
 
@@ -224,6 +224,15 @@ function tourney_tournament_delete_submit($form, &$form_state) {
 function tourney_tournament_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
+
+  if ( !isset($tourney->entity_id) ) {
+    $tourney->config = array();
+    foreach ( $form_state['values'] as $key => $value ) {
+      if ( substr($key, 0, 7) != 'config_' ) continue;
+      $tourney->config[substr($key, 7)] = $value; 
+    }
+  } 
+
   tourney_tournament_save($tourney);
 
   foreach ( $form_state['values'] as $key => $value ) {
