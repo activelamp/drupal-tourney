@@ -11,7 +11,6 @@
  * Show the tournament page.
  */
 function tourney_match_page_view($match) {
-  // krumo($match->matchInfo);
   return $match->view('full', NULL, TRUE);
 }
 

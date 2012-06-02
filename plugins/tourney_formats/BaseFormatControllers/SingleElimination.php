@@ -185,6 +185,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    *   Returns $this for chaining.
    */
   public function determineWinner($tournament) {
+    if ( !$this->isFinished($tournament) ) return $tournament;
     $ranks = $tournament->fetchRanks();
     $standings = $tournament->getStandings();
 
@@ -491,7 +492,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
     if (!$match->isFinished()) return;
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
+    $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
     if ( $match->nextMatch() )
-      $match->nextMatch()->addContestant($winner);
+      $match->nextMatch()->addContestant($winner, $slot);
   }
 }

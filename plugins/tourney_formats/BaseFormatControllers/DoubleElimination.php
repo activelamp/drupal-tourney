@@ -294,27 +294,17 @@ class DoubleEliminationController extends SingleEliminationController implements
    * @see SingleEliminationController::isFinished().
    */
   public function isFinished($tournament) {
-    // dpm(debug_backtrace());
     $ids = $tournament->getMatchIds();
-    // dpm("A");
     $tiebreaker = entity_load_single('tourney_match', array_pop($ids));
     $champion   = entity_load_single('tourney_match', array_pop($ids));
-    // dpm("B");
-    // dpm($tiebreaker);
     $tiebreaker->contestantIds = NULL;
     if ( $tiebreaker->getContestantIds() ) {
-    // dpm("J");
       if ( $tiebreaker->getWinner() ) return TRUE;
-    // dpm("C");
       return FALSE;
     }
-    // dpm("D");
     $champion->contestantIds = NULL;
     if ( $champion->getContestantIds() ) {
-    // dpm("E");
-    // dpm($champion->getWinner());
       if ( $champion->getWinner() ) return TRUE;
-    // dpm("F");
     }
     return FALSE;
   }
@@ -636,10 +626,9 @@ class DoubleEliminationController extends SingleEliminationController implements
     $winner = $match->getWinnerEntity();
     if ( !$winner ) return;
     $slot = $match->matchInfo['id'] % 2 ? 2 : 1;
-    if ( $nextRound && count($thisRound['matches']) == count($nextRound['matches']) ) {
+    if ( $nextRound && count($thisRound['matches']) <= count($nextRound['matches']) ) {
       $slot = 2;
     }
-    krumo($winner);
     if ( $match->nextMatch() )
       $match->nextMatch()->addContestant($winner, $slot);
   }
