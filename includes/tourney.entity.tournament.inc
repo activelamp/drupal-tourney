@@ -443,6 +443,14 @@ class TourneyTournament extends TourneyEntity {
     return $brackets;
   }
 
+  /**
+   * Rules called function, usually, to run win code on a match
+   * Calls the plugin specific callback, if there, then checks
+   * internally if the tournament's been given a winner
+   *
+   * @param $match
+   *   match object to run win code on
+   */
   public function matchIsWon($match) {
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;

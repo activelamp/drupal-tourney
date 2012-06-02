@@ -599,20 +599,31 @@ class DoubleEliminationController extends SingleEliminationController implements
    */
   public function matchIsWon($match) {
     if (!$match->isFinished()) return;
+    // clear winners to ensure new winners are loaded
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
     $loser  = $match->getLoserEntity();
+    // odd matches go to top slot, even to bottom
     $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
     if ( $match->nextMatch() )
       $match->nextMatch()->addContestant($winner, $slot);
     if ( $match->nextMatch('loser') ) {
+      // if we're not in the first round, send the loser to the top slot
       if ( $match->matchInfo['round']['id'] > 1 ) $slot = 1;
       $match->nextMatch('loser')->addContestant($loser, $slot);
     }
   }
 
+  /**
+   * Callback when a match is won, handles moving contestants
+   * Override for bottom round matches
+   *
+   * @param $match
+   *   Match object to win
+   */
   public function bottomMatchIsWon($match) {
     if (!$match->isFinished()) return;
+    // set up some values to determine our placement in the bottom bracket
     $tournament = $match->getTournament();
     $bottomBracket = $tournament->data['bracket-bottom']['rounds'];
     $roundId = $match->matchInfo['round']['id'];
@@ -625,8 +636,12 @@ class DoubleEliminationController extends SingleEliminationController implements
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
     if ( !$winner ) return;
+    // odd bottom, even top 
+    // (because first match is an even number instead of odd like top)
     $slot = $match->matchInfo['id'] % 2 ? 2 : 1;
     if ( $nextRound && count($thisRound['matches']) <= count($nextRound['matches']) ) {
+      // however, if we're feeding into a round that pulls losers from the top bracket
+      // we'll throw our winner into the bottom slot
       $slot = 2;
     }
     if ( $match->nextMatch() )
@@ -644,9 +659,14 @@ class DoubleEliminationController extends SingleEliminationController implements
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
     if ( !$winner ) return;
+    // check the previous match (last match in the top bracket)
+    // to see if the winner of that was the winner of this
+    // because if that's the case, we're not going anywhere
+    // with our contestants 
     $previousMatches = $match->previousMatches();
     $top    = $previousMatches[0];
     if ( $top->getWinner() == $winner->eid ) return;
+    // otherwise we've got to head to the last match to break this tie
     return $this->matchIsWon($match);
   }
 }

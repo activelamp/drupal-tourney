@@ -490,8 +490,10 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function matchIsWon($match) {
     if (!$match->isFinished()) return;
+    // clear winner and loser so we can get a fresh winner, just in case
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
+    // odd matches go to top slot, evens to bottom
     $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
     if ( $match->nextMatch() )
       $match->nextMatch()->addContestant($winner, $slot);
