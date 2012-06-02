@@ -97,6 +97,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#description' => t('Select which bundle to use for this tournament\'s matches'),
     '#options' => drupal_map_assoc(array_keys(field_info_bundles('tourney_match'))),
     '#default_value' => $tourney->get('match_bundle', 'match'),
+    '#disabled' => isset($tourney->id) ? TRUE : FALSE,
   );
 
   $form['bundles']['config_game_bundle'] = array(
@@ -105,6 +106,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#description' => t('Select which bundle to use for this tournament\'s games'),
     '#options' => drupal_map_assoc(array_keys(field_info_bundles('tourney_game'))),
     '#default_value' => $tourney->get('game_bundle', 'game'),
+    '#disabled' => isset($tourney->id) ? TRUE : FALSE,
   );
 
   $path = array();

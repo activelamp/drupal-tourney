@@ -642,7 +642,7 @@ class TourneyMatch extends TourneyEntity {
     $this->cleanGames();
     $game_count = count($this->getGameIds());
     $game = new TourneyGame(array(
-      'type'  => 'game',
+      'type'  => $this->getTournament()->get('game_bundle', 'game'),
       'title' => 'Game ' . ++$game_count,
       'name'  => $this->name . '_game-' . ++$game_count,
     ));
