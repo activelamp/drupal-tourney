@@ -70,16 +70,41 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
 
   $form['tourney']['config_hide_byes'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Hide byes'),
+    '#title' => t('Hide Byes'),
     '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
     '#default_value' => $tourney->get('hide_byes', FALSE),
   );
 
   $form['tourney']['config_show_crowns'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Show crowns'),
+    '#title' => t('Show Crowns'),
     '#description' => t('Show unicode crown character on winning contestants.'),
     '#default_value' => $tourney->get('show_crowns', FALSE),
+  );
+
+  $form['bundles'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Tournament Bundles',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 10,
+  );
+
+  $form['bundles']['config_match_bundle'] = array(
+    '#type' => 'select',
+    '#title' => t('Match Bundle'),
+    '#description' => t('Select which bundle to use for this tournament\'s matches'),
+    '#options' => array_keys(field_info_bundles('tourney_match')),
+    '#default_value' => $tourney->get('match_bundle', 'match'),
+  );
+
+  $form['bundles']['config_game_bundle'] = array(
+    '#type' => 'select',
+    '#title' => t('Game Bundle'),
+    '#description' => t('Select which bundle to use for this tournament\'s games'),
+    '#options' => array_keys(field_info_bundles('tourney_game')),
+    '#default_value' => $tourney->get('game_bundle', 'game'),
   );
 
   $path = array();
