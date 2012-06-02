@@ -59,6 +59,29 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => 99,
   );
 
+  $form['tourney'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Tournament Settings',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 0,
+  );
+
+  $form['tourney']['config_hide_byes'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide byes'),
+    '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
+    '#default_value' => $tourney->get('hide_byes', FALSE),
+  );
+
+  $form['tourney']['config_show_crowns'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show crowns'),
+    '#description' => t('Show unicode crown character on winning contestants.'),
+    '#default_value' => $tourney->get('show_crowns', FALSE),
+  );
+
   $path = array();
   if ( !empty($tourney->entity_id) ) {
     $conditions = array('source' => 'tourney/tournament/' . $tourney->entity_id);
@@ -177,6 +200,11 @@ function tourney_tournament_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
   tourney_tournament_save($tourney);
+
+  foreach ( $form_state['values'] as $key => $value ) {
+    if ( substr($key, 0, 7) != 'config_' ) continue;
+    $tourney->set(substr($key, 7), $value); 
+  }
   
   drupal_set_message(t('Your tournament has been saved.'));
   $form_state['redirect'] = $tourney->getUri();

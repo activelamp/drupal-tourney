@@ -125,7 +125,6 @@ function theme_tourney_admin_content($variables) {
       $tournament->winner,
       user_access('access tourney') ? l(t('View'), $uri . '') : '',
       user_access('edit tourney') ? l(t('Edit'), $uri . '/edit') : '',
-      //TODO : implement delete
       user_access('delete tourney') ? l(t('Delete'), $uri . '/delete') : '',
     );
   }

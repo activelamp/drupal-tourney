@@ -646,7 +646,7 @@ function tourney_access($op = 'view', $group = NULL, $account = NULL) {
       return user_access('edit tournament');
 
     case 'delete':
-     return user_access('delete tournament');
+      return user_access('delete tournament');
   }
 
   return FALSE;
@@ -1094,8 +1094,32 @@ function tourney_get_name_part($name, $part) {
   }
 }
 
+function tourney_initialize_configuration() {
+  global $tourney_config;
 
+  if ( $cached = cache_get('configuration', 'cache_tourney') ) {
+    $config = $cached->data;
+  }
+  else {
+    $name = 'tourney_variable_init';
+    if ( !lock_acquire($name, 1) ) {
+      lock_wait($name);
+      return tourney_initialize_configuration();
+    }
+    else {
+      $config = array();
+      $query = db_query('SELECT id, type, value FROM {tourney}');
+      foreach ( $query->fetchAll() as $row ) {
+        $config[$row->id][$row->type] = unserialize($row->value);
+      }
+      cache_set('configuration', $config, 'cache_tourney');
+      lock_release($name);
+    }
+  }
 
+  $tourney_config = $config;
+  return $config;
+}
 
 
 // POSSIBLE ENTITY MODULE PATCHES:

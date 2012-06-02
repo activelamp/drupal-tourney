@@ -376,7 +376,7 @@ class TourneyTournament extends TourneyEntity {
     
     // Build a classes array for the tournament wrapper
     $classes_array = array('tourney', "tourney-" . $info['machine name']);
-    $classes_array[] = variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES) 
+    $classes_array[] = $this->get('hide_byes', TOURNEY_HIDE_BYES) 
         ? 'hide-byes' : '';
     
     $output = "<div class='". join(" ", $classes_array)."'><div class='tourney-inner'>";
@@ -407,12 +407,12 @@ class TourneyTournament extends TourneyEntity {
   /**
    * Deprecated function. Use the structure in plugin instead.
    * 
-   * Return all the matches that have a relation 'has_match' with the passed in
-   * tournament object.
+   * Return all the matches that have a relation 'has_match' with the passed 
+   * in tournament object.
    *
    * @param $raw
-   *   If set to true only return the matches, do not return brackets and rounds
-   *   with it.
+   *   If set to true only return the matches, do not return brackets and 
+   *   rounds with it.
    * @param $reset
    *   Boolean to reset the cache.
    * @return
@@ -459,5 +459,31 @@ class TourneyTournament extends TourneyEntity {
     $match->cleanGames();
     $plugin->$info['is_won']['callback']($match);
     $this->determineWinner();
+  }
+
+  public function get($name, $default = NULL) {
+    global $tourney_config;
+    if ( !isset($tourney_config) ) tourney_initialize_configuration();
+
+    return isset($tourney_config[$this->entity_id][$name]) ? $tourney_config[$this->entity_id][$name] : $default;
+  }
+
+  public function set($name, $value) {
+    global $tourney_config;
+    if ( !isset($tourney_config) ) tourney_initialize_configuration();
+
+    db_merge('tourney')
+      ->key(array(
+        'id'   => $this->entity_id,
+        'type' => $name,
+      ))
+      ->fields(array(
+        'value' => serialize($value)
+      ))
+      ->execute();
+
+    cache_clear_all('configuration', 'cache_tourney');
+
+    $tourney_config[$this->entity_id][$name] = $value;
   }
 }

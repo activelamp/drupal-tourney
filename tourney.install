@@ -456,7 +456,7 @@ function tourney_update_7003() {
         'not null' => TRUE,
         'description' => 'The type of information being stored for the tournament.',
       ),
-      'tourney_options' => array(
+      'value' => array(
         'type' => 'blob',
         'description' => 'A serialized array of options for this tournament.',
         'serialize' => TRUE,
@@ -549,6 +549,16 @@ function tourney_update_7006() {
   return t('Tournament content updated successfully.');
 }
 
+function tourney_update_7007() {
+  db_change_field('tourney', 'tourney_options', 'value',
+    array(
+      'type' => 'blob',
+      'description' => 'A serialized array of options for this tournament.',
+      'serialize' => TRUE,
+      'serialized default' => 'a:0:{}',
+    ));
+  return t('Tournament table updated successfully.');
+}
 /**
  * Helper functions
  */
