@@ -170,10 +170,11 @@ class DoubleEliminationController extends SingleEliminationController implements
     $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
 
     if ($round_num > 1) {
-      $matches_in_round = $this->getNumMatchesInLoserRound($slots, $round_num);
+      $matches_in_child_round = $this->getNumMatchesInLoserRound($slots, $round_num - 1);
       $children = ($round_num % 2) + 1;
       for ($i = 0; $i < $children; ++$i) {
-        $child_match_num = ($match_num - $matches_in_round) + $i + $iteration;
+        $child_match_num = ($match_num - $matches_in_child_round) + $i + ($children > 1 ? $iteration : 0);
+        dpm('match-' . $match_num . ' - ' . $matches_in_child_round . ' + ' . $i . ' = ' . $child_match_num);
         $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $bracket_info, $i + $iteration);
       }
     }
@@ -310,7 +311,7 @@ class DoubleEliminationController extends SingleEliminationController implements
   }
 
   /**
-    * Given a match place integer, returns the next match place based on 
+    * Given a match place integer, returns the next match place based on
     * either 'winner' or 'loser' direction
     *
     * @param $place
@@ -356,7 +357,7 @@ class DoubleEliminationController extends SingleEliminationController implements
         $bottom_bracket = $this->tournament->data['bracket-bottom'];
         if ( $place < $slots / 2 ) {
           $adj = 0;
-          // Some special adjustment comes in to bump the matches if the first 
+          // Some special adjustment comes in to bump the matches if the first
           // round of the bottom bracket has no matches.
           if ( !array_key_exists('matches', $bottom_bracket['rounds']['round-1']) ) {
             $adj = 1;
@@ -365,7 +366,7 @@ class DoubleEliminationController extends SingleEliminationController implements
         }
         // Otherwise, more magical math to determine placement
         $rev_round = floor(log($top_matches - $place, 2)) ;
-        // Special adjustments come in on certain rounds of matches that 
+        // Special adjustments come in on certain rounds of matches that
         // generally flips them around as such:
         //
         // 1, 2, 3, 4, 5, 6, 7, 8
@@ -443,12 +444,12 @@ class DoubleEliminationController extends SingleEliminationController implements
   }
 
  /**
-  * This is a special function that I could have just stored as a fixed array, 
-  * but I wanted it to scale. It creates a special series of numbers that 
+  * This is a special function that I could have just stored as a fixed array,
+  * but I wanted it to scale. It creates a special series of numbers that
   * affect where loser bracket matches go
   *
   * @param $until
-  *   @todo I should change this to /2 to begin with, but for now it's the 
+  *   @todo I should change this to /2 to begin with, but for now it's the
   *   full number of bottom matches
   * @return $series
   *   Array of numbers
@@ -465,7 +466,7 @@ class DoubleEliminationController extends SingleEliminationController implements
       if ( ($i & ($i - 1)) == 0 )
         foreach ( range(1, $i) as $n ) $series[] = $i;
     }
-    // Remove the unnecessary last element in the series (which is the start 
+    // Remove the unnecessary last element in the series (which is the start
     // of the next iteration)
     while ( count($series) > $until )
       array_pop($series);
@@ -569,7 +570,7 @@ class DoubleEliminationController extends SingleEliminationController implements
 
   /**
    * Given a match place integer, returns the next match place based on either
-   * 'winner' or 'loser' direction. Calls the necessary tournament format 
+   * 'winner' or 'loser' direction. Calls the necessary tournament format
    * plugin to get its result
    *
    * @param $match
@@ -639,11 +640,11 @@ class DoubleEliminationController extends SingleEliminationController implements
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
     if ( !$winner ) return;
-    // odd bottom, even top 
+    // odd bottom, even top
     // (because first match is an even number instead of odd like top)
     $slot = $match->matchInfo['id'] % 2 ? 2 : 1;
     if ( $nextRound && count($thisRound['matches']) <= count($nextRound['matches']) ) {
-      // however, if we're feeding into a round that pulls losers from the top 
+      // however, if we're feeding into a round that pulls losers from the top
       // bracket we'll throw our winner into the bottom slot
       $slot = 2;
     }
@@ -665,7 +666,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     // check the previous match (last match in the top bracket)
     // to see if the winner of that was the winner of this
     // because if that's the case, we're not going anywhere
-    // with our contestants 
+    // with our contestants
     $previousMatches = $match->previousMatches();
     $top    = $previousMatches[0];
     if ( $top->getWinner() == $winner->eid ) return;
