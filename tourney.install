@@ -251,7 +251,7 @@ function tourney_schema() {
         'not null' => TRUE,
         'description' => 'The type of information being stored for the tournament.',
       ),
-      'tourney_options' => array(
+      'value' => array(
         'type' => 'blob',
         'description' => 'A serialized array of options for this tournament.',
         'serialize' => TRUE,
