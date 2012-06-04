@@ -13,22 +13,22 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $tourney->type = 'tournament';
   $form_state['tourney'] = $tourney;
 
-  $form['title'] = array(
+  $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Tournament Name'),
     '#description' => t('Enter the name of this tournament.'),
     '#size' => 40,
     '#maxlength' => 255,
-    '#default_value' => isset($tourney->title) ? $tourney->title : '',
+    '#default_value' => isset($tourney->label) ? $tourney->label : '',
   );
   
   $form['name'] = array(
     '#type' => 'machine_name',
-    '#default_value' => isset($tourney->title) ? $tourney->name : '',
+    '#default_value' => isset($tourney->label) ? $tourney->name : '',
     '#maxlength' => 21,
     '#description' => t('A unique name for tournaments. It must only contain lowercase letters, numbers and hyphens.'),
     '#machine_name' => array(
-      'source' => array('title'),
+      'source' => array('label'),
       'exists' => 'tourney_name_exists',
       'replace_pattern' => '[^a-z0-9-]+',
       'replace' => '-',
@@ -354,7 +354,7 @@ function tourney_overview_entities() {
  * Page callback. Edit a tournament.
  */
 function tourney_tournament_edit($tournament) {
-  drupal_set_title(t('Edit Tournament: @title', array('@title' => $tournament->title)));
+  drupal_set_title(t('Edit Tournament: @title', array('@title' => $tournament->label)));
 
   return drupal_get_form('tourney_tournament_form', $tournament);
 }

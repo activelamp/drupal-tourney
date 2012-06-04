@@ -18,7 +18,7 @@ function tourney_match_page_view($match) {
  * Page callback. Edit a match.
  */
 function tourney_match_edit($match) {
-  drupal_set_title(t('Edit Match: @title', array('@title' => $match->title)));
+  drupal_set_title(t('Edit Match: @title', array('@title' => $match->label)));
 
   return drupal_get_form('tourney_match_form', $match);
 }
@@ -64,7 +64,7 @@ function tourney_match_form($form, &$form_state, $match) {
     '#description' => t('The title you enter here appears on the page.'),
     '#size' => 40,
     '#maxlength' => 255,
-    '#default_value' => $match->title,
+    '#default_value' => $match->label,
     '#weight' => -10,
   );
 
@@ -228,7 +228,7 @@ function _tourney_match_contestants($match) {
     }
     else {
       foreach ($entities as $eid => $entity) {
-        $title = !property_exists($entity, 'title') ? $entity->name : $entity->title;
+        $title = $entity->entity_name;
         $group["$entity_type.$eid"] = $title;
       }
     }
@@ -319,7 +319,8 @@ function tourney_match_form_validate($form, &$form_state) {
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
 
-  $match->title = $form_state['input']['label'];
+  if ( isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%' )
+    $match->label = $form_state['input']['label'];
 
   if (array_key_exists('contestant1', $form_state['input'])) {
     if ( $eid = $form_state['input']['contestant1'] ) {
@@ -375,7 +376,7 @@ function tourney_game_page_view($game) {
  * Page callback. Edit a match.
  */
 function tourney_game_edit($game) {
-  drupal_set_title(t('Edit Game: @title', array('@title' => $game->title)));
+  drupal_set_title(t('Edit Game: @title', array('@title' => $game->label)));
 
   return drupal_get_form('tourney_game_form', $game);
 }
@@ -408,7 +409,7 @@ function tourney_game_form($form, &$form_state, $game) {
     '#description' => t('The title you enter here appears on the page.'),
     '#size' => 40,
     '#maxlength' => 255,
-    '#default_value' => $game->title,
+    '#default_value' => $game->label,
     '#weight' => -10,
   );
 
@@ -444,7 +445,7 @@ function tourney_game_form_submit($form, &$form_state) {
   drupal_set_message(t('Your game has been saved.'));
 
   $game = $form_state['game'];
-  $game->title = $form_state['input']['label'];
+  $game->label = $form_state['input']['label'];
   entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
   tourney_game_save($game);
 
@@ -461,16 +462,16 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
   );
-  $entity->content['title'] = array(
-    '#prefix' => '<div class="title">',
+  $entity->content['label'] = array(
+    '#prefix' => '<div class="label">',
     '#suffix' => '</div>',
-    '#markup' => $entity->title,
+    '#markup' => $entity->label,
   );
   $entity->content['tournament'] = array(
     '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#theme' => 'link',
-    '#text' => 'Go to tournament ' . $entity->getTournament()->title,
+    '#text' => 'Go to tournament ' . $entity->getTournament()->label,
     '#path' => $entity->getTournament()->getUri(),
     '#options' => array('attributes' => array(), 'html' => FALSE),
   );
@@ -504,7 +505,7 @@ function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en')
   $entity->content['title'] = array(
     '#prefix' => '<div class="title">',
     '#suffix' => '</div>',
-    '#markup' => $entity->title,
+    '#markup' => $entity->label,
   );
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'

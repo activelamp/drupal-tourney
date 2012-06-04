@@ -33,7 +33,7 @@ function tourney_schema() {
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE),
-      'title' => array(
+      'label' => array(
         'description' => 'The title of the tournament, always treated as non-markup plain text.',
         'type' => 'varchar',
         'length' => 255,
@@ -92,7 +92,7 @@ function tourney_schema() {
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE),
-      'title' => array(
+      'label' => array(
         'description' => 'The title of a match, always treated as non-markup plain text.',
         'type' => 'varchar',
         'length' => 255,
@@ -145,7 +145,7 @@ function tourney_schema() {
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE),
-      'title' => array(
+      'label' => array(
         'description' => 'The title of a game, always treated as non-markup plain text.',
         'type' => 'varchar',
         'length' => 255,
@@ -559,6 +559,38 @@ function tourney_update_7007() {
     ));
   return t('Tournament table updated successfully.');
 }
+
+
+
+function tourney_update_7008() {
+  db_change_field('tourney_tournament', 'title', 'label',
+    array(
+      'description' => 'The title of a tournament, always treated as non-markup plain text.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+  db_change_field('tourney_match', 'title', 'label',
+    array(
+      'description' => 'The title of a match, always treated as non-markup plain text.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+  db_change_field('tourney_game', 'title', 'label',
+    array(
+      'description' => 'The title of a game, always treated as non-markup plain text.',
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+  return t('Tournament table updated successfully.');
+}
+
+
 /**
  * Helper functions
  */
@@ -585,7 +617,7 @@ function _tourney_update_name_field($table) {
     if ($table == 'tourney_game') {
       $game = tourney_game_load($row->id);
       $match = tourney_match_load($game->getMatchId());
-      $machine_name = $match->getTournament()->name . '_' . _tourney_machine_name($match->title) . '_' . $machine_name;
+      $machine_name = $match->getTournament()->name . '_' . _tourney_machine_name($match->label) . '_' . $machine_name;
     }
 
     $num_updated = db_update($table) // Table name no longer needs {}

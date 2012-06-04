@@ -1122,6 +1122,21 @@ function tourney_initialize_configuration() {
 }
 
 
+
+function tourney_action_info() {
+  return array(
+    'tourney_unpublish_action' => array(
+      'type' => 'tourney_tournament',
+      'label' => t('Unpublish selected tournaments'),
+      'configurable' => FALSE,
+    ),
+  );
+}
+
+function tourney_unpublish_action(&$entity, $context) {
+}
+
+
 // POSSIBLE ENTITY MODULE PATCHES:
 
 function entity_load_by_eid($eids) {
@@ -1149,7 +1164,9 @@ function tourney_entity_load($entities, $type) {
     $entity->eid         = $type . '.' . $id;
     $entity->entity_type = $type;
     $entity->entity_id   = $id;
-    $entity->entity_name = property_exists($entity, 'name')
-      ? $entity->name : ( property_exists($entity, 'title') ? $entity->title : NULL );
+    $entity->entity_name = 
+      property_exists($entity, 'name') ? $entity->name : 
+        ( property_exists($entity, 'title') ? $entity->title : 
+          ( property_exists($entity, 'label') ? $entity->label : NULL ) );
   }
 }

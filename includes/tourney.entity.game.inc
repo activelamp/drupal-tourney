@@ -44,6 +44,7 @@ class TourneyGame extends TourneyEntity {
    * and is not using one of the public API methods to retrieve property.
    */
   private function backwardCompatibility() {
+    $this->title = $this->label;
     // Set the parent match on the game entity.
     $match = tourney_match_load($this->matchId, TRUE);
     $this->match = $match;

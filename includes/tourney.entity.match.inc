@@ -105,7 +105,10 @@ class TourneyMatch extends TourneyEntity {
    *   An empty array will be returned if no contestants are found.
    */
   public static function fetchContestantIds($match_id = NULL) {
-    if ( $match_id == NULL ) $match_id = $this->id;
+    if ( $match_id == NULL ) {
+      if ( !isset($this) ) return NULL;
+      $match_id = $this->id;
+    }
     $contestants = array();
 
     $query = relation_query('tourney_match', $match_id);
@@ -141,17 +144,19 @@ class TourneyMatch extends TourneyEntity {
    * This is only here in case Riot is expecting these properties on the object
    * and is not using one of the public API methods to retrieve property.
    */
-   private function backwardCompatibility() {
-     // Get the contestants in this match on the object.
-     $this->contestant1 = $this->getContestant(1);
-     $this->contestant2 = $this->getContestant(2);
+  private function backwardCompatibility() {
+    $this->title = $this->label;
 
-     // Put the tournament object on the object
-     $this->tournament = $this->getTournament();
+    // Get the contestants in this match on the object.
+    $this->contestant1 = $this->getContestant(1);
+    $this->contestant2 = $this->getContestant(2);
 
-     // Load the game ids onto the object
-     $this->games_played = $this->getGameIds();
-   }
+    // Put the tournament object on the object
+    $this->tournament = $this->getTournament();
+
+    // Load the game ids onto the object
+    $this->games_played = $this->getGameIds();
+  }
 
   /**
    * Lazy load a tournament object this match belongs to.
@@ -431,11 +436,7 @@ class TourneyMatch extends TourneyEntity {
     parent::save();
     // Set the tournament winner if this was the last match.
     if ( $this->getTournament() ) {
-      $this->gameIds = NULL;
-      $this->getTournament()->determineWinner();
-      if (method_exists($this, 'getTournament')) {
-        cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
-      }
+      cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
     }
   }
 
@@ -584,6 +585,9 @@ class TourneyMatch extends TourneyEntity {
    */
   public function addContestant($entity, $slot = NULL) {
     //@todo logic to remove existing conflicting contestant(s)
+    if ( $slot && $this->getContestant($slot) ) {
+      $this->removeContestant($this->getContestant($slot));
+    }
     $entity_keys = array(
       array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
       array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),

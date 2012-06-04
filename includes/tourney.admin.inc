@@ -78,7 +78,7 @@ function tourney_admin_content() {
   $output = '';
   $header = array(
     'id' => array('data' => t('Id'), 'field' => 't.id', 'sort' => 'asc'),
-    'title' => array('data' => t('Title'), 'field' => 't.title'),
+    'title' => array('data' => t('Label'), 'field' => 't.label'),
     'format' => array('data' => t('Format'), 'field' => 't.format'),
     'players' => array('data' => t('Players'), 'field' => 't.players'),
     'winner' => array('data' => t('Winner'), 'field' => 't.winner'),
@@ -87,7 +87,7 @@ function tourney_admin_content() {
 
   // Grab all tournaments.
   $query = db_select('tourney_tournament', 't')->extend('PagerDefault')->extend('TableSort');
-  $query->fields('t', array('id', 'title', 'format', 'players', 'winner'))
+  $query->fields('t', array('id', 'label', 'format', 'players', 'winner'))
     ->limit(50)
     ->orderByHeader($header);
   $tournaments = $query->execute();
@@ -119,7 +119,7 @@ function theme_tourney_admin_content($variables) {
     $info = TourneyController::getPluginInfo($tournament->format);
     $rows[] = array(
       l($tournament->id, $uri),
-      l($tournament->title, $uri),
+      l($tournament->label, $uri),
       $info['name'],
       $tournament->players,
       $tournament->winner,
@@ -144,7 +144,7 @@ function tourney_confirm_delete($form, &$form_state, $tournament) {
   $form['#tid'] = $tournament->id;
   return confirm_form(
     $form,
-    t('Are you sure you want to delete the tournament %title?', array('%title' => $tournament->title)),
+    t('Are you sure you want to delete the tournament %title?', array('%title' => $tournament->label)),
     'tourney/' . $tournament->id,
     t('All matches belonging to this tournament will be deleted. This action cannot be undone.'),
     t('Delete'),

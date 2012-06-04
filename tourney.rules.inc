@@ -93,7 +93,6 @@ function tourney_action_game_is_won($match, $quotient) {
   $message = '';
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
-
     // If the match already has a winner even though we've not met our quotient,
     // that means a game was changed. We need to get the next matches and clear
     // the necessary contestants
@@ -109,7 +108,7 @@ function tourney_action_game_is_won($match, $quotient) {
     // If all our games are played and won, then we'll need to make a new game to continue the match
     if ( $match->checkGames() == TRUE ) {
       $game = $match->addGame();
-      $message = t('A new game has been created: !game', array('!game' => l($game->title, 'tourney/game/' . $game->id)));
+      $message = t('A new game has been created: !game', array('!game' => l($game->label, 'tourney/game/' . $game->id)));
     }
     else {
       $message = t('Game updated, but not all games have a winner selected. Action not completed.');
