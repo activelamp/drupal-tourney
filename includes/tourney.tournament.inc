@@ -59,6 +59,56 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => 99,
   );
 
+  $form['tourney'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Tournament Settings',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 0,
+  );
+
+  $form['tourney']['config_hide_byes'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide Byes'),
+    '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
+    '#default_value' => $tourney->get('hide_byes', FALSE),
+  );
+
+  $form['tourney']['config_show_crowns'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Crowns'),
+    '#description' => t('Show unicode crown character on winning contestants.'),
+    '#default_value' => $tourney->get('show_crowns', FALSE),
+  );
+
+  $form['bundles'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Tournament Bundles',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 10,
+  );
+
+  $form['bundles']['config_match_bundle'] = array(
+    '#type' => 'select',
+    '#title' => t('Match Bundle'),
+    '#description' => t('Select which bundle to use for this tournament\'s matches'),
+    '#options' => drupal_map_assoc(array_keys(field_info_bundles('tourney_match'))),
+    '#default_value' => $tourney->get('match_bundle', 'match'),
+    '#disabled' => isset($tourney->id) ? TRUE : FALSE,
+  );
+
+  $form['bundles']['config_game_bundle'] = array(
+    '#type' => 'select',
+    '#title' => t('Game Bundle'),
+    '#description' => t('Select which bundle to use for this tournament\'s games'),
+    '#options' => drupal_map_assoc(array_keys(field_info_bundles('tourney_game'))),
+    '#default_value' => $tourney->get('game_bundle', 'game'),
+    '#disabled' => isset($tourney->id) ? TRUE : FALSE,
+  );
+
   $path = array();
   if ( !empty($tourney->entity_id) ) {
     $conditions = array('source' => 'tourney/tournament/' . $tourney->entity_id);
@@ -176,7 +226,21 @@ function tourney_tournament_delete_submit($form, &$form_state) {
 function tourney_tournament_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
+
+  if ( !isset($tourney->entity_id) ) {
+    $tourney->config = array();
+    foreach ( $form_state['values'] as $key => $value ) {
+      if ( substr($key, 0, 7) != 'config_' ) continue;
+      $tourney->config[substr($key, 7)] = $value; 
+    }
+  } 
+
   tourney_tournament_save($tourney);
+
+  foreach ( $form_state['values'] as $key => $value ) {
+    if ( substr($key, 0, 7) != 'config_' ) continue;
+    $tourney->set(substr($key, 7), $value); 
+  }
   
   drupal_set_message(t('Your tournament has been saved.'));
   $form_state['redirect'] = $tourney->getUri();

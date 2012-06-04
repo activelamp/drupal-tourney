@@ -376,10 +376,10 @@ class TourneyTournament extends TourneyEntity {
     
     // Build a classes array for the tournament wrapper
     $classes_array = array('tourney', "tourney-" . $info['machine name']);
-    $classes_array[] = variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES) 
+    $classes_array[] = $this->get('hide_byes', TOURNEY_HIDE_BYES) 
         ? 'hide-byes' : '';
     
-    $output = "<div class='". join(" ", $classes_array)."'><div class='tourney-inner'>";
+    $output = "<div class='" . join(" ", $classes_array) . "'><div class='tourney-inner'>";
     $output .= $this->tourneyFormatPlugin->render();
     $output .= "</div></div>";
     return $output;
@@ -407,12 +407,12 @@ class TourneyTournament extends TourneyEntity {
   /**
    * Deprecated function. Use the structure in plugin instead.
    * 
-   * Return all the matches that have a relation 'has_match' with the passed in
-   * tournament object.
+   * Return all the matches that have a relation 'has_match' with the passed 
+   * in tournament object.
    *
    * @param $raw
-   *   If set to true only return the matches, do not return brackets and rounds
-   *   with it.
+   *   If set to true only return the matches, do not return brackets and 
+   *   rounds with it.
    * @param $reset
    *   Boolean to reset the cache.
    * @return
@@ -443,12 +443,50 @@ class TourneyTournament extends TourneyEntity {
     return $brackets;
   }
 
+  /**
+   * Rules called function, usually, to run win code on a match
+   * Calls the plugin specific callback, if there, then checks
+   * internally if the tournament's been given a winner
+   *
+   * @param $match
+   *   match object to run win code on
+   */
   public function matchIsWon($match) {
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
     if ( !$info ) return NULL;
     if ( !method_exists($plugin, $info['is_won']['callback']) ) return NULL;
+    $match->cleanGames();
     $plugin->$info['is_won']['callback']($match);
     $this->determineWinner();
+  }
+
+  public function get($name, $default = NULL) {
+    if ( !property_exists($this, 'entity_id') )
+      return isset($this->config[$name]) ? $this->config[$name] : $default;
+
+    global $_tourney_config;
+    if ( !isset($_tourney_config) ) tourney_initialize_configuration();
+
+    return isset($_tourney_config[$this->id][$name]) ? $_tourney_config[$this->id][$name] : $default;
+  }
+
+  public function set($name, $value) {
+    global $_tourney_config;
+    if ( !isset($_tourney_config) ) tourney_initialize_configuration();
+
+    db_merge('tourney')
+      ->key(array(
+        'id'   => $this->id,
+        'type' => $name,
+      ))
+      ->fields(array(
+        'value' => serialize($value)
+      ))
+      ->execute();
+
+    cache_clear_all('configuration', 'cache_tourney');
+
+    $_tourney_config[$this->id][$name] = $value;
   }
 }

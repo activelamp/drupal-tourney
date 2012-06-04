@@ -432,7 +432,7 @@ function theme_tourney_double_champion_bracket($vars) {
  */
 function _tourney_count_bottom_rounds($tournament) {
   $rounds = 0;
-  foreach($tournament->data['bracket-bottom']['rounds'] as $round_info) {
+  foreach ( $tournament->data['bracket-bottom']['rounds'] as $round_info ) {
     if (array_key_exists('matches', $round_info) && count($round_info['matches']) > 0) {
       $rounds++;
     }

@@ -87,8 +87,8 @@ function tourney_match_form($form, &$form_state, $match) {
         }
 
       // @todo: replace code below with a scalable contestant field code with a list of text boxes
-      $form['contestant'.$cid++] = array(
-        '#title' => t('Contestant '.($cid-1)),
+      $form['contestant' . $cid++] = array(
+        '#title' => check_plain(t('Contestant ' . ($cid-1))),
         '#default_value' => is_object($contestant) && $contestant->eid ? $contestant->eid : -1,
         '#disabled' => is_object($contestant) && $contestant->eid ? TRUE : FALSE,
         '#required' => is_object($contestant) && $contestant->eid ? FALSE : TRUE,
@@ -117,7 +117,7 @@ function tourney_match_form($form, &$form_state, $match) {
     );
 
     $form['games'] = array(
-      '#prefix' => '<h2>'. t('Games') .'</h2>',
+      '#prefix' => '<h2>' . t('Games') . '</h2>',
       '#suffix' => t('This match is a bye. No games to configure.'),
       '#type' => 'value',
       '#value' => 0,
@@ -279,11 +279,13 @@ function _tourney_match_contestants_sanitize($match, &$options) {
     }
   }
 
+  // special case naming occurs with different bundled node types
+  $userkey = array_key_exists('user', $options) ? 'user' : ( array_key_exists('user - user', $options) ? 'user - user' : NULL );
   // Remove admin accounts from the contestant choices
-  if (array_key_exists('user', $options)) {
-    foreach ($options['user'] as $id => $user) {
+  if ( $userkey ) {
+    foreach ($options[$userkey] as $id => $user) {
       if (str_replace("user.", "", $id) <= 1) {
-        unset($options['user'][$id]);
+        unset($options[$userkey][$id]);
       }
     }
   }
@@ -572,8 +574,8 @@ function tourney_get_match_by_name($bracket_structure, $path) {
    * match number as the iterator.
    */
   $i = 1;
-  foreach($next_match_structure as $match) {
-    if ($id == $i) {
+  foreach ( $next_match_structure as $match ) {
+    if ( $id == $i ) {
       return $match['match'];
     }
     $i++;

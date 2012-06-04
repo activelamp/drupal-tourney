@@ -40,7 +40,7 @@ class TourneyMatch extends TourneyEntity {
 
     // Remove this once I know for sure that modules aren't depending on
     // properties directly on the match object.
-    if (variable_get('tourney_backward_compatibility', false)) {
+    if ( variable_get('tourney_backward_compatibility', TRUE) ) {
       $this->backwardCompatibility();
     }
   }
@@ -119,7 +119,7 @@ class TourneyMatch extends TourneyEntity {
       $contestants[] = array(
         'type' => $type,
         'id' => $id,
-        'eid' => $type .  '.' . $id,
+        'eid' => $type . '.' . $id,
         'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
       );
     }
@@ -384,6 +384,7 @@ class TourneyMatch extends TourneyEntity {
    * Set the winner property to the winner of this match.
    */
   public function determineWinner() {
+    $this->MatchWinner = NULL;
     if ($this->isFinished()) {
       $ranks = $this->fetchRanks();
       asort($ranks);
@@ -641,7 +642,7 @@ class TourneyMatch extends TourneyEntity {
     $this->cleanGames();
     $game_count = count($this->getGameIds());
     $game = new TourneyGame(array(
-      'type'  => 'game',
+      'type'  => $this->getTournament()->get('game_bundle', 'game'),
       'title' => 'Game ' . ++$game_count,
       'name'  => $this->name . '_game-' . ++$game_count,
     ));
@@ -707,7 +708,7 @@ class TourneyMatch extends TourneyEntity {
     }
     // If this tournament doesn't have any byes, bail out.
     if ($this->hasByes || !is_int(log($this->getTournament()->players, 2))) {
-      $this->hasByes = true;
+      $this->hasByes = TRUE;
       $matches = $this->previousMatches();
 
       if (!is_null($slot) && array_key_exists('bye', $matches[$slot]->matchInfo)) {

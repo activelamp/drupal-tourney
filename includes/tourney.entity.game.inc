@@ -30,7 +30,7 @@ class TourneyGame extends TourneyEntity {
     
     // Remove this once I know for sure that modules aren't depending on
     // properties directly on the match object.
-    if (variable_get('tourney_backward_compatibility', false)) {
+    if ( variable_get('tourney_backward_compatibility', FALSE) ) {
       $this->backwardCompatibility();
     }
   }
@@ -45,7 +45,7 @@ class TourneyGame extends TourneyEntity {
    */
   private function backwardCompatibility() {
     // Set the parent match on the game entity.
-    $match = tourney_match_load($this->matchId, true);
+    $match = tourney_match_load($this->matchId, TRUE);
     $this->match = $match;
 
     // Load the contestants property on the object.

@@ -82,9 +82,14 @@ function theme_tourney_matchblock($vars) {
       $team_name = 'Team ' . $cid++;
     }
     else {
+      if ( $eid == $match->winner )
+        $classes_array[] = 'winner';
       $classes_array[] = 'contestant-' . $cid++;
       $classes_array[] = 'entity-' . str_replace('.', '-', $eid);
-      $team_name = $contestant->entity_name . ( $eid == $match->winner ? ' ♔' : '' );
+      if ( $eid == $match->winner && $match->getTournament()->get('show_crowns') )  
+        $team_name = $contestant->entity_name . ' ♔';
+      else
+        $team_name = $contestant->entity_name;  
     }
     // If this is a bye blank out second contestant.
     if ($is_bye && $cid == 3) {

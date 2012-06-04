@@ -1,5 +1,6 @@
 <?php
 /**
+ * @file
  * Field handler to present a link node edit.
  *
  * @ingroup views_field_handlers

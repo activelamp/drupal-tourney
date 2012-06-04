@@ -125,7 +125,6 @@ function theme_tourney_admin_content($variables) {
       $tournament->winner,
       user_access('access tourney') ? l(t('View'), $uri . '') : '',
       user_access('edit tourney') ? l(t('Edit'), $uri . '/edit') : '',
-      //TODO : implement delete
       user_access('delete tourney') ? l(t('Delete'), $uri . '/delete') : '',
     );
   }
@@ -171,6 +170,14 @@ function tourney_confirm_delete_submit($form, &$form_state) {
 function tourney_configuration($form, &$form_state) {
   // Capture enumeration of content types.
   $entities = entity_get_info();
+  $filter_entities = array('tourney_tournament', 'tourney_match', 'tourney_game', 'relation', 'rules_config', 'comment');
+  foreach ( $entities as $key => $entity ) {
+    if ( $entity['controller class'] == 'EntityAPIControllerExportable' ) 
+      unset($entities[$key]);
+  }
+  foreach ( $filter_entities as $filter ) {
+    unset($entities[$filter]);
+  }
 
   $header = array(
     'bundle_name' => t('Bundle Name'),
@@ -219,6 +226,7 @@ function tourney_configuration($form, &$form_state) {
   $form['tourney']['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css',
   );
+
   foreach ($entities as $key => $entity) {
     $form['tourney'][$key] = array(
       '#type' => 'fieldset',

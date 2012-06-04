@@ -106,26 +106,27 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       $first_round_matches = array(array(1, 2));
       $num_first_round_matches = pow(2, $this->rounds) / 2;
 
-      // Continue to find seed positions until we have all the first round matches
-      // populated, based on the number of "real" matches (w/o byes).
+      // Continue to find seed positions until we have all the first round 
+      // matches populated, based on the number of "real" matches (w/o byes).
       // 
-      // $first_round_matches array contains that matches that have already been
-      // populated from this method.
+      // $first_round_matches array contains that matches that have already 
+      // been populated from this method.
       while(count($first_round_matches) < $num_first_round_matches) {
-        // The $multiplier is the number we need to multiply the number of currently
-        // built rounds to get the seed position number of the very last place.
+        // The $multiplier is the number we need to multiply the number of 
+        // currentlybuilt rounds to get the seed position number of the very 
+        // last place.
         $multiplier = 4;
         // Last seed position plus 1
         $last_seed_position = (count($first_round_matches) * $multiplier) + 1;
 
         $new_matches = array();
-        // Go through each match already created and update according to what the
-        // latest seed positions being added to tournament.
+        // Go through each match already created and update according to what 
+        // the latest seed positions being added to tournament.
         foreach ($first_round_matches as $match) {
           foreach ($match as $seed_position) {
             // Match the current seed_position being processed with the
-            // last_seed_position - this seed_position. If the last seed position
-            // doesn't exist, create a bye.
+            // last_seed_position - this seed_position. If the last seed 
+            // position doesn't exist, create a bye.
             if ($last_seed_position - $seed_position <= $num_contestants) {
               $new_matches[] = array($seed_position, $last_seed_position - $seed_position);
             }
@@ -185,6 +186,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    *   Returns $this for chaining.
    */
   public function determineWinner($tournament) {
+    if ( !$this->isFinished($tournament) ) return $tournament;
     $ranks = $tournament->fetchRanks();
     $standings = $tournament->getStandings();
 
@@ -225,8 +227,8 @@ class SingleEliminationController extends TourneyController implements TourneyCo
 
   /**
    * Given a match place integer, returns the next match place based on either
-   * 'winner' or 'loser' direction. Calls the necessary tournament format plugin
-   * to get its result
+   * 'winner' or 'loser' direction. Calls the necessary tournament format 
+   * plugin to get its result
    *
    * @param $match
    *   Match object to compare with the internal matchIds property to get its
@@ -489,9 +491,12 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function matchIsWon($match) {
     if (!$match->isFinished()) return;
+    // clear winner and loser so we can get a fresh winner, just in case
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
+    // odd matches go to top slot, evens to bottom
+    $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
     if ( $match->nextMatch() )
-      $match->nextMatch()->addContestant($winner);
+      $match->nextMatch()->addContestant($winner, $slot);
   }
 }

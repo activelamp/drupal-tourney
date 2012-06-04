@@ -13,7 +13,7 @@ define('MAXIMUM_ROUNDS', 5);
  * tourney tournament.
  */
 class TourneyController {
-  private static $controller = null;
+  private static $controller = NULL;
   protected $tourneyFormatPlugin;
   protected $matches;
   protected $tournament;
@@ -109,9 +109,9 @@ class TourneyController {
       // Set the games to zero for byes.
       $games = array_key_exists('bye', $match['match_info']) && $match['match_info']['bye']
         ? 0 : variable_get('tourney_games_all', TOURNEY_GAMES);
-      
+
       $values = array(
-        'type' => 'match',
+        'type' => $tournament->get('match_bundle', 'match'),
         'title' => 'Match ' . $match_num,
         'name' => $tournament->name . '_' . $match['match_name'],
         'games' => $games,
@@ -129,7 +129,7 @@ class TourneyController {
       // Create the Match/Game relation
       if ($games > 0) {
         $game = new TourneyGame(array(
-          'type' => 'game',
+          'type' => $tournament->get('game_bundle', 'game'),
           'title' => 'Game 1',
           'name' => $new_match->name . '_game-1',
         ));
@@ -170,7 +170,7 @@ class TourneyController {
     $matches = tourney_match_load_multiple($match_ids);
     
     foreach ($matches as $match) {
-      if ($match->name == $this->tournament->name . '_match-'. $match_num) {
+      if ( $match->name == $this->tournament->name . '_match-' . $match_num ) {
         return $match;
       }
     }
