@@ -416,9 +416,7 @@ function tourney_game_form($form, &$form_state, $game) {
     '#type' => 'select',
     '#title' => t('Winner'),
     '#description' => t('The winner of this game.'),
-    '#options' => isset($game->contestants)
-      ? array('' => t('- Choose Winner -')) + tourney_format_contestant_options($game->contestants)
-      : array(),
+    '#options' => array('' => t('- Choose Winner -')) + tourney_format_contestant_options($game->getContestants()),
     '#default_value' => isset($game->winner) ? $game->winner : -1,
   );
 
