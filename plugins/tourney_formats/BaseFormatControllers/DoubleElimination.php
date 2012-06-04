@@ -161,7 +161,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     return $tree;
   }
 
-  protected function buildLoserChildren($slots, $round_num, $match_num, $bracket_info) {
+  protected function buildLoserChildren($slots, $round_num, $match_num, $bracket_info, $iteration = 0) {
     $round_info = array(
       'id'    => $round_num,
       'name'  => 'round-' . $round_num,
@@ -173,8 +173,8 @@ class DoubleEliminationController extends SingleEliminationController implements
       $matches_in_round = $this->getNumMatchesInLoserRound($slots, $round_num);
       $children = ($round_num % 2) + 1;
       for ($i = 0; $i < $children; ++$i) {
-        $child_match_num = ($match_num - $matches_in_round) + $i;
-        $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $bracket_info);
+        $child_match_num = ($match_num - $matches_in_round) + $i + $iteration;
+        $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $bracket_info, $i + $iteration);
       }
     }
 
@@ -330,7 +330,7 @@ class DoubleEliminationController extends SingleEliminationController implements
       // Last match goes nowhere
       if ( $place == $matches - 1 ) return NULL;
       return $place + 1;
-    }  
+    }
 
     if ( $direction == 'winner' ) {
      // Top Bracket
@@ -357,7 +357,7 @@ class DoubleEliminationController extends SingleEliminationController implements
           // of the bottom bracket has no matches.
           if ( !array_key_exists('matches', $bottom_bracket['rounds']['round-1']) ) {
             $adj = 1;
-          } 
+          }
           return parent::calculateNextPosition($place) + ($bottom_matches/2) + $adj;
         }
         // Otherwise, more magical math to determine placement
@@ -510,7 +510,7 @@ class DoubleEliminationController extends SingleEliminationController implements
   /**
    * Emulated an n**2 contestant match, filling in placeholders to take the
    * place of matches that don't exist in the bottom bracket because of byes.
-   * 
+   *
    */
   public function getFullMatchIds() {
     // Store the data for quick access on subsequent calls
