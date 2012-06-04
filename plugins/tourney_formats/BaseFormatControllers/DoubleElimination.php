@@ -174,7 +174,6 @@ class DoubleEliminationController extends SingleEliminationController implements
       $children = ($round_num % 2) + 1;
       for ($i = 0; $i < $children; ++$i) {
         $child_match_num = ($match_num - $matches_in_child_round) + $i + ($children > 1 ? $iteration : 0);
-        dpm('match-' . $match_num . ' - ' . $matches_in_child_round . ' + ' . $i . ' = ' . $child_match_num);
         $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $bracket_info, $i + $iteration);
       }
     }
