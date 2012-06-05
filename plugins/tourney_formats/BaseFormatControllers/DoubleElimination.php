@@ -116,19 +116,21 @@ class DoubleEliminationController extends SingleEliminationController implements
     return $matches;
   }
 
-  /**
+   /**
    * Build bracket structure and logic.
    *
-   * @param $slots
-   *   The number of slots in the first round.
    * @return
    *   An array of bracket structure and logic.
    */
   protected function buildBracketByTree($slots) {
-    $bw_num_matches = $slots - 1;
-    $bl_num_matches = $slots - 2;
-    $bw_num_rounds = log($slots, 2);
+    $num_contestants = $this->tournament->players;
+    $bw_num_matches = $this->slots - 1;
+    $bl_num_matches = $num_contestants - 2;
+    $bw_num_rounds = log($this->slots, 2);
+
+    // @todo: account for byes
     $bl_num_rounds = ($bw_num_rounds - 1) * 2;
+
     $bracketw_info = array(
       'id'    => 'main',
       'name'  => 'bracket-top',
@@ -154,14 +156,16 @@ class DoubleEliminationController extends SingleEliminationController implements
     );
     $tree = $this->buildMatch($champ_match_num, $champ_round_info, $bracketc_info);
     // Winner bracket
-    $tree['children'][] = parent::buildBracketByTree($slots);
+    $tree['children'][] = parent::buildBracketByTree($this->slots);
     // Loser bracket
-    $tree['children'][] = $this->buildLoserChildren($slots / 2, $bl_num_rounds, $champ_match_num - 1, $bracketl_info);
+    // @todo: remove later
+    $bl_num_rounds = $num_contestants == 20 ? $bl_num_rounds - 1 : $bl_num_rounds;
+    $tree['children'][] = $this->buildLoserChildren($this->slots, $bl_num_rounds, $champ_match_num - 1, ($bw_num_matches + 1), $bracketl_info);
 
     return $tree;
   }
 
-  protected function buildLoserChildren($slots, $round_num, $match_num, $bracket_info, $iteration = 0) {
+  protected function buildLoserChildren($slots, $round_num, $match_num, $match_num_start, $bracket_info, $iteration = 0) {
     $round_info = array(
       'id'    => $round_num,
       'name'  => 'round-' . $round_num,
@@ -169,20 +173,28 @@ class DoubleEliminationController extends SingleEliminationController implements
     );
     $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
 
-    if ($round_num > 1) {
+    if (($round_num - 1 > 2) || ($round_num > 1 && in_array($this->tournament->players, array(2,4,8,16,32)))) {
       $matches_in_child_round = $this->getNumMatchesInLoserRound($slots, $round_num - 1);
       $children = ($round_num % 2) + 1;
       for ($i = 0; $i < $children; ++$i) {
         $child_match_num = ($match_num - $matches_in_child_round) + $i + ($children > 1 ? $iteration : 0);
-        $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $bracket_info, $i + $iteration);
+        if ($child_match_num < $match_num_start) {
+          continue;
+        }
+        $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $match_num_start, $bracket_info, $i + $iteration);
       }
+    }
+    else if ($round_num == 3 && $this->tournament->players == 20) {
+      // @todo: Hardcoding 20 for now. Need to determine correct logic.
+      $child_match_num = $match_num - 4;
+      $tree['children'][] = $this->buildLoserChildren($slots, 1, $child_match_num, $match_num_start, $bracket_info, $i + $iteration);
     }
 
     return $tree;
   }
 
   protected function getNumMatchesInLoserRound($slots, $round_num) {
-    $num_rounds = log($slots * 2, 2) - 1;
+    $num_rounds = log($slots, 2) - 1;
     $matches_in_rounds = array();
     for ($i = 0; $i < $num_rounds; ++$i) {
       $matches_in_rounds[] = pow(2, $i);
