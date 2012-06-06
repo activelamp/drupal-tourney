@@ -45,7 +45,7 @@ function tourney_game_win_form($form, &$form_state, $extra) {
     ),
     'submit' => array(
       '#type' => 'submit',
-      '#value' => $extra['name'] . ' wins',
+      '#value' => 'Win',
     ),
   );
   return $form;
