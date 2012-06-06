@@ -5,7 +5,7 @@
  */
 
 define('TOURNEY_GAMES', 5);
-define('TOURNEY_HIDE_BYES', FALSE);
+define('TOURNEY_HIDE_BYES', TRUE);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
 /**
