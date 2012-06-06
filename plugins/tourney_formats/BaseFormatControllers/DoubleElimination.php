@@ -116,7 +116,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     return $matches;
   }
 
-   /**
+  /**
    * Build bracket structure and logic.
    *
    * @return
@@ -159,8 +159,12 @@ class DoubleEliminationController extends SingleEliminationController implements
     $tree['children'][] = parent::buildBracketByTree($this->slots);
     // Loser bracket
     // @todo: remove later
-    $bl_num_rounds = $num_contestants == 20 ? $bl_num_rounds - 1 : $bl_num_rounds;
-    $tree['children'][] = $this->buildLoserChildren($this->slots, $bl_num_rounds, $champ_match_num - 1, ($bw_num_matches + 1), $bracketl_info);
+    if ($num_contestants == 20) {
+      $tree['children'][] = $this->buildLoserChildrenHard20(32, 7, 49, $bracketl_info);
+    }
+    else {
+      $tree['children'][] = $this->buildLoserChildren($this->slots, $bl_num_rounds, $champ_match_num - 1, $bw_num_matches + 1, $bracketl_info);
+    }
 
     return $tree;
   }
@@ -173,21 +177,13 @@ class DoubleEliminationController extends SingleEliminationController implements
     );
     $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
 
-    if (($round_num - 1 > 2) || ($round_num > 1 && in_array($this->tournament->players, array(2,4,8,16,32)))) {
+    if ($round_num > 1) {
       $matches_in_child_round = $this->getNumMatchesInLoserRound($slots, $round_num - 1);
       $children = ($round_num % 2) + 1;
       for ($i = 0; $i < $children; ++$i) {
         $child_match_num = ($match_num - $matches_in_child_round) + $i + ($children > 1 ? $iteration : 0);
-        if ($child_match_num < $match_num_start) {
-          continue;
-        }
         $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $match_num_start, $bracket_info, $i + $iteration);
       }
-    }
-    else if ($round_num == 3 && $this->tournament->players == 20) {
-      // @todo: Hardcoding 20 for now. Need to determine correct logic.
-      $child_match_num = $match_num - 4;
-      $tree['children'][] = $this->buildLoserChildren($slots, 1, $child_match_num, $match_num_start, $bracket_info, $i + $iteration);
     }
 
     return $tree;
@@ -202,6 +198,28 @@ class DoubleEliminationController extends SingleEliminationController implements
     }
     $matches_in_rounds = array_reverse($matches_in_rounds);
     return $matches_in_rounds[$round_num - 1];
+  }
+
+  protected function buildLoserChildrenHard20($slots, $round_num, $match_num, $bracket_info, $iteration = 0) {
+    $matches_in_rounds = array(4,4,4,2,2,1,1);
+    $num_children = array(1,1,1,2,1,2,1);
+    $round_info = array(
+      'id'    => $round_num,
+      'name'  => 'round-' . $round_num,
+      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+    );
+    $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
+
+    if ($round_num > 1) {
+      $matches_in_child_round = $matches_in_rounds[$round_num - 2];
+      $children = $num_children[$round_num - 1];
+      for ($i = 0; $i < $children; ++$i) {
+        $child_match_num = ($match_num - $matches_in_child_round) + $i + ($children > 1 ? $iteration : 0);
+        $tree['children'][] = $this->buildLoserChildrenHard20($slots, $round_num - 1, $child_match_num, $bracket_info, $i + $iteration);
+      }
+    }
+
+    return $tree;
   }
 
   /**
