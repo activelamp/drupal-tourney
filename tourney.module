@@ -446,6 +446,11 @@ function tourney_field_extra_fields() {
         'description' => t('A link to the tournament this match is in'),
         'weight' => -10,
       ),
+      'label' => array(
+        'label' => t('Title'),
+        'description' => t('The title of the match'),
+        'weight' => -1,
+      ),
       'match_winner' => array(
         'label' => t('Match Winner'),
         'description' => t('The winner of the match'),
@@ -478,6 +483,11 @@ function tourney_field_extra_fields() {
       ),
     ),
     'display' => array(
+      'label' => array(
+        'label' => t('Title'),
+        'description' => t('The title of the game'),
+        'weight' => -1,
+      ),
       'game_winner' => array(
         'label' => t('Game Winner'),
         'description' => t('The winner of the game'),
@@ -1164,9 +1174,9 @@ function tourney_entity_load($entities, $type) {
     $entity->eid         = $type . '.' . $id;
     $entity->entity_type = $type;
     $entity->entity_id   = $id;
-    $entity->entity_name = 
-      property_exists($entity, 'name') ? $entity->name : 
-        ( property_exists($entity, 'title') ? $entity->title : 
+    $entity->entity_name =
+      property_exists($entity, 'name') ? $entity->name :
+        ( property_exists($entity, 'title') ? $entity->title :
           ( property_exists($entity, 'label') ? $entity->label : NULL ) );
   }
 }
