@@ -198,7 +198,7 @@ class TourneyMatch extends TourneyEntity {
       return NULL;
     }
     $values = array_values($contestants);
-    return $contestants[$values[$slot-1]];
+    return $values[$slot - 1];
   }
 
   /**
