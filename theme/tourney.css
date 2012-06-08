@@ -27,7 +27,9 @@
   padding:0 5px 0 0;
   font-size:0.7em;
 }
-
+.match .label {
+  font-size:0.7em;
+}
 /**
  * Match theming should update .match-spacer.small as well to exactly 50% of .match height
  */

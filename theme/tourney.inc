@@ -124,8 +124,8 @@ function theme_tourney_matchblock($vars) {
     $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
       . '<div class="contestant contestant-1">' . $match->entity_id . '</div>'
       . '<div class="contestant contestant-2">' 
-      . ( $match->nextMatch() ? $match->nextMatch()->entity_id : 'NULL' ) . ' . ' 
-      . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : (array_key_exists('bye', $match->matchInfo) ? 'BYE' : 'NULL') ) . '</div>'
+      . '<span class="label">W:</span>' . ( $match->nextMatch() ? $match->nextMatch()->entity_id : 'NULL' ) . ' . ' 
+      . '<span class="label">L:</span>' . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : (array_key_exists('bye', $match->matchInfo) ? 'BYE' : '-') ) . '</div>'
       . '</div>';
   }
   elseif ($match->getTournament()->get('show_previous_match_path')) {
@@ -133,8 +133,8 @@ function theme_tourney_matchblock($vars) {
     $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
       . '<div class="contestant contestant-1">' . $match->entity_id . '</div>'
       . '<div class="contestant contestant-2">' 
-      . ( array_key_exists(0, $previousMatches) ? $previousMatches[0]->entity_id : 'NULL' ) . ' . ' 
-      . ( array_key_exists(1, $previousMatches) ? $previousMatches[1]->entity_id : 'NULL' ) . '</div>'
+      . '<span class="label">1:</span>' . ( array_key_exists(0, $previousMatches) ? $previousMatches[0]->entity_id : '-' ) . ' . ' 
+      . '<span class="label">2:</span>' . ( array_key_exists(1, $previousMatches) ? $previousMatches[1]->entity_id : '-' ) . '</div>'
       . '</div>';
   }
   /** End of debug code */
