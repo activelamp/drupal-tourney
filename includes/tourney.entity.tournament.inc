@@ -396,7 +396,7 @@ class TourneyTournament extends TourneyEntity {
   public function canSetContestants($match) {
     if (user_access("edit tourney") == FALSE) return FALSE;
     $roundinfo = $match->matchInfo['round'];
-    if (variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES) &&
+    if ($match->getTournament()->get('hide_byes', TOURNEY_HIDE_BYES) &&
       array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
        $match->findSeedInfo();
     }
