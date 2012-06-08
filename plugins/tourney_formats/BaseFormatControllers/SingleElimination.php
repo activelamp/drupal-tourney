@@ -477,8 +477,15 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    */
   public function getRoundTitle($vars) {
     $round_num = $vars['round_num'];
-    if ($round_num == 1) {
-      return 'Qualifying Round';
+    $bracket = $vars['bracket'];
+    if ($bracket == 'championship') {
+      return $bracket . ' - Championship';
+    }
+    else if ($bracket == 'main') {
+      return 'Upper Round ' . $round_num;
+    }
+    else if ($bracket == 'bottom') {
+      return 'Lower Round ' . $round_num;
     }
     return 'Round ' . $round_num;
   }
