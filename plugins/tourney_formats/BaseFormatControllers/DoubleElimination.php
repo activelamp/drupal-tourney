@@ -635,16 +635,19 @@ class DoubleEliminationController extends SingleEliminationController implements
    *   Match object to win
    */
   public function matchIsWon($match) {
-    if (!$match->isFinished()) return;
+    if (!$match->isFinished() && !array_key_exists('bye', $match->matchInfo)) return;
+    
     // clear winners to ensure new winners are loaded
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
     $loser  = $match->getLoserEntity();
+    
     // odd matches go to top slot, even to bottom
     $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
-    if ( $match->nextMatch() )
+    if ($match->nextMatch()) {
       $match->nextMatch()->addContestant($winner, $slot);
-    if ( $match->nextMatch('loser') ) {
+    }
+    if ($match->nextMatch('loser')) {
       // if we're not in the first round, send the loser to the top slot
       if ( $match->matchInfo['round']['id'] > 1 ) $slot = 1;
       $match->nextMatch('loser')->addContestant($loser, $slot);

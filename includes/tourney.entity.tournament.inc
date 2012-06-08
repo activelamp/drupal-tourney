@@ -444,9 +444,9 @@ class TourneyTournament extends TourneyEntity {
   }
 
   /**
-   * Rules called function, usually, to run win code on a match
-   * Calls the plugin specific callback, if there, then checks
-   * internally if the tournament's been given a winner
+   * Rules called function, usually, to run win code on a match. Calls the plugin
+   * specific callback, if there, then checks internally if the tournament's been
+   * given a winner
    *
    * @param $match
    *   match object to run win code on
@@ -454,8 +454,9 @@ class TourneyTournament extends TourneyEntity {
   public function matchIsWon($match) {
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
-    if ( !$info ) return NULL;
-    if ( !method_exists($plugin, $info['is_won']['callback']) ) return NULL;
+    if (!$info || !method_exists($plugin, $info['is_won']['callback'])) {
+      return NULL;
+    }
     $match->cleanGames();
     $plugin->$info['is_won']['callback']($match);
     $this->determineWinner();
