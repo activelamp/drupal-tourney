@@ -365,11 +365,16 @@ function theme_tourney_double_bottom_bracket($vars) {
           $match_flow_tail = ( $pad_rows == 0 ? 'topleft evenright,special' : 'topleft' );
         }
         //$output .= tourney_matchblock($match['match'], $match_flow_tail, $small);
-        $output .= theme('tourney_matchblock', array(
-          'match' => $match,
-          'flow' => $match_flow_tail,
-          'small' => $small,
-        ));
+        if (!is_array($match_info)) {
+          $output .= theme('tourney_dummy_match', array('height' => 1, 'count' => 2));
+        }
+        else {
+          $output .= theme('tourney_matchblock', array(
+            'match' => $match,
+            'flow' => $match_flow_tail,
+            'small' => $small,
+          ));
+        }
 
         // Close match pair div
         $output .= '</div></div>';  // <!-- /match-contestant /match-pair -->
