@@ -571,7 +571,12 @@ class TourneyMatch extends TourneyEntity {
       array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
     );
     // ... and save it!
-    $rid = relation_insert("contestant_$slot", $entity_keys);
+    $rid = relation_insert("contestant", $entity_keys);
+    if ( $slot ) {
+      $relation = relation_load($rid);
+      $relation->slot[LANGUAGE_NONE][0]['value'] = $slot;
+      relation_save($relation);
+    }
     $this->contestantIds = NULL;
   }
 
