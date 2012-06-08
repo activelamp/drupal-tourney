@@ -173,7 +173,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     $round_info = array(
       'id'    => $round_num,
       'name'  => 'round-' . $round_num,
-      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+      'title' => $this->getRoundTitle(array('round_num' => $round_num, 'bracket' => $bracket_info['id'])),
     );
     $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
 
@@ -306,7 +306,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     $round_info = array(
       'id'    => $round_num,
       'name'  => 'round-' . $round_num,
-      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+      'title' => $this->getRoundTitle(array('round_num' => $round_num, 'bracket' => $bracket_info['id'])),
     );
 
     $match_count = $this->getBottomMatchCount($slots, $round_num);
