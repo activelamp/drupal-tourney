@@ -253,6 +253,10 @@ function tourney_permission() {
       'title' => t('View Unpublished Tournaments'),
       'description' => t('View unpublished tournament.'),
     ),
+    'edit all contestants' =>  array(
+      'title' => t('Modify All Contestants'),
+      'description' => t('Modify contestants in matches not normally modifiable.'),
+    ),
   );
 }
 

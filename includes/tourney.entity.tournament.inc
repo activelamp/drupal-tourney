@@ -392,7 +392,9 @@ class TourneyTournament extends TourneyEntity {
    *   Boolean of whether the user can edit the match.
    */
   public function canSetContestants($match) {
-    if (user_access("edit tourney") == FALSE) return FALSE;
+    //if ( user_access("edit all contestants") ) return TRUE;
+    if ( user_access("edit tourney") == FALSE ) return FALSE;
+    if ( count($match->getGameIds()) > 1 ) return FALSE;
     $roundinfo = $match->matchInfo['round'];
     if ( $this->get('hide_byes') &&
       array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {

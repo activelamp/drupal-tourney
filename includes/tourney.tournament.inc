@@ -72,7 +72,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#type' => 'checkbox',
     '#title' => t('Hide Byes'),
     '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
-    '#default_value' => $tourney->get('hide_byes', TOURNEY_HIDE_BYES),
+    '#default_value' => $tourney->get('hide_byes'),
   );
 
   $form['tourney']['config_show_crowns'] = array(
