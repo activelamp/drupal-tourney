@@ -115,21 +115,29 @@ function theme_tourney_matchblock($vars) {
     $output .= '</div>';
   }
   $output .= '</div>';
-
-  // $previousMatches = $match->previousMatches();
-  // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
-  //    . '<div class="contestant contestant-1">' . $match->entity_id . '</div>'
-  //    . '<div class="contestant contestant-2">' 
-  //    . ( array_key_exists(0, $previousMatches) ? $previousMatches[0]->entity_id : 'NULL' ) . ' . ' 
-  //    . ( array_key_exists(1, $previousMatches) ? $previousMatches[1]->entity_id : 'NULL' ) . '</div>'
-  //    . '</div>';
-
-  // $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
-  //    . '<div class="contestant contestant-1">' . $match->entity_id . '</div>'
-  //    . '<div class="contestant contestant-2">' 
-  //    . ( $match->nextMatch() ? $match->nextMatch()->entity_id : 'NULL' ) . ' . ' 
-  //    . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : (array_key_exists('bye', $match->matchInfo) ? 'BYE' : 'NULL') ) . '</div>'
-  //    . '</div>';
+  
+  /**
+   * Debug code for testing match paths. Useful for making sure matches are feeding
+   * into the proper position.
+   */
+  if ($match->getTournament()->get('show_next_match_path')) {
+    $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
+      . '<div class="contestant contestant-1">' . $match->entity_id . '</div>'
+      . '<div class="contestant contestant-2">' 
+      . '<span class="label">W:</span>' . ( $match->nextMatch() ? $match->nextMatch()->entity_id : 'NULL' ) . ' . ' 
+      . '<span class="label">L:</span>' . ( $match->nextMatch('loser') ? $match->nextMatch('loser')->entity_id : (array_key_exists('bye', $match->matchInfo) ? 'BYE' : '-') ) . '</div>'
+      . '</div>';
+  }
+  elseif ($match->getTournament()->get('show_previous_match_path')) {
+    $previousMatches = $match->previousMatches();
+    $output = "<div class='match normal'>" . theme('tourney_flow_control', array('flows' => $flow)) 
+      . '<div class="contestant contestant-1">' . $match->entity_id . '</div>'
+      . '<div class="contestant contestant-2">' 
+      . '<span class="label">1:</span>' . ( array_key_exists(0, $previousMatches) ? $previousMatches[0]->entity_id : '-' ) . ' . ' 
+      . '<span class="label">2:</span>' . ( array_key_exists(1, $previousMatches) ? $previousMatches[1]->entity_id : '-' ) . '</div>'
+      . '</div>';
+  }
+  /** End of debug code */
 
   $match_uri = $match->getUri();
   return l($output, $match_uri . ($editable ? "/edit" : ''), array(
