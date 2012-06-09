@@ -648,8 +648,16 @@ class DoubleEliminationController extends SingleEliminationController implements
       $match->nextMatch()->addContestant($winner, $slot);
     }
     if ($match->nextMatch('loser')) {
-      // if we're not in the first round, send the loser to the top slot
-      if ( $match->matchInfo['round']['id'] > 1 ) $slot = 1;
+      // Check to see if next match feeds both contestants from main bracket.
+      $pm = $match->nextMatch('loser')->previousMatches();
+      $feedboth = $pm[0]->matchInfo['bracket']['id'] == 'main' 
+        && $pm[1]->matchInfo['bracket']['id'] == 'main' ? TRUE : FALSE;
+        
+      // if we're not in the first round and not feeding both contestants, send 
+      // the loser to the top slot.
+      if ($match->matchInfo['round']['id'] > 1 && !$feedboth) {
+        $slot = 1;
+      } 
       $match->nextMatch('loser')->addContestant($loser, $slot);
     }
   }
