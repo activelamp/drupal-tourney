@@ -376,8 +376,7 @@ class TourneyTournament extends TourneyEntity {
     
     // Build a classes array for the tournament wrapper
     $classes_array = array('tourney', "tourney-" . $info['machine name']);
-    $classes_array[] = $this->get('hide_byes', TOURNEY_HIDE_BYES) 
-        ? 'hide-byes' : '';
+    $classes_array[] = $this->get('hide_byes') ? 'hide-byes' : '';
     
     $output = "<div class='" . join(" ", $classes_array) . "'><div class='tourney-inner'>";
     $output .= $this->tourneyFormatPlugin->render();
@@ -396,7 +395,7 @@ class TourneyTournament extends TourneyEntity {
   public function canSetContestants($match) {
     if (user_access("edit tourney") == FALSE) return FALSE;
     $roundinfo = $match->matchInfo['round'];
-    if (variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES) &&
+    if ( $this->get('hide_byes') &&
       array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
        $match->findSeedInfo(); 
     }
