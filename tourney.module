@@ -130,8 +130,19 @@ function tourney_menu() {
     'file' => 'includes/tourney.admin.inc',
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['tourney/testing'] = array(
+    'title' => 'TESTING',
+    'page callback' => 'tourney_testing',
+    'access arguments' => array('administer tourney'),
+  );
 
   return $items;
+}
+
+function tourney_testing() {
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialElimination');
+  $tournament = new SpecialEliminationController(64);
+  krumo($tournament);
 }
 
 /**
