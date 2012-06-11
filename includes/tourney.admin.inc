@@ -101,6 +101,10 @@ function tourney_admin_content() {
  * Generate a table of all tournaments on this site.
  */
 function theme_tourney_admin_content($variables) {
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialElimination');
+  $tournament = new SpecialEliminationController(6);
+  krumo($tournament);
+
   $tournaments = $variables['tournaments'];
   $header = $variables['header'];
 

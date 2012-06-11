@@ -40,9 +40,7 @@ class SpecialEliminationController extends TourneyController implements TourneyC
   public function structure() {
     $structre = array();
     foreach ( $this->data['rounds'] as $round ) {
-      $structure[$round['id']] = array(
-        'matches' => array(),
-      );
+      $structure[$round['id']] = $round + array('matches' => array());
     }
     foreach ( $this->data['matches'] as $match ) {
       $structure[$match['round']]['matches'][$match['id']] = $match;
