@@ -376,9 +376,7 @@ class TourneyTournament extends TourneyEntity {
 
     // Build a classes array for the tournament wrapper
     $classes_array = array('tourney', "tourney-" . $info['machine name']);
-    $classes_array[] = $this->get('hide_byes', TOURNEY_HIDE_BYES)
-        ? 'hide-byes' : '';
-
+    $classes_array[] = $this->get('hide_byes') ? 'hide-byes' : '';
     $output = "<div class='" . join(" ", $classes_array) . "'><div class='tourney-inner'>";
     $output .= $this->tourneyFormatPlugin->render();
     $output .= "</div></div>";
@@ -394,9 +392,11 @@ class TourneyTournament extends TourneyEntity {
    *   Boolean of whether the user can edit the match.
    */
   public function canSetContestants($match) {
-    if (user_access("edit tourney") == FALSE) return FALSE;
+    //if ( user_access("edit all contestants") ) return TRUE;
+    if ( user_access("edit tourney") == FALSE ) return FALSE;
+    if ( count($match->getGameIds()) > 1 ) return FALSE;
     $roundinfo = $match->matchInfo['round'];
-    if ($match->getTournament()->get('hide_byes', TOURNEY_HIDE_BYES) &&
+    if ( $this->get('hide_byes') &&
       array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
        $match->findSeedInfo();
     }
@@ -444,9 +444,9 @@ class TourneyTournament extends TourneyEntity {
   }
 
   /**
-   * Rules called function, usually, to run win code on a match
-   * Calls the plugin specific callback, if there, then checks
-   * internally if the tournament's been given a winner
+   * Rules called function, usually, to run win code on a match. Calls the plugin
+   * specific callback, if there, then checks internally if the tournament's been
+   * given a winner
    *
    * @param $match
    *   match object to run win code on
@@ -454,8 +454,9 @@ class TourneyTournament extends TourneyEntity {
   public function matchIsWon($match) {
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
-    if ( !$info ) return NULL;
-    if ( !method_exists($plugin, $info['is_won']['callback']) ) return NULL;
+    if (!$info || !method_exists($plugin, $info['is_won']['callback'])) {
+      return NULL;
+    }
     $match->cleanGames();
     $plugin->$info['is_won']['callback']($match);
     $this->determineWinner();

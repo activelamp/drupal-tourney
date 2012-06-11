@@ -17,8 +17,8 @@ class TourneyMatch extends TourneyEntity {
   public  $hasByes = NULL;
   // @todo: rename the variable below to $tournament when backwardCompatibility
   // is no longer being used.
+  private $matchGames = array();
   private $matchTournament = NULL;
-  private $matchGames = NULL;
   private $matchStarted = NULL;
   private $matchFinished = NULL;
   private $matchWinner = NULL;
@@ -316,17 +316,19 @@ class TourneyMatch extends TourneyEntity {
   public function fetchRanks($reset = FALSE) {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'tourney_cache')) {
       $games = array();
+      
+      if (!array_key_exists('bye', $this->matchInfo) && count($this->getContestants()) < 2) {
+        return array();
+      }
 
-      if ( count($this->getContestants()) < 2 ) return array();
-
-      foreach ( $this->getContestants() as $eid => $contestant ) {
+      foreach ($this->getContestants() as $eid => $contestant) {
         $winners[$eid] = 0;
       }
-      foreach ( $this->getGames() as $gid => $game ) {
-        if ( !$game->getWinner() ) continue;
+      foreach ($this->getGames() as $gid => $game) {
+        if (!$game->getWinner()) continue;
         $winners[$game->getWinner()]++;
       }
-
+      
       asort($winners);
       cache_set('tourney_winner_count_' . $this->id, $winners, 'tourney_cache');
       return $winners;
@@ -362,6 +364,11 @@ class TourneyMatch extends TourneyEntity {
    * @return bool
    */
   public function isFinished() {
+    // If this is a bye, it's finished
+    if (array_key_exists('bye', $this->matchInfo)) {
+      return TRUE;
+    }
+    
     $games = tourney_game_load_multiple($this->getGameIds());
     // Had to implement a tally count to double-check for a winner. For some
     // reason, the second match of a match group was saying it was finished
@@ -474,7 +481,7 @@ class TourneyMatch extends TourneyEntity {
    *   integer then only the element at offset [$key] is returned.
    */
   function getGames($key = NULL) {
-    if (is_null($this->matchGames)) {
+    if (empty($this->matchGames)) {
       foreach ($this->getGameIds() as $gameId) {
         $this->matchGames[$gameId] = tourney_game_load($gameId);
       }

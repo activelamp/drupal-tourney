@@ -5,7 +5,6 @@
  */
 
 define('TOURNEY_GAMES', 5);
-define('TOURNEY_HIDE_BYES', TRUE);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
 /**
@@ -253,6 +252,10 @@ function tourney_permission() {
     'view unpublished tourney' =>  array(
       'title' => t('View Unpublished Tournaments'),
       'description' => t('View unpublished tournament.'),
+    ),
+    'edit all contestants' =>  array(
+      'title' => t('Modify All Contestants'),
+      'description' => t('Modify contestants in matches not normally modifiable.'),
     ),
   );
 }

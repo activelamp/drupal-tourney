@@ -71,30 +71,31 @@ function tourney_match_form($form, &$form_state, $match) {
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
-  if ($match->canSetContestants()) {
-    $contestants = $match->getContestants();
-    while ( count($contestants) < 2 ) $contestants[] = NULL;
+  //if ( $match->canSetContestants() ) {
+  $canset = $match->canSetContestants();
+  $contestants = $match->getContestants();
+  while ( count($contestants) < 2 ) $contestants[] = NULL;
 
-    $cid = 1;
-    foreach ( $contestants as $eid => $contestant ) {
-      if ( $contestant != NULL ) continue;
+  $cid = 1;
+  foreach ( $contestants as $eid => $contestant ) {
+    //if ( $contestant != NULL ) continue;
 
-      // Dont create a field for non-byes
-      if (array_key_exists('seed_position', $match->matchInfo)
-        && !array_key_exists($cid - 1, $match->matchInfo['seed_position'])) {
-          $cid++;
-          continue;
-        }
+    // Dont create a field for non-byes
+    if (array_key_exists('seed_position', $match->matchInfo)
+      && !array_key_exists($cid - 1, $match->matchInfo['seed_position'])) {
+        $cid++;
+        continue;
+      }
 
-      // @todo: replace code below with a scalable contestant field code with a list of text boxes
-      $form['contestant' . $cid++] = array(
-        '#title' => check_plain(t('Contestant ' . ($cid-1))),
-        '#default_value' => is_object($contestant) && $contestant->eid ? $contestant->eid : -1,
-        '#disabled' => is_object($contestant) && $contestant->eid ? TRUE : FALSE,
-        '#required' => is_object($contestant) && $contestant->eid ? FALSE : TRUE,
-      ) + _tourney_match_contestant($match);
-    }
+    // @todo: replace code below with a scalable contestant field code with a list of text boxes
+    $form['contestant' . $cid++] = array(
+      '#title' => check_plain(t('Contestant ' . ($cid-1))),
+      '#default_value' => is_object($contestant) && $contestant->eid ? $contestant->eid : -1,
+      '#disabled' => !$canset,
+      '#required' => is_object($contestant) && $contestant->eid ? FALSE : TRUE,
+    ) + _tourney_match_contestant($match);
   }
+  //}
 
   $form['games'] = array(
     '#type' => 'textfield',
@@ -238,7 +239,6 @@ function _tourney_match_contestants($match) {
     }
   }
   _tourney_match_contestants_sanitize($match, $options);
-
   return $options;
 }
 
@@ -271,7 +271,11 @@ function _tourney_match_contestants_sanitize($match, &$options) {
   $matches = tourney_match_load_multiple($match_ids);
 
   // Unset users in the options array that are already selected
-  foreach ($match->getTournament()->getContestants() as $eid => $contestant ) {
+  $contestants = $match->getTournament()->getContestants();
+  foreach ( $match->getContestants() as $eid => $contestant ) {
+    unset($contestants[$eid]);
+  }
+  foreach ($contestants as $eid => $contestant ) {
     foreach (array_keys($options) as $group) {
       if (is_array($options[$group]) && array_key_exists($eid, $options[$group])) {
         unset($options[$group][$eid]);
@@ -327,7 +331,7 @@ function tourney_match_form_submit($form, &$form_state) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 1);
-      if ($match->getTournament()->get('hide_byes', TOURNEY_HIDE_BYES)) {
+      if ( $match->getTournament()->get('hide_byes') ) {
         $match->addContestantPrevious($entity, 1);
       }
     }
@@ -335,7 +339,7 @@ function tourney_match_form_submit($form, &$form_state) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 2);
-      if ($match->getTournament()->get('hide_byes', TOURNEY_HIDE_BYES)) {
+      if ( $match->getTournament()->get('hide_byes') ) {
         $match->addContestantPrevious($entity, 2);
       }
     }
