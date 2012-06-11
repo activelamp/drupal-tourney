@@ -155,6 +155,9 @@ class DoubleEliminationController extends SingleEliminationController implements
       'title' => 'Championship',
     );
     $tree = $this->buildMatch($champ_match_num, $champ_round_info, $bracketc_info);
+    $champ_round_info['id'] = 2;
+    $champ_round_info['name'] = 'round-2';
+    $tree['sibling'] = $this->buildMatch($champ_match_num + 1, $champ_round_info, $bracketc_info);
     // Winner bracket
     $tree['children'][] = parent::buildBracketByTree($this->slots);
     // Loser bracket
@@ -636,12 +639,12 @@ class DoubleEliminationController extends SingleEliminationController implements
    */
   public function matchIsWon($match) {
     if (!$match->isFinished() && !array_key_exists('bye', $match->matchInfo)) return;
-    
+
     // clear winners to ensure new winners are loaded
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
     $loser  = $match->getLoserEntity();
-    
+
     // odd matches go to top slot, even to bottom
     $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
     if ($match->nextMatch()) {
@@ -650,14 +653,14 @@ class DoubleEliminationController extends SingleEliminationController implements
     if ($match->nextMatch('loser')) {
       // Check to see if next match feeds both contestants from main bracket.
       $pm = $match->nextMatch('loser')->previousMatches();
-      $feedboth = $pm[0]->matchInfo['bracket']['id'] == 'main' 
+      $feedboth = $pm[0]->matchInfo['bracket']['id'] == 'main'
         && $pm[1]->matchInfo['bracket']['id'] == 'main' ? TRUE : FALSE;
-        
-      // if we're not in the first round and not feeding both contestants, send 
+
+      // if we're not in the first round and not feeding both contestants, send
       // the loser to the top slot.
       if ($match->matchInfo['round']['id'] > 1 && !$feedboth) {
         $slot = 1;
-      } 
+      }
       $match->nextMatch('loser')->addContestant($loser, $slot);
     }
   }
