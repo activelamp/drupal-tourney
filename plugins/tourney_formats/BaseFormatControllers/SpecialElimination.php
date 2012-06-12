@@ -20,7 +20,6 @@ class SpecialEliminationController extends TourneyController implements TourneyC
     $this->slots = pow(2, ceil(log($contestants, 2)));
     // Build our data structure
     $this->build();
-    $this->structure();
   }
 
   /**
@@ -46,6 +45,15 @@ class SpecialEliminationController extends TourneyController implements TourneyC
           ));
       }
     }
+    foreach ( $this->data['matches'] as $id => &$match ) {
+      $this->data['games'][$id] = $this->buildGame(array(
+        'id' => $id,
+        'match' => $id,
+        'game' => 1, 
+      ));
+      $this->data['matches'][$id]->addGame($id);
+    }
+    $this->data['contestants'] = array();
     // Set in the seed positions
     $this->populateSeedPositions();
     // Calculate and set the match pathing
@@ -76,15 +84,24 @@ class SpecialEliminationController extends TourneyController implements TourneyC
    *   Uses 'id' from the array to set basic values, and joins for the rest
    *
    * @return $match
-   *   Filled out match data array
+   *   Filled out match object
    */
   public function buildMatch($data) {
-    $match = array(
-      'title'   => "Match " . $data['id'],
-      'id'      => "match-" . $data['id'],
-      'match'   => $data['id'],
-    ) + $data;
-    return $match;
+    $data['controller'] = $this;
+    return new TourneyMatch($data);
+  }
+
+  /**
+   * Game data generator
+   *
+   * @param array $data
+   *   Uses 'id' from the array to set basic values, and joins for the rest
+   *
+   * @return $match
+   *   Filled out game object
+   */
+  public function buildGame($data) {
+    return new TourneyGame($data);
   }
 
   /**
@@ -100,25 +117,15 @@ class SpecialEliminationController extends TourneyController implements TourneyC
       //  Next match is:
       //    Round 4 [3+1], Match 3 [ceil(5/2)]
       $next = $this->find('matches', array(
-        'round' => $match['round'] + 1,
-        'roundMatch' => (int) ceil($match['roundMatch'] / 2),
-      ), 'id');
+        'round' => $match->round + 1,
+        'roundMatch' => (int) ceil($match->roundMatch / 2),
+      ), TRUE);
       // If find()'s returned a result, set it.
-      if ( $next ) $match['nextMatch']['winner'] = array_pop($next);
-
-      // Target is multiplied by two to count for the /2 we used in nextMatch
-      // Example:
-      //   Round 3, Match 5
-      //  Previous matches:
-      //    Round 2 [3-1], Match 10 [5*2]
-      //    Round 2 [3-1], Match 9 [5*2-1]
-      $target = $match['roundMatch'] * 2;
-      $prev = $this->find('matches', array(
-        'round' => $match['round'] - 1,
-        'roundMatch' => array($target, $target - 1),
-      ), 'id');
-      // If find()'s returned a result, set it.
-      if ( $prev ) $match['previousMatches'] = $prev;
+      if ( $next ) {
+        $match->nextMatch['winner'] = $next->match;
+        $next->previousMatches[] = $match->match;
+      }
+      $match->clearChanged();
     }
   }
 
@@ -131,8 +138,8 @@ class SpecialEliminationController extends TourneyController implements TourneyC
     // also setting the bye boolean
     foreach ( $this->data['seeds'] as $id => $seed ) {
       $match =& $this->data['matches'][$id];
-      $match['seeds'] = $seed;
-      $match['bye']   = $seed[1] === NULL;
+      $match->seeds = $seed;
+      $match->bye   = $seed[1] === NULL;
     }
   }
 
@@ -147,43 +154,55 @@ class SpecialEliminationController extends TourneyController implements TourneyC
    *   If one of the variables is an array, it will compare the testing
    *     element's value against each of the array's 
    *
+   * @param boolean $first
+   *   If TRUE, will return the first matched element
+   *
    * @param string $specific
    *   Single value from each element to return, if not given will return
    *   the full element
    *
-   * @param boolean $first
-   *   If TRUE, will return the first matched element
-   *
    * @return $elements
    *   Array of elements that match the $vars given
    */
-  public function find($data, $vars, $specific = NULL, $first = FALSE) {
+  public function find($data, $vars, $first = FALSE, $specific = NULL) {
     if ( !array_key_exists($data, $this->data) ) return NULL;
+    // Check to see if the data is an array, if not it's an object and we
+    // need to use it as such
+    $data_is_array = is_array(reset($this->data[$data]));
     $elements = array();
     // is_array is expensive, set up an array to store this information
     $is_array = array();
     foreach ( $vars as $key => $value )
       $is_array[$key] = is_array($value);
     // Loop through all elements of the requested data array 
-    foreach ( $this->data[$data] as $id => $element ) {
+    foreach ( $this->data[$data] as $id => &$element ) {
       // Compare all our required $vars with its applicable properties
       // If that specific $vars is an array, check to see if the element's 
       // property is in the array
       // If the element fails at any of the checks, skip over it
       foreach ( $vars as $key => $value ) {
-        if ( $element[$key] !== $value ) {
-          if ( !$is_array[$key] || !in_array($element[$key], $value) ) 
-            continue 2;
+        if ( $data_is_array ) {
+          if ( $element[$key] !== $value ) {
+            if ( !$is_array[$key] || !in_array($element[$key], $value) ) 
+              continue 2;
+          }
+        }
+        else {
+          if ( $element->$key !== $value ) {
+            if ( !$is_array[$key] || !in_array($element->$key, $value) ) 
+              continue 2;
+          }
         }
       }
       // If we've supplied a 'specific' argument, only take that value,
       // otherwise take the entire element
       if ( $specific !== NULL )
-        $elements[] = $element[$specific];
+        $elements[] = $data_is_array ? $element[$specific] : $element->$specific;
       else 
-        $elements[] = $element;
+        $elements[] = &$element;
       // When $first, don't go any further once the first element has been set
-      if ( $first === TRUE ) break;
+      if ( $first === TRUE )
+        return $elements[0];
     }
     return $elements;
   }
@@ -191,17 +210,41 @@ class SpecialEliminationController extends TourneyController implements TourneyC
   /**
    * Generate a structure based on data
    */
-  public function structure() {
-    $structre = array();
+  public function structure($type = 'nested') {
+    switch ( $type ) {
+      case 'nested':
+        $this->structure['nested'] = $this->structureNested();
+        break;
+      case 'tree':
+        $this->structure['tree'] = $this->structureTree();
+        break;
+    }
+    return $this->structure[$type];
+  }
+
+  public function structureNested() {
+    $structure = array();
     // Loop through our rounds and set up each one
     foreach ( $this->data['rounds'] as $round ) {
       $structure[$round['id']] = $round + array('matches' => array());
     }
     // Loop through our matches and add each one to its related round
     foreach ( $this->data['matches'] as $match ) {
-      $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
+      $structure['round-' . $match->round]['matches'][$match->id] = $match;
     }
-    $this->structure = $structure;
+    return $structure;
+  }
+
+  public function structureTree() {
+    $match = end($this->data['matches']);
+    return $this->structureTreeNode($match);
+  }
+
+  public function structureTreeNode($match) {
+    $node = $match;
+    foreach ( $match->getPreviousMatches() as $child )
+      $node->children[] = $this->structureTreeNode($child);
+    return $node;
   }
 
   public function determineWinner($tournament) {
@@ -258,4 +301,13 @@ class SpecialEliminationController extends TourneyController implements TourneyC
     unset($positions[0]);
     $this->data['seeds'] = $positions;
   }
+
+  public function win($match, $contestant) {
+    if ( !in_array($contestant, $match->getContestantIds()) ) return FALSE;
+    if ( property_exists($match, 'nextMatch') && array_key_exists('winner', $match->nextMatch) ) {
+      $slot = $match->match % 2 ? 1 : 2;
+      $match->getNextMatch()->addContestant($contestant, $slot);
+    }
+    return TRUE;
+  } 
 }

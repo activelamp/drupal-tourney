@@ -5,7 +5,7 @@
  * Tournament match class.
  */
 
-class TourneyMatch extends TourneyEntity {
+class TourneyMatchEntity extends TourneyEntity {
 
   public  $tournamentId = NULL;
   public  $gameIds = NULL;
@@ -126,7 +126,7 @@ class TourneyMatch extends TourneyEntity {
         'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
       );
     }
-    uasort($contestants, 'TourneyMatch::contestantSort');
+    uasort($contestants, 'TourneyMatchEntity::contestantSort');
 
     return $contestants;
   }
@@ -206,7 +206,7 @@ class TourneyMatch extends TourneyEntity {
    */
   public function getTournamentId() {
     if (is_null($this->tournamentId)) {
-      $this->tournamentId = TourneyMatch::fetchTournamentId($this->id);
+      $this->tournamentId = TourneyMatchEntity::fetchTournamentId($this->id);
     }
     return $this->tournamentId;
   }
@@ -216,7 +216,7 @@ class TourneyMatch extends TourneyEntity {
    */
   public function getGameIds() {
     if (is_null($this->gameIds)) {
-      $this->gameIds = TourneyMatch::fetchGameIds($this->id);
+      $this->gameIds = TourneyMatchEntity::fetchGameIds($this->id);
     }
     return $this->gameIds;
   }
@@ -226,7 +226,7 @@ class TourneyMatch extends TourneyEntity {
    */
   public function getContestantIds() {
     if (is_null($this->contestantIds)) {
-      $this->contestantIds = TourneyMatch::fetchContestantIds($this->id);
+      $this->contestantIds = TourneyMatchEntity::fetchContestantIds($this->id);
     }
     return $this->contestantIds;
   }
@@ -451,7 +451,7 @@ class TourneyMatch extends TourneyEntity {
    * Return the uri to the entity object
    */
   public function getUri() {
-    return TourneyMatch::path($this->id);
+    return TourneyMatchEntity::path($this->id);
   }
 
   /**
@@ -645,7 +645,7 @@ class TourneyMatch extends TourneyEntity {
   public function addGame() {
     $this->cleanGames();
     $game_count = count($this->getGameIds());
-    $game = new TourneyGame(array(
+    $game = new TourneyGameEntity(array(
       'type'  => $this->getTournament()->get('game_bundle', 'game'),
       'title' => 'Game ' . ++$game_count,
       'name'  => $this->name . '_game-' . ++$game_count,

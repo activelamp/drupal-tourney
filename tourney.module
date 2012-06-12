@@ -142,7 +142,27 @@ function tourney_menu() {
 
 function tourney_testing() {
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialElimination');
-  $tournament = new SpecialEliminationController(20);
+  $tournament = new SpecialEliminationController(4);
+  
+  $contestant1 = (Object) array('name' => 'Home Team', 'id' => 'home');
+  $contestant2 = (Object) array('name' => 'Away Team', 'id' => 'away');
+  $contestant3 = (Object) array('name' => 'Alpha Team', 'id' => 'alpha');
+  $contestant4 = (Object) array('name' => 'Bravo Team', 'id' => 'bravo');
+
+  $match = $tournament->find('matches', array('id' => 'match-1'), TRUE);
+  $match->addContestant($contestant1, 1);
+  $match->addContestant($contestant2, 2);
+  $match->win('home');
+
+  $match = $tournament->find('matches', array('id' => 'match-2'), TRUE);
+  $match->addContestant($contestant3, 1);
+  $match->addContestant($contestant4, 2);
+  $match->win('alpha');
+
+  $match = $tournament->find('matches', array('id' => 'match-3'), TRUE);
+  $match->win('home');
+
+  krumo($tournament->structure('tree'));
   krumo($tournament);
 }
 
@@ -291,8 +311,8 @@ function tourney_entity_info() {
 
     $entity_class = 'Entity';
     $entity_class = ($entity_short == 'tournament') ? 'TourneyTournament' : $entity_class;
-    $entity_class = ($entity_short == 'match') ? 'TourneyMatch' : $entity_class;
-    $entity_class = ($entity_short == 'game') ? 'TourneyGame' : $entity_class;
+    $entity_class = ($entity_short == 'match') ? 'TourneyMatchEntity' : $entity_class;
+    $entity_class = ($entity_short == 'game') ? 'TourneyGameEntity' : $entity_class;
 
     $return[$entity_name] = array(
       'label' => $entity_name,

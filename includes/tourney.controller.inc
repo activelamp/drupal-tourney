@@ -116,7 +116,7 @@ class TourneyController {
         'name' => $tournament->name . '_' . $match['match_name'],
         'games' => $games,
       );
-      $new_match = new TourneyMatch($values);
+      $new_match = new TourneyMatchEntity($values);
       $new_match->save();
 
       // Create the Tourney/Match relation and save bracket and round data to it
@@ -128,7 +128,7 @@ class TourneyController {
 
       // Create the Match/Game relation
       if ($games > 0) {
-        $game = new TourneyGame(array(
+        $game = new TourneyGameEntity(array(
           'type' => $tournament->get('game_bundle', 'game'),
           'title' => 'Game 1',
           'name' => $new_match->name . '_game-1',

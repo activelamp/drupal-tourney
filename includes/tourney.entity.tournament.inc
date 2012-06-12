@@ -85,7 +85,7 @@ class TourneyTournament extends TourneyEntity {
     
     $game_ids = array();
     foreach ($match_ids as $mid) {
-      $game_ids = TourneyMatch::fetchGameIds($mid);
+      $game_ids = TourneyMatchEntity::fetchGameIds($mid);
     }
 
     return $game_ids;
@@ -108,7 +108,7 @@ class TourneyTournament extends TourneyEntity {
    */
   public function getGameIds() {
     if (empty($this->gameIds)) {
-      $this->gameIds = TourneyMatch::fetchGameIds($this->getMatchIds()); 
+      $this->gameIds = TourneyMatchEntity::fetchGameIds($this->getMatchIds()); 
     }
     return $this->gameIds;
   }

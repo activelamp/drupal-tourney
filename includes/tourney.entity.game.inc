@@ -6,7 +6,7 @@
  *
  */
 
-class TourneyGame extends TourneyEntity {
+class TourneyGameEntity extends TourneyEntity {
 
   public  $tournamentId = NULL;
   public  $matchId = NULL;
@@ -184,7 +184,7 @@ class TourneyGame extends TourneyEntity {
    */
   public function getContestantIds() {
     if (is_null($this->gameContestantIds)) {
-      $this->gameContestantIds = TourneyMatch::fetchContestantIds($this->getMatchId());
+      $this->gameContestantIds = TourneyMatchEntity::fetchContestantIds($this->getMatchId());
     }
 
     return $this->gameContestantIds;
@@ -206,7 +206,7 @@ class TourneyGame extends TourneyEntity {
    * Return the uri to the entity object
    */
   public function getUri() {
-    return TourneyGame::path($this->id);
+    return TourneyGameEntity::path($this->id);
   }   
 
   public function delete() {
