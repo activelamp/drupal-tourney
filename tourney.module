@@ -141,7 +141,7 @@ function tourney_menu() {
 
 function tourney_testing() {
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialElimination');
-  $tournament = new SpecialEliminationController(64);
+  $tournament = new SpecialEliminationController(20);
   krumo($tournament);
 }
 
