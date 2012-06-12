@@ -72,7 +72,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#type' => 'checkbox',
     '#title' => t('Hide Byes'),
     '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
-    '#default_value' => $tourney->get('hide_byes', FALSE),
+    '#default_value' => $tourney->get('hide_byes'),
   );
 
   $form['tourney']['config_show_crowns'] = array(
@@ -178,6 +178,27 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#type' => 'checkbox',
     '#title' => t('Published'),
     '#default_value' => isset($tourney->status) ? $tourney->status : 0,
+  );
+  
+  $form['debug'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Debug'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',  
+    '#access' => user_access('administer tourney'),
+  );
+  
+  $form['debug']['config_show_next_match_path'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show next match identifier in match block'),
+    '#default_value' => $tourney->get('show_next_match_path', -1),
+  );
+  
+  $form['debug']['config_show_previous_match_path'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show previous match identifier in match block'),
+    '#default_value' => $tourney->get('show_previous_match_path', -1),
   );
 
   field_attach_form('tourney_tournament', $tourney, $form, $form_state);

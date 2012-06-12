@@ -81,7 +81,7 @@ function theme_tourney_single_tree($vars) {
           // the evenright.
           $hide_bye = array_key_exists('bye', $match->matchInfo) 
             && $match->matchInfo['bye'] 
-            && variable_get('tourney_hide_byes', TOURNEY_HIDE_BYES);
+            && $match->getTournament()->get('hide_byes');
           
           $output .= theme('tourney_spacer', array('height' => $pad_rows - 1, 'flow' => 'vertical'));
           $output .= theme('tourney_spacer', array('flow' => $hide_bye ? 'no-vertical' : 'vertical' . ' evenright,special,bottom'));

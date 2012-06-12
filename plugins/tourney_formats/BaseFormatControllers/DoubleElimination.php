@@ -119,16 +119,18 @@ class DoubleEliminationController extends SingleEliminationController implements
   /**
    * Build bracket structure and logic.
    *
-   * @param $slots
-   *   The number of slots in the first round.
    * @return
    *   An array of bracket structure and logic.
    */
   protected function buildBracketByTree($slots) {
-    $bw_num_matches = $slots - 1;
-    $bl_num_matches = $slots - 2;
-    $bw_num_rounds = log($slots, 2);
+    $num_contestants = $this->tournament->players;
+    $bw_num_matches = $this->slots - 1;
+    $bl_num_matches = $num_contestants - 2;
+    $bw_num_rounds = log($this->slots, 2);
+
+    // @todo: account for byes
     $bl_num_rounds = ($bw_num_rounds - 1) * 2;
+
     $bracketw_info = array(
       'id'    => 'main',
       'name'  => 'bracket-top',
@@ -153,19 +155,28 @@ class DoubleEliminationController extends SingleEliminationController implements
       'title' => 'Championship',
     );
     $tree = $this->buildMatch($champ_match_num, $champ_round_info, $bracketc_info);
+    $champ_round_info['id'] = 2;
+    $champ_round_info['name'] = 'round-2';
+    $tree['sibling'] = $this->buildMatch($champ_match_num + 1, $champ_round_info, $bracketc_info);
     // Winner bracket
-    $tree['children'][] = parent::buildBracketByTree($slots);
+    $tree['children'][] = parent::buildBracketByTree($this->slots);
     // Loser bracket
-    $tree['children'][] = $this->buildLoserChildren($slots / 2, $bl_num_rounds, $champ_match_num - 1, $bracketl_info);
+    // @todo: remove later
+    if ($num_contestants == 19) {
+      $tree['children'][] = $this->buildLoserChildrenHard19(32, 7, 48, $bracketl_info);
+    }
+    else {
+      $tree['children'][] = $this->buildLoserChildren($this->slots, $bl_num_rounds, $champ_match_num - 1, $bw_num_matches + 1, $bracketl_info);
+    }
 
     return $tree;
   }
 
-  protected function buildLoserChildren($slots, $round_num, $match_num, $bracket_info, $iteration = 0) {
+  protected function buildLoserChildren($slots, $round_num, $match_num, $match_num_start, $bracket_info, $iteration = 0) {
     $round_info = array(
       'id'    => $round_num,
       'name'  => 'round-' . $round_num,
-      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+      'title' => $this->getRoundTitle(array('round_num' => $round_num, 'bracket' => $bracket_info['id'])),
     );
     $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
 
@@ -174,7 +185,7 @@ class DoubleEliminationController extends SingleEliminationController implements
       $children = ($round_num % 2) + 1;
       for ($i = 0; $i < $children; ++$i) {
         $child_match_num = ($match_num - $matches_in_child_round) + $i + ($children > 1 ? $iteration : 0);
-        $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $bracket_info, $i + $iteration);
+        $tree['children'][] = $this->buildLoserChildren($slots, $round_num - 1, $child_match_num, $match_num_start, $bracket_info, $i + $iteration);
       }
     }
 
@@ -182,7 +193,7 @@ class DoubleEliminationController extends SingleEliminationController implements
   }
 
   protected function getNumMatchesInLoserRound($slots, $round_num) {
-    $num_rounds = log($slots * 2, 2) - 1;
+    $num_rounds = log($slots, 2) - 1;
     $matches_in_rounds = array();
     for ($i = 0; $i < $num_rounds; ++$i) {
       $matches_in_rounds[] = pow(2, $i);
@@ -190,6 +201,32 @@ class DoubleEliminationController extends SingleEliminationController implements
     }
     $matches_in_rounds = array_reverse($matches_in_rounds);
     return $matches_in_rounds[$round_num - 1];
+  }
+
+  protected function buildLoserChildrenHard19($slots, $round_num, $match_num, $bracket_info, $iteration = 0) {
+    $matches_in_rounds = array(4,4,4,2,2,1,1);
+    $num_children = array(1,1,1,2,1,2,1);
+    $round_info = array(
+      'id'    => $round_num,
+      'name'  => 'round-' . $round_num,
+      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+    );
+    $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
+
+    if ($round_num > 1) {
+      $matches_in_child_round = $matches_in_rounds[$round_num - 2];
+      $children = $num_children[$round_num - 1];
+      for ($i = 0; $i < $children; ++$i) {
+        $child_match_num = ($match_num - $matches_in_child_round) + $i + ($children > 1 ? $iteration : 0);
+        $child_match_num = $match_num == 35 ? 32 : $child_match_num;
+        if ($round_num - 1 == 1 && $match_num == 36) {
+          continue;
+        }
+        $tree['children'][] = $this->buildLoserChildrenHard19($slots, $round_num - 1, $child_match_num, $bracket_info, $i + $iteration);
+      }
+    }
+
+    return $tree;
   }
 
   /**
@@ -272,7 +309,7 @@ class DoubleEliminationController extends SingleEliminationController implements
     $round_info = array(
       'id'    => $round_num,
       'name'  => 'round-' . $round_num,
-      'title' => $this->getRoundTitle(array('round_num' => $round_num)),
+      'title' => $this->getRoundTitle(array('round_num' => $round_num, 'bracket' => $bracket_info['id'])),
     );
 
     $match_count = $this->getBottomMatchCount($slots, $round_num);
@@ -601,18 +638,29 @@ class DoubleEliminationController extends SingleEliminationController implements
    *   Match object to win
    */
   public function matchIsWon($match) {
-    if (!$match->isFinished()) return;
+    if (!$match->isFinished() && !array_key_exists('bye', $match->matchInfo)) return;
+
     // clear winners to ensure new winners are loaded
     $match->clearWinner();
     $winner = $match->getWinnerEntity();
     $loser  = $match->getLoserEntity();
+
     // odd matches go to top slot, even to bottom
     $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
-    if ( $match->nextMatch() )
+    if ($match->nextMatch()) {
       $match->nextMatch()->addContestant($winner, $slot);
-    if ( $match->nextMatch('loser') ) {
-      // if we're not in the first round, send the loser to the top slot
-      if ( $match->matchInfo['round']['id'] > 1 ) $slot = 1;
+    }
+    if ($match->nextMatch('loser')) {
+      // Check to see if next match feeds both contestants from main bracket.
+      $pm = $match->nextMatch('loser')->previousMatches();
+      $feedboth = $pm[0]->matchInfo['bracket']['id'] == 'main'
+        && $pm[1]->matchInfo['bracket']['id'] == 'main' ? TRUE : FALSE;
+
+      // if we're not in the first round and not feeding both contestants, send
+      // the loser to the top slot.
+      if ($match->matchInfo['round']['id'] > 1 && !$feedboth) {
+        $slot = 1;
+      }
       $match->nextMatch('loser')->addContestant($loser, $slot);
     }
   }

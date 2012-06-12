@@ -17,8 +17,8 @@ class TourneyMatchEntity extends TourneyEntity {
   public  $hasByes = NULL;
   // @todo: rename the variable below to $tournament when backwardCompatibility
   // is no longer being used.
+  private $matchGames = array();
   private $matchTournament = NULL;
-  private $matchGames = NULL;
   private $matchStarted = NULL;
   private $matchFinished = NULL;
   private $matchWinner = NULL;
@@ -198,7 +198,7 @@ class TourneyMatchEntity extends TourneyEntity {
       return NULL;
     }
     $values = array_values($contestants);
-    return $contestants[$values[$slot-1]];
+    return $values[$slot - 1];
   }
 
   /**
@@ -316,17 +316,19 @@ class TourneyMatchEntity extends TourneyEntity {
   public function fetchRanks($reset = FALSE) {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'tourney_cache')) {
       $games = array();
+      
+      if (!array_key_exists('bye', $this->matchInfo) && count($this->getContestants()) < 2) {
+        return array();
+      }
 
-      if ( count($this->getContestants()) < 2 ) return array();
-
-      foreach ( $this->getContestants() as $eid => $contestant ) {
+      foreach ($this->getContestants() as $eid => $contestant) {
         $winners[$eid] = 0;
       }
-      foreach ( $this->getGames() as $gid => $game ) {
-        if ( !$game->getWinner() ) continue;
+      foreach ($this->getGames() as $gid => $game) {
+        if (!$game->getWinner()) continue;
         $winners[$game->getWinner()]++;
       }
-
+      
       asort($winners);
       cache_set('tourney_winner_count_' . $this->id, $winners, 'tourney_cache');
       return $winners;
@@ -362,6 +364,11 @@ class TourneyMatchEntity extends TourneyEntity {
    * @return bool
    */
   public function isFinished() {
+    // If this is a bye, it's finished
+    if (array_key_exists('bye', $this->matchInfo)) {
+      return TRUE;
+    }
+    
     $games = tourney_game_load_multiple($this->getGameIds());
     // Had to implement a tally count to double-check for a winner. For some
     // reason, the second match of a match group was saying it was finished
@@ -474,7 +481,7 @@ class TourneyMatchEntity extends TourneyEntity {
    *   integer then only the element at offset [$key] is returned.
    */
   function getGames($key = NULL) {
-    if (is_null($this->matchGames)) {
+    if (empty($this->matchGames)) {
       foreach ($this->getGameIds() as $gameId) {
         $this->matchGames[$gameId] = tourney_game_load($gameId);
       }
@@ -547,34 +554,6 @@ class TourneyMatchEntity extends TourneyEntity {
     //$this->save();
   }
 
-/**
- * Automatically populate the next matches to this match with the necessary
- * contestants by adding the relation
- *
- * @param integer $slot
- *   Contestant slot to target
- * @param Object entity
- *   Any type of entity to fill the target slot with
- */
-  public function setContestant($slot, $entity) {
-    // Get the current contestant in the target slot
-    $current = $this->getContestant($slot);
-    // If it's empty, no need to worry
-    if ( $current !== NULL ) {
-      // If it isn't, however... We'll need to check if it's same. If not, remove it.
-      if ( $current->eid == $entity->eid ) return;
-      $this->removeContestant($current);
-    }
-    // Create the relation...
-    $entity_keys = array(
-      array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
-      array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
-    );
-    // ... and save it!
-    $rid = relation_insert("contestant_$slot", $entity_keys);
-    $this->contestantIds = NULL;
-  }
-
   /**
    * Adds a contestant entity to an object by creating the necessary relation
    *
@@ -593,7 +572,7 @@ class TourneyMatchEntity extends TourneyEntity {
       array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
     );
     $rid = relation_insert("contestant", $entity_keys);
-    if ( $slot ) {
+    if ($slot) {
       $relation = relation_load($rid);
       $relation->slot[LANGUAGE_NONE][0]['value'] = $slot;
       relation_save($relation);
