@@ -389,19 +389,32 @@ class TourneyTournament extends TourneyEntity {
    * @param $match
    *   Match object
    * @return
-   *   Boolean of whether the user can edit the match.
+   *   Bitwise value with contestant slots turned on (slot 1 in right most position)
    */
   public function canSetContestants($match) {
-    //if ( user_access("edit all contestants") ) return TRUE;
-    if ( user_access("edit tourney") == FALSE ) return FALSE;
-    if ( count($match->getGameIds()) > 1 ) return FALSE;
+    $return = 0;
+    
+    // if (user_access("edit all contestants")) return 0x3;
+    if (user_access("edit tourney") == FALSE) return FALSE;
+    if (count($match->getGameIds()) > 1) return FALSE;
     $roundinfo = $match->matchInfo['round'];
-    if ( $this->get('hide_byes') &&
+    if ($this->get('hide_byes') &&
       array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
        $match->findSeedInfo();
     }
-
-    return ($roundinfo['id'] == 1 && $match->matchInfo['bracket']['id'] === 'main') || array_key_exists('seed_position', $match->matchInfo);
+    // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
+    if ($roundinfo['id'] == 1 && $match->matchInfo['bracket']['id'] === 'main') {
+      // Both slots can be set
+      $return = 0x3;
+    }
+    elseif (array_key_exists('seed_position', $match->matchInfo)) {
+      foreach (array(0,1) as $slot) {
+        if (array_key_exists($slot, $match->matchInfo['seed_position'])) {
+          $return += ($slot + 1);
+        }
+      }
+    }
+    return $return;
   }
 
   /**

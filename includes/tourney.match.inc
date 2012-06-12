@@ -74,25 +74,21 @@ function tourney_match_form($form, &$form_state, $match) {
   //if ( $match->canSetContestants() ) {
   $canset = $match->canSetContestants();
   $contestants = $match->getContestants();
+  
+  // Fill the $contestants array with two values if there isn't already two.
   while ( count($contestants) < 2 ) $contestants[] = NULL;
 
-  $cid = 1;
-  foreach ( $contestants as $eid => $contestant ) {
+  $cid = 0;
+  foreach (array(1,2) as $slot ) {
     //if ( $contestant != NULL ) continue;
 
-    // Dont create a field for non-byes
-    if (array_key_exists('seed_position', $match->matchInfo)
-      && !array_key_exists($cid - 1, $match->matchInfo['seed_position'])) {
-        $cid++;
-        continue;
-      }
-
     // @todo: replace code below with a scalable contestant field code with a list of text boxes
-    $form['contestant' . $cid++] = array(
-      '#title' => check_plain(t('Contestant ' . ($cid-1))),
-      '#default_value' => is_object($contestant) && $contestant->eid ? $contestant->eid : -1,
-      '#disabled' => !$canset,
-      '#required' => is_object($contestant) && $contestant->eid ? FALSE : TRUE,
+    $contestant = $match->getContestant($slot);
+    $form['contestant' . $slot] = array(
+      '#title' => check_plain(t('Contestant ' . $slot)),
+      '#default_value' => is_object($contestant) ? $contestant->eid : -1,
+      '#disabled' => !($slot & $canset),
+      '#required' => !($slot & $canset) || (is_object($contestant) && $contestant->eid) ? FALSE : TRUE,
     ) + _tourney_match_contestant($match);
   }
   //}
@@ -322,16 +318,16 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
-
-  if ( isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%' )
+  if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
+  }
 
   if (array_key_exists('contestant1', $form_state['input'])) {
     if ( $eid = $form_state['input']['contestant1'] ) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 1);
-      if ( $match->getTournament()->get('hide_byes') ) {
+      if ($match->getTournament()->get('hide_byes')) {
         $match->addContestantPrevious($entity, 1);
       }
     }
@@ -339,7 +335,7 @@ function tourney_match_form_submit($form, &$form_state) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 2);
-      if ( $match->getTournament()->get('hide_byes') ) {
+      if ($match->getTournament()->get('hide_byes')) {
         $match->addContestantPrevious($entity, 2);
       }
     }
