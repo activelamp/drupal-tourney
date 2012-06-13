@@ -30,9 +30,6 @@
 .match .label {
   font-size:0.7em;
 }
-/**
- * Match theming should update .match-spacer.small as well to exactly 50% of .match height
- */
 
 .tourney .match {
   height: 4em;
@@ -84,8 +81,6 @@
 .tourney .contestant.contestant-spacer {
   visibility: hidden;
 }
-
-/* Pretty sure this flow theming needs to be redone */
 
 .tourney .match .flow {
   height: 100%;
@@ -156,7 +151,6 @@
   border-width: 0 0 1px;
 }
 
-/* FLOW HIGHLIGHT THEMING */
 
 .tourney .match .flow.bracket-highlight .flow-control {
   border-color: #AAAA00;
@@ -203,14 +197,14 @@
   border-style: dotted;
 }
 
-/* SINGLE */
+
 
 .tourney-single .round {
   width: 12em;
   float: left;
 }
 
-/* DOUBLE */
+
 
 .tourney-double .bracket-bottom {
   clear: left;
@@ -225,7 +219,6 @@
   float: left;
 }
 
-/* ROUND ROBIN */
 
 .tourney-roundrobin .match {
   width: 12em;
@@ -241,18 +234,17 @@
 
 
 
-/* EXAMPLE THEMING */
 
-#page .contestant {
+#page .tourney .contestant {
   height: 21px;
   line-height: 21px;
 }
 
-#page .contestant-1 {
+#page .tourney .contestant-1 {
   margin-top: 5px;
 }
 
-.match .match-title {
+.tourney .match .match-title {
   left: 0;
   position: absolute;
   text-align: center;
@@ -260,6 +252,127 @@
   width: 87%;
 }
 
-#page .contestant.winner {
+#page .tourney .contestant.winner {
   background: #F1F178;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.tournament-bracket {
+
+}
+
+.tournament-tree .match {
+  width: 120px;
+}
+
+.tournament-tree .tree-node {
+  display: table;
+  position: relative;
+}
+
+.tournament-tree .bye {
+  visibility: hidden;
+  display: block;
+  height: 1px;
+}
+
+.tournament-tree .bye.no-height-change {
+  display: table;
+}
+
+.tournament-tree .tree-node.only-child {
+  top: 50%;
+}
+
+.tournament-tree .tree-node .children {
+  display: table-cell;
+  height: 100%;
+}
+
+.tournament-tree .tree-node .parent {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 5px 0;
+}
+
+.tournament-tree .tree-node .parent .match {
+  background: #E0E0E0;
+  border-radius: 7px;
+}
+
+.tournament-tree .tree-node .parent .match:hover {
+  background: #E8E8E8;
+}
+
+.tournament-tree .tree-node .parent .match .contestant {
+  padding: 0 7px;
+}
+
+.tournament-tree .tree-node .parent .match .contestant:hover {
+  background: #F0F0F0;
+}
+
+.tournament-tree .tree-node .parent .match .contestant .seed {
+  padding: 0 0.7em 0 0;
+  font-size: 0.7em;
+  float: left;
+  color: #888;
+}
+
+.tournament-tree .tree-node .parent .match .contestant-1 {
+  border-radius: 7px 7px 0 0;
+}
+
+.tournament-tree .tree-node .parent .match .contestant-2 {
+  border-radius: 0 0 7px 7px;
+  border-top: 1px solid #888;
+}
+
+.tournament-tree .tree-node .connector {
+  display: table-cell;
+  height: 1px;
+  position: relative;
+  width: 8px;
+  margin: 0 2px;
+  top: -1px;
+}
+
+.tournament-tree .tree-node .connector .path {
+  position: absolute;
+  height: 50%;
+  width: 100%;
+}
+
+.tournament-tree .tree-node .connector.to-children .path {
+  top: 50%;
+  border-top: 1px solid #888;
+}
+
+.tournament-tree .tree-node .connector.child-0 .path {
+  top: 50%;
+  border: solid #888;
+  border-width: 1px 1px 0 0;
+  border-radius: 0 5px 0 0;
+}
+
+.tournament-tree .tree-node .connector.child-1 .path {
+  border: solid #888;
+  border-width: 0 1px 1px 0;
+  border-radius: 0 0 5px 0;
+}
+

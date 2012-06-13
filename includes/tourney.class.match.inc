@@ -34,7 +34,7 @@ class TourneyMatch extends TourneyObject {
   public $id;
   public $match;
   protected $games = array();
-  protected $contestants = array();
+  public $contestants = array();
   protected $controller;
   protected $winner = NULL;
   protected $loser  = NULL;
@@ -44,6 +44,10 @@ class TourneyMatch extends TourneyObject {
     $this->title = 'Match ' . $vars['id'];
     $this->id    = 'match-' . $vars['id'];
     $this->match = $vars['id'];
+  }
+
+  public function data($data, $key = NULL) {
+    
   }
 
   public function addContestant($contestant, $slot) {
@@ -66,13 +70,20 @@ class TourneyMatch extends TourneyObject {
 
   // @todo: possibly consolidate all the getSomething and getSomethings together
   public function getContestant($slot) {
+    if ( !array_key_exists($slot, $this->contestants) ) {
+      $null = (object) array(
+        'name' => 'Team ' . $slot,
+        'id'   => NULL,
+      );
+      return $null;
+    }
     return $this->controller->data['contestants'][$this->contestants[$slot]];
   }
 
   public function getContestants() {
     $contestants = array();
-    foreach ( $this->contestants as $id ) {
-      $contestants[$id] = $this->controller->data['contestants'][$id];
+    foreach ( $this->contestants as $slot => $id ) {
+      $contestants[$slot] = $this->controller->data['contestants'][$id];
     }
     return $contestants;
   }
@@ -96,8 +107,9 @@ class TourneyMatch extends TourneyObject {
   public function win($contestant) {
     if ( $this->controller->win($this, $contestant) ) {
       $this->winner = $contestant;
-      $this->loser  = 
-        $this->contestants[$this->contestants[1] == $contestant ? 2 : 1];
+      if ( count($this->contestants) > 1 )
+        $this->loser  = 
+          $this->contestants[$this->contestants[1] == $contestant ? 2 : 1];
     };
   }
 
@@ -139,6 +151,20 @@ class TourneyMatch extends TourneyObject {
         $matches[] = $this->controller->data['matches'][$this->previousMatches[1]];
     }
     return $matches;
+  }
+
+  public function getSeeds() {
+    if ( property_exists($this, 'seeds') ) return $this->seeds;
+    $this->seeds = array();
+    if ( $this->round > 2 ) return $this->seeds;
+    $matches = $this->getPreviousMatches();
+    foreach ( $matches as $index => $match ) {
+      if ( !$match->bye ) continue;
+      $this->seeds[$index+1] = $match->seeds[1];
+      if ( !in_array($index+1, $this->contestants) && $match->contestants )
+        $this->contestants[$index+1] = $match->contestants[1];
+    }
+    return $this->seeds;
   }
 }
 
