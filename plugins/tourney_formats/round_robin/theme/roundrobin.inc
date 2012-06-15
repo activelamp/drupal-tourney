@@ -56,11 +56,6 @@ function theme_tourney_roundrobin_standings($vars) {
   foreach ($contestants as $id => $contestant) {
     $table['rows'][] = array($contestant->entity_name, $standings[$id]['total'] ?: 0, $standings[$id]['wins'] ?: 0, $standings[$id]['losses'] ?: 0);
   }
-  /*
-  foreach ($standings as $id => $standing) {
-    $table['rows'][] = array($contestants[$id]->entity_name, $standing['total'], $standing['wins'], $standing['losses']);
-  }
-  */
 
   if (!$table['rows']) {
     return NULL;
