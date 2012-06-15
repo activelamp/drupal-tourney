@@ -31,9 +31,9 @@ function theme_tourney_roundrobin($vars) {
     foreach ($round['matches'] as $match_name => $match_callbacks) {
       $match = $tournament->tourneyFormatPlugin
         ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
-        
+
       $output .= theme('tourney_matchblock', array('match' => $match));
-    } 
+    }
     $output .= '<div class="clearfix"></div>';
   }
   return $output;
@@ -47,16 +47,23 @@ function theme_tourney_roundrobin_standings($vars) {
 
   $contestants = $tournament->getContestants();
   $standings = $tournament->getStandings();
-  
+
   $table['header'] = array('Teams', 'Games Played', 'Wins', 'Losses');
   $table['rows'] = array();
-  
+
   uasort($standings, 'tourney_roundrobin_standings_sort');
 
-  foreach ( $standings as $id => $standing ) {
+  foreach ($contestants as $id => $contestant) {
+    $table['rows'][] = array($contestant->entity_name, $standings[$id]['total'] ?: 0, $standings[$id]['wins'] ?: 0, $standings[$id]['losses'] ?: 0);
+  }
+  /*
+  foreach ($standings as $id => $standing) {
     $table['rows'][] = array($contestants[$id]->entity_name, $standing['total'], $standing['wins'], $standing['losses']);
   }
+  */
 
-  if ( !$table['rows'] ) return NULL;
+  if (!$table['rows']) {
+    return NULL;
+  }
   return theme('table', $table);
 }
