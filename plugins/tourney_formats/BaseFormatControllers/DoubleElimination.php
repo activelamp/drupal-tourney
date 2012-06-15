@@ -50,6 +50,14 @@ class DoubleEliminationController extends SingleEliminationController implements
       ),
     );
   }
+  
+  /**
+   * Default options form that provides the label widget that all fields
+   * should have.
+   */
+  public function optionsForm(&$form_state) {
+    return array();
+  }
 
   /**
    * Renders the html for each round tournament

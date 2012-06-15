@@ -12,7 +12,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   // Set the bundle name
   $tourney->type = 'tournament';
   $form_state['tourney'] = $tourney;
-
+  
   $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Tournament Name'),
@@ -34,7 +34,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
       'replace' => '-',
     ),
   );
-
+  
+  
   $form['format'] = array(
     '#type' => 'select',
     '#title' => t('Tournament style'),
@@ -42,7 +43,10 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#options' => tourney_get_type_options(),
     '#disabled' => isset($tourney->format) ? TRUE : FALSE,
     '#default_value' => isset($tourney->format) ? $tourney->format : -1,
-  );
+  );     
+  
+  // Get options form from plugin if one exists.
+  tourney_get_plugin_options($tourney, $form, $form_state);
 
   $form['players'] = array(
     '#type' => 'textfield',
@@ -378,4 +382,61 @@ function tourney_tournament_edit($tournament) {
   drupal_set_title(t('Edit Tournament: @title', array('@title' => $tournament->label)));
 
   return drupal_get_form('tourney_tournament_form', $tournament);
+}
+
+/**
+ * Build an options array to be used in forms.
+ */
+function tourney_get_type_options($reset = FALSE) {
+  ctools_include('plugins');
+  static $options = array();
+
+  if (!empty($options) && !$reset) {
+    return $options;
+  }
+
+  $plugins = tourney_get_types();       
+  uasort($plugins, 'ctools_plugin_sort');
+  foreach ($plugins as $info) {
+    $options[$info['controller']] = $info['name'];
+  }
+  return $options;
+}
+
+/**
+ * Load all the plugin option forms if one is available.  These forms are hidden
+ * via the Drupal #states system, and only shown in the UI if the tournament
+ * style for the controller is selected.
+ * 
+ * @todo Think about having these options load with ajax. It may get unwieldy if
+ *   we have a ton of Tournament styles.
+ */
+function tourney_get_plugin_options($tourney, &$form, &$form_state) {
+  $plugins = tourney_get_types();           
+  uasort($plugins, 'ctools_plugin_sort');  
+  foreach ($plugins as $info) {
+    $controller = ctools_plugin_get_class($info, 'controller');
+    if (class_exists($controller) && method_exists($controller, 'optionsForm')) {
+      $plugin = new $controller($tourney);
+      $options_form = $plugin->optionsForm($form_state);
+      
+      // If no options are defined move on.
+      if (empty($options_form)) {
+        continue;
+      }
+      
+      // Setup a fieldset
+      $form[$info['machine name']] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Tourney Format Settings'),
+        '#collapsible' => FALSE,
+        '#access' => user_access('administer tourney'),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="format"]' => array('value' => $controller),
+          ),
+        ),
+      ) + $options_form;
+    }
+  }
 }

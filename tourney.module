@@ -965,25 +965,6 @@ function tourney_get_types() {
 }
 
 /**
- * Build an options array to be used in forms.
- */
-function tourney_get_type_options($reset = FALSE) {
-  ctools_include('plugins');
-  static $options = array();
-
-  if (!empty($options) && !$reset) {
-    return $options;
-  }
-
-  $plugins = tourney_get_types();
-  uasort($plugins, 'ctools_plugin_sort');
-  foreach ($plugins as $info) {
-    $options[$info['controller']] = $info['name'];
-  }
-  return $options;
-}
-
-/**
  * Create a relation between two entities.
  *
  * @param $predicate

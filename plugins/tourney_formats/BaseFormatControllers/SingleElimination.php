@@ -32,6 +32,21 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       $this->calculateRounds($tournament->players);
     }
     parent::__construct();
+  }  
+  
+  /**
+   * Default options form that provides the label widget that all fields
+   * should have.
+   */
+  public function optionsForm(&$form_state) {
+    $form['third_place'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Generate a third place match'),
+      '#description' => t('By checking this option, a Consolation bracket will be created with one match to determine third place.'),
+      '#default_value' => '',
+    );
+    
+    return $form;
   }
 
   /**
