@@ -554,39 +554,6 @@ class TourneyMatch extends TourneyEntity {
     //$this->save();
   }
 
-/**
- * Automatically populate the next matches to this match with the necessary
- * contestants by adding the relation
- *
- * @param integer $slot
- *   Contestant slot to target
- * @param Object entity
- *   Any type of entity to fill the target slot with
- */
-  public function setContestant($slot, $entity) {
-    // Get the current contestant in the target slot
-    $current = $this->getContestant($slot);
-    // If it's empty, no need to worry
-    if ( $current !== NULL ) {
-      // If it isn't, however... We'll need to check if it's same. If not, remove it.
-      if ( $current->eid == $entity->eid ) return;
-      $this->removeContestant($current);
-    }
-    // Create the relation...
-    $entity_keys = array(
-      array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
-      array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
-    );
-    // ... and save it!
-    $rid = relation_insert("contestant", $entity_keys);
-    if ( $slot ) {
-      $relation = relation_load($rid);
-      $relation->slot[LANGUAGE_NONE][0]['value'] = $slot;
-      relation_save($relation);
-    }
-    $this->contestantIds = NULL;
-  }
-
   /**
    * Adds a contestant entity to an object by creating the necessary relation
    *
@@ -605,7 +572,7 @@ class TourneyMatch extends TourneyEntity {
       array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
     );
     $rid = relation_insert("contestant", $entity_keys);
-    if ( $slot ) {
+    if ($slot) {
       $relation = relation_load($rid);
       $relation->slot[LANGUAGE_NONE][0]['value'] = $slot;
       relation_save($relation);
