@@ -264,9 +264,10 @@ class SpecialEliminationController extends TourneyFormatController {
       $match =& $this->data['matches'][$id];
       $match['seeds'] = $seeds;
       $match['bye']   = $seeds[2] === NULL;
-      if ( $match['bye'] && isset($match['nextMatch']) )
-        $this->data['matches'][$match['nextMatch']['winner']]['seeds'] = 
-          array(1 => $seeds[1], 2 => NULL);
+      if ( $match['bye'] && isset($match['nextMatch']) ) {
+        $slot = $match['id'] % 2 ? 1 : 2;
+        $this->data['matches'][$match['nextMatch']['winner']]['seeds'][$slot] = $seeds[1];
+      }
     }
   }
 

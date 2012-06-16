@@ -141,7 +141,7 @@ function tourney_menu() {
 
 function tourney_testing() {
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialElimination');
-  $tournament = new SpecialEliminationController(27);
+  $tournament = new SpecialEliminationController(9);
 
   // $contestant1 = (Object) array('name' => 'Home Team', 'id' => 'home');
   // $contestant2 = (Object) array('name' => 'Away Team', 'id' => 'away');
