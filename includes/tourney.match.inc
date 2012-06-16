@@ -234,7 +234,11 @@ function _tourney_match_contestants($match) {
       $options[$group_name] = $group;
     }
   }
-  _tourney_match_contestants_sanitize($match, $options);
+  // Do not sanitize the list for "No Automation"
+  if (!$match->getTournament()->get('no_automation', FALSE)) {
+    _tourney_match_contestants_sanitize($match, $options);
+  }
+  
   return $options;
 }
 

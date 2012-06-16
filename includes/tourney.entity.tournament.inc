@@ -393,10 +393,15 @@ class TourneyTournament extends TourneyEntity {
    */
   public function canSetContestants($match) {
     $return = 0;
+                             
+    // If no automation is turned on, we should be able to edit both contestants.
+    if ($this->get('no_automation', FALSE)) {
+      return 0x3;
+    }
+    if (user_access("edit tourney") == FALSE || count($match->getGameIds()) > 1) {
+      return FALSE;
+    }
     
-    // if (user_access("edit all contestants")) return 0x3;
-    if (user_access("edit tourney") == FALSE) return FALSE;
-    if (count($match->getGameIds()) > 1) return FALSE;
     $roundinfo = $match->matchInfo['round'];
     if ($this->get('hide_byes') &&
       array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
@@ -471,8 +476,11 @@ class TourneyTournament extends TourneyEntity {
       return NULL;
     }
     $match->cleanGames();
-    $plugin->$info['is_won']['callback']($match);
     $this->determineWinner();
+    
+    if (!$this->get('no_automation', FALSE)) {
+      $plugin->$info['is_won']['callback']($match); 
+    }
   }
 
   public function get($name, $default = NULL) {

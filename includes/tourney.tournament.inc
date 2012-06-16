@@ -78,6 +78,13 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
     '#default_value' => $tourney->get('hide_byes'),
   );
+  
+  $form['tourney']['config_no_automation'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Do not move contestants automatically'),
+    '#description' => t('If on, you will need to manually set contestants in every match. Tourney will not move contestants to next match.'),
+    '#default_value' => $tourney->get('no_automation'),
+  );
 
   $form['tourney']['config_show_crowns'] = array(
     '#type' => 'checkbox',
