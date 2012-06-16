@@ -37,8 +37,13 @@ class TourneyFormatController {
    *   Filled out match object
    */
   public function buildMatch($data) {
-    $data['controller'] = $this;
-    return new TourneyMatch($data);
+    $match = array(
+      'controller'  => $this,
+      'title'       => 'Match ' . $data['id'],
+      'id'          => 'match-' . $data['id'],
+      'match'       => $data['id'],
+    ) + $data;
+    return $data;
   }
 
   /**
@@ -51,7 +56,11 @@ class TourneyFormatController {
    *   Filled out game object
    */
   public function buildGame($data) {
-    return new TourneyGame($data);
+    $game = array(
+      'title'       => 'Game ' . $data['game'],
+      'id'          => 'game-' . $data['id'],
+    ) + $data;
+    return $game;
   }
 
   /**
@@ -75,7 +84,7 @@ class TourneyFormatController {
    * @return $elements
    *   Array of elements that match the $vars given
    */
-  public function find($data, $vars, $first = FALSE, $specific = NULL) {
+  public function &find($data, $vars, $first = FALSE, $specific = NULL) {
     if ( !isset($this->data[$data]) ) return NULL;
     // Added in optimization to make routine find() calls faster
     // Normally searches are incremented, so this optimization holds
@@ -104,12 +113,6 @@ class TourneyFormatController {
       $optimize_data  = $data;
     }
 
-    // Check to see if the data is an array, if not it's an object and we
-    // need to use it as such
-    if ( !isset($optimize_array[$data]) ) 
-      $optimize_array[$data] = is_array(reset($this->data[$data]));
-    $data_is_array = $optimize_array[$data];
-
     $elements = array();
     // is_array is expensive, set up an array to store this information
     $is_array = array();
@@ -133,17 +136,9 @@ class TourneyFormatController {
       // property is in the array
       // If the element fails at any of the checks, skip over it
       foreach ( $vars as $key => $value ) {
-        if ( $data_is_array ) {
-          if ( $element[$key] !== $value ) {
-            if ( !$is_array[$key] || !in_array($element[$key], $value) ) 
-              continue 2;
-          }
-        }
-        else {
-          if ( $element->$key !== $value ) {
-            if ( !$is_array[$key] || !in_array($element->$key, $value) ) 
-              continue 2;
-          }
+        if ( $element[$key] !== $value ) {
+          if ( !$is_array[$key] || !in_array($element[$key], $value) ) 
+            continue 2;
         }
       }
       // If we've supplied a 'specific' argument, only take that value,
@@ -181,12 +176,11 @@ class SpecialEliminationController extends TourneyFormatController {
   /**
    * Constructor
    */
-  public function __construct($contestants) {
+  public function __construct($contestants, $tournament = NULL) {
     // Set our contestants, and then calculate the slots necessary to fit them 
     $this->contestants = $contestants;  
     $this->slots = pow(2, ceil(log($contestants, 2)));
-    // Build our data structure
-    $this->build();
+    $this->tournament = $tournament;
   }
 
   /**
@@ -218,7 +212,7 @@ class SpecialEliminationController extends TourneyFormatController {
         'match' => $id,
         'game' => 1, 
       ));
-      $this->data['matches'][$id]->addGame($id);
+      $this->data['matches'][$id]['games'][] = $id;
     }
     $this->data['contestants'] = array();
     // Set in the seed positions
@@ -243,9 +237,9 @@ class SpecialEliminationController extends TourneyFormatController {
       //  Next match is:
       //    Round 4 [3+1], Match 3 [ceil(5/2)]
 
-      $next = $this->find('matches', array(
-        'round' => $match->round + 1,
-        'roundMatch' => (int) ceil($match->roundMatch / 2),
+      $next = &$this->find('matches', array(
+        'round' => $match['round'] + 1,
+        'roundMatch' => (int) ceil($match['roundMatch'] / 2),
       ), TRUE);
 
       // $index = ( $this->slots / 2 ) + floor(($match->match-1) / 2)+1;
@@ -253,10 +247,9 @@ class SpecialEliminationController extends TourneyFormatController {
 
       // If find()'s returned a result, set it.
       if ( $next ) {
-        $match->nextMatch['winner'] = $next->match;
-        $next->previousMatches[] = $match->match;
+        $match['nextMatch']['winner'] = $next['id'];
+        $next['previousMatches'][] = $match['id'];
       }
-      $match->clearChanged();
     }
   }
 
@@ -269,8 +262,8 @@ class SpecialEliminationController extends TourneyFormatController {
     // also setting the bye boolean
     foreach ( $this->data['seeds'] as $id => $seeds ) {
       $match =& $this->data['matches'][$id];
-      $match->seeds = $seeds;
-      $match->bye   = $seeds[2] === NULL;
+      $match['seeds'] = $seeds;
+      $match['bye']   = $seeds[2] === NULL;
     }
   }
 
@@ -297,7 +290,7 @@ class SpecialEliminationController extends TourneyFormatController {
     }
     // Loop through our matches and add each one to its related round
     foreach ( $this->data['matches'] as $match ) {
-      $structure['round-' . $match->round]['matches'][$match->id] = $match;
+      $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
     }
     return $structure;
   }
@@ -309,8 +302,9 @@ class SpecialEliminationController extends TourneyFormatController {
 
   public function structureTreeNode($match) {
     $node = $match;
-    foreach ( $match->getPreviousMatches() as $child )
-      $node->children[] = $this->structureTreeNode($child);
+    if ( isset($match['previousMatches']) )
+      foreach ( $match['previousMatches'] as $child )
+        $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
     return $node;
   }
 
@@ -361,16 +355,9 @@ class SpecialEliminationController extends TourneyFormatController {
     $this->data['seeds'] = $positions;
   }
 
-  public function win($match, $contestant) {
-    if ( !in_array($contestant, $match->getContestantIds()) ) return FALSE;
-    if ( property_exists($match, 'nextMatch') && array_key_exists('winner', $match->nextMatch) ) {
-      $slot = $match->match % 2 ? 1 : 2;
-      $match->getNextMatch()->addContestant($contestant, $slot);
-    }
-    return TRUE;
-  } 
-
   public function render($theme) {
+    // Build our data structure
+    $this->build();
     $this->structure('tree');
     return theme($theme, array('structure' => $this->structure));
   }

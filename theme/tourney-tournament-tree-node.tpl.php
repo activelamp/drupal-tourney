@@ -1,35 +1,39 @@
 <?php
-$is_bye        = property_exists($node, 'bye') ? $node->bye : FALSE;
-$is_child      = property_exists($node, 'child');
-$is_only_child = property_exists($node, 'only') ? $node->only : FALSE;
-$has_children  = property_exists($node, 'children');
+$is_bye        = isset($node['bye']) ? $node['bye'] : FALSE;
+$is_child      = isset($node['child']);
+$is_only_child = isset($node['only']) ? $node['only'] : FALSE;
+$has_children  = isset($node['children']);
 
 $has_bye   = FALSE;
 $both_byes = TRUE;
 if ( $has_children ) {
-  foreach ( $node->children as $child ) {
-    if ( property_exists($child, 'bye') && $child->bye )
+  foreach ( $node['children'] as &$child ) {
+    if ( isset($child['bye']) && $child['bye'] )
       $has_bye   = TRUE;
     else
       $both_byes = FALSE;      
   } 
+  unset($child);
 }
 
-$child_byes = 0;
+$bye_secondlevel = array();
 if ( $has_children ) {
-  foreach ( $node->children as $id => $child ) {
-    $child->child = $id;
-    $child->only  = $has_bye && !$both_byes;
-    $child->sibling_byes = &$child_byes;
-    if ( property_exists($child, 'bye') && $child->bye ) 
-      $child_byes++;
+  foreach ( $node['children'] as $id => &$child ) {
+    $child['child'] = $id;
+    $child['only']  = $has_bye && !$both_byes;
+    $child['bye_firstlevel'] = isset($node['bye_secondlevel']) ? $node['bye_secondlevel'] : array();
+    $child['bye_secondlevel'] = &$bye_secondlevel;
+    if ( isset($child['children']) ) 
+      foreach ( $child['children'] as $grandchild ) 
+        $bye_secondlevel[] = ( isset($grandchild['bye']) && $grandchild['bye'] );
   }
+  unset($child);
 }
 
 $node_classes = array();
 
 if ( $is_bye ) $node_classes[] = 'bye';
-if ( property_exists($node, 'sibling_byes') && $node->sibling_byes == 1 ) {
+if ( isset($node['bye_firstlevel']) && $node['bye_firstlevel'] == array(TRUE, FALSE, FALSE, FALSE) ) {
   if ( $is_bye ) $node_classes[] = 'no-height-change';
 }
 else {
@@ -45,7 +49,7 @@ $children_classes = implode(' ', $children_classes);
 <div class="tree-node <?php echo $node_classes; ?>">
   <?php if ( $has_children ): ?>
     <div class="children <?php echo $children_classes; ?>">
-      <?php foreach ( $node->children as $id => $child ) {
+      <?php foreach ( $node['children'] as $id => $child ) {
           echo theme('tourney_tournament_tree_node', array('node' => $child)); 
       } ?>
     </div>
@@ -54,7 +58,7 @@ $children_classes = implode(' ', $children_classes);
   <div class="parent">
     <?php echo theme('tourney_match', array('match' => $node)); ?>
   </div>
-  <div class="connector to-parent<?php echo $is_child ? ' child-' . $node->child : ''; ?>">
+  <div class="connector to-parent<?php echo $is_child ? ' child-' . $node['child'] : ''; ?>">
     <div class="path"></div>
   </div>
 </div>
