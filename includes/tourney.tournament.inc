@@ -250,22 +250,22 @@ function tourney_tournament_delete_submit($form, &$form_state) {
  */
 function tourney_tournament_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
+  $tourney->config = array();
+  
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
-
-  if ( !isset($tourney->entity_id) ) {
-    $tourney->config = array();
-    foreach ( $form_state['values'] as $key => $value ) {
-      if ( substr($key, 0, 7) != 'config_' ) continue;
-      $tourney->config[substr($key, 7)] = $value; 
+  tourney_tournament_save($tourney);                                     
+  
+  // Any fields preceded with "config_" should be saved as configuration.
+  foreach ($form_state['values'] as $key => $value) {
+    if (substr($key, 0, 7) != 'config_') {
+      continue;
     }
-  } 
-
-  tourney_tournament_save($tourney);
-
-  foreach ( $form_state['values'] as $key => $value ) {
-    if ( substr($key, 0, 7) != 'config_' ) continue;
+    $tourney->config[substr($key, 7)] = $value; 
     $tourney->set(substr($key, 7), $value); 
   }
+  
+  // Save plugin options
+  tourney_set_plugin_options($tourney, $form_state);
   
   drupal_set_message(t('Your tournament has been saved.'));
   $form_state['redirect'] = $tourney->getUri();
@@ -425,12 +425,16 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
         continue;
       }
       
-      // Setup a fieldset
-      $form[$info['machine name']] = array(
+      $form['plugin_options'] = array(
+        '#type' => 'container',
+        '#tree' => TRUE,
+      );
+      $form['plugin_options'][$controller] = array(
         '#type' => 'fieldset',
         '#title' => t('Tourney Format Settings'),
         '#collapsible' => FALSE,
         '#access' => user_access('administer tourney'),
+        '#tree' => TRUE,
         '#states' => array(
           'visible' => array(
             ':input[name="format"]' => array('value' => $controller),
@@ -438,5 +442,15 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
         ),
       ) + $options_form;
     }
+  }
+}
+
+/**
+ * Save any options the plugin has set
+ */
+function tourney_set_plugin_options(&$tourney, &$form_state) {
+  foreach ($form_state['values']['plugin_options'] as $name => $values) {
+    $tourney->set($name, $values);
+    $tourney->config[$name] = $values; 
   }
 }

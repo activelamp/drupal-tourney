@@ -476,13 +476,15 @@ class TourneyTournament extends TourneyEntity {
   }
 
   public function get($name, $default = NULL) {
-    if ( !property_exists($this, 'entity_id') )
-      return isset($this->config[$name]) ? $this->config[$name] : $default;
+    // if (!property_exists($this, 'entity_id')) {
+    //   return isset($this->config[$name]) ? $this->config[$name] : $default;
+    // }
 
     global $_tourney_config;
     if ( !isset($_tourney_config) ) tourney_initialize_configuration();
-
-    return isset($_tourney_config[$this->id][$name]) ? $_tourney_config[$this->id][$name] : $default;
+    
+    return !empty($this->id) && !empty($_tourney_config[$this->id][$name]) 
+      ? $_tourney_config[$this->id][$name] : $default;
   }
 
   public function set($name, $value) {

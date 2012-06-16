@@ -369,9 +369,21 @@ class SingleEliminationController extends TourneyController implements TourneyCo
       'name'  => 'bracket-main',
       'title' => t('Main Bracket'),
     );
-    return array(
+    $return = array(
       'bracket-top' => $bracket_info + $this->buildRounds($slots, $bracket_info),
     );
+    // Check to see if we need to create a consolation bracket  
+    if ($plugin_options = $this->tournament->get(__CLASS__, array())) {
+      $consolation_bracket_info = array(
+        'id'    => 'consolation',
+        'name'  => 'bracket-consolation',
+        'title' => t('Consolation Bracket'),
+      );
+      
+      $return['bracket-consolation'] = $consolation_bracket_info + $this->buildRounds(2, $bracket_info);
+    }
+    
+    return $return;
   }
 
   /**
@@ -385,7 +397,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   protected function buildRounds($slots, $bracket_info) {
     $rounds = array();
     $round_num = 1;
-    $static_match_num = &drupal_static('match_num_iterator', 1, TRUE);
+    $static_match_num = &drupal_static('match_num_iterator', 1);
 
     for ($slots_left = $slots; $slots_left >= 2; $slots_left /= 2) {
       $round_info = array(
