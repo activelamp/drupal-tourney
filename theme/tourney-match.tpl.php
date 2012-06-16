@@ -1,6 +1,6 @@
 <?php
   $null_contestant = array('name' => NULL, 'id' => NULL);
-  $seeds = array();//$match['seeds'];
+  $seeds = isset($match['seeds']) ? $match['seeds'] : '';
   // if ( $tournament = $match->controller->tournament ) {
   //   $entity = tourney_match_load($tournament->name . '_' . $match->id);
   // }

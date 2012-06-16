@@ -215,10 +215,10 @@ class SpecialEliminationController extends TourneyFormatController {
       $this->data['matches'][$id]['games'][] = $id;
     }
     $this->data['contestants'] = array();
-    // Set in the seed positions
-    $this->populateSeedPositions();
     // Calculate and set the match pathing
     $this->populatePositions();
+    // Set in the seed positions
+    $this->populateSeedPositions();
   }
 
 
@@ -249,7 +249,7 @@ class SpecialEliminationController extends TourneyFormatController {
       if ( $next ) {
         $match['nextMatch']['winner'] = $next['id'];
         $next['previousMatches'][] = $match['id'];
-      }
+      } 
     }
   }
 
@@ -264,6 +264,9 @@ class SpecialEliminationController extends TourneyFormatController {
       $match =& $this->data['matches'][$id];
       $match['seeds'] = $seeds;
       $match['bye']   = $seeds[2] === NULL;
+      if ( $match['bye'] && isset($match['nextMatch']) )
+        $this->data['matches'][$match['nextMatch']['winner']]['seeds'] = 
+          array(1 => $seeds[1], 2 => NULL);
     }
   }
 
@@ -360,23 +363,5 @@ class SpecialEliminationController extends TourneyFormatController {
     $this->build();
     $this->structure('tree');
     return theme($theme, array('structure' => $this->structure));
-  }
-
-  public function populateSeeds($contestants) {
-    if ( array_key_exists(0, $contestants) ) {
-      array_unshift($contestants, NULL);
-      unset($contestants[0]);
-    }
-    foreach ( $contestants as $position => $contestant ) {
-      foreach ( $this->data['matches'] as &$match ) {
-        if ( !property_exists($match, 'seeds') ) continue;
-        foreach ( $match->seeds as $slot => $seed ) {
-          if ( $seed == $position ) {
-            $match->addContestant($contestant, $slot);
-            break 2;
-          }
-        }
-      }
-    }
   }
 }
