@@ -1042,7 +1042,7 @@ function tourney_get_type_options($reset = FALSE) {
   $plugins = tourney_get_types();
   uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
-    $options[$info['controller']] = $info['name'];
+    $options[$info['controller']] = $info['title'];
   }
   return $options;
 }
