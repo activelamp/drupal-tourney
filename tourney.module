@@ -141,7 +141,7 @@ function tourney_menu() {
 
 function tourney_testing() {
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialElimination');
-  $tournament = new SpecialEliminationController(9);
+  $tournament = new SpecialEliminationController(14);
 
   // $contestant1 = (Object) array('name' => 'Home Team', 'id' => 'home');
   // $contestant2 = (Object) array('name' => 'Away Team', 'id' => 'away');
@@ -174,7 +174,7 @@ function tourney_testing() {
 
   //krumo($tournament->structure('tree'));
   //krumo($tournament);
-  return $tournament->render('tourney_tournament_tree');
+  return $tournament->render();
 }
 
 /**
@@ -583,27 +583,6 @@ function tourney_theme($existing, $type, $theme, $path) {
       'render element' => 'element',
       'file' => 'tourney.match.inc',
       'path' => $path . '/includes',
-    ),
-
-    'tourney_tournament_tree' => array(
-      'variables' => array('structure'),
-      'path' => $path . '/theme',
-      'template' => 'tourney-tournament-tree',
-    ),
-    'tourney_tournament_tree_node' => array(
-      'variables' => array('node'),
-      'path' => $path . '/theme',
-      'template' => 'tourney-tournament-tree-node',
-    ),
-    'tourney_match' => array(
-      'variables' => array('match'),
-      'path' => $path . '/theme',
-      'template' => 'tourney-match',
-    ),
-    'tourney_contestant' => array(
-      'variables' => array('contestant', 'slot'),
-      'path' => $path . '/theme',
-      'template' => 'tourney-contestant',
     ),
   ) + _tourney_theme($existing, $type, $theme, $path);
 }

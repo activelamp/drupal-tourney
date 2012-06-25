@@ -5,171 +5,6 @@
  * Single elimination controller, new system.
  */
 
-class TourneyFormatController {
-  public $data;
-  public $structure;
-  public $contestants;
-
-  /**
-   * Round data generator
-   *
-   * @param array $data
-   *   Uses 'id' from the array to set basic values, and joins for the rest
-   *
-   * @return $round
-   *   Filled out round data array
-   */
-  public function buildRound($data) {
-    $round = array(
-      'title' => 'Round ' . $data['id'],
-      'id'    => 'round-' . $data['id'],
-    ) + $data;
-    return $round;
-  }
-
-  /**
-   * Match data generator
-   *
-   * @param array $data
-   *   Uses 'id' from the array to set basic values, and joins for the rest
-   *
-   * @return $match
-   *   Filled out match object
-   */
-  public function buildMatch($data) {
-    $match = array(
-      'controller'  => $this,
-      'title'       => 'Match ' . $data['id'],
-      'id'          => 'match-' . $data['id'],
-      'match'       => $data['id'],
-    ) + $data;
-    return $data;
-  }
-
-  /**
-   * Game data generator
-   *
-   * @param array $data
-   *   Uses 'id' from the array to set basic values, and joins for the rest
-   *
-   * @return $match
-   *   Filled out game object
-   */
-  public function buildGame($data) {
-    $game = array(
-      'title'       => 'Game ' . $data['game'],
-      'id'          => 'game-' . $data['id'],
-    ) + $data;
-    return $game;
-  }
-
-  /**
-   * Find elements given specific information
-   *
-   * @param string $data
-   *   Data element from $this->data to search
-   *
-   * @param array $vars
-   *   Keyed array of values on the elements to filter
-   *   If one of the variables is an array, it will compare the testing
-   *     element's value against each of the array's 
-   *
-   * @param boolean $first
-   *   If TRUE, will return the first matched element
-   *
-   * @param string $specific
-   *   Single value from each element to return, if not given will return
-   *   the full element
-   *
-   * @return $elements
-   *   Array of elements that match the $vars given
-   */
-  public function &find($data, $vars, $first = FALSE, $specific = NULL) {
-    if ( !isset($this->data[$data]) ) return NULL;
-    // Added in optimization to make routine find() calls faster
-    // Normally searches are incremented, so this optimization holds
-    // the place of the last call and continues the search from there
-    //
-    // Implementing this speeds calls from a 2048 contestant tournament
-    //  up from 8.7 seconds to 2.1 seconds
-    //
-    // $optimize_data  : stores the last data array searched
-    // $optimize_last  : the key left off on the last search
-    // $optimize_until : in the case we return no elements in a search we
-    //                   used optimization in, retry the search but only
-    //                   until this key
-    // $optimize_using : is set to determine whether we're optimizing
-    //                   even after $optimize_last is cleared
-    static $optimize_data  = NULL;
-    static $optimize_last  = NULL;
-    static $optimize_until = NULL;
-           $optimize_using = $optimize_last;
-    static $optimize_array = array();
-
-    if ( $optimize_data !== $data ) {
-      $optimize_last  = NULL;
-      $optimize_until = NULL;
-      $optimize_using = NULL;
-      $optimize_data  = $data;
-    }
-
-    $elements = array();
-    // is_array is expensive, set up an array to store this information
-    $is_array = array();
-    foreach ( $vars as $key => $value )
-      $is_array[$key] = is_array($value);
-    // Loop through all elements of the requested data array 
-    foreach ( $this->data[$data] as $id => &$element ) {
-      // We can only really optimize $first queries, since anything other
-      // has to loop through all the elements anyways
-      if ( $first && $optimize_last ) {
-        // Until we hit the key we left off at, keep skipping elements...
-        if ( $id !== $optimize_last ) continue;
-        // ...and then we clear the variable so we can continue on.
-        $optimize_last  = NULL;
-      }
-      // The other end of this is if we're continuing a failed optimized
-      // search to exit out of the loop once we've hit where we started from
-      if ( $optimize_until && $id == $optimize_until ) break;
-      // Compare all our required $vars with its applicable properties
-      // If that specific $vars is an array, check to see if the element's 
-      // property is in the array
-      // If the element fails at any of the checks, skip over it
-      foreach ( $vars as $key => $value ) {
-        if ( $element[$key] !== $value ) {
-          if ( !$is_array[$key] || !in_array($element[$key], $value) ) 
-            continue 2;
-        }
-      }
-      // If we've supplied a 'specific' argument, only take that value,
-      // otherwise take the entire element
-      if ( $specific !== NULL )
-        $elements[] = $data_is_array ? $element[$specific] : $element->$specific;
-      else 
-        $elements[] = &$element;
-      // When $first, don't go any further once the first element has been set
-      if ( $first === TRUE ) {
-        // Set the optimizing static so we know where to start from next time
-        $optimize_last = $id;
-        return $elements[0];
-      }
-    } 
-    // We're out of the loop, clear the static in case it went through all of 
-    // the keys without stopping at one
-    $optimize_last = NULL;
-    // If we have no elements and we were using optimiziation...
-    if ( !$elements && $optimize_using ) {
-      // ...set the end key to what we started from
-      $optimize_until = $optimize_using;
-      $optimize_using = NULL;
-      // and search again for
-      $elements = $this->find($data, $vars, $first, $specific);
-    } 
-    return $elements;
-  }
-}
-
-
 class SpecialEliminationController extends TourneyFormatController {
   public $slots;
 
@@ -182,6 +17,34 @@ class SpecialEliminationController extends TourneyFormatController {
     $this->slots = pow(2, ceil(log($contestants, 2)));
     $this->tournament = $tournament;
   }
+  
+  /**
+   * Theme implementations specific to this plugin.
+   */
+  public static function theme($existing, $type, $theme, $path) {
+    return parent::theme($existing, $type, $theme, $path) + array(
+      'tourney_tournament_tree_node' => array(
+        'variables' => array('node'),
+        'path' => $path . '/theme',
+        'file' => 'preprocess_tournament_tree_node.inc',
+        'template' => 'tourney-tournament-tree-node',
+      )
+    );
+  }
+  
+  /**
+   * Preprocess variables for the template passed in.
+   * 
+   * @param $template
+   *   The name of the template that is being preprocessed.
+   * @param $vars
+   *   The vars array to add variables to.
+   */
+  public function preprocess($template, &$vars) {
+    if ($template == 'tourney-tournament') {
+      $vars['classes_array'][] = 'tourney-tournament-tree';
+    }
+  }
 
   /**
    * Data generator
@@ -191,7 +54,7 @@ class SpecialEliminationController extends TourneyFormatController {
     $match = 0;
     $round = 0;
     // Calculate and iterate through rounds and their matches based on slots
-    while ( ($slots /= 2) >= 1 ) {
+    while (($slots /= 2) >= 1) {
       // Add current round information to the data array
       $this->data['rounds'][++$round] = 
         $this->buildRound(array('id' => $round));
@@ -214,7 +77,8 @@ class SpecialEliminationController extends TourneyFormatController {
       ));
       $this->data['matches'][$id]['games'][] = $id;
     }
-    $this->data['contestants'] = array();
+    $this->data['contestants'] = array();     
+    
     // Calculate and set the match pathing
     $this->populatePositions();
     // Set in the seed positions
@@ -223,20 +87,22 @@ class SpecialEliminationController extends TourneyFormatController {
 
 
   /**
-   * Find and populate next/previous match pathing
+   * Find and populate next/previous match pathing on the matches data array for
+   * each match.
    */
   public function populatePositions() {
     // Go through all the matches
     $count = count($this->data['matches']);
-    foreach ( $this->data['matches'] as $id => &$match ) {
-      if ( $id == $count ) continue;
+    foreach ($this->data['matches'] as $id => &$match) {
+      if ($id == $count) {
+        continue;
+      }
       // Find next match by filtering through matches with in the next round
       // and those with a halved round match number
       // Example:
       //   Round 3, Match 5
       //  Next match is:
       //    Round 4 [3+1], Match 3 [ceil(5/2)]
-
       $next = &$this->find('matches', array(
         'round' => $match['round'] + 1,
         'roundMatch' => (int) ceil($match['roundMatch'] / 2),
@@ -246,7 +112,7 @@ class SpecialEliminationController extends TourneyFormatController {
       // $next = $this->data['matches'][$index];
 
       // If find()'s returned a result, set it.
-      if ( $next ) {
+      if ($next) {
         $match['nextMatch']['winner'] = $next['id'];
         $next['previousMatches'][] = $match['id'];
       } 
@@ -359,10 +225,10 @@ class SpecialEliminationController extends TourneyFormatController {
     $this->data['seeds'] = $positions;
   }
 
-  public function render($theme) {
+  public function render() {       
     // Build our data structure
     $this->build();
     $this->structure('tree');
-    return theme($theme, array('structure' => $this->structure));
+    return theme('tourney_tournament', array('format_plugin' => $this, 'theme' => 'tourney_tournament_tree_node'));
   }
 }

@@ -1,10 +1,15 @@
-<?php 
-if ( !$contestant->name ) $contestant->name = 'Team ' . $contestant->slot;
+<?php
+/**
+ * @file tourney-contestant.tpl.php
+ * Theme the wrapper for each contestant
+ *
+ * @ingroup tourney_templates
+ */
 ?>
 
-<div class="contestant contestant-<?php echo $contestant->slot ?>">
-  <?php if ( $seed ): ?>
-    <span class="seed"><?php echo $seed ?></span>
+<div class="contestant contestant-<?php print $contestant->slot ?>">
+  <?php if ($seed): ?>
+    <span class="seed"><?php print $seed ?></span>
   <?php endif;?>
-  <?php echo $contestant->name; ?>
+  <?php print $contestant->name; ?>
 </div>

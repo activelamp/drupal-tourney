@@ -2,8 +2,74 @@
 
 /*
  * @file
- * Holds the theme implementations for rendering tournaments
+ * Preprocess functions for all theme implementations provided by tourney.
  */
+ 
+  
+function template_preprocess_tourney_tournament(&$vars) { 
+  drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/tourney.css');
+  // Let the plugin preprocess variables
+  $vars['format_plugin']->preprocess('tourney-tournament', $vars);
+  
+  // Build the tourney container classes.
+  $vars['classes'] = join(' ', $vars['classes_array']);
+  
+  // Call on the theme function specified by plugin render
+  $vars['matches'] = theme($vars['theme'], array('format_plugin' => $vars['format_plugin']));
+}
+
+function template_preprocess_tourney_match(&$vars) { 
+  // Let the plugin preprocess variables
+  $vars['format_plugin']->preprocess('tourney-match', $vars);
+  
+  $null_contestant = array('name' => NULL, 'id' => NULL);
+  $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';
+  // if ( $tournament = $match->controller->tournament ) {
+  //   $entity = tourney_match_load($tournament->name . '_' . $match->id);
+  // }
+  $contestants = array(1 => (object) $null_contestant, 2 => (object) $null_contestant);
+  ksort($contestants);
+  
+  $contestant_output = '';
+  foreach ($contestants as $slot => $contestant) {
+    $contestant->slot = $slot;
+    $contestant_output .= theme('tourney_contestant', array(
+      'contestant' => $contestant, 
+      'seed' => isset($seeds[$slot]) ? $seeds[$slot] : NULL,
+      'format_plugin' => $vars['format_plugin'],
+    ));
+  }
+  $vars['contestants'] = $contestant_output;
+}
+
+function template_preprocess_tourney_contestant(&$vars) {
+  // Let the plugin preprocess variables
+  $vars['format_plugin']->preprocess('tourney-contestant', $vars);
+  
+  if (!$vars['contestant']->name ) {
+    $vars['contestant']->name = 'Team ' . $vars['contestant']->slot;
+  }
+}
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 
 /**
  * Theme function to return HTML output for a given tournament, delegates the
