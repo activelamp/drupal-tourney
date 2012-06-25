@@ -9,7 +9,7 @@
  * Special Elimination Format.
  */
 $plugin = array(
-  'name' => t('Special Elimination'),
+  'title' => t('Special Elimination'),
   'machine name' => 'special',
   'description' => t('This is the description of the tournament'),
   'weight' => 0,

@@ -9,7 +9,7 @@
  * Single Elimination Format.
  */
 $plugin = array(
-  'name' => t('Single Elimination'),
+  'title' => t('Single Elimination'),
   'machine name' => 'single',
   'description' => t('This is the description of the tournament'),
   'weight' => 0,

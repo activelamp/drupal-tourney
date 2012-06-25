@@ -9,7 +9,7 @@
  * Double Elimination Format
  */
 $plugin = array(
-  'name' => t('Double Elimination'),
+  'title' => t('Double Elimination'),
   'machine name' => 'double',
   'description' => t('This is the description of the tournament'),
   'weight' => 1,
