@@ -34,8 +34,7 @@ class TourneyMatchEntity extends TourneyEntity {
       // Add a url to the object
       $this->uri = $this->getUri();
 
-      // @todo: Do we really want to load this on instanstiation
-      // $this->matchInfo = $this->getMatchInfo();
+      $this->matchInfo = $this->getMatchInfo();
     }
   }
 
@@ -145,9 +144,22 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function getMatchInfo() {
     if (is_null($this->matchInfo) && is_object($this->getTournament())) {
-      $this->matchInfo = $this->getTournament()->tourneyFormatPlugin->getMatchInfo($this);
+      // Extract just the match id from the machine name.
+      $mid = $this->getMID();
+      
+      // Get the plugin data for the match id passed in.
+      $tournament = $this->getTournament(); 
+      $this->matchInfo = $tournament->tourneyFormatPlugin->getMatchInfo($mid);
     }
     return $this->matchInfo;
+  }
+  
+  /**
+   * Extract just the match id from the machine name of the entity.
+   */
+  public function getMID() {
+    $tournament = $this->getTournament();
+    return substr($this->name, strlen($tournament->name .'_match-'));
   }
 
   /**
@@ -160,7 +172,7 @@ class TourneyMatchEntity extends TourneyEntity {
     if (!is_numeric($slot)) {
       throw new Exception(t('$slot must be a number'));
     }
-    $contestants = $this->getContestants();
+    $contestants = $this->getMatchContestants();
     if ( !$contestants ) return NULL;
     $first = reset($contestants);
     if ( $first->slot !== NULL ) {
@@ -206,9 +218,9 @@ class TourneyMatchEntity extends TourneyEntity {
   /**
    * Get the contestant entities
    */
-  public function getContestants() {
+  public function getMatchContestants() {
     $entities = array();
-    foreach ( $this->getContestantIds() as $contestant ) {
+    foreach ($this->getContestantIds() as $contestant) {
       $entity = entity_load_single_by_eid($contestant['eid']);
       $entities[$entity->eid] = $entity;
       $entities[$entity->eid]->slot = $contestant['slot'];
@@ -289,11 +301,11 @@ class TourneyMatchEntity extends TourneyEntity {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'tourney_cache')) {
       $games = array();
       
-      if (!array_key_exists('bye', $this->matchInfo) && count($this->getContestants()) < 2) {
+      if (!array_key_exists('bye', $this->matchInfo) && count($this->getMatchContestants()) < 2) {
         return array();
       }
 
-      foreach ($this->getContestants() as $eid => $contestant) {
+      foreach ($this->getMatchContestants() as $eid => $contestant) {
         $winners[$eid] = 0;
       }
       foreach ($this->getGames() as $gid => $game) {
@@ -337,7 +349,7 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function isFinished() {
     // If this is a bye, it's finished
-    if (array_key_exists('bye', $this->matchInfo)) {
+    if (array_key_exists('bye', $this->matchInfo) && $this->matchInfo['bye']) {
       return TRUE;
     }
     
@@ -561,14 +573,11 @@ class TourneyMatchEntity extends TourneyEntity {
    *   The slot to add the contestant to.
    */
   public function addContestantPrevious($entity, $slot = NULL) {
-    $roundinfo = $this->matchInfo['round'];
-    if (array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
-      $this->findSeedInfo();
-      if (array_key_exists('seed_position', $this->matchInfo)
-        && array_key_exists($slot - 1, $this->matchInfo['seed_position'])) {
-          $matches = $this->previousMatches();
-          $matches[$slot - 1]->addContestant($entity, 1);
-      }
+    $this->findSeedInfo();
+    if (array_key_exists('seed_position', $this->matchInfo)
+      && array_key_exists($slot - 1, $this->matchInfo['seed_position'])) {
+        $matches = $this->previousMatches();
+        $matches[$slot - 1]->addContestant($entity, 1);
     }
   }
 

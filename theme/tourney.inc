@@ -5,7 +5,9 @@
  * Preprocess functions for all theme implementations provided by tourney.
  */
  
-  
+/**
+ * 
+ */
 function template_preprocess_tourney_tournament_render(&$vars) {
   $plugin = &$vars['format_plugin'];
   
@@ -20,19 +22,32 @@ function template_preprocess_tourney_tournament_render(&$vars) {
   $vars['matches'] = theme($vars['theme'], array('format_plugin' => $plugin));
 }
 
+/**
+ * 
+ */
 function template_preprocess_tourney_match_render(&$vars) {
+  $mid = $vars['match']['id'];
   $plugin = &$vars['format_plugin'];
+  $editable = FALSE;
   
   // Let the plugin preprocess variables
   $plugin->preprocess('tourney-match-render', $vars);
   
-  $null_contestant = array('name' => NULL, 'id' => NULL);
-  $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';
-  // if ( $tournament = $match->controller->tournament ) {
-  //   $entity = tourney_match_load($tournament->name . '_' . $match->id);
-  // }
-  $contestants = array(1 => (object) $null_contestant, 2 => (object) $null_contestant);
-  ksort($contestants);
+  $contestants = $plugin->getMatchContestants($mid);
+  // If there is one contestants, pad the beginning if it's occupying slot 2
+  if (count($contestants) == 1) {
+    $first = current($contestants);
+    if ($first->slot == 2) {
+      array_unshift($contestants, NULL);
+    }
+  }
+  // Fill in null contestants if two contestants are not assigned to match.
+  $i = 0;
+  while (count($contestants) < 2) {
+    $contestants[++$i] = (object) array('name' => NULL, 'id' => NULL);
+    // This match is editable when at least one of the contestants is NULL.
+    $editable = TRUE;
+  }
   
   // Get the contestant output from the contestant template
   $contestant_output = '';
@@ -45,18 +60,26 @@ function template_preprocess_tourney_match_render(&$vars) {
     ));
   }
   
-  $tournament = $plugin->tournament;
   // If we have a tournament object, get the match url from the plugin.
+  $tournament = $plugin->tournament;
   if (is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
-    $match_uri = $plugin->getMatchURI($vars['match']['id']);
+    $match_uri = $plugin->getMatchURI($mid);
     if ($match_uri) {
-      $contestant_output = l($contestant_output, $match_uri, array('html' => TRUE));
+      $editable = $editable == TRUE && $plugin->canSetContestants($mid);
+      $contestant_output = l($contestant_output, $match_uri . ($editable ? "/edit" : ''), array(
+        'html' => TRUE,
+        'attributes' => array('class' => 'match-link'),
+        'query' => $editable ? array('destination' => $match_uri) : array(),
+      ));
     }
   }
   
   $vars['contestants'] = $contestant_output;
 }
 
+/**
+ * 
+ */
 function template_preprocess_tourney_contestant(&$vars) {
   $plugin = &$vars['format_plugin'];
   
@@ -150,13 +173,18 @@ function theme_tourney_matchblock($vars) {
 
   $cid = 1;
 
-  $contestants = $match->getContestants();
+  $contestants = $match->getMatchContestants();
   // If there is one contestants, pad the beginning if it's occupying slot 2
-  if ( count($contestants) == 1 ) {
+  if (count($contestants) == 1) {
     $first = current($contestants);
-    if ( $first->slot == 2 ) array_unshift($contestants, NULL);
+    if ($first->slot == 2) {
+      array_unshift($contestants, NULL);
+    }
   }
-  while ( count($contestants) < 2 ) $contestants[] = NULL;
+  while (count($contestants) < 2) {
+    $contestants[] = NULL;
+  }
+  
   $editable = in_array(NULL, $contestants) && $match->canSetContestants();
   
   foreach ($contestants as $eid => $contestant) {

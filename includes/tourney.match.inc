@@ -72,8 +72,8 @@ function tourney_match_form($form, &$form_state, $match) {
   $games = tourney_tournament_get_match_games($match);
 
   //if ( $match->canSetContestants() ) {
-  $canset = $match->canSetContestants();
-  $contestants = $match->getContestants();
+  $canset = $match->getTournament()->canSetContestants($match->getMID());
+  $contestants = $match->getMatchContestants();
   
   // Fill the $contestants array with two values if there isn't already two.
   while ( count($contestants) < 2 ) $contestants[] = NULL;
@@ -272,7 +272,7 @@ function _tourney_match_contestants_sanitize($match, &$options) {
 
   // Unset users in the options array that are already selected
   $contestants = $match->getTournament()->getContestants();
-  foreach ( $match->getContestants() as $eid => $contestant ) {
+  foreach ($match->getMatchContestants() as $eid => $contestant) {
     unset($contestants[$eid]);
   }
   foreach ($contestants as $eid => $contestant ) {
@@ -281,7 +281,7 @@ function _tourney_match_contestants_sanitize($match, &$options) {
         unset($options[$group][$eid]);
       }
     }
-  }
+  }                                                          
 
   // special case naming occurs with different bundled node types
   $userkey = array_key_exists('user', $options) ? 'user' : ( array_key_exists('user - user', $options) ? 'user - user' : NULL );
@@ -325,13 +325,14 @@ function tourney_match_form_submit($form, &$form_state) {
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
   }
-
+  
   if (array_key_exists('contestant1', $form_state['input'])) {
+    $roundinfo = $match->matchInfo['round'];
     if ( $eid = $form_state['input']['contestant1'] ) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 1);
-      if ($match->getTournament()->get('hide_byes')) {
+      if ($match->getTournament()->get('hide_byes') && $roundinfo['id'] == 2) {
         $match->addContestantPrevious($entity, 1);
       }
     }
@@ -339,7 +340,7 @@ function tourney_match_form_submit($form, &$form_state) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 2);
-      if ($match->getTournament()->get('hide_byes')) {
+      if ($match->getTournament()->get('hide_byes') && $roundinfo['id'] == 2) {
         $match->addContestantPrevious($entity, 2);
       }
     }
@@ -480,10 +481,10 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['match_winner'] = array(
     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
     '#suffix' => '</div>',
-    '#markup' => $entity->getWinner(),
+    // '#markup' => $entity->getWinner(),
   );
   $i = 1;
-  foreach ($entity->getContestants() as $eid => $contestant) {
+  foreach ($entity->getMatchContestants() as $eid => $contestant) {
     $entity->content['match_contestant' . $i] = array(
       '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="field-content">',
       '#suffix' => '</div>',
@@ -491,7 +492,7 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     );
     $i++;
   }
-
+  
   if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
     $entity->content['match_table'] = array(
       '#theme' => 'tourney_render_match',
@@ -530,12 +531,16 @@ function tourney_match_get_parents($mid, $depth) {
   $bracket = tourney_get_name_part($match->this_match, 'bracket');
 
   $names = array($match->previous_match1, $match->previous_match2);
-  while ( $depth-- > 0 ) {
+  while ($depth-- > 0) {
     $new_names = array();
-    foreach ( $names as $name ) {
+    foreach ($names as $name) {
       $nmatch = tourney_get_match_by_name($matches, $name);
-      if ( !$nmatch ) continue;
-      if ( tourney_get_name_part($nmatch->this_match, 'bracket') != $bracket ) continue;
+      if (!$nmatch) {
+        continue;
+      }
+      if (tourney_get_name_part($nmatch->this_match, 'bracket') != $bracket) {
+        continue;
+      }
       $ids[] = $nmatch->id;
       $new_names = array_merge($new_names, array($nmatch->previous_match1, $nmatch->previous_match2));
     }

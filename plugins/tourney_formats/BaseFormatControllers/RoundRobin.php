@@ -366,7 +366,7 @@ class RoundRobinController extends TourneyControllerLegacy implements TourneyCon
  *   The match the game belongs to
  */
   public function populateMatches($match) {
-    foreach ($match->getContestants() as $contestant) {
+    foreach ($match->getMatchContestants() as $contestant) {
       $next = $match->nextMatch($contestant->slot);
 
       if ( $next === NULL ) continue;

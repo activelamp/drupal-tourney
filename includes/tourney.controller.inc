@@ -275,10 +275,22 @@ class TourneyController implements TourneyControllerInterface {
    * @param $mid
    *   The match number to get
    * @return
-   *   A full loaded match object. 
+   *   The URI to the match as a string.
    */
   public function getMatchURI($mid) {
     return $this->tournament->getMatchURI($mid);
+  }
+  
+  /**
+   * Check to see if contestants can be set on match.
+   * 
+   * @param $mid
+   *   The match number to check
+   * @return
+   *   Bitwise value with contestant slots turned on (slot 1 in right most position)
+   */
+  public function canSetContestants($mid) {
+    return $this->tournament->canSetContestants($mid);
   }
   
   /**
@@ -310,6 +322,31 @@ class TourneyController implements TourneyControllerInterface {
     else {
       trigger_error(check_plain(t('Unable to load plugin. Class does not implement TourneyControllerInterface.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
     }
+  }
+  
+  /**
+   * Get match info for a match that is passed in from plugin data.
+   * 
+   * @param $mid
+   *   Match plugin id
+   * @param array
+   *   An array with information about the match
+   */
+  public function getMatchInfo($mid) {
+    $this->build();
+    return $this->data['matches'][$mid];
+  }
+  
+  /**
+   * Get the contestants that are related to this match
+   * 
+   * @param $mid
+   *   Match plugin id
+   */
+  public function getMatchContestants($mid) {
+    $match = $this->getMatchById($mid);
+    // Ensure we have a match object, it's possible isn't created yet.
+    return is_object($match) ? $match->getMatchContestants() : NULL;
   }
 }
 
@@ -570,6 +607,7 @@ class TourneyControllerLegacy {
    *
    * @return array $contestants 
    *   List of contestants, all entities
+   * @deprecated
    */
   public function getContestants() {
     if (is_null($this->tournament->contestants)) {

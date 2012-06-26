@@ -66,6 +66,7 @@ class SpecialEliminationController extends TourneyController {
             'id' => $match,
             'round' => $round,
             'roundMatch' => (int) $roundMatch,
+            'bracket' => 'main',
           ));
       }
     }

@@ -108,7 +108,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    * @param $mid
    *   The match number to get
    * @return
-   *   A full loaded match object. 
+   *   A fully loaded match object. 
    */
   public function getMatchById($mid) {
     $entity_id = db_query("SELECT id FROM {tourney_match} WHERE name = :name",
@@ -124,7 +124,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    * @param $mid
    *   The match number to get
    * @return
-   *   A full loaded match object. 
+   *   The URI to the match as a string. 
    */
   public function getMatchURI($mid) {
     $entity = $this->getMatchById($mid);
@@ -288,13 +288,35 @@ class TourneyTournamentEntity extends TourneyEntity {
   }
 
 /**
- * Gets a list of participating contestants in seed order
+ * Gets a list of participating contestants in seed order from the first round.
  *
  * @return array $contestants
- *   List of contestants, all entities
+ *   List of contestants, all entities from the first round of a tournament.
  */
   public function getContestants() {
-    return $this->tourneyFormatPlugin->getContestants();
+    if (is_null($this->contestants)) {
+      $matches = $this->tourneyFormatPlugin->data['matches'];
+      
+      // Set up two arrays to fill for seed order
+      $seed_1 = array();
+      $seed_2 = array();
+      foreach ($matches as $mid => $match_info) {
+        if ($match_info['round'] == 1) {
+          $match = $this->tourneyFormatPlugin->getMatchById($mid);
+          if (is_object($match)) {
+            $seed = 1;
+            foreach ($match->getMatchContestants() as $eid => $contestant) {
+              $group = "seed_" . $seed++;
+              ${$group}[$eid] = $contestant;
+            }
+          }
+        }
+      }
+      // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
+      $this->contestants = array_merge($seed_1, array_reverse($seed_2));
+    }
+    
+    return $this->contestants;
   }
 
 /**
@@ -410,14 +432,15 @@ class TourneyTournamentEntity extends TourneyEntity {
   /**
    * Function to determine if a match can be edited
    *
-   * @param $match
-   *   Match object
+   * @param $mid
+   *   The match machine name from the plugin
    * @return
    *   Bitwise value with contestant slots turned on (slot 1 in right most position)
    */
-  public function canSetContestants($match) {
+  public function canSetContestants($mid) {
     $return = 0;
-                             
+    $match = $this->getMatchById($mid);
+    
     // If no automation is turned on, we should be able to edit both contestants.
     if ($this->get('no_automation', FALSE)) {
       return 0x3;
@@ -426,13 +449,13 @@ class TourneyTournamentEntity extends TourneyEntity {
       return FALSE;
     }
     
-    $roundinfo = $match->matchInfo['round'];
-    if ($this->get('hide_byes') &&
-      array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
+    $round = $match->matchInfo['round'];
+    if ($this->get('hide_byes') && $round == 2) {
        $match->findSeedInfo();
     }
+    
     // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
-    if ($roundinfo['id'] == 1 && $match->matchInfo['bracket']['id'] === 'main') {
+    if ($round == 1 && $match->matchInfo['bracket'] === 'main') {
       // Both slots can be set
       $return = 0x3;
     }

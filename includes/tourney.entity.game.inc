@@ -186,7 +186,7 @@ class TourneyGameEntity extends TourneyEntity {
     if (is_null($this->gameContestantIds)) {
       $this->gameContestantIds = TourneyMatchEntity::fetchContestantIds($this->getMatchId());
     }
-
+    dpm($this->gameContestantIds);
     return $this->gameContestantIds;
   }
 
