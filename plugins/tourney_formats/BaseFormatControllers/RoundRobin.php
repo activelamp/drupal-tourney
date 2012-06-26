@@ -23,35 +23,35 @@ class RoundRobinController extends TourneyController implements TourneyControlle
    */
   public function __construct(TourneyTournament $tournament) {
     $this->tournament = $tournament;
-    
+
     $this->contestants = $tournament->players;
     // Ensure we have an even number of slots
     $slots = $this->contestants % 2 ? $this->contestants + 1 : $this->contestants;
     $this->slots = $slots;
-    
+
     parent::__construct();
   }
-  
+
   /**
    * Theme implementations to register with tourney module.
-   * 
+   *
    * @see hook_theme().
    */
   public static function theme($existing, $type, $theme, $path) {
     return array(
       'tourney_roundrobin_standings' => array(
         'variables' => array('tournament' => NULL),
-        'file' => 'roundrobin.inc', 
+        'file' => 'roundrobin.inc',
         'path' => $path . '/theme',
       ),
       'tourney_roundrobin' => array(
         'variables' => array('tournament' => NULL),
-        'file' => 'roundrobin.inc', 
+        'file' => 'roundrobin.inc',
         'path' => $path . '/theme',
       ),
     );
   }
-  
+
   /**
    * Build an array with tournament structure data.
    *
@@ -61,7 +61,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   public function structure($type = 'rounds') {
     return $this->structure = $this->buildBracketByRounds($this->slots);
   }
-  
+
   /**
    * Build bracket structure and logic.
    *
@@ -77,7 +77,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
       ) + $this->buildRounds($slots),
     );
   }
-  
+
   /**
    * Build rounds.
    *
@@ -90,18 +90,20 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     $total_rounds = $slots - 1;
     $rounds = array();
     $static_match_num = &drupal_static('match_num_iterator', 1, TRUE);
-    
+
     for ($round_num = 1; $round_num <= $total_rounds; $round_num++) {
       $rounds['rounds']['round-' . $round_num] = $this->buildRound($slots, $round_num);
     }
 
     return $rounds;
   }
-  
+
   protected function buildRound($slots, $round_num) {
     $static_match_num = &drupal_static('match_num_iterator', 1);
-    
+
     $round = array(
+      'id' => $round_num,
+      'name' => 'round-' . $round_num,
       'title' => t('Round ') . $round_num,
     );
 
@@ -112,7 +114,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
 
     return $round;
   }
-  
+
   /**
    * Define the match callbacks implemented in this plugin.
    */
@@ -122,7 +124,9 @@ class RoundRobinController extends TourneyController implements TourneyControlle
         'id' => 'main',
       ),
       'round' => array(
-        'id' => $round_num
+        'id' => $round_num,
+        'name' => 'round-' . $round_num,
+        'title' => t('Round ') . $round_num,
       ),
       'current_match' => array(
         'callback' => 'getMatchByName',
@@ -144,10 +148,10 @@ class RoundRobinController extends TourneyController implements TourneyControlle
       ),
     );
   }
-  
+
   /**
    * Renders the html for each round of a round robin tournament
-   * 
+   *
    * @param $tournament
    *   The tournament object
    * @param $matches
@@ -157,9 +161,9 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
     return theme('tourney_roundrobin', array('tournament' => $this->tournament));
   }
-  
+
   public function getSlots() {
-    return $this->slots;    
+    return $this->slots;
   }
 
   /**
@@ -181,8 +185,8 @@ class RoundRobinController extends TourneyController implements TourneyControlle
       foreach ($bracket_info['rounds'] as $round_name => $round_info) {
         foreach ($round_info['matches'] as $match_name => $match_info) {
           $matches[] = array(
-            'bracket_name' => $bracket_name, 
-            'round_name' => $round_name, 
+            'bracket_name' => $bracket_name,
+            'round_name' => $round_name,
             'match_name' => $match_name,
             'match_info' => $match_info,
           );
@@ -271,7 +275,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   }
 
  /**
-  * Given a match place integer and a direction, returns both the target match 
+  * Given a match place integer and a direction, returns both the target match
   * and slot
   *
   * @param $place
@@ -298,7 +302,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   }
 
  /**
-  * Given a match place integer, returns the next match place based on either 
+  * Given a match place integer, returns the next match place based on either
   * 'home' or 'away' direction
   *
   * @param $match
@@ -306,25 +310,25 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   * @param $slot
   *   Either '0' or '1'
   * @return $place
-  *   Match placement of the desired match, otherwise NULL 
+  *   Match placement of the desired match, otherwise NULL
   */
   function getNextMatch($match, $slot) {
     $ids = array_flip($this->tournament->getMatchIds());
     $next = $this->getNextMatchSlot($ids[$match->entity_id], $slot);
     if ( $next === NULL ) return NULL;
-    
+
     $ids = array_flip($ids);
     if (!array_key_exists((int)$next['match'], $ids)) return NULL;
     return entity_load_single('tourney_match', $ids[$next['match']]);
   }
-  
+
 
  /**
-  * Given a match place integer, returns the next match slot based on either 
+  * Given a match place integer, returns the next match slot based on either
   * 'home' or 'away' direction
   *
   * @param $match
-  *   Match entity, since the tournament isn't handling this method to provide a 
+  *   Match entity, since the tournament isn't handling this method to provide a
   *   zero-index match place
   * @param $direction
   *   Either 'home' or 'away'
@@ -337,23 +341,23 @@ class RoundRobinController extends TourneyController implements TourneyControlle
     if ( $next === NULL ) return NULL;
     return $next['slot'] + 1;
   }
-  
+
   /**
    * Get the callbacks for this match from the structure of the plugin.
    */
   public function getMatchCallbacks($match) {
     $match_location = $this->getMatchAddress($match);
-    // Return just the portion of the structure array that we need. We know how 
+    // Return just the portion of the structure array that we need. We know how
     // this structure array is built, because this array was defined in this
     // plugin.
-    // 
+    //
     // @todo: For some reason in round robin, this data variable isn't populated
     // on instantiation.
     $this->tournament->data = $this->tournament->tourneyFormatPlugin->structure();
-    
+
     return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
   }
-  
+
 /**
  * Recursive function that sets players in a RoundRobin tournament in all their
  * matches once the first round has been setup.
@@ -364,7 +368,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   public function populateMatches($match) {
     foreach ($match->getContestants() as $contestant) {
       $next = $match->nextMatch($contestant->slot);
-      
+
       if ( $next === NULL ) continue;
       $slot = $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, $contestant->slot);
 
