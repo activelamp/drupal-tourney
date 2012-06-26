@@ -321,7 +321,7 @@ function tourney_entity_info() {
     $entity_short = substr($entity_name, 8);
 
     $entity_class = 'Entity';
-    $entity_class = ($entity_short == 'tournament') ? 'TourneyTournament' : $entity_class;
+    $entity_class = ($entity_short == 'tournament') ? 'TourneyTournamentEntity' : $entity_class;
     $entity_class = ($entity_short == 'match') ? 'TourneyMatchEntity' : $entity_class;
     $entity_class = ($entity_short == 'game') ? 'TourneyGameEntity' : $entity_class;
 
@@ -1001,25 +1001,6 @@ function tourney_get_standings($tournament) {
 function tourney_get_types() {
   ctools_include('plugins');
   return ctools_get_plugins('tourney', 'tourney_formats');
-}
-
-/**
- * Build an options array to be used in forms.
- */
-function tourney_get_type_options($reset = FALSE) {
-  ctools_include('plugins');
-  static $options = array();
-
-  if (!empty($options) && !$reset) {
-    return $options;
-  }
-
-  $plugins = tourney_get_types();
-  uasort($plugins, 'ctools_plugin_sort');
-  foreach ($plugins as $info) {
-    $options[$info['controller']] = $info['title'];
-  }
-  return $options;
 }
 
 /**

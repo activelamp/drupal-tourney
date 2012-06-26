@@ -37,12 +37,6 @@ class TourneyMatchEntity extends TourneyEntity {
       // @todo: Do we really want to load this on instanstiation
       $this->matchInfo = $this->getMatchInfo();
     }
-
-    // Remove this once I know for sure that modules aren't depending on
-    // properties directly on the match object.
-    if ( variable_get('tourney_backward_compatibility', TRUE) ) {
-      $this->backwardCompatibility();
-    }
   }
 
   /**
@@ -134,28 +128,6 @@ class TourneyMatchEntity extends TourneyEntity {
   private static function contestantSort($a, $b) {
     if ( $a['slot'] == $b['slot'] ) return ( $a['id'] < $b['id'] ) ? -1 : 1;
     return ( $a['slot'] < $b['slot'] ) ? -1 : 1;
-  }
-
-  /**
-   * For backward compatibility I'm loading public properties on the object
-   * that used to be in hook_entity_load().
-   *
-   * The tourney module does not have any dependencies on these properties.
-   * This is only here in case Riot is expecting these properties on the object
-   * and is not using one of the public API methods to retrieve property.
-   */
-  private function backwardCompatibility() {
-    $this->title = $this->label;
-
-    // Get the contestants in this match on the object.
-    $this->contestant1 = $this->getContestant(1);
-    $this->contestant2 = $this->getContestant(2);
-
-    // Put the tournament object on the object
-    $this->tournament = $this->getTournament();
-
-    // Load the game ids onto the object
-    $this->games_played = $this->getGameIds();
   }
 
   /**

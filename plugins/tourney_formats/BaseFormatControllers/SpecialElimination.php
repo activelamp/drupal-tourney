@@ -5,16 +5,16 @@
  * Single elimination controller, new system.
  */
 
-class SpecialEliminationController extends TourneyFormatController {
+class SpecialEliminationController extends TourneyController {
   public $slots;
 
   /**
    * Constructor
    */
-  public function __construct($contestants, $tournament = NULL) {
+  public function __construct($numContestants, $tournament = NULL) {
     // Set our contestants, and then calculate the slots necessary to fit them 
-    $this->contestants = $contestants;  
-    $this->slots = pow(2, ceil(log($contestants, 2)));
+    $this->numContestants = $numContestants;  
+    $this->slots = pow(2, ceil(log($this->numContestants, 2)));
     $this->tournament = $tournament;
   }
   
@@ -41,7 +41,7 @@ class SpecialEliminationController extends TourneyFormatController {
    *   The vars array to add variables to.
    */
   public function preprocess($template, &$vars) {
-    if ($template == 'tourney-tournament') {
+    if ($template == 'tourney-tournament-render') {
       $vars['classes_array'][] = 'tourney-tournament-tree';
     }
   }
@@ -155,11 +155,11 @@ class SpecialEliminationController extends TourneyFormatController {
   public function structureNested() {
     $structure = array();
     // Loop through our rounds and set up each one
-    foreach ( $this->data['rounds'] as $round ) {
+    foreach ($this->data['rounds'] as $round) {
       $structure[$round['id']] = $round + array('matches' => array());
     }
     // Loop through our matches and add each one to its related round
-    foreach ( $this->data['matches'] as $match ) {
+    foreach ($this->data['matches'] as $match) {
       $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
     }
     return $structure;
@@ -216,7 +216,7 @@ class SpecialEliminationController extends TourneyFormatController {
     for ( $p = 0; $p < $count; $p += 2 ) {
       $a = $seeds[$p];
       $b = $seeds[$p+1];
-      $positions[] = array(1 => $a, 2 => $b <= $this->contestants ? $b : NULL);
+      $positions[] = array(1 => $a, 2 => $b <= $this->numContestants ? $b : NULL);
     }
     // This logic changed our zero-based array to one-based so our match
     // ids will line up
@@ -225,10 +225,10 @@ class SpecialEliminationController extends TourneyFormatController {
     $this->data['seeds'] = $positions;
   }
 
-  public function render() {       
+  public function render() {
     // Build our data structure
     $this->build();
     $this->structure('tree');
-    return theme('tourney_tournament', array('format_plugin' => $this, 'theme' => 'tourney_tournament_tree_node'));
+    return theme('tourney_tournament_render', array('format_plugin' => $this, 'theme' => 'tourney_tournament_tree_node'));
   }
 }

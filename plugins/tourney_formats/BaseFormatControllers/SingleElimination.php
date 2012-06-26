@@ -195,9 +195,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    * Retrieves rankings and sorts the list by total number of winnings. Sets
    * winner to the first contestant in the ranking list.
    *
-   * @param TourneyTournament $tournament
+   * @param TourneyTournamentEntity $tournament
    *
-   * @return TourneyTournament $this
+   * @return TourneyTournamentEntity $this
    *   Returns $this for chaining.
    */
   public function determineWinner($tournament) {
@@ -221,7 +221,7 @@ class SingleEliminationController extends TourneyController implements TourneyCo
   /**
    * Report if a tournament is finished.
    *
-   * @param TourneyTournament $tournament
+   * @param TourneyTournamentEntity $tournament
    *
    * @return bool $finished
    *   Will report TRUE if the tournament is finished, FALSE if not.

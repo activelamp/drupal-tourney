@@ -6,10 +6,10 @@
  */
  
   
-function template_preprocess_tourney_tournament(&$vars) { 
+function template_preprocess_tourney_tournament_render(&$vars) {
   drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/tourney.css');
   // Let the plugin preprocess variables
-  $vars['format_plugin']->preprocess('tourney-tournament', $vars);
+  $vars['format_plugin']->preprocess('tourney-tournament-render', $vars);
   
   // Build the tourney container classes.
   $vars['classes'] = join(' ', $vars['classes_array']);
@@ -18,9 +18,9 @@ function template_preprocess_tourney_tournament(&$vars) {
   $vars['matches'] = theme($vars['theme'], array('format_plugin' => $vars['format_plugin']));
 }
 
-function template_preprocess_tourney_match(&$vars) { 
+function template_preprocess_tourney_match_render(&$vars) { 
   // Let the plugin preprocess variables
-  $vars['format_plugin']->preprocess('tourney-match', $vars);
+  $vars['format_plugin']->preprocess('tourney-match-render', $vars);
   
   $null_contestant = array('name' => NULL, 'id' => NULL);
   $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';

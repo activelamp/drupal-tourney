@@ -14,10 +14,11 @@ files[] = includes/tourney.controller.inc
 files[] = includes/tourney.entity.tournament.inc
 files[] = includes/tourney.entity.match.inc
 files[] = includes/tourney.entity.game.inc
-files[] = plugins/tourney_formats/BaseFormatControllers/SingleElimination.php
-files[] = plugins/tourney_formats/BaseFormatControllers/DoubleElimination.php
-files[] = plugins/tourney_formats/BaseFormatControllers/RoundRobin.php
-files[] = plugins/tourney_formats/BaseFormatControllers/Ladder.php
+files[] = plugins/tourney_formats/BaseFormatControllers/SpecialElimination.php
+; files[] = plugins/tourney_formats/BaseFormatControllers/SingleElimination.php
+; files[] = plugins/tourney_formats/BaseFormatControllers/DoubleElimination.php
+; files[] = plugins/tourney_formats/BaseFormatControllers/RoundRobin.php
+; files[] = plugins/tourney_formats/BaseFormatControllers/Ladder.php
 
 files[] = includes/tourney.class.match.inc
 

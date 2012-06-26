@@ -5,7 +5,7 @@
  * Tournament class.
  */
 
-class TourneyTournament extends TourneyEntity {
+class TourneyTournamentEntity extends TourneyEntity {
 
   public  $matchIds = NULL;
   public  $gameIds = NULL;
@@ -30,17 +30,17 @@ class TourneyTournament extends TourneyEntity {
     // @todo : Lazy load this?
     if (!empty($this->players)) {
       // Ensure that matches have been created before retreving them.
-      if ($this->matches_created) {
-        $this->matchIds = $this->getMatchIds();
-        $this->gameIds = $this->getGameIds();
-      }
+      // if ($this->matches_created) {
+      //   $this->matchIds = $this->getMatchIds();
+      //   $this->gameIds = $this->getGameIds();
+      // }
 
       $tourneyFormatPlugin = $this->format;
       if (!class_exists($tourneyFormatPlugin)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }
-      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this);
-      $this->data = $this->tourneyFormatPlugin->structure();
+      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this->players, $this);
+      // $this->data = $this->tourneyFormatPlugin->structure();
 
       // Add a url to the object
       $this->uri = $this->getUri();
@@ -81,7 +81,7 @@ class TourneyTournament extends TourneyEntity {
    *   An array of match entity ids.
    */
   public static function fetchGameIds($tournament_id) {
-    $match_ids = TourneyTournament::fetchMatchIds($tournament_id);
+    $match_ids = TourneyTournamentEntity::fetchMatchIds($tournament_id);
 
     $game_ids = array();
     foreach ($match_ids as $mid) {
@@ -97,7 +97,7 @@ class TourneyTournament extends TourneyEntity {
    */
   public function getMatchIds() {
     if (empty($this->matchIds)) {
-      $this->matchIds = TourneyTournament::fetchMatchIds($this->id);
+      $this->matchIds = TourneyTournamentEntity::fetchMatchIds($this->id);
     }
     return $this->matchIds;
   }
@@ -213,7 +213,7 @@ class TourneyTournament extends TourneyEntity {
    * Return the uri to the entity object
    */
   public function getUri() {
-    return TourneyTournament::path($this->id);
+    return TourneyTournamentEntity::path($this->id);
   }
 
   /**
@@ -242,15 +242,14 @@ class TourneyTournament extends TourneyEntity {
   public function save() {
     // Store the is_new property in local variable. The property is no longer
     // there after the entity is initially saved.
-    // @todo: Change the is_new property if this entity patch gets in:
-    //   Patch at - http://drupal.org/node/1558266
     $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
     parent::save();
 
     // Create the matches and first game if new tournament.
     if ($new) {
-      $controller = new TourneyController($this);
-      $controller->createMatches();
+      $controller = TourneyController::loadPlugin($this);
+      $controller->build();
+      $controller->saveMatches();
 
       // Update the tournament with the number of matches created
       $this->matches_created = count($this->getMatchIds());
@@ -370,17 +369,21 @@ class TourneyTournament extends TourneyEntity {
     }
     return array_values(entity_load('tourney_match', $matches));
   }
-
+  
+  /**
+   * Renders the bracket of the tournament.
+   */
   public function render() {
-    $info = $this->tourneyFormatPlugin->getPluginInfo(get_class($this->tourneyFormatPlugin));
-
-    // Build a classes array for the tournament wrapper
-    $classes_array = array('tourney', "tourney-" . $info['machine name']);
-    $classes_array[] = $this->get('hide_byes') ? 'hide-byes' : '';
-    $output = "<div class='" . join(" ", $classes_array) . "'><div class='tourney-inner'>";
-    $output .= $this->tourneyFormatPlugin->render();
-    $output .= "</div></div>";
-    return $output;
+    return $this->tourneyFormatPlugin->render();
+    //     $info = $this->tourneyFormatPlugin->getPluginInfo(get_class($this->tourneyFormatPlugin));
+    // 
+    //     // Build a classes array for the tournament wrapper
+    //     $classes_array = array('tourney', "tourney-" . $info['machine name']);
+    //     $classes_array[] = $this->get('hide_byes') ? 'hide-byes' : '';
+    //     $output = "<div class='" . join(" ", $classes_array) . "'><div class='tourney-inner'>";
+    //     $output .= $this->tourneyFormatPlugin->render();
+    //     $output .= "</div></div>";
+    //     return $output;
   }
 
   /**

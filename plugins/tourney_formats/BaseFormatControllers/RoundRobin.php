@@ -9,7 +9,7 @@
  * A class defining how matches are created for this style tournament.
  */
 
-class RoundRobinController extends TourneyController implements TourneyControllerInterface {
+class RoundRobinController extends TourneyControllerLegacy implements TourneyControllerInterface {
 
   protected $tournament;
   protected $slots;
@@ -21,7 +21,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   /**
    * Constructor
    */
-  public function __construct(TourneyTournament $tournament) {
+  public function __construct(TourneyTournamentEntity $tournament) {
     $this->tournament = $tournament;
 
     $this->contestants = $tournament->players;
@@ -227,9 +227,9 @@ class RoundRobinController extends TourneyController implements TourneyControlle
    * Retrieves rankings and sorts the list by total number of winnings. Sets
    * winner to the first contestant in the ranking list.
    *
-   * @param TourneyTournament $tournament
+   * @param TourneyTournamentEntity $tournament
    *
-   * @return TourneyTournament $this
+   * @return TourneyTournamentEntity $this
    *   Returns $this for chaining.
    *
    * @see tourney_roundrobin_standings_sort()
@@ -250,7 +250,7 @@ class RoundRobinController extends TourneyController implements TourneyControlle
   /**
    * Report if a tournament is finished.
    *
-   * @param TourneyTournament $tournament
+   * @param TourneyTournamentEntity $tournament
    *
    * @return bool $finished
    *   Will report TRUE if the tournament is finished, FALSE if not.

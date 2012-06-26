@@ -300,7 +300,7 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   $entity->content['tourney_format'] = array(
    '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
    '#suffix' => '</div>',
-   '#markup' => $info['name'],
+   '#markup' => $info['title'],
   );
   $entity->content['tourney_players'] = array(
    '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
@@ -312,12 +312,10 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
    '#suffix' => '</div>',
    '#markup' => $entity->winner,
   );
-
   // Add the matches for this tournament
   $entity->content['matches'] = array(
     '#prefix' => '<h2>Matches in this tournament</h2>',
-    '#theme' => 'tourney_render_tourney',
-    '#tournament' => $entity,
+    '#markup' => $entity->render(),
   );
 }
 
@@ -405,7 +403,7 @@ function tourney_get_type_options($reset = FALSE) {
   $plugins = tourney_get_types();       
   uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
-    $options[$info['controller']] = $info['name'];
+    $options[$info['controller']] = $info['title'];
   }
   return $options;
 }
@@ -456,8 +454,10 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
  * Save any options the plugin has set
  */
 function tourney_set_plugin_options(&$tourney, &$form_state) {
-  foreach ($form_state['values']['plugin_options'] as $name => $values) {
-    $tourney->set($name, $values);
-    $tourney->config[$name] = $values; 
+  if (!empty($form_state['values']['plugin_options'])) {
+    foreach ($form_state['values']['plugin_options'] as $name => $values) {
+      $tourney->set($name, $values);
+      $tourney->config[$name] = $values; 
+    }
   }
 }
