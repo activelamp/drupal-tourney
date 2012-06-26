@@ -7,20 +7,24 @@
  
   
 function template_preprocess_tourney_tournament_render(&$vars) {
+  $plugin = &$vars['format_plugin'];
+  
   drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/tourney.css');
   // Let the plugin preprocess variables
-  $vars['format_plugin']->preprocess('tourney-tournament-render', $vars);
+  $plugin->preprocess('tourney-tournament-render', $vars);
   
   // Build the tourney container classes.
   $vars['classes'] = join(' ', $vars['classes_array']);
   
   // Call on the theme function specified by plugin render
-  $vars['matches'] = theme($vars['theme'], array('format_plugin' => $vars['format_plugin']));
+  $vars['matches'] = theme($vars['theme'], array('format_plugin' => $plugin));
 }
 
-function template_preprocess_tourney_match_render(&$vars) { 
+function template_preprocess_tourney_match_render(&$vars) {
+  $plugin = &$vars['format_plugin'];
+  
   // Let the plugin preprocess variables
-  $vars['format_plugin']->preprocess('tourney-match-render', $vars);
+  $plugin->preprocess('tourney-match-render', $vars);
   
   $null_contestant = array('name' => NULL, 'id' => NULL);
   $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';
@@ -30,21 +34,34 @@ function template_preprocess_tourney_match_render(&$vars) {
   $contestants = array(1 => (object) $null_contestant, 2 => (object) $null_contestant);
   ksort($contestants);
   
+  // Get the contestant output from the contestant template
   $contestant_output = '';
   foreach ($contestants as $slot => $contestant) {
     $contestant->slot = $slot;
     $contestant_output .= theme('tourney_contestant', array(
       'contestant' => $contestant, 
       'seed' => isset($seeds[$slot]) ? $seeds[$slot] : NULL,
-      'format_plugin' => $vars['format_plugin'],
+      'format_plugin' => $plugin,
     ));
   }
+  
+  $tournament = $plugin->tournament;
+  // If we have a tournament object, get the match url from the plugin.
+  if (is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
+    $match_uri = $plugin->getMatchURI($vars['match']['id']);
+    if ($match_uri) {
+      $contestant_output = l($contestant_output, $match_uri, array('html' => TRUE));
+    }
+  }
+  
   $vars['contestants'] = $contestant_output;
 }
 
 function template_preprocess_tourney_contestant(&$vars) {
+  $plugin = &$vars['format_plugin'];
+  
   // Let the plugin preprocess variables
-  $vars['format_plugin']->preprocess('tourney-contestant', $vars);
+  $plugin->preprocess('tourney-contestant', $vars);
   
   if (!$vars['contestant']->name ) {
     $vars['contestant']->name = 'Team ' . $vars['contestant']->slot;

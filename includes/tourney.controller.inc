@@ -12,7 +12,7 @@ class TourneyController implements TourneyControllerInterface {
   public $data;
   public $structure;
   public $numContestants;
-  protected $tournament;
+  public $tournament;
   
   /**
    * Default theme implementations for every tournament format. We could have
@@ -255,6 +255,30 @@ class TourneyController implements TourneyControllerInterface {
         tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
       }
     }
+  }
+  
+  /**
+   * Retrieve a match by machine name.
+   * 
+   * @param $mid
+   *   The match number to get
+   * @return
+   *   A full loaded match object. 
+   */
+  public function getMatchById($mid) {
+    return $this->tournament->getMatchById($mid);
+  }
+  
+  /**
+   * Get a match uri for linking on a match block.
+   * 
+   * @param $mid
+   *   The match number to get
+   * @return
+   *   A full loaded match object. 
+   */
+  public function getMatchURI($mid) {
+    return $this->tournament->getMatchURI($mid);
   }
   
   /**

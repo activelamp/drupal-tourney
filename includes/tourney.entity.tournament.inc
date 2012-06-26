@@ -101,6 +101,36 @@ class TourneyTournamentEntity extends TourneyEntity {
     }
     return $this->matchIds;
   }
+  
+  /**
+   * Retrieve a match by machine name.
+   * 
+   * @param $mid
+   *   The match number to get
+   * @return
+   *   A full loaded match object. 
+   */
+  public function getMatchById($mid) {
+    $entity_id = db_query("SELECT id FROM {tourney_match} WHERE name = :name",
+      array(':name' => $this->name . '_match-' . $mid))
+      ->fetchField();
+  
+    return $entity_id  > 0 ? tourney_match_load($entity_id) : NULL;
+  }
+  
+  /**
+   * Retrieve a match by machine name.
+   * 
+   * @param $mid
+   *   The match number to get
+   * @return
+   *   A full loaded match object. 
+   */
+  public function getMatchURI($mid) {
+    $entity = $this->getMatchById($mid);
+    
+    return is_object($entity) ? $entity->uri : NULL;
+  }
 
   /**
    * Lazy load all the game ids for this tournament. Once the games have been
@@ -375,15 +405,6 @@ class TourneyTournamentEntity extends TourneyEntity {
    */
   public function render() {
     return $this->tourneyFormatPlugin->render();
-    //     $info = $this->tourneyFormatPlugin->getPluginInfo(get_class($this->tourneyFormatPlugin));
-    // 
-    //     // Build a classes array for the tournament wrapper
-    //     $classes_array = array('tourney', "tourney-" . $info['machine name']);
-    //     $classes_array[] = $this->get('hide_byes') ? 'hide-byes' : '';
-    //     $output = "<div class='" . join(" ", $classes_array) . "'><div class='tourney-inner'>";
-    //     $output .= $this->tourneyFormatPlugin->render();
-    //     $output .= "</div></div>";
-    //     return $output;
   }
 
   /**

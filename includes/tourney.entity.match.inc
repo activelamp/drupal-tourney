@@ -35,7 +35,7 @@ class TourneyMatchEntity extends TourneyEntity {
       $this->uri = $this->getUri();
 
       // @todo: Do we really want to load this on instanstiation
-      $this->matchInfo = $this->getMatchInfo();
+      // $this->matchInfo = $this->getMatchInfo();
     }
   }
 
