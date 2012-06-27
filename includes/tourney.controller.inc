@@ -276,7 +276,7 @@ class TourneyController implements TourneyControllerInterface {
   }
   
   /**
-   * Retrieve a match by machine name.
+   * Retrieve a match by machine name if we have a tournament.
    * 
    * @param $mid
    *   The match number to get
@@ -284,7 +284,9 @@ class TourneyController implements TourneyControllerInterface {
    *   A full loaded match object. 
    */
   public function getMatchById($mid) {
-    return $this->tournament->getMatchById($mid);
+    if (is_object($this->tournament)) {
+      return $this->tournament->getMatchById($mid);
+    }
   }
   
   /**

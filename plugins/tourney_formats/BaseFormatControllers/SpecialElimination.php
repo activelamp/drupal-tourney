@@ -91,7 +91,9 @@ class SpecialEliminationController extends TourneyController {
     }
     
     // Check to see if we need to create a consolation bracket and matches.
-    $plugin_options = $this->tournament->get(__CLASS__, array());
+    $plugin_options = is_object($this->tournament) 
+      ? $this->tournament->get(__CLASS__, array()) : array();
+    
     if (!empty($plugin_options) && $plugin_options['third_place']) {
       $this->data['brackets']['consolation'] = $this->buildBracket(array('id' => 'consolation'));
       
@@ -101,6 +103,9 @@ class SpecialEliminationController extends TourneyController {
         'roundMatch' => 1,
         'bracket' => 'consolation',
       ));
+      
+      // Populate positions for third place match.
+      $this->populatePositionsThirdPlace();
     }
     
     foreach ($this->data['matches'] as $id => &$match) {
@@ -119,6 +124,19 @@ class SpecialEliminationController extends TourneyController {
     // Set in the seed positions
     $this->populateSeedPositions();
   }
+  
+  /**
+   * Find and populate next/previous match for third place.
+   */
+  public function populatePositionsThirdPlace() {
+    $count = count($this->data['matches']);
+    $this->data['matches'][$count]['previousMatches'] = array($count - 3, $count - 2);
+    
+    // Set the next match for losers.
+    foreach ($this->data['matches'][$count]['previousMatches'] as $mid) {
+      $this->data['matches'][$mid]['nextMatch']['loser'] = $count;
+    }
+  }
 
 
   /**
@@ -129,11 +147,13 @@ class SpecialEliminationController extends TourneyController {
     // Go through all the matches
     $count = count($this->data['matches']);
     foreach ($this->data['matches'] as $id => &$match) {
+      // Nothing to do for the last match, continue.
       if ($id == $count) {
         continue;
       }
-      // Find next match by filtering through matches with in the next round
-      // and those with a halved round match number
+      
+      // Find next match by filtering through matches within the next round and 
+      // those with a halved round match number
       // Example:
       //   Round 3, Match 5
       //  Next match is:
@@ -161,10 +181,10 @@ class SpecialEliminationController extends TourneyController {
     $this->calculateSeeds();
     // Calculate the seed positions, then apply them to their matches while
     // also setting the bye boolean
-    foreach ( $this->data['seeds'] as $id => $seeds ) {
+    foreach ($this->data['seeds'] as $id => $seeds) {
       $match =& $this->data['matches'][$id];
       $match['seeds'] = $seeds;
-      $match['bye']   = $seeds[2] === NULL;
+      $match['bye'] = $seeds[2] === NULL;
       if ( $match['bye'] && isset($match['nextMatch']) ) {
         $slot = $match['id'] % 2 ? 1 : 2;
         $this->data['matches'][$match['nextMatch']['winner']]['seeds'][$slot] = $seeds[1];
@@ -176,7 +196,7 @@ class SpecialEliminationController extends TourneyController {
    * Generate a structure based on data
    */
   public function structure($type = 'nested') {
-    switch ( $type ) {
+    switch ($type) {
       case 'nested':
         $this->structure['nested'] = $this->structureNested();
         break;
