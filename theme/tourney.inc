@@ -42,7 +42,7 @@ function template_preprocess_tourney_match_render(&$vars) {
     }
   }
   // Fill in null contestants if two contestants are not assigned to match.
-  $i = 0;
+  $i = count($contestants);
   while (count($contestants) < 2) {
     $contestants[++$i] = (object) array('name' => NULL, 'id' => NULL);
     // This match is editable when at least one of the contestants is NULL.
@@ -52,7 +52,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   // Get the contestant output from the contestant template
   $contestant_output = '';
   foreach ($contestants as $slot => $contestant) {
-    $contestant->slot = $slot;
+    $contestant->slot = !empty($contestant->slot) ? $contestant->slot : $slot;
     $contestant_output .= theme('tourney_contestant', array(
       'contestant' => $contestant, 
       'seed' => isset($seeds[$slot]) ? $seeds[$slot] : NULL,

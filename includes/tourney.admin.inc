@@ -120,7 +120,7 @@ function theme_tourney_admin_content($variables) {
     $rows[] = array(
       l($tournament->id, $uri),
       l($tournament->label, $uri),
-      $info['name'],
+      $info['title'],
       $tournament->players,
       $tournament->winner,
       user_access('access tourney') ? l(t('View'), $uri . '') : '',
