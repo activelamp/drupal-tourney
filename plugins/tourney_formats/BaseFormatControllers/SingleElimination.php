@@ -201,7 +201,9 @@ class SingleEliminationController extends TourneyController implements TourneyCo
    *   Returns $this for chaining.
    */
   public function determineWinner($tournament) {
-    if ( !$this->isFinished($tournament) ) return $tournament;
+    if (!$this->isFinished($tournament)) {
+      return $tournament;
+    }
     $ranks = $tournament->fetchRanks();
     $standings = $tournament->getStandings();
 

@@ -564,33 +564,20 @@ class TourneyMatchEntity extends TourneyEntity {
     $this->contestantIds = NULL;
   }
 
-  /**
-   * Add contestant to previous match
-   *
-   * @param $entity
-   *   The contestant entity to add to a match
-   * @param $slot
-   *   The slot to add the contestant to.
-   */
-  public function addContestantPrevious($entity, $slot = NULL) {
-    $this->findSeedInfo();
-    if (array_key_exists('seed_position', $this->matchInfo)
-      && array_key_exists($slot - 1, $this->matchInfo['seed_position'])) {
-        $matches = $this->previousMatches();
-        $matches[$slot - 1]->addContestant($entity, 1);
-    }
-  }
-
  /**
   * Get this match's next match contestants go to when they either win or lose
   *
   * @param $direction
   *   Either 'winner' or 'loser'
-  * @return $place
-  *   Match placement of the desired match, otherwise NULL
+  * @return $match
+  *   Match entity of the desired match, otherwise NULL
   */
   public function nextMatch($direction = 'winner') {
-    return $this->getTournament()->getNextMatch($this, $direction);
+    if (array_key_exists('nextMatch', $this->matchInfo)) {
+      $next_plugin_id = $this->matchInfo['nextMatch'][$direction];
+      return $this->getTournament()->getMatchById($next_plugin_id);
+    }
+    return NULL;
   }
 
   public function previousMatches() {

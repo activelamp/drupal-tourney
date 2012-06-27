@@ -53,7 +53,6 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
           $bye_secondlevel[] = (isset($grandchild['bye']) && $grandchild['bye']);
         }
       }
-      // kpr($bye_secondlevel);
     }
     unset($child);
   }

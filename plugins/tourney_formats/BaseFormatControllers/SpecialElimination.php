@@ -19,6 +19,21 @@ class SpecialEliminationController extends TourneyController {
   }
   
   /**
+   * Default options form that provides the label widget that all fields
+   * should have.
+   */
+  public function optionsForm(&$form_state) {
+    $form['third_place'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Generate a third place match'),
+      '#description' => t('By checking this option, a Consolation bracket will be created with one match to determine third place.'),
+      '#default_value' => '',
+    );
+    
+    return $form;
+  }
+  
+  /**
    * Theme implementations specific to this plugin.
    */
   public static function theme($existing, $type, $theme, $path) {
@@ -53,6 +68,10 @@ class SpecialEliminationController extends TourneyController {
     $slots = $this->slots;
     $match = 0;
     $round = 0;
+    
+    // Add current bracket information to the data array
+    $this->data['brackets']['main'] = $this->buildBracket(array('id' => 'main'));
+    
     // Calculate and iterate through rounds and their matches based on slots
     while (($slots /= 2) >= 1) {
       // Add current round information to the data array
@@ -60,7 +79,7 @@ class SpecialEliminationController extends TourneyController {
         $this->buildRound(array('id' => $round));
 
       // Add in all matches and their information for this round
-      foreach ( range(1, $slots) as $roundMatch ) {
+      foreach (range(1, $slots) as $roundMatch) {
         $this->data['matches'][++$match] = 
           $this->buildMatch(array(
             'id' => $match,
@@ -70,7 +89,21 @@ class SpecialEliminationController extends TourneyController {
           ));
       }
     }
-    foreach ( $this->data['matches'] as $id => &$match ) {
+    
+    // Check to see if we need to create a consolation bracket and matches.
+    $plugin_options = $this->tournament->get(__CLASS__, array());
+    if (!empty($plugin_options) && $plugin_options['third_place']) {
+      $this->data['brackets']['consolation'] = $this->buildBracket(array('id' => 'consolation'));
+      
+      $this->data['matches'][++$match] = $this->buildMatch(array(
+        'id' => $match,
+        'round' => 1,
+        'roundMatch' => 1,
+        'bracket' => 'consolation',
+      ));
+    }
+    
+    foreach ($this->data['matches'] as $id => &$match) {
       $this->data['games'][$id] = $this->buildGame(array(
         'id' => $id,
         'match' => $id,
@@ -78,6 +111,7 @@ class SpecialEliminationController extends TourneyController {
       ));
       $this->data['matches'][$id]['games'][] = $id;
     }
+    
     $this->data['contestants'] = array();     
     
     // Calculate and set the match pathing
@@ -173,9 +207,11 @@ class SpecialEliminationController extends TourneyController {
 
   public function structureTreeNode($match) {
     $node = $match;
-    if ( isset($match['previousMatches']) )
-      foreach ( $match['previousMatches'] as $child )
+    if (isset($match['previousMatches'])) {
+      foreach ($match['previousMatches'] as $child) {
         $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
+      }
+    }
     return $node;
   }
 

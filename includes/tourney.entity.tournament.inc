@@ -202,17 +202,25 @@ class TourneyTournamentEntity extends TourneyEntity {
   }
 
   /**
-   * Determine if a tournament is finished (when all matches are finished).
+   * Report if a tournament is finished.
    *
-   * @return bool
-   *   Return TRUE if the tournament is finished.
+   * @param TourneyTournamentEntity $tournament
+   *
+   * @return bool $finished
+   *   Will report TRUE if the tournament is finished, FALSE if not.
    */
-  public function isFinished() {
-    if (is_null($this->tournamentFinished)) {
-      $this->tournamentFinished = $this->tourneyFormatPlugin->isFinished($this);
+  function isFinished() {
+    $matches = tourney_match_load_multiple($this->getMatchIds());
+    if (!empty($matches)) {
+      foreach ($matches as $match) {
+        // Delegate the checking to the match to see if each match is finished
+        if (!$match->isFinished()) {
+          return FALSE;
+        }
+      }
+      return TRUE;
     }
-
-    return $this->tournamentFinished;
+    throw new Exception(t('There are no matches for this tournament'));
   }
 
   /**
@@ -220,10 +228,21 @@ class TourneyTournamentEntity extends TourneyEntity {
    */
   public function determineWinner() {
     if ($this->isFinished()) {
-      $this->tourneyFormatPlugin->determineWinner($this);
+      $ranks = $this->fetchRanks();
+      $standings = $this->getStandings();
+
+      // todo : remove quick hack, implement custom uasort callback.
+      foreach ($standings as $key => $standing) {
+        $winners[$key] = $standing['wins'];
+      }
+      arsort($winners);
+
+      $keys = array_keys($winners);
+      $this->winner = $keys[0];
+      $this->save();
     }
     else {
-      if ( $this->winner ) {
+      if ($this->winner) {
         $this->winner = NULL;
         $this->save();
       }
@@ -302,6 +321,11 @@ class TourneyTournamentEntity extends TourneyEntity {
       $seed_2 = array();
       foreach ($matches as $mid => $match_info) {
         if ($match_info['round'] == 1) {
+          // If the match is a bye, get the next match id
+          if ($match_info['bye'] == TRUE) {
+            $mid = $match_info['nextMatch']['winner'];
+          }
+          
           $match = $this->tourneyFormatPlugin->getMatchById($mid);
           if (is_object($match)) {
             $seed = 1;
@@ -448,9 +472,8 @@ class TourneyTournamentEntity extends TourneyEntity {
     if (user_access("edit tourney") == FALSE || count($match->getGameIds()) > 1) {
       return FALSE;
     }
-    
     $round = $match->matchInfo['round'];
-    if ($this->get('hide_byes') && $round == 2) {
+    if (!$this->get('show_byes') && $round == 2) {
        $match->findSeedInfo();
     }
     
@@ -459,10 +482,10 @@ class TourneyTournamentEntity extends TourneyEntity {
       // Both slots can be set
       $return = 0x3;
     }
-    elseif (array_key_exists('seed_position', $match->matchInfo)) {
-      foreach (array(0,1) as $slot) {
-        if (array_key_exists($slot, $match->matchInfo['seed_position'])) {
-          $return += ($slot + 1);
+    elseif (array_key_exists('seeds', $match->matchInfo)) {
+      foreach (array(1,2) as $slot) {
+        if (array_key_exists($slot, $match->matchInfo['seeds'])) {
+          $return += $slot;
         }
       }
     }
@@ -519,24 +542,33 @@ class TourneyTournamentEntity extends TourneyEntity {
   public function matchIsWon($match) {
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
-    if (!$info || !method_exists($plugin, $info['is_won']['callback'])) {
-      return NULL;
-    }
     $match->cleanGames();
     $this->determineWinner();
     
     if (!$this->get('no_automation', FALSE)) {
-      $plugin->$info['is_won']['callback']($match); 
+        if (!$match->isFinished()) {
+          return;
+        }
+        // clear winner and loser so we can get a fresh winner, just in case
+        $match->clearWinner();
+        $winner = $match->getWinnerEntity();
+        // odd matches go to top slot, evens to bottom
+        $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
+        if ($match->nextMatch()) {
+          $match->nextMatch()->addContestant($winner, $slot);
+        }
     }
   }
 
   public function get($name, $default = NULL) {
-    // if (!property_exists($this, 'entity_id')) {
-    //   return isset($this->config[$name]) ? $this->config[$name] : $default;
-    // }
+    if (!property_exists($this, 'entity_id')) {
+      return isset($this->config[$name]) ? $this->config[$name] : $default;
+    }
 
     global $_tourney_config;
-    if ( !isset($_tourney_config) ) tourney_initialize_configuration();
+    if (!isset($_tourney_config)) {
+      tourney_initialize_configuration();
+    }
     
     return !empty($this->id) && !empty($_tourney_config[$this->id][$name]) 
       ? $_tourney_config[$this->id][$name] : $default;

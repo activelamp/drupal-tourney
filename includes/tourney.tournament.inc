@@ -72,11 +72,11 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => 0,
   );
 
-  $form['tourney']['config_hide_byes'] = array(
+  $form['tourney']['config_show_byes'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Hide Byes'),
-    '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
-    '#default_value' => $tourney->get('hide_byes', TRUE),
+    '#title' => t('Show Byes'),
+    '#description' => t('Show matches where the contestant advances automatically due to an uneven number of players.'),
+    '#default_value' => $tourney->get('show_byes', FALSE),
   );
   
   $form['tourney']['config_no_automation'] = array(
@@ -257,17 +257,27 @@ function tourney_tournament_delete_submit($form, &$form_state) {
  */
 function tourney_tournament_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
+  
+  // Save settings to a config array, for use before config is actually saved
+  // to the tourney table.
   $tourney->config = array();
+  foreach ($form_state['values'] as $key => $value) {
+    if (substr($key, 0, 7) != 'config_') {
+      continue;
+    }
+    $tourney->config[substr($key, 7)] = $value;
+  }
+  tourney_set_plugin_options($tourney, $form_state, TRUE);
+  
   
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
-  tourney_tournament_save($tourney);                                     
+  tourney_tournament_save($tourney);
   
   // Any fields preceded with "config_" should be saved as configuration.
   foreach ($form_state['values'] as $key => $value) {
     if (substr($key, 0, 7) != 'config_') {
       continue;
     }
-    $tourney->config[substr($key, 7)] = $value; 
     $tourney->set(substr($key, 7), $value); 
   }
   
@@ -422,7 +432,7 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
   foreach ($plugins as $info) {
     $controller = ctools_plugin_get_class($info, 'controller');
     if (class_exists($controller) && method_exists($controller, 'optionsForm')) {
-      $plugin = new $controller($tourney);
+      $plugin = new $controller(0, $tourney);
       $options_form = $plugin->optionsForm($form_state);
       
       // If no options are defined move on.
@@ -452,12 +462,23 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
 
 /**
  * Save any options the plugin has set
+ * 
+ * @param $tourney
+ *   The tourney object to save settings for.
+ * @param $form_state
+ *   The tourney form.
+ * @param $to_cache
+ *   If a tournament hasn't been saved yet, use this flag to store setting to cache.
  */
-function tourney_set_plugin_options(&$tourney, &$form_state) {
+function tourney_set_plugin_options(&$tourney, &$form_state, $to_cache = FALSE) {
   if (!empty($form_state['values']['plugin_options'])) {
     foreach ($form_state['values']['plugin_options'] as $name => $values) {
-      $tourney->set($name, $values);
-      $tourney->config[$name] = $values; 
+      if ($to_cache == TRUE) {
+        $tourney->config[$name] = $values;
+      }
+      else {
+        $tourney->set($name, $values);
+      }
     }
   }
 }

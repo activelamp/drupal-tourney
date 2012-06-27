@@ -1138,7 +1138,7 @@ function tourney_initialize_configuration() {
   }
   else {
     $name = 'tourney_variable_init';
-    if ( !lock_acquire($name, 1) ) {
+    if (!lock_acquire($name, 1)) {
       lock_wait($name);
       return tourney_initialize_configuration();
     }

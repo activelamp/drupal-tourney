@@ -332,17 +332,11 @@ function tourney_match_form_submit($form, &$form_state) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 1);
-      if ($match->getTournament()->get('hide_byes') && $roundinfo['id'] == 2) {
-        $match->addContestantPrevious($entity, 1);
-      }
     }
     if (array_key_exists('contestant2', $form_state['input']) && $eid = $form_state['input']['contestant2']) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 2);
-      if ($match->getTournament()->get('hide_byes') && $roundinfo['id'] == 2) {
-        $match->addContestantPrevious($entity, 2);
-      }
     }
   }
 
@@ -481,7 +475,7 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['match_winner'] = array(
     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
     '#suffix' => '</div>',
-    // '#markup' => $entity->getWinner(),
+    '#markup' => $entity->getWinner(),
   );
   $i = 1;
   foreach ($entity->getMatchContestants() as $eid => $contestant) {

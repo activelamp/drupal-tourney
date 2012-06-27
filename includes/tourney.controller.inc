@@ -47,6 +47,23 @@ class TourneyController implements TourneyControllerInterface {
    * Stub method to be defined in plugins.
    */
   public function preprocess($template, &$vars) {}
+     
+  /**
+   * Bracket data generator
+   *
+   * @param array $data
+   *   Uses 'id' from the array to set basic values, and joins for the rest
+   *
+   * @return $round
+   *   Filled out round data array
+   */
+  public function buildBracket($data) {
+    $round = array(
+      'title' => ucfirst($data['id']) . ' Bracket',
+      'id'    => 'bracket-' . $data['id'],
+    ) + $data;
+    return $round;
+  }
 
   /**
    * Round data generator
@@ -218,6 +235,7 @@ class TourneyController implements TourneyControllerInterface {
    */
   public function saveMatches() {
     $matches = $this->data['matches'];
+    
     foreach ($matches as $mid => $match) {
       // Set $id to the round number
       $bracket_id = '';

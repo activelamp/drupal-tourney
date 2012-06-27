@@ -213,7 +213,7 @@ function theme_tourney_matchblock($vars) {
     $output .= '<div class="' . join(" ", $classes_array) . '">'; 
     
     // Set seed info from bye
-    if ( $match->getTournament()->get('hide_byes') 
+    if ( $match->getTournament()->get('show_byes') 
       && !empty($match->matchInfo['round']['id']) 
       && $match->matchInfo['round']['id'] == 2 ) {
       $match->findSeedInfo($s);
