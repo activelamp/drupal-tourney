@@ -29,13 +29,14 @@ class SpecialEliminationController extends TourneyController {
   public function optionsForm(&$form_state) {
     // Get the plugin options, if we have a tournament.
     $this->getPluginOptions();
+    $options = $this->pluginOptions;
     
     $form['third_place'] = array(
       '#type' => 'checkbox',
       '#title' => t('Generate a third place match'),
       '#description' => t('By checking this option, a Consolation bracket will be created with one match to determine third place.'),
-      '#default_value' => $this->pluginOptions['third_place'],
-      '#disabled' => $form_state['tourney']->id ? TRUE : FALSE,
+      '#default_value' => array_key_exists('third_place', $options) ? $options['third_place'] : -1,
+      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
     );
     
     return $form;
