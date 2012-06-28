@@ -315,6 +315,14 @@ class TourneyController implements TourneyControllerInterface {
   }
   
   /**
+   * Get the plugin options from a tournament.
+   */
+  public function getPluginOptions() {
+    $this->pluginOptions = is_object($this->tournament) 
+      ? $this->tournament->get(get_class($this), array()) : array();
+  }
+  
+  /**
    * Get the machine name of the plugin.
    */
   public static function getPluginInfo($controller) {

@@ -23,11 +23,15 @@ class SpecialEliminationController extends TourneyController {
    * should have.
    */
   public function optionsForm(&$form_state) {
+    // Get the plugin options, if we have a tournament.
+    $this->getPluginOptions();
+    
     $form['third_place'] = array(
       '#type' => 'checkbox',
       '#title' => t('Generate a third place match'),
       '#description' => t('By checking this option, a Consolation bracket will be created with one match to determine third place.'),
-      '#default_value' => '',
+      '#default_value' => $this->pluginOptions['third_place'],
+      '#disabled' => $form_state['tourney']->id ? TRUE : FALSE,
     );
     
     return $form;
@@ -80,7 +84,7 @@ class SpecialEliminationController extends TourneyController {
   /**
    * Data generator
    */
-  public function build() {    
+  public function build() {
     $slots = $this->slots;
     $match = 0;
     $round = 0;
@@ -107,9 +111,7 @@ class SpecialEliminationController extends TourneyController {
     }
     
     // Check to see if we need to create a consolation bracket and matches.
-    $this->pluginOptions = is_object($this->tournament) 
-      ? $this->tournament->get(__CLASS__, array()) : array();
-    
+    $this->getPluginOptions();
     if (!empty($this->pluginOptions) && $this->pluginOptions['third_place']) {
       $this->data['brackets']['consolation'] = $this->buildBracket(array('id' => 'consolation'));
       
