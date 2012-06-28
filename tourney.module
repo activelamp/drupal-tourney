@@ -142,7 +142,9 @@ function tourney_menu() {
 function tourney_testing() {
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialElimination');
   $tournament = new SpecialEliminationController(8);
-
+  $tournament->setPluginOptions(array('third_place' => TRUE));
+  
+  return $tournament->render();
   // $contestant1 = (Object) array('name' => 'Home Team', 'id' => 'home');
   // $contestant2 = (Object) array('name' => 'Away Team', 'id' => 'away');
   // $contestant3 = (Object) array('name' => 'Alpha Team', 'id' => 'alpha');
@@ -174,7 +176,7 @@ function tourney_testing() {
 
   //krumo($tournament->structure('tree'));
   //krumo($tournament);
-  return $tournament->render();
+  
 }
 
 /**

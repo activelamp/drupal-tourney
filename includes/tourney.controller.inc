@@ -8,6 +8,62 @@
 // Maximum number of rounds that an elimination tournament will allow.
 define('MAXIMUM_ROUNDS', 5);
 
+/**
+ * Tournament plugins are responsible for four things:
+ * 
+ *   1. Define the structure data of a tournament.
+ *   2. Define the match data in a tournament
+ *   3. Provide data (and logic) of what the next and previous match is for both
+ *      winners and losers of a match.
+ *   4. How to render the tournament.
+ * 
+ * Beyond the four items listed above it is up to the system implementing the
+ * plugin to decide what to do with the data the plugin provides.
+ * 
+ * Plugins should extend TourneyController to integrate with the Drupal entity
+ * system that saves matches and the first game of each match. TourneyController
+ * is the gateway between the plugin (the data and logic of tournament) and the
+ * Drupal entity system.
+ * 
+ * The key component to every plugin is how the plugin builds its data array.
+ * TourneyController provides helper methods to create arrays that hold important
+ * data that is present in every tournament. Every tournament has some concept 
+ * of a bracket, round, match, and game. Plugin build() methods are encouraged
+ * to use the build methods in TourneyController for these arrays:
+ * 
+ * @code
+ * TourneyController::buildBracket($data);
+ * TourneyController::buildRound($data);
+ * TourneyController::buildMatch($data);
+ * TourneyController::buildGame($data);
+ * @endcode
+ * 
+ * The most important data structure your plugin should implement in build() is
+ * TourneyController::buildMatch(). It is from this array that matches are saved
+ * to the Drupal entity system using TourneyController::saveMatches().
+ * 
+ * Plugins can render on their own with no knowledge of a tournament entity. If
+ * a plugin was constructed with a tournament entity, then information from the
+ * tournament will be preprocessed into the plugin render, and links to matches,
+ * and contestant names will appear.
+ * 
+ * However, plugins should not be dependent on a tournament object being present.
+ * As an example, the following code will instantiate a new plugin with
+ * eight contestants, set a plugin option for a third place match, and then
+ * render the tournament.
+ * 
+ * @code
+ * $tournament = new SpecialEliminationController(8);
+ * $tournament->setPluginOptions(array('third_place' => TRUE));
+ *
+ * $tournament->render();
+ * @endcode
+ * 
+ * This code will create all the matches in a data array, and render a tournament
+ * bracket. If the plugin where loaded with a valid TourneyTournamentEntity, it
+ * will render the same bracket with information from the tournament in the
+ * bracket.
+ */
 class TourneyController implements TourneyControllerInterface {
   public $data;
   public $structure;
@@ -315,11 +371,27 @@ class TourneyController implements TourneyControllerInterface {
   }
   
   /**
-   * Get the plugin options from a tournament.
+   * Set the plugin options for this tourney format.
+   * 
+   * @param $values
+   *   Takes a key value pair to populate plugin options.
+   */
+  public function setPluginOptions($values) {
+    foreach ($values as $key => $value) {
+      $this->pluginOptions[$key] = $value;
+    }
+  }
+  
+  /**
+   * Get the plugin options for this tourney format.
    */
   public function getPluginOptions() {
-    $this->pluginOptions = is_object($this->tournament) 
+    // Get plugin options from a tournament
+    $this->tourneyPluginOptions = is_object($this->tournament) 
       ? $this->tournament->get(get_class($this), array()) : array();
+    
+    // Allow tournament plugin options to override code options.
+    return array_merge($this->pluginOptions, $this->tourneyPluginOptions);
   }
   
   /**

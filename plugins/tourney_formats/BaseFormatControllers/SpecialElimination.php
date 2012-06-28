@@ -5,6 +5,10 @@
  * Single elimination controller, new system.
  */
 
+/**
+ * A class defining how matches are created, and rendered for this style
+ * tournament.
+ */
 class SpecialEliminationController extends TourneyController {
   public $slots;
 
