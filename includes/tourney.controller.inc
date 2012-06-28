@@ -13,6 +13,7 @@ class TourneyController implements TourneyControllerInterface {
   public $structure;
   public $numContestants;
   public $tournament;
+  public $pluginOptions = array();
   
   /**
    * Default theme implementations for every tournament format. We could have
@@ -25,7 +26,7 @@ class TourneyController implements TourneyControllerInterface {
     $module_path = drupal_get_path('module', 'tourney');
     return array(
       'tourney_tournament_render' => array(
-        'variables' => array('structure'),
+        'variables' => array('plugin' => NULL),
         'path' => drupal_get_path('module', 'tourney') . '/theme',
         'template' => 'tourney-tournament-render',
         'file' => 'tourney.inc',

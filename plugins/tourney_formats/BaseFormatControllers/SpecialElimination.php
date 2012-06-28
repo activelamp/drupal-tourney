@@ -39,7 +39,7 @@ class SpecialEliminationController extends TourneyController {
   public static function theme($existing, $type, $theme, $path) {
     return parent::theme($existing, $type, $theme, $path) + array(
       'tourney_tournament_tree_node' => array(
-        'variables' => array('node'),
+        'variables' => array('plugin' => NULL, 'node' => NULL),
         'path' => $path . '/theme',
         'file' => 'preprocess_tournament_tree_node.inc',
         'template' => 'tourney-tournament-tree-node',
@@ -58,6 +58,22 @@ class SpecialEliminationController extends TourneyController {
   public function preprocess($template, &$vars) {
     if ($template == 'tourney-tournament-render') {
       $vars['classes_array'][] = 'tourney-tournament-tree';
+      $vars['matches'] = '';
+      $node = $this->structure['tree'];
+      
+      // Set the matches variable.
+      if (!empty($this->pluginOptions) && $this->pluginOptions['third_place']) {
+        // Don't try to render the children of a third place match.
+        unset($node['children']);
+        
+        // New tree should start from the second to last match.
+        $match = $this->data['matches'][$node['id'] - 1];
+        $last_node = $this->structureTreeNode($match); 
+        
+        // Render the consolation bracket out.
+        $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $last_node));
+      }
+      $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $node));
     }
   }
 
@@ -91,10 +107,10 @@ class SpecialEliminationController extends TourneyController {
     }
     
     // Check to see if we need to create a consolation bracket and matches.
-    $plugin_options = is_object($this->tournament) 
+    $this->pluginOptions = is_object($this->tournament) 
       ? $this->tournament->get(__CLASS__, array()) : array();
     
-    if (!empty($plugin_options) && $plugin_options['third_place']) {
+    if (!empty($this->pluginOptions) && $this->pluginOptions['third_place']) {
       $this->data['brackets']['consolation'] = $this->buildBracket(array('id' => 'consolation'));
       
       $this->data['matches'][++$match] = $this->buildMatch(array(
@@ -162,7 +178,7 @@ class SpecialEliminationController extends TourneyController {
         'round' => $match['round'] + 1,
         'roundMatch' => (int) ceil($match['roundMatch'] / 2),
       ), TRUE);
-
+      
       // $index = ( $this->slots / 2 ) + floor(($match->match-1) / 2)+1;
       // $next = $this->data['matches'][$index];
 
@@ -286,6 +302,6 @@ class SpecialEliminationController extends TourneyController {
     // Build our data structure
     $this->build();
     $this->structure('tree');
-    return theme('tourney_tournament_render', array('format_plugin' => $this, 'theme' => 'tourney_tournament_tree_node'));
+    return theme('tourney_tournament_render', array('plugin' => $this));
   }
 }
