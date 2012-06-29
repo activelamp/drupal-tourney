@@ -53,7 +53,7 @@ define('MAXIMUM_ROUNDS', 5);
  * render the tournament.
  * 
  * @code
- * $tournament = new SpecialEliminationController(8);
+ * $tournament = new SingleEliminationController(8);
  * $tournament->setPluginOptions(array('third_place' => TRUE));
  *
  * $tournament->render();

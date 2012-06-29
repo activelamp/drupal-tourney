@@ -13,7 +13,6 @@ $plugin = array(
   'machine name' => 'roundrobin',
   'description' => t('This is the description of the tournament'),
   'weight' => 3,
-  'total games' => 5,
   'controller' => 'RoundRobinController',
 );
 

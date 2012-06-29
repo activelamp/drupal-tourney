@@ -573,7 +573,8 @@ class TourneyMatchEntity extends TourneyEntity {
   *   Match entity of the desired match, otherwise NULL
   */
   public function nextMatch($direction = 'winner') {
-    if (array_key_exists('nextMatch', $this->matchInfo)) {
+    if (array_key_exists('nextMatch', $this->matchInfo) 
+      && array_key_exists($direction, $this->matchInfo['nextMatch'])) {
       $next_plugin_id = $this->matchInfo['nextMatch'][$direction];
       return $this->getTournament()->getMatchById($next_plugin_id);
     }

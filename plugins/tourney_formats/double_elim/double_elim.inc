@@ -13,7 +13,6 @@ $plugin = array(
   'machine name' => 'double',
   'description' => t('This is the description of the tournament'),
   'weight' => 1,
-  'total games' => 5,
   'controller' => 'DoubleEliminationController',
 );
 

@@ -140,8 +140,8 @@ function tourney_menu() {
 }
 
 function tourney_testing() {
-  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialElimination');
-  $tournament = new SpecialEliminationController(8);
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
+  $tournament = new SingleEliminationController(8);
   $tournament->setPluginOptions(array('third_place' => TRUE));
   
   return $tournament->render();

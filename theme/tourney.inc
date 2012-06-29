@@ -20,7 +20,7 @@ function template_preprocess_tourney_tournament_render(&$vars) {
 }
 
 /**
- * @todo: Think about whether or not I can move some this logic to 
+ * @todo: Think about whether or not I can move some of this logic to 
  *   TourneyController::preprocess()
  */
 function template_preprocess_tourney_match_render(&$vars) {

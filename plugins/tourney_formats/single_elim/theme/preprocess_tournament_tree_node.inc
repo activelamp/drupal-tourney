@@ -11,9 +11,9 @@
  */
 function template_preprocess_tourney_tournament_tree_node(&$vars) {
   // @todo: There is probably a better way to find the path of this directory.
-  // I don't like hos this $plugin_dir variable is hard coded to this path,
+  // I don't like how this $plugin_dir variable is hard coded to this path,
   // need to figure out how to get the relative path of this file.
-  $plugin_dir = drupal_get_path('module', 'tourney') . '/plugins/tourney_formats/special_elim';
+  $plugin_dir = drupal_get_path('module', 'tourney') . '/plugins/tourney_formats/single_elim';
   drupal_add_css($plugin_dir . '/theme/tournament-tree.css');
   
   // Use the very top of the tree if a child tree node is not passed in.

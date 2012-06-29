@@ -2,17 +2,16 @@
 
 /**
  * @file
- * Toureny format plugin for single elmination tournaments.
+ * Tourney format plugin for special elmination tournaments.
  */
 
 /**
- * Single Elimination Format.
+ * Special Elimination Format.
  */
 $plugin = array(
   'title' => t('Single Elimination'),
   'machine name' => 'single',
   'description' => t('This is the description of the tournament'),
   'weight' => 0,
-  'total games' => 5,
   'controller' => 'SingleEliminationController',
 );
