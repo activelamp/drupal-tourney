@@ -86,21 +86,45 @@ class SingleEliminationController extends TourneyController {
   }
 
   /**
-   * Data generator
+   * This builds the data array for the plugin. The most important data structure
+   * your plugin should implement in build() is the matches array. It is from 
+   * this array that matches are saved to the Drupal entity system using 
+   * TourneyController::saveMatches().
    */
   public function build() {
-    $slots = $this->slots;
-    $match = 0;
-    $round = 0;
+    $this->buildBrackets();
+    $this->buildMatches();
+    $this->buildGames();    
     
-    // Add current bracket information to the data array
+    // Check to see if we need to create a consolation bracket and matches.
+    $this->getPluginOptions();
+    if (!empty($this->pluginOptions) && $this->pluginOptions['third_place']) {
+      // Add the third place match to the data.
+      $this->buildThirdPlace();
+    }
+    
+    $this->data['contestants'] = array();     
+    
+    // Calculate and set the match pathing
+    $this->populatePositions();
+    // Set in the seed positions
+    $this->populateSeedPositions();
+  }
+  
+  public function buildBrackets() {
     $this->data['brackets']['main'] = $this->buildBracket(array('id' => 'main'));
+  }
+  
+  public function buildMatches() {
+    $slots = $this->slots;
+    $match = &drupal_static('match', 0);
+    $round = &drupal_static('round', 0);
     
     // Calculate and iterate through rounds and their matches based on slots
     while (($slots /= 2) >= 1) {
       // Add current round information to the data array
       $this->data['rounds'][++$round] = 
-        $this->buildRound(array('id' => $round));
+        $this->buildRound(array('id' => $round, 'bracket' => 'main'));
 
       // Add in all matches and their information for this round
       foreach (range(1, $slots) as $roundMatch) {
@@ -113,23 +137,9 @@ class SingleEliminationController extends TourneyController {
           ));
       }
     }
-    
-    // Check to see if we need to create a consolation bracket and matches.
-    $this->getPluginOptions();
-    if (!empty($this->pluginOptions) && $this->pluginOptions['third_place']) {
-      $this->data['brackets']['consolation'] = $this->buildBracket(array('id' => 'consolation'));
-      
-      $this->data['matches'][++$match] = $this->buildMatch(array(
-        'id' => $match,
-        'round' => 1,
-        'roundMatch' => 1,
-        'bracket' => 'consolation',
-      ));
-      
-      // Populate positions for third place match.
-      $this->populatePositionsThirdPlace();
-    }
-    
+  }
+  
+  public function buildGames() {
     foreach ($this->data['matches'] as $id => &$match) {
       $this->data['games'][$id] = $this->buildGame(array(
         'id' => $id,
@@ -138,13 +148,22 @@ class SingleEliminationController extends TourneyController {
       ));
       $this->data['matches'][$id]['games'][] = $id;
     }
+  }
+  
+  public function buildThirdPlace() {
+    $match = &drupal_static('match', 0);
     
-    $this->data['contestants'] = array();     
+    $this->data['brackets']['consolation'] = $this->buildBracket(array('id' => 'consolation'));
     
-    // Calculate and set the match pathing
-    $this->populatePositions();
-    // Set in the seed positions
-    $this->populateSeedPositions();
+    $this->data['matches'][++$match] = $this->buildMatch(array(
+      'id' => $match,
+      'round' => 1,
+      'roundMatch' => 1,
+      'bracket' => 'consolation',
+    ));
+    
+    // Populate positions for third place match.
+    $this->populatePositionsThirdPlace();
   }
   
   /**

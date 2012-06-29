@@ -99,9 +99,15 @@ class TourneyController implements TourneyControllerInterface {
       ),
     );
   }
+  /**
+   * Method that must be defined in plugin subclass.
+   * 
+   * @todo: Should this be abstract? Do we want to provide a default build?
+   */
+  public function build() {}
   
   /**
-   * Stub method to be defined in plugins.
+   * Method that must be defined in plugins.
    */
   public function preprocess($template, &$vars) {}
      
@@ -396,11 +402,14 @@ class TourneyController implements TourneyControllerInterface {
   
   /**
    * Get the machine name of the plugin.
+   * 
+   * @param $controller_name
+   *   The name of the controller to find plugin information for.
    */
-  public static function getPluginInfo($controller) {
+  public static function getPluginInfo($controller_name) {
     $plugins = tourney_get_types();
     foreach ($plugins as $info) {
-      if ($info['controller'] == $controller) {
+      if ($info['controller'] == $controller_name) {
         return $info;
       }
     }
@@ -411,7 +420,7 @@ class TourneyController implements TourneyControllerInterface {
    */
   public static function loadPlugin($tournament) {
     $tourneyFormatPlugin = $tournament->format;
-
+    
     if (!class_exists($tourneyFormatPlugin)) {
       trigger_error(check_plain(t('Unable to load plugin. Class not found.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
     }
@@ -457,7 +466,24 @@ class TourneyController implements TourneyControllerInterface {
  * @todo: Update this interface with all methods that the tourney module expects
  *   to call on the plugin for.
  */
-interface TourneyControllerInterface {}
+interface TourneyControllerInterface {
+  /**
+   * Plugin build() methods are encouraged to use the build methods in
+   * TourneyController for these arrays:
+   * 
+   * @code
+   * TourneyController::buildBracket($data);
+   * TourneyController::buildRound($data);
+   * TourneyController::buildMatch($data);
+   * TourneyController::buildGame($data);
+   * @endcode
+   * 
+   * The most important data structure your plugin should implement in build() is
+   * TourneyController::buildMatch(). It is from this array that matches are saved
+   * to the Drupal entity system using TourneyController::saveMatches()
+   */
+  public function build();
+}
 
 /**
  * A Default factory for building matches and the first game of a match for a
