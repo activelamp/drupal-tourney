@@ -453,32 +453,11 @@ class TourneyController implements TourneyControllerInterface {
 
 /**
  * Default interface for tourney format controllers.
+ * 
+ * @todo: Update this interface with all methods that the tourney module expects
+ *   to call on the plugin for.
  */
-interface TourneyControllerInterface {
-  /**
-   * Builds the array structure for rounds.
-   * 
-   * @param $data
-   *   The data array that is unionized of all tournament data.
-   */
-  public function buildRound($data);
-  
-  /**
-   * Builds the array structure for matches to be saved.
-   * 
-   * @param $data
-   *   The data array that is unionized of all tournament data.
-   */
-  public function buildMatch($data);
-  
-  /**
-   * Builds the array structure for games.
-   * 
-   * @param $data
-   *   The data array that is unionized of all tournament data.
-   */
-  public function buildGame($data);
-}
+interface TourneyControllerInterface {}
 
 /**
  * A Default factory for building matches and the first game of a match for a

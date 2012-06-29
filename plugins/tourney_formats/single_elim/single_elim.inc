@@ -2,11 +2,11 @@
 
 /**
  * @file
- * Tourney format plugin for special elmination tournaments.
+ * Tourney format plugin for single elimination tournaments.
  */
 
 /**
- * Special Elimination Format.
+ * Single Elimination Format.
  */
 $plugin = array(
   'title' => t('Single Elimination'),

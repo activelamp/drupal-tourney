@@ -128,6 +128,26 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => $tourney->get('default_games', TOURNEY_GAMES),
     '#disabled' => isset($tourney->id) ? TRUE : FALSE,
   );
+  
+  $form['contestants'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Contestant Settings'),
+    '#description' => t('Settings pertaining to contestants.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',  
+    '#access' => user_access('administer tourney'),
+    '#weight' => 20,
+  );
+  
+  $form['contestants']['truncate'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of characters to truncate contestant names to.'),
+    '#description' => t('Names that have been truncated will have an ellipsis added to the end of the string.'),
+    '#size' => 40,
+    '#maxlength' => 255,
+  );
+  
 
   $path = array();
   if ( !empty($tourney->entity_id) ) {
@@ -140,7 +160,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
 
   $form['path'] = array(    
     '#type' => 'fieldset', 
-    '#title' => t('URL path settings'), 
+    '#title' => t('URL Path Settings'), 
     '#collapsible' => TRUE, 
     '#collapsed' => empty($path['alias']), 
     '#group' => 'additional_settings', 
@@ -207,6 +227,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#collapsed' => TRUE,
     '#group' => 'additional_settings',  
     '#access' => user_access('administer tourney'),
+    '#weight' => 100,
   );
   
   $form['debug']['config_show_next_match_path'] = array(
