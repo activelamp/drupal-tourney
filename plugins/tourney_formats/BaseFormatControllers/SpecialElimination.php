@@ -27,7 +27,6 @@ class SpecialEliminationController extends TourneyController {
    * should have.
    */
   public function optionsForm(&$form_state) {
-    // Get the plugin options, if we have a tournament.
     $this->getPluginOptions();
     $options = $this->pluginOptions;
     

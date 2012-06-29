@@ -302,7 +302,7 @@ class TourneyController implements TourneyControllerInterface {
       if (array_key_exists('bye', $match) && $match['bye'] === TRUE) {
         continue;
       }
-      $games = variable_get('tourney_games_all', TOURNEY_GAMES);
+      $games = $this->tournament->get('default_games', TOURNEY_GAMES);
       $values = array(
         'type' => $this->tournament->get('match_bundle', 'match'),
         'label' => 'Match ' . $mid,
