@@ -329,4 +329,25 @@ class SingleEliminationController extends TourneyController {
     $this->structure('tree');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
+  
+  /**
+   * Given a match place integer, returns the next match place based on either
+   * 'winner' or 'loser' direction
+   *
+   * @param $place
+   *   Match placement, zero-based. round 1 match 1's match placement is 0
+   * @param $direction
+   *   Either 'winner' or 'loser'
+   * @return $place
+   *   Match placement of the desired match, otherwise NULL
+   */
+  protected function calculateNextPosition($place, $direction = 'winner') {
+    if ( $direction == 'loser' ) return NULL;
+    $matches = $this->slots - 1;
+    // If it's the last match, it doesn't go anywhere
+    if ( $place == $matches - 1 ) return NULL;
+    // Otherwise some math!
+    return ( ($matches + 1) / 2 ) + floor($place / 2);
+  }
+  
 }
