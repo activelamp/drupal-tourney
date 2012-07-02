@@ -151,13 +151,13 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         // the first round in the top bracket, that math is simply to find the
         // the next match winner position and then add half the number of
         // bottom matches to that position, to find the bottom loser position.
-        if ($place <= $slots / 2) {
+        if ($this->data['matches'][$place]['round'] == 1) {
           return parent::calculateNextPosition($place) + ($bottom_matches/2);
         }
         
-        // Otherwise, more magical math to determine placement
-        // Special adjustments come in on certain rounds of matches that
-        // generally flips them around as such:
+        // Otherwise, more magical math to determine placement. Every even round
+        // in the top bracket we need to flip the matches so that the top half of 
+        // matches go to the bottom as such:
         //
         // 1, 2, 3, 4, 5, 6, 7, 8
         //          \/
@@ -167,23 +167,39 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         //
         // 6, 5, 8, 7, 2, 1, 4, 3
         //
-        $reverse_round = ceil(log($top_matches - $place, 2));
-        if (($reverse_round - $top_matches % 2 != 0)) {
-          $round_matches = pow(2, $reverse_round);
-          $first_match = $top_matches - $round_matches * 2 + 1;
-          $this_match = $place - $first_match;
-          $half_matches = $round_matches / 2;
-          $adj = 0;
-          // Same special adjustment from the first round comes into play here in the second round
-          if ($place < $slots * 0.75) {
-            dpm($this_match);
-            $adj = $this_match % 2 ? -1 : 1;
+        
+        // Figure out if we need to reverse the round, set a boolean flag if
+        // we're in an even round.
+        $reverse_round = $this->data['matches'][$place]['round'] % 2 ? FALSE : TRUE;
+        
+        // Get the number of matches in this round
+        $match_info = $this->find('matches', array('round' => $this->data['matches'][$place]['round']));
+        $round_matches = count($match_info);
+        $half = $round_matches / 2;
+        if ($reverse_round) {
+          // Since this round is a reverse round we need to put the first half 
+          // of matches in the second half of the round
+          if ($this->data['matches'][$place]['roundMatch'] <= $half) {
+            $adj = $half;
           }
-          dpm(array($place, $place + $top_matches - $round_matches + (($this_match < $half_matches) ? $half_matches : -$half_matches) + $adj));
-          return $place + $top_matches - $round_matches + (($this_match < $half_matches) ? $half_matches : -$half_matches) + $adj;
+          // And then move what is supposed to be in the second half to the 
+          // first half of the round.
+          else {
+            $adj = -$half;
+          }
         }
-        dpm(array($place, $place + $top_matches - pow(2, ceil(log($top_matches - $place, 2)))));
-        return $place + $top_matches - pow(2, ceil(log($top_matches - $place, 2)));
+        // Non reverse rounds just need to cut by half the number of matches in 
+        // the round plus 1 (@todo: figure out why this works and document it.).
+        else {
+          $adj = floor(-1 * ($half / 2)) + 1;
+        }
+        // Last match in top bracket adjust forward by one.
+        // @todo: Another adjustment that I made that works, need to figure out
+        //   why and document it.
+        if ($place == $top_matches) {
+          $adj = -1;
+        }
+        return $place + $top_matches - $round_matches + $adj;
       }
     }
     return NULL;

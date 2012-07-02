@@ -347,7 +347,7 @@ class SingleEliminationController extends TourneyController {
     }
     $matches = $this->slots - 1;
     // If it's the last match, it doesn't go anywhere
-    if ($place == $matches - 1) {
+    if ($place == $matches) {
       return NULL;
     }
     // Otherwise some math!
