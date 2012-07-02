@@ -335,19 +335,23 @@ class SingleEliminationController extends TourneyController {
    * 'winner' or 'loser' direction
    *
    * @param $place
-   *   Match placement, zero-based. round 1 match 1's match placement is 0
+   *   Match placement, one-based. round 1 match 1's match placement is 1
    * @param $direction
    *   Either 'winner' or 'loser'
    * @return $place
    *   Match placement of the desired match, otherwise NULL
    */
   protected function calculateNextPosition($place, $direction = 'winner') {
-    if ( $direction == 'loser' ) return NULL;
+    if ($direction == 'loser') {
+      return NULL;
+    }
     $matches = $this->slots - 1;
     // If it's the last match, it doesn't go anywhere
-    if ( $place == $matches - 1 ) return NULL;
+    if ($place == $matches - 1) {
+      return NULL;
+    }
     // Otherwise some math!
-    return ( ($matches + 1) / 2 ) + floor($place / 2);
+    return (($matches + 1) / 2) + ceil($place / 2);
   }
   
 }
