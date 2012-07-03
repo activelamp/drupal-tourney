@@ -49,6 +49,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   
   // Get the contestant output from the contestant template
   $contestant_output = '';
+  $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';
   foreach ($contestants as $slot => $contestant) {
     $contestant->slot = !empty($contestant->slot) ? $contestant->slot : $slot;
     $contestant_output .= theme('tourney_contestant', array(
