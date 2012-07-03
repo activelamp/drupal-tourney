@@ -14,14 +14,44 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
    * Theme implementations specific to this plugin.
    */
   public static function theme($existing, $type, $theme, $path) {
-    $parent_info = TourneyController::getPluginInfo(get_parent_class($this));
+    // Get the plugin info for the class we are inheriting.
+    $parent_info = TourneyController::getPluginInfo('SingleEliminationController');
     return parent::theme($existing, $type, $theme, $parent_info['path']);
+  }
+  
+  /**
+   * Preprocess variables for the template passed in.
+   * 
+   * @param $template
+   *   The name of the template that is being preprocessed.
+   * @param $vars
+   *   The vars array to add variables to.
+   */
+  public function preprocess($template, &$vars) {
+    if ($template == 'tourney-tournament-render') {
+      $vars['classes_array'][] = 'tourney-tournament-tree';
+      $vars['matches'] = '';
+      $node = $this->structure['tree'];
+      
+      // New tree should start from the second to last match.
+      // $match = $this->data['matches'][15];
+      // $last_node = $this->structureTreeNode($match);
+      
+      // Render the consolation bracket out.
+      $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $node));
+    }
   }
   
   public function buildBrackets() {
     parent::buildBrackets();
-    $this->data['brackets']['loser'] = $this->buildBracket(array('id' => 'loser'));
-    $this->data['brackets']['champion'] = $this->buildBracket(array('id' => 'champion'));
+    $this->data['brackets']['loser'] = $this->buildBracket(array(
+      'id' => 'loser',
+      'rounds' => (log($this->slots, 2) - 1) * 2,
+    ));
+    $this->data['brackets']['champion'] = $this->buildBracket(array(
+      'id' => 'champion',
+      'rounds' => 2,
+    ));
   }
   
   public function buildMatches() {
@@ -98,19 +128,25 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         // Set the winner path for the last match of the main bracket
         $top_matches = $this->slots - 1;
         if ($top_matches == $id) {
-          $match['nextMatch']['winner'] = count($this->data['matches']) - 1;
+          $next = count($this->data['matches']) - 1;
+          $match['nextMatch']['winner'] = $next;
+          array_unshift($this->data['matches'][$next]['previousMatches'], $id);
         }
       }
       elseif ($match['bracket'] == 'loser') {
         // Calculate all the next loser positions in the bottom bracket.
         $next = $this->calculateNextPosition($id, 'winner');
         $match['nextMatch']['winner'] = $next;
+        // $this->data['matches'][$next]['previousMatches'][] = $id;
       }
       elseif ($match['bracket'] == 'champion') {
-        $last_match = count($this->data['matches']);
-        if ($last_match - 1 == $id) {
-          $match['nextMatch']['winner'] = $last_match;
-          $match['nextMatch']['loser'] = $last_match;
+        $next = count($this->data['matches']);
+        if ($next - 1 == $id) {
+          $match['nextMatch']['winner'] = $next;
+          $match['nextMatch']['loser'] = $next;
+        }
+        elseif ($next == $id) {
+          $this->data['matches'][$id]['previousMatches'][] = $id - 1;
         }
       }
     }
@@ -200,12 +236,14 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
           // Since this round is a reverse round we need to put the first half 
           // of matches in the second half of the round
           if ($this->data['matches'][$place]['roundMatch'] <= $half) {
-            $adj = $half;
+            $adj = $half + 1;
+            return floor($place + $top_matches - $round_matches + $adj);
           }
           // And then move what is supposed to be in the second half to the 
           // first half of the round.
           else {
-            $adj = -$half;
+            $adj = -$half + 1;
+            return ceil($place + $top_matches - $round_matches + $adj);
           }
         }
         // Non reverse rounds just need to cut by half the number of matches in 

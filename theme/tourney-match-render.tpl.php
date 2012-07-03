@@ -6,7 +6,6 @@
  * @ingroup tourney_templates
  */
 ?>
-
 <div class="match">
   <?php print $contestants; ?>
 </div>

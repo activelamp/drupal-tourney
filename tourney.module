@@ -143,10 +143,10 @@ function tourney_testing() {
   // module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
   // $tournament = new SingleEliminationController(8);
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-  $tournament = new SpecialDoubleEliminationController(16);
+  $tournament = new SpecialDoubleEliminationController(64);
   // $tournament->setPluginOptions(array('third_place' => TRUE));
-  $tournament->build();
-  dpm($tournament);
+  // $tournament->build();
+  // dpm($tournament);
   return $tournament->render();
   // $contestant1 = (Object) array('name' => 'Home Team', 'id' => 'home');
   // $contestant2 = (Object) array('name' => 'Away Team', 'id' => 'away');

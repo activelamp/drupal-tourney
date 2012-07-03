@@ -112,7 +112,10 @@ class SingleEliminationController extends TourneyController {
   }
   
   public function buildBrackets() {
-    $this->data['brackets']['main'] = $this->buildBracket(array('id' => 'main'));
+    $this->data['brackets']['main'] = $this->buildBracket(array(
+      'id' => 'main',
+      'rounds' => log($this->slots, 2),
+    ));
   }
   
   public function buildMatches() {
@@ -185,11 +188,12 @@ class SingleEliminationController extends TourneyController {
    * each match.
    */
   public function populatePositions() {
+    $top_matches = $this->slots - 1;
     // Go through all the matches
     $count = count($this->data['matches']);
     foreach ($this->data['matches'] as $id => &$match) {
       // Nothing to do for the last match, continue.
-      if ($id == $count) {
+      if ($id == $top_matches || $id == $count) {
         continue;
       }
       
@@ -199,18 +203,16 @@ class SingleEliminationController extends TourneyController {
       //   Round 3, Match 5
       //  Next match is:
       //    Round 4 [3+1], Match 3 [ceil(5/2)]
-      $next = &$this->find('matches', array(
-        'round' => $match['round'] + 1,
-        'roundMatch' => (int) ceil($match['roundMatch'] / 2),
-      ), TRUE);
+      // $next = &$this->find('matches', array(
+      //   'round' => $match['round'] + 1,
+      //   'roundMatch' => (int) ceil($match['roundMatch'] / 2),
+      // ), TRUE);
       
-      // $index = ( $this->slots / 2 ) + floor(($match->match-1) / 2)+1;
-      // $next = $this->data['matches'][$index];
+      $next = $this->calculateNextPosition($id, 'winner');
 
-      // If find()'s returned a result, set it.
       if ($next) {
-        $match['nextMatch']['winner'] = $next['id'];
-        $next['previousMatches'][] = $match['id'];
+        $match['nextMatch']['winner'] = $next;
+        $this->data['matches'][$next]['previousMatches'][] = $id;
       } 
     }
   }
