@@ -28,13 +28,14 @@ class SingleEliminationController extends TourneyController {
   public function optionsForm(&$form_state) {
     $this->getPluginOptions();
     $options = $this->pluginOptions;
+    $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
     
     $form['third_place'] = array(
       '#type' => 'checkbox',
       '#title' => t('Generate a third place match'),
       '#description' => t('By checking this option, a Consolation bracket will be created with one match to determine third place.'),
-      '#default_value' => array_key_exists('third_place', $options[get_class($this)]) 
-        ? $options[get_class($this)]['third_place'] : -1,
+      '#default_value' => array_key_exists('third_place', $plugin_options) 
+        ? $plugin_options['third_place'] : -1,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
     );
     
@@ -98,7 +99,9 @@ class SingleEliminationController extends TourneyController {
     
     // Check to see if we need to create a consolation bracket and matches.
     $this->getPluginOptions();
-    if (!empty($this->pluginOptions) && $this->pluginOptions[get_class($this)]['third_place']) {
+    $options = $this->pluginOptions;
+    $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
+    if (!empty($plugin_options) && $plugin_options['third_place']) {
       // Add the third place match to the data.
       $this->buildThirdPlace();
     }
