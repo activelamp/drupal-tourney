@@ -80,6 +80,7 @@ function template_preprocess_tourney_match_render(&$vars) {
  */
 function template_preprocess_tourney_contestant(&$vars) {
   $plugin = &$vars['plugin'];
+  $truncate = $plugin->tournament->get('config_truncate', TOURNEY_TRUNCATE);
   
   // Let the plugin preprocess variables
   $plugin->preprocess('tourney-contestant', $vars);
@@ -87,6 +88,13 @@ function template_preprocess_tourney_contestant(&$vars) {
   if (!$vars['contestant']->name ) {
     $vars['contestant']->name = 'Team ' . $vars['contestant']->slot;
   }
+  if (strlen($vars['contestant']->name) > $truncate) {
+    $vars['contestant']->label = substr($vars['contestant']->name, 0, $truncate) . '...';
+  }
+  else {
+    $vars['contestant']->label = $vars['contestant']->name;
+  }
+  
 }
  
  

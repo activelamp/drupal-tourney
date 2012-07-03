@@ -11,6 +11,11 @@
  */
 class SpecialDoubleEliminationController extends SingleEliminationController {
   /**
+   * Options for this plugin.
+   */
+  public function optionsForm(&$form_state) {}
+  
+  /**
    * Theme implementations specific to this plugin.
    */
   public static function theme($existing, $type, $theme, $path) {

@@ -23,8 +23,7 @@ class SingleEliminationController extends TourneyController {
   }
   
   /**
-   * Default options form that provides the label widget that all fields
-   * should have.
+   * Options for this plugin.
    */
   public function optionsForm(&$form_state) {
     $this->getPluginOptions();

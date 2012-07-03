@@ -140,12 +140,13 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => 20,
   );
   
-  $form['contestants']['truncate'] = array(
+  $form['contestants']['config_truncate'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of characters to truncate contestant names to.'),
     '#description' => t('Names that have been truncated will have an ellipsis added to the end of the string.'),
     '#size' => 40,
     '#maxlength' => 255,
+    '#default_value' => $tourney->get('config_truncate', TOURNEY_TRUNCATE),
   );
   
 
@@ -457,7 +458,12 @@ function tourney_get_type_options($reset = FALSE) {
  *   we have a ton of Tournament styles.
  */
 function tourney_get_plugin_options($tourney, &$form, &$form_state) {
-  $plugins = tourney_get_types();           
+  $form['plugin_options'] = array(
+    '#type' => 'container',
+    '#tree' => TRUE,
+  );
+  
+  $plugins = tourney_get_types();
   uasort($plugins, 'ctools_plugin_sort');  
   foreach ($plugins as $info) {
     $controller = ctools_plugin_get_class($info, 'controller');
@@ -470,13 +476,9 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
         continue;
       }
       
-      $form['plugin_options'] = array(
-        '#type' => 'container',
-        '#tree' => TRUE,
-      );
       $form['plugin_options'][$controller] = array(
         '#type' => 'fieldset',
-        '#title' => t('Tourney Format Settings'),
+        '#title' => t('!title Settings', array('!title' => $info['title'])),
         '#collapsible' => FALSE,
         '#access' => user_access('administer tourney'),
         '#tree' => TRUE,
