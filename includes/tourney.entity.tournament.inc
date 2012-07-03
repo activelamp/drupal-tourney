@@ -563,9 +563,21 @@ class TourneyTournamentEntity extends TourneyEntity {
         }
     }
   }
-
+  
+  /**
+   * Get settings from tourney settings.
+   * 
+   * @param $name
+   *   The name of the setting to retrieve, or pass in **ALL** to retrieve all
+   *   settings for the current tournament.
+   * @param $default
+   *   If the setting does not exists, the default value to return.
+   */
   public function get($name, $default = NULL) {
     if (!property_exists($this, 'entity_id')) {
+      if ($name == '**ALL**') {
+        return isset($this->config) ? $this->config : array();
+      }
       return isset($this->config[$name]) ? $this->config[$name] : $default;
     }
 
@@ -574,10 +586,22 @@ class TourneyTournamentEntity extends TourneyEntity {
       tourney_initialize_configuration();
     }
     
+    if ($name == '**ALL**') {
+      return !empty($this->id) && !empty($_tourney_config[$this->id]) 
+        ? $_tourney_config[$this->id] : array();
+    }
     return !empty($this->id) && !empty($_tourney_config[$this->id][$name]) 
       ? $_tourney_config[$this->id][$name] : $default;
   }
-
+  
+  /**
+   * Set a setting in tourney configuration table
+   * 
+   * @param $name
+   *   The name of the setting to store.
+   * @param $value
+   *   The value to store for the setting.
+   */
   public function set($name, $value) {
     global $_tourney_config;
     if ( !isset($_tourney_config) ) tourney_initialize_configuration();

@@ -80,7 +80,11 @@ function template_preprocess_tourney_match_render(&$vars) {
  */
 function template_preprocess_tourney_contestant(&$vars) {
   $plugin = &$vars['plugin'];
-  $truncate = $plugin->tournament->get('config_truncate', TOURNEY_TRUNCATE);
+  
+  $plugin->getPluginOptions();
+  $options = $plugin->pluginOptions;
+  
+  $truncate = !empty($options['truncate']) ? $options['truncate'] : TOURNEY_TRUNCATE;
   
   // Let the plugin preprocess variables
   $plugin->preprocess('tourney-contestant', $vars);
@@ -96,6 +100,7 @@ function template_preprocess_tourney_contestant(&$vars) {
   }
   
 }
+
  
  
  

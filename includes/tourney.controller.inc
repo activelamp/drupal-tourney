@@ -394,7 +394,7 @@ class TourneyController implements TourneyControllerInterface {
   public function getPluginOptions() {
     // Get plugin options from a tournament
     $this->tourneyPluginOptions = is_object($this->tournament) 
-      ? $this->tournament->get(get_class($this), array()) : array();
+      ? $this->tournament->get("**ALL**") : array();
     
     // Allow tournament plugin options to override code options.
     return $this->pluginOptions = array_merge($this->pluginOptions, $this->tourneyPluginOptions);
