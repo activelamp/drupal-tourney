@@ -89,9 +89,29 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
     // Go through all the matches
     $count = count($this->data['matches']);
     foreach ($this->data['matches'] as $id => &$match) {
+      // Set the paths for the main bracket
       if ($match['bracket'] == 'main') {
+        // Calculate all the next loser positions in the top bracket.
         $next = $this->calculateNextPosition($id, 'loser');
         $match['nextMatch']['loser'] = $next;
+        
+        // Set the winner path for the last match of the main bracket
+        $top_matches = $this->slots - 1;
+        if ($top_matches == $id) {
+          $match['nextMatch']['winner'] = count($this->data['matches']) - 1;
+        }
+      }
+      elseif ($match['bracket'] == 'loser') {
+        // Calculate all the next loser positions in the bottom bracket.
+        $next = $this->calculateNextPosition($id, 'winner');
+        $match['nextMatch']['winner'] = $next;
+      }
+      elseif ($match['bracket'] == 'champion') {
+        $last_match = count($this->data['matches']);
+        if ($last_match - 1 == $id) {
+          $match['nextMatch']['winner'] = $last_match;
+          $match['nextMatch']['loser'] = $last_match;
+        }
       }
     }
   }
@@ -141,7 +161,7 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
      else {
        // Get out series to find out how to adjust our place
        $series = $this->magicSeries($bottom_matches);
-       return $place + $series[$place-$top_matches];
+       return $place + $series[$place - $top_matches];
      }
     }
     elseif ($direction == 'loser') {
@@ -152,7 +172,7 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         // the next match winner position and then add half the number of
         // bottom matches to that position, to find the bottom loser position.
         if ($this->data['matches'][$place]['round'] == 1) {
-          return parent::calculateNextPosition($place) + ($bottom_matches/2);
+          return parent::calculateNextPosition($place) + ($bottom_matches / 2);
         }
         
         // Otherwise, more magical math to determine placement. Every even round
@@ -237,7 +257,7 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
       array_pop($series);
     }
     
-    // Reverse it so we work down
-    return array_reverse($series);
+    // Reverse it so we work down, and make the array 1-based
+    return array_combine(range(1, count($series)), array_reverse($series));
   }
 }
