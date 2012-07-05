@@ -36,7 +36,10 @@ function template_preprocess_tourney_match_render(&$vars) {
   if (count($contestants) == 1) {
     $first = current($contestants);
     if ($first->slot == 2) {
-      array_unshift($contestants, NULL);
+      // Fill in a NULL contestant in position 1.
+      $contestants[1] = NULL;
+      $contestants = array_reverse($contestants, TRUE);
+      $editable = TRUE;
     }
   }
   // Fill in null contestants if two contestants are not assigned to match.
@@ -51,6 +54,9 @@ function template_preprocess_tourney_match_render(&$vars) {
   $contestant_output = '';
   $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';
   foreach ($contestants as $slot => $contestant) {
+    if (!is_object($contestant)) {
+      $contestant = (object) $contestant;
+    }
     $contestant->slot = !empty($contestant->slot) ? $contestant->slot : $slot;
     $contestant_output .= theme('tourney_contestant', array(
       'contestant' => $contestant, 
@@ -90,6 +96,9 @@ function template_preprocess_tourney_contestant(&$vars) {
   // Let the plugin preprocess variables
   $plugin->preprocess('tourney-contestant', $vars);
   
+  if (!property_exists($vars['contestant'], 'name')) {
+    $vars['contestant']->name = '';
+  }
   if (!$vars['contestant']->name ) {
     $vars['contestant']->name = 'Team ' . $vars['contestant']->slot;
   }
@@ -99,7 +108,6 @@ function template_preprocess_tourney_contestant(&$vars) {
   else {
     $vars['contestant']->label = $vars['contestant']->name;
   }
-  
 }
 
  

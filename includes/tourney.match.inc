@@ -76,17 +76,19 @@ function tourney_match_form($form, &$form_state, $match) {
   $contestants = $match->getMatchContestants();
   
   // Fill the $contestants array with two values if there isn't already two.
-  while ( count($contestants) < 2 ) $contestants[] = NULL;
+  while (count($contestants) < 2) {
+    $contestants[] = NULL;
+  }
 
   $cid = 0;
-  foreach (array(1,2) as $slot ) {
+  foreach (array(1,2) as $slot) {
     //if ( $contestant != NULL ) continue;
 
     // @todo: replace code below with a scalable contestant field code with a list of text boxes
     $contestant = $match->getContestant($slot);
     $form['contestant' . $slot] = array(
       '#title' => check_plain(t('Contestant ' . $slot)),
-      '#default_value' => is_object($contestant) ? $contestant->eid : -1,
+      '#default_value' => is_object($contestant) ? $contestant->eid : '',
       '#disabled' => !($slot & $canset),
       '#required' => !($slot & $canset) || (is_object($contestant) && $contestant->eid) ? FALSE : TRUE,
     ) + _tourney_match_contestant($match);
