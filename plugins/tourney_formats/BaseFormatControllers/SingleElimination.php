@@ -221,7 +221,8 @@ class SingleEliminationController extends TourneyController {
   }
 
   /**
-   * Calculate and fill seed data into matches
+   * Calculate and fill seed data into matches. Also marks matches as byes if
+   * the match is a bye.
    */
   public function populateSeedPositions() {
     $this->calculateSeeds();
@@ -231,7 +232,7 @@ class SingleEliminationController extends TourneyController {
       $match =& $this->data['matches'][$id];
       $match['seeds'] = $seeds;
       $match['bye'] = $seeds[2] === NULL;
-      if ( $match['bye'] && isset($match['nextMatch']) ) {
+      if ($match['bye'] && isset($match['nextMatch'])) {
         $slot = $match['id'] % 2 ? 1 : 2;
         $this->data['matches'][$match['nextMatch']['winner']]['seeds'][$slot] = $seeds[1];
       }
@@ -275,6 +276,10 @@ class SingleEliminationController extends TourneyController {
     $node = $match;
     if (isset($match['previousMatches'])) {
       foreach ($match['previousMatches'] as $child) {
+        // If this is a feeder match, don't build child that goes to other bracket.
+        if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
+          continue;
+        }
         $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
       }
     }
@@ -291,7 +296,7 @@ class SingleEliminationController extends TourneyController {
     // several times each iteration
     $count = 0;
     // Keep generating the series until we've met our number of slots
-    while ( ($count = count($seeds)) < $this->slots ) {
+    while (($count = count($seeds)) < $this->slots) {
       $new_seeds = array();
       // For every current seed number, we'll add in one after it that
       // matches the current from the end of the new count.
@@ -316,7 +321,7 @@ class SingleEliminationController extends TourneyController {
     // Loop through each two of them, and fill out all the seeds as long as
     // they're within the number of participating contestants.
     $positions = array();
-    for ( $p = 0; $p < $count; $p += 2 ) {
+    for ($p = 0; $p < $count; $p += 2) {
       $a = $seeds[$p];
       $b = $seeds[$p+1];
       $positions[] = array(1 => $a, 2 => $b <= $this->numContestants ? $b : NULL);
@@ -332,6 +337,7 @@ class SingleEliminationController extends TourneyController {
     // Build our data structure
     $this->build();
     $this->structure('tree');
+    dpm($this);
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
   

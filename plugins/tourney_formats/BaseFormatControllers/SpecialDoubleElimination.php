@@ -129,6 +129,10 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         // Calculate all the next loser positions in the top bracket.
         $next = $this->calculateNextPosition($id, 'loser');
         $match['nextMatch']['loser'] = $next;
+        if (!array_key_exists('previousMatches', $this->data['matches'][$next])
+          || count($this->data['matches'][$next]['previousMatches']) < 2) {
+          $this->data['matches'][$next]['previousMatches'][] = $id;
+        }        
         
         // Set the winner path for the last match of the main bracket
         $top_matches = $this->slots - 1;
@@ -137,12 +141,21 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
           $match['nextMatch']['winner'] = $next;
           array_unshift($this->data['matches'][$next]['previousMatches'], $id);
         }
+        
+        // If a previous match is a feeder, set a flag.
+        if ($this->data['matches'][$next]['bracket'] == 'loser') {
+          $this->data['matches'][$next]['feeder'] = TRUE;
+        }
       }
       elseif ($match['bracket'] == 'loser') {
         // Calculate all the next loser positions in the bottom bracket.
         $next = $this->calculateNextPosition($id, 'winner');
         $match['nextMatch']['winner'] = $next;
-        // $this->data['matches'][$next]['previousMatches'][] = $id;
+        
+        $pms = $this->data['matches'][$next]['previousMatches'];
+        if (count($pms) < 2 && $pms[0] != $id) {
+          $this->data['matches'][$next]['previousMatches'][] = $id;
+        }
       }
       elseif ($match['bracket'] == 'champion') {
         $next = count($this->data['matches']);
@@ -266,6 +279,39 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
       }
     }
     return NULL;
+  }
+  
+  /**
+   * Calculate and fill seed data into matches. Also marks matches as byes if
+   * the match is a bye.
+   */
+  public function populateSeedPositions() {
+    parent::populateSeedPositions();
+    $this->populateLoserByes();
+  }
+  
+  /**
+   * Goes through all the matches in the first round of the loser bracket and
+   * marks matches as byes in the data array of the match.
+   */
+  protected function populateLoserByes() {
+    foreach ($this->data['matches'] as &$match) {
+      if ($match['bracket'] == 'loser' && $match['round'] == 1) {
+        $next = $match['nextMatch']['winner'];
+        foreach ($match['previousMatches'] as $child) {
+          // If this match has both contestants as a bye mark the next match as
+          // a bye too.
+          if (!empty($match['bye']) && $match['bye'] == TRUE && array_key_exists('bye', $this->data['matches'][$child]) && $this->data['matches'][$child]['bye'] == TRUE) {
+            $this->data['matches'][$next]['bye'] = TRUE;
+          }
+          
+          // Set this match to a bye if one contestant has a bye in previous match.
+          if (array_key_exists('bye', $this->data['matches'][$child]) && $this->data['matches'][$child]['bye'] == TRUE) {
+            $match['bye'] = TRUE;
+          }
+        }
+      }
+    }
   }
   
   /**

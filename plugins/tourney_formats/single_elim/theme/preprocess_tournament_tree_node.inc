@@ -97,6 +97,14 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
     }
   }
   
+  // Check for byes in the bottom bracket and make sure they render on the
+  // bottom of the match block.
+  if ($node['bracket'] == 'loser' && $node['bye_firstlevel'] == array(FALSE, TRUE) && $node['bye'] == FALSE) {
+    $node_classes[] = 'only-child';
+    $vars['node']['child'] = 1;
+  }
+  
+  
   if (!empty($node['loser-child'])) {
     $node_classes[] = 'loser-child-' . $node['loser-child'];
   }
