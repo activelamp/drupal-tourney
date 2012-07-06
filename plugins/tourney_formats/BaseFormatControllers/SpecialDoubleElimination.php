@@ -129,8 +129,9 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         // Calculate all the next loser positions in the top bracket.
         $next = $this->calculateNextPosition($id, 'loser');
         $match['nextMatch']['loser'] = $next;
-        if (!array_key_exists('previousMatches', $this->data['matches'][$next])
-          || count($this->data['matches'][$next]['previousMatches']) < 2) {
+        if ((!array_key_exists('previousMatches', $this->data['matches'][$next])
+          || count($this->data['matches'][$next]['previousMatches']) < 2)
+          && $top_matches != $id) {
           $this->data['matches'][$next]['previousMatches'][] = $id;
         }        
         
