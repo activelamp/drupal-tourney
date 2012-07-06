@@ -121,6 +121,8 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
   }
   /**
    * Populates nextMatch and previousMatches array on the match data.
+   * 
+   * @todo: Clean this function up... Way too complicated.
    */
   public function populateLoserPositions() {
     // Go through all the matches
@@ -156,13 +158,21 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         $next = $this->calculateNextPosition($match, 'winner');
         $match['nextMatch']['winner'] = $next;
         
-        // If the next round is a feeder, slot goes to position 2.
+        // If the next round is a feeder or the next match bracket is different
+        // than the current bracket, slot goes to position 2.
         if (!empty($this->data['matches'][$next['id']]['feeder']) 
-          && $this->data['matches'][$next['id']]['feeder'] == TRUE) {
+          && $this->data['matches'][$next['id']]['feeder'] == TRUE
+          || $match['bracket'] != $this->data['matches'][$next['id']]['bracket']) {
           $match['nextMatch']['winner']['slot'] = 2;
+          $this->data['matches'][$next['id']]['previousMatches'][2] = $id;
         }
         
-        $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
+        // Don't overwrite the previousMatch I ust set above for the last match
+        // of the top bracket
+        $champion_match = count($this->data['matches']) - 1;
+        if ($champion_match != $next['id']) {
+          $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
+        }
       }
       elseif ($match['bracket'] == 'champion') {
         $next = count($this->data['matches']);

@@ -279,8 +279,7 @@ class SingleEliminationController extends TourneyController {
         if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
           continue;
         }
-        print $child ."\n";
-        // $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
+        $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
       }
     }
     return $node;
