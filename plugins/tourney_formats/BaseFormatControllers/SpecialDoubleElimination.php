@@ -305,9 +305,22 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
             $this->data['matches'][$next]['bye'] = TRUE;
           }
           
-          // Set this match to a bye if one contestant has a bye in previous match.
-          if (array_key_exists('bye', $this->data['matches'][$child]) && $this->data['matches'][$child]['bye'] == TRUE) {
+          // Set this match to a bye if one contestant has a bye in previous
+          // match, or is already marked as a bye.
+          if (array_key_exists('bye', $this->data['matches'][$child]) && $this->data['matches'][$child]['bye'] == TRUE 
+            || array_key_exists('bye', $match) && $match['bye']) {
             $match['bye'] = TRUE;
+            
+            $this->data['matches'][$child]['nextMatch']['loser'] = $match['nextMatch']['winner'];
+          }
+        }
+      }
+      if ($match['bracket'] == 'loser' && $match['round'] == 2) {
+        if (array_key_exists('bye', $match) && $match['bye'] == TRUE) {
+          foreach ($match['previousMatches'] as $child) {
+            if (array_key_exists('loser', $this->data['matches'][$child]['nextMatch']) && $this->data['matches'][$child]['nextMatch']['loser'] == $match['id']) {
+              $this->data['matches'][$child]['nextMatch']['loser'] = $match['nextMatch']['winner'];
+            }
           }
         }
       }

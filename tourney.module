@@ -144,7 +144,7 @@ function tourney_testing() {
   // module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
   // $tournament = new SingleEliminationController(8);
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-  $tournament = new SpecialDoubleEliminationController(5);
+  $tournament = new SpecialDoubleEliminationController(20);
   // $tournament->setPluginOptions(array('third_place' => TRUE));
   // $tournament->build();
   // dpm($tournament);
