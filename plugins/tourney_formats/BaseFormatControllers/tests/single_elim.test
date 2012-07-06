@@ -1,0 +1,55 @@
+<?php
+
+class TourneyNextMatchTestCase extends DrupalWebTestCase {
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Test next match positions'),
+      'description' => t('Tests single elimination tournaments with a varying number or contestants.'),
+      'group' => t('Tourney'),
+    );
+  }
+  
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'tourney',
+    ));
+  }
+  
+  /**
+   * Loops through all the matches defined in the test and checks values against
+   * the plugin.
+   * 
+   * @param $match
+   *   A formatted match array that has a winner and slot.
+   * @param $matches
+   *   The matches data array created by a format plugin.
+   */
+  protected function checkNextMatch($match, $matches) {
+    foreach ($match as $mid => $info) {
+      $this->assertEqual($info['winner'], $matches[$mid]['nextMatch']['winner']['id'], 'Match ' . $mid . ' winner is going to the correct place', 'PHP');
+      $this->assertEqual($info['slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' slot is going to the correct place', 'PHP');
+    }
+  }
+  
+  public function testSingleElim4() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(4);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array();
+    $match[1]['winner'] = 3;
+    $match[1]['slot'] = 1;
+    
+    $match[2]['winner'] = 3;
+    $match[2]['slot'] = 2;
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+}
