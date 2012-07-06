@@ -119,44 +119,50 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
     parent::populatePositions();
     $this->populateLoserPositions();
   }
-  
+  /**
+   * Populates nextMatch and previousMatches array on the match data.
+   */
   public function populateLoserPositions() {
     // Go through all the matches
     $count = count($this->data['matches']);
+    $top_matches = $this->slots - 1;
+    
     foreach ($this->data['matches'] as $id => &$match) {
       // Set the paths for the main bracket
       if ($match['bracket'] == 'main') {
         // Calculate all the next loser positions in the top bracket.
-        $next = $this->calculateNextPosition($id, 'loser');
+        $next = $this->calculateNextPosition($match, 'loser');
         $match['nextMatch']['loser'] = $next;
-        if ((!array_key_exists('previousMatches', $this->data['matches'][$next])
-          || count($this->data['matches'][$next]['previousMatches']) < 2)
-          && $top_matches != $id) {
-          $this->data['matches'][$next]['previousMatches'][] = $id;
+        if (!array_key_exists('previousMatches', $this->data['matches'][$next['id']])
+          || $top_matches != $id) {
+          $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
         }        
         
         // Set the winner path for the last match of the main bracket
-        $top_matches = $this->slots - 1;
         if ($top_matches == $id) {
-          $next = count($this->data['matches']) - 1;
-          $match['nextMatch']['winner'] = $next;
-          array_unshift($this->data['matches'][$next]['previousMatches'], $id);
+          $next_id = count($this->data['matches']) - 1;
+          $match['nextMatch']['winner']['id'] = $next_id;
+          $match['nextMatch']['winner']['slot'] = 1;
+          $this->data['matches'][$next_id]['previousMatches'][1] = $id;
         }
         
         // If a previous match is a feeder, set a flag.
-        if ($this->data['matches'][$next]['bracket'] == 'loser') {
-          $this->data['matches'][$next]['feeder'] = TRUE;
+        if ($this->data['matches'][$next['id']]['bracket'] == 'loser') {
+          $this->data['matches'][$next['id']]['feeder'] = TRUE;
         }
       }
       elseif ($match['bracket'] == 'loser') {
         // Calculate all the next loser positions in the bottom bracket.
-        $next = $this->calculateNextPosition($id, 'winner');
+        $next = $this->calculateNextPosition($match, 'winner');
         $match['nextMatch']['winner'] = $next;
         
-        $pms = $this->data['matches'][$next]['previousMatches'];
-        if (count($pms) < 2 && $pms[0] != $id) {
-          $this->data['matches'][$next]['previousMatches'][] = $id;
+        // If the next round is a feeder, slot goes to position 2.
+        if (!empty($this->data['matches'][$next['id']]['feeder']) 
+          && $this->data['matches'][$next['id']]['feeder'] == TRUE) {
+          $match['nextMatch']['winner']['slot'] = 2;
         }
+        
+        $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
       }
       elseif ($match['bracket'] == 'champion') {
         $next = count($this->data['matches']);
@@ -164,6 +170,7 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
           $match['nextMatch']['winner'] = $next;
           $match['nextMatch']['loser'] = $next;
         }
+        // The very last match of the tournament
         elseif ($next == $id) {
           $this->data['matches'][$id]['previousMatches'][] = $id - 1;
         }
@@ -179,28 +186,33 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
     * Given a match place integer, returns the next match place based on
     * either 'winner' or 'loser' direction
     *
-    * @param $place
-    *   Match placement, one-based. round 1 match 1's match placement is 1
+    * @param $match_info
+    *   The match info data array created by a plugin.
     * @param $direction
     *   Either 'winner' or 'loser'
-    * @return $place
-    *   Match placement of the desired match, otherwise NULL
+    * @return array
+    *   A keyed array for the id of next match and slot as the keys.
     */
-  protected function calculateNextPosition($place, $direction = "loser") {
+  protected function calculateNextPosition($match_info, $direction = "loser") {
     // @todo find a better way to count matches
     $slots = $this->slots;
     // Set up our handy values
     $matches = $slots * 2 - 1;
     $top_matches = $slots - 1;
     $bottom_matches = $top_matches - 1;
-
+    $place = $match_info['id'];
+    $slot = $match_info['roundMatch'] % 2 ? 1 : 2;
+    
     // Champion Bracket
     if ($place >= $matches - 2) {
       // Last match goes nowhere
       if ($place == $matches - 1) {
         return NULL;
       }
-      return $place + 1;
+      return array(
+        'id' => $place + 1,
+        'slot' => $slot,
+      );
     }
     
     if ($direction == 'winner') {
@@ -208,15 +220,25 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
      if ($place < $top_matches) {
        // Last match in the top bracket goes to the champion bracket
        if ($place == $top_matches) {
-         return $matches - 1;
+         return array(
+           'id' => $matches - 1,
+           'slot' => $slot,
+         );
        }
-       return parent::calculateNextPosition($place);
+       $next = parent::calculateNextPosition($match_info);
+       return array(
+        'id' => $next['id'],
+        'slot' => $slot,
+       );
      }
      // Bottom Bracket
      else {
        // Get out series to find out how to adjust our place
        $series = $this->magicSeries($bottom_matches);
-       return $place + $series[$place - $top_matches];
+       return array(
+        'id' => $place + $series[$place - $top_matches],
+        'slot' => $slot,
+       );
      }
     }
     elseif ($direction == 'loser') {
@@ -227,8 +249,16 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         // the next match winner position and then add half the number of
         // bottom matches to that position, to find the bottom loser position.
         if ($this->data['matches'][$place]['round'] == 1) {
-          return parent::calculateNextPosition($place) + ($bottom_matches / 2);
+          // if ($this->data['matches'][$place]['id'] == 3) dpm($next);
+          $next = parent::calculateNextPosition($this->data['matches'][$place]);
+          return array(
+            'id' => $next['id'] + ($bottom_matches / 2),
+            'slot' => $slot,
+          );
         }
+        
+        // Losers always feed into bottom round in slot 1.
+        $slot = 1;
         
         // Otherwise, more magical math to determine placement. Every even round
         // in the top bracket we need to flip the matches so that the top half of 
@@ -243,26 +273,36 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         // 6, 5, 8, 7, 2, 1, 4, 3
         //
         
+        // Get the number of matches in this round
+        $find_matches = $this->find('matches', array(
+          'round' => $this->data['matches'][$place]['round'],
+          'bracket' => $this->data['matches'][$place]['bracket'],
+        ));
+        $round_matches = count($find_matches);
+        $half = $round_matches / 2;
+        
         // Figure out if we need to reverse the round, set a boolean flag if
         // we're in an even round.
         $reverse_round = $this->data['matches'][$place]['round'] % 2 ? FALSE : TRUE;
         
-        // Get the number of matches in this round
-        $match_info = $this->find('matches', array('round' => $this->data['matches'][$place]['round']));
-        $round_matches = count($match_info);
-        $half = $round_matches / 2;
         if ($reverse_round) {
           // Since this round is a reverse round we need to put the first half 
           // of matches in the second half of the round
           if ($this->data['matches'][$place]['roundMatch'] <= $half) {
-            $adj = $half + 1;
-            return floor($place + $top_matches - $round_matches + $adj);
+            $adj = $half;
+            return array(
+              'id' => floor($place + $top_matches - $round_matches + $adj),
+              'slot' => $slot,
+            );
           }
           // And then move what is supposed to be in the second half to the 
           // first half of the round.
           else {
-            $adj = -$half + 1;
-            return ceil($place + $top_matches - $round_matches + $adj);
+            $adj = -$half;
+            return array(
+              'id' => ceil($place + $top_matches - $round_matches + $adj),
+              'slot' => $slot,
+            );
           }
         }
         // Non reverse rounds just need to cut by half the number of matches in 
@@ -270,13 +310,11 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         else {
           $adj = floor(-1 * ($half / 2)) + 1;
         }
-        // Last match in top bracket adjust forward by one.
-        // @todo: Another adjustment that I made that works, need to figure out
-        //   why and document it.
-        if ($place == $top_matches) {
-          $adj = -1;
-        }
-        return $place + $top_matches - $round_matches + $adj;
+        
+        return array(
+          'id' => $place + $top_matches - $round_matches + $adj,
+          'slot' => $slot,
+        );
       }
     }
     return NULL;
@@ -298,7 +336,7 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
   protected function populateLoserByes() {
     foreach ($this->data['matches'] as &$match) {
       if ($match['bracket'] == 'loser' && $match['round'] == 1) {
-        $next = $match['nextMatch']['winner'];
+        $next = $match['nextMatch']['winner']['id'];
         foreach ($match['previousMatches'] as $child) {
           // If this match has both contestants as a bye mark the next match as
           // a bye too.
@@ -319,7 +357,7 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
       if ($match['bracket'] == 'loser' && $match['round'] == 2) {
         if (array_key_exists('bye', $match) && $match['bye'] == TRUE) {
           foreach ($match['previousMatches'] as $child) {
-            if (array_key_exists('loser', $this->data['matches'][$child]['nextMatch']) && $this->data['matches'][$child]['nextMatch']['loser'] == $match['id']) {
+            if (array_key_exists('loser', $this->data['matches'][$child]['nextMatch']) && $this->data['matches'][$child]['nextMatch']['loser']['id'] == $match['id']) {
               $this->data['matches'][$child]['nextMatch']['loser'] = $match['nextMatch']['winner'];
             }
           }

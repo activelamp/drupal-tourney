@@ -323,7 +323,7 @@ class TourneyTournamentEntity extends TourneyEntity {
         if ($match_info['round'] == 1) {
           // If the match is a bye, get the next match id
           if (array_key_exists('bye', $match_info) && $match_info['bye'] == TRUE) {
-            $mid = $match_info['nextMatch']['winner'];
+            $mid = $match_info['nextMatch']['winner']['id'];
           }
           
           $match = $this->tourneyFormatPlugin->getMatchById($mid);
@@ -553,12 +553,13 @@ class TourneyTournamentEntity extends TourneyEntity {
         $match->clearWinner();
         $winner = $match->getWinnerEntity();
         $loser = $match->getLoserEntity();
-        // odd matches go to top slot, evens to bottom
-        $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
+        
         if ($match->nextMatch('winner')) {
+          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
           $match->nextMatch('winner')->addContestant($winner, $slot);
         }
         if ($match->nextMatch('loser')) {
+          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
           $match->nextMatch('loser')->addContestant($loser, $slot);
         }
     }

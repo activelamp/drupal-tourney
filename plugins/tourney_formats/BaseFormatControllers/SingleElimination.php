@@ -181,7 +181,7 @@ class SingleEliminationController extends TourneyController {
     
     // Set the next match for losers.
     foreach ($this->data['matches'][$count]['previousMatches'] as $mid) {
-      $this->data['matches'][$mid]['nextMatch']['loser'] = $count;
+      $this->data['matches'][$mid]['nextMatch']['loser']['id'] = $count;
     }
   }
 
@@ -211,11 +211,10 @@ class SingleEliminationController extends TourneyController {
       //   'roundMatch' => (int) ceil($match['roundMatch'] / 2),
       // ), TRUE);
       
-      $next = $this->calculateNextPosition($id, 'winner');
-
+      $next = $this->calculateNextPosition($match, 'winner');
       if ($next) {
         $match['nextMatch']['winner'] = $next;
-        $this->data['matches'][$next]['previousMatches'][] = $id;
+        $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
       } 
     }
   }
@@ -234,7 +233,7 @@ class SingleEliminationController extends TourneyController {
       $match['bye'] = $seeds[2] === NULL;
       if ($match['bye'] && isset($match['nextMatch'])) {
         $slot = $match['id'] % 2 ? 1 : 2;
-        $this->data['matches'][$match['nextMatch']['winner']]['seeds'][$slot] = $seeds[1];
+        $this->data['matches'][$match['nextMatch']['winner']['id']]['seeds'][$slot] = $seeds[1];
       }
     }
   }
@@ -280,7 +279,8 @@ class SingleEliminationController extends TourneyController {
         if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
           continue;
         }
-        $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
+        print $child ."\n";
+        // $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
       }
     }
     return $node;
@@ -345,24 +345,29 @@ class SingleEliminationController extends TourneyController {
    * Given a match place integer, returns the next match place based on either
    * 'winner' or 'loser' direction
    *
-   * @param $place
-   *   Match placement, one-based. round 1 match 1's match placement is 1
+   * @param $match_info
+   *   The match info data array created by a plugin.
    * @param $direction
    *   Either 'winner' or 'loser'
    * @return $place
    *   Match placement of the desired match, otherwise NULL
    */
-  protected function calculateNextPosition($place, $direction = 'winner') {
-    if ($direction == 'loser') {
-      return NULL;
-    }
+  protected function calculateNextPosition($match_info, $direction = 'winner') {
     $matches = $this->slots - 1;
-    // If it's the last match, it doesn't go anywhere
-    if ($place == $matches) {
-      return NULL;
+    // Losers and last match, isn't handled here.
+    if ($direction == 'loser' || $match_info['id'] == $matches) {
+      return array(
+        'id' => NULL,
+        'slot' => NULL,
+      );
     }
-    // Otherwise some math!
-    return (($matches + 1) / 2) + ceil($place / 2);
+    
+    $next_id = (($matches + 1) / 2) + ceil($match_info['id'] / 2);
+    return array(
+      // Otherwise some math!
+      'id' => $next_id,
+      'slot' => $match_info['roundMatch'] % 2 ? 1 : 2,
+    );
   }
   
 }
