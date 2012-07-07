@@ -37,18 +37,625 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
     }
   }
   
+	/**
+	 * Testing 4 contestants
+	 */
   public function testSingleElim4() {
     module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(4);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
-    $match = array();
-    $match[1]['winner'] = 3;
-    $match[1]['slot'] = 1;
+    $match = array(
+      1 => array(
+        'winner' => 3,
+        'slot' => 1,
+      ),
+      2 => array(
+        'winner' => 3,
+        'slot' => 2,
+      ),
+    );
     
-    $match[2]['winner'] = 3;
-    $match[2]['slot'] = 2;
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 5 contestants
+	 */
+  public function testSingleElim5() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(5);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 5,
+        'slot' => 2,
+      ),
+      5 => array(
+        'winner' => 7,
+        'slot' => 1,
+      ),
+      6 => array(
+        'winner' => 7,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 6 contestants
+	 */
+  public function testSingleElim6() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(7);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 5,
+        'slot' => 2,
+      ),
+      4 => array(
+        'winner' => 6,
+        'slot' => 2,
+      ),
+      5 => array(
+        'winner' => 7,
+        'slot' => 1,
+      ),
+      6 => array(
+        'winner' => 7,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 7 contestants
+	 */
+  public function testSingleElim7() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(7);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 5,
+        'slot' => 2,
+      ),
+      3 => array(
+        'winner' => 6,
+        'slot' => 1,
+      ),
+      4 => array(
+        'winner' => 6,
+        'slot' => 2,
+      ),
+      5 => array(
+        'winner' => 7,
+        'slot' => 1,
+      ),
+      6 => array(
+        'winner' => 7,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 8 contestants
+	 */
+  public function testSingleElim8() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(8);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      1 => array(
+        'winner' => 5,
+        'slot' => 1,
+      ),
+      2 => array(
+        'winner' => 5,
+        'slot' => 2,
+      ),
+      3 => array(
+        'winner' => 6,
+        'slot' => 1,
+      ),
+      4 => array(
+        'winner' => 6,
+        'slot' => 2,
+      ),
+      5 => array(
+        'winner' => 7,
+        'slot' => 1,
+      ),
+      6 => array(
+        'winner' => 7,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 9 contestants
+	 */
+  public function testSingleElim9() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(9);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 9,
+        'slot' => 2,
+      ),
+      9 => array(
+        'winner' => 13,
+        'slot' => 1,
+      ),
+      10 => array(
+        'winner' => 13,
+        'slot' => 2,
+      ),
+      11 => array(
+        'winner' => 14,
+        'slot' => 1,
+      ),
+      12 => array(
+        'winner' => 14,
+        'slot' => 2,
+      ),
+      13 => array(
+        'winner' => 15,
+        'slot' => 1,
+      ),
+      14 => array(
+        'winner' => 15,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 10 contestants
+	 */
+  public function testSingleElim10() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(10);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 9,
+        'slot' => 2,
+      ),
+      6 => array(
+        'winner' => 11,
+        'slot' => 2,
+      ),
+      9 => array(
+        'winner' => 13,
+        'slot' => 1,
+      ),
+      10 => array(
+        'winner' => 13,
+        'slot' => 2,
+      ),
+      11 => array(
+        'winner' => 14,
+        'slot' => 1,
+      ),
+      12 => array(
+        'winner' => 14,
+        'slot' => 2,
+      ),
+      13 => array(
+        'winner' => 15,
+        'slot' => 1,
+      ),
+      14 => array(
+        'winner' => 15,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 11 contestants
+	 */
+  public function testSingleElim11() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(11);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 9,
+        'slot' => 2,
+      ),
+      6 => array(
+        'winner' => 11,
+        'slot' => 2,
+      ),
+      8 => array(
+        'winner' => 12,
+        'slot' => 2,
+      ),
+      9 => array(
+        'winner' => 13,
+        'slot' => 1,
+      ),
+      10 => array(
+        'winner' => 13,
+        'slot' => 2,
+      ),
+      11 => array(
+        'winner' => 14,
+        'slot' => 1,
+      ),
+      12 => array(
+        'winner' => 14,
+        'slot' => 2,
+      ),
+      13 => array(
+        'winner' => 15,
+        'slot' => 1,
+      ),
+      14 => array(
+        'winner' => 15,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 12 contestants
+	 */
+  public function testSingleElim12() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(12);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 9,
+        'slot' => 2,
+      ),
+      4 => array(
+        'winner' => 10,
+        'slot' => 2,
+      ),
+      6 => array(
+        'winner' => 11,
+        'slot' => 2,
+      ),
+      8 => array(
+        'winner' => 12,
+        'slot' => 2,
+      ),
+      9 => array(
+        'winner' => 13,
+        'slot' => 1,
+      ),
+      10 => array(
+        'winner' => 13,
+        'slot' => 2,
+      ),
+      11 => array(
+        'winner' => 14,
+        'slot' => 1,
+      ),
+      12 => array(
+        'winner' => 14,
+        'slot' => 2,
+      ),
+      13 => array(
+        'winner' => 15,
+        'slot' => 1,
+      ),
+      14 => array(
+        'winner' => 15,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 13 contestants
+	 */
+  public function testSingleElim13() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(13);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 9,
+        'slot' => 2,
+      ),
+      3 => array(
+        'winner' => 10,
+        'slot' => 1,
+      ),
+      4 => array(
+        'winner' => 10,
+        'slot' => 2,
+      ),
+      6 => array(
+        'winner' => 11,
+        'slot' => 2,
+      ),
+      8 => array(
+        'winner' => 12,
+        'slot' => 2,
+      ),
+      9 => array(
+        'winner' => 13,
+        'slot' => 1,
+      ),
+      10 => array(
+        'winner' => 13,
+        'slot' => 2,
+      ),
+      11 => array(
+        'winner' => 14,
+        'slot' => 1,
+      ),
+      12 => array(
+        'winner' => 14,
+        'slot' => 2,
+      ),
+      13 => array(
+        'winner' => 15,
+        'slot' => 1,
+      ),
+      14 => array(
+        'winner' => 15,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 14 contestants
+	 */
+  public function testSingleElim14() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(14);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 9,
+        'slot' => 2,
+      ),
+      3 => array(
+        'winner' => 10,
+        'slot' => 1,
+      ),
+      4 => array(
+        'winner' => 10,
+        'slot' => 2,
+      ),
+      6 => array(
+        'winner' => 11,
+        'slot' => 2,
+      ),
+      7 => array(
+        'winner' => 12,
+        'slot' => 1,
+      ),
+      8 => array(
+        'winner' => 12,
+        'slot' => 2,
+      ),
+      9 => array(
+        'winner' => 13,
+        'slot' => 1,
+      ),
+      10 => array(
+        'winner' => 13,
+        'slot' => 2,
+      ),
+      11 => array(
+        'winner' => 14,
+        'slot' => 1,
+      ),
+      12 => array(
+        'winner' => 14,
+        'slot' => 2,
+      ),
+      13 => array(
+        'winner' => 15,
+        'slot' => 1,
+      ),
+      14 => array(
+        'winner' => 15,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 15 contestants
+	 */
+  public function testSingleElim15() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(15);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      2 => array(
+        'winner' => 9,
+        'slot' => 2,
+      ),
+      3 => array(
+        'winner' => 10,
+        'slot' => 1,
+      ),
+      4 => array(
+        'winner' => 10,
+        'slot' => 2,
+      ),
+      5 => array(
+        'winner' => 11,
+        'slot' => 1,
+      ),
+      6 => array(
+        'winner' => 11,
+        'slot' => 2,
+      ),
+      7 => array(
+        'winner' => 12,
+        'slot' => 1,
+      ),
+      8 => array(
+        'winner' => 12,
+        'slot' => 2,
+      ),
+      9 => array(
+        'winner' => 13,
+        'slot' => 1,
+      ),
+      10 => array(
+        'winner' => 13,
+        'slot' => 2,
+      ),
+      11 => array(
+        'winner' => 14,
+        'slot' => 1,
+      ),
+      12 => array(
+        'winner' => 14,
+        'slot' => 2,
+      ),
+      13 => array(
+        'winner' => 15,
+        'slot' => 1,
+      ),
+      14 => array(
+        'winner' => 15,
+        'slot' => 2,
+      ),
+    );
+    
+    $this->checkNextMatch($match, $tournament->data['matches']);
+  }
+  
+  
+  /**
+	 * Testing 16 contestants
+	 */
+  public function testSingleElim16() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
+    $tournament = new SingleEliminationController(16);
+    $tournament->build();
+    
+    // Set the paths we are expecting the plugin to return.
+    $match = array(
+      1 => array(
+        'winner' => 9,
+        'slot' => 1,
+      ),
+      2 => array(
+        'winner' => 9,
+        'slot' => 2,
+      ),
+      3 => array(
+        'winner' => 10,
+        'slot' => 1,
+      ),
+      4 => array(
+        'winner' => 10,
+        'slot' => 2,
+      ),
+      5 => array(
+        'winner' => 11,
+        'slot' => 1,
+      ),
+      6 => array(
+        'winner' => 11,
+        'slot' => 2,
+      ),
+      7 => array(
+        'winner' => 12,
+        'slot' => 1,
+      ),
+      8 => array(
+        'winner' => 12,
+        'slot' => 2,
+      ),
+      9 => array(
+        'winner' => 13,
+        'slot' => 1,
+      ),
+      10 => array(
+        'winner' => 13,
+        'slot' => 2,
+      ),
+      11 => array(
+        'winner' => 14,
+        'slot' => 1,
+      ),
+      12 => array(
+        'winner' => 14,
+        'slot' => 2,
+      ),
+      13 => array(
+        'winner' => 15,
+        'slot' => 1,
+      ),
+      14 => array(
+        'winner' => 15,
+        'slot' => 2,
+      ),
+    );
     
     $this->checkNextMatch($match, $tournament->data['matches']);
   }
