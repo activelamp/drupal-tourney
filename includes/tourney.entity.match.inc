@@ -548,7 +548,7 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function addContestant($entity, $slot = NULL) {
     //@todo logic to remove existing conflicting contestant(s)
-    if ( $slot && $this->getContestant($slot) ) {
+    if ($slot && $this->getContestant($slot)) {
       $this->removeContestant($this->getContestant($slot));
     }
     $entity_keys = array(

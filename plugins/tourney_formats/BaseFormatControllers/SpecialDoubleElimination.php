@@ -205,8 +205,8 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
       elseif ($match['bracket'] == 'champion') {
         $next = count($this->data['matches']);
         if ($next - 1 == $id) {
-          $match['nextMatch']['winner'] = $next;
-          $match['nextMatch']['loser'] = $next;
+          $match['nextMatch']['winner'] = array('id' => $next, 'slot' => 1);
+          $match['nextMatch']['loser'] = array('id' => $next, 'slot' => 2);
         }
         // The very last match of the tournament
         elseif ($next == $id) {
@@ -287,7 +287,6 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         // the next match winner position and then add half the number of
         // bottom matches to that position, to find the bottom loser position.
         if ($this->data['matches'][$place]['round'] == 1) {
-          // if ($this->data['matches'][$place]['id'] == 3) dpm($next);
           $next = parent::calculateNextPosition($this->data['matches'][$place]);
           return array(
             'id' => $next['id'] + ($bottom_matches / 2),
