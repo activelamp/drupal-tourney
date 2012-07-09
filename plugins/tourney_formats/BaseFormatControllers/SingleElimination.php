@@ -200,22 +200,11 @@ class SingleEliminationController extends TourneyController {
         continue;
       }
       
-      // Find next match by filtering through matches within the next round and 
-      // those with a halved round match number
-      // Example:
-      //   Round 3, Match 5
-      //  Next match is:
-      //    Round 4 [3+1], Match 3 [ceil(5/2)]
-      // $next = &$this->find('matches', array(
-      //   'round' => $match['round'] + 1,
-      //   'roundMatch' => (int) ceil($match['roundMatch'] / 2),
-      // ), TRUE);
-      
       $next = $this->calculateNextPosition($match, 'winner');
       if ($next) {
         $match['nextMatch']['winner'] = $next;
         $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
-      } 
+      }
     }
   }
 
@@ -279,8 +268,7 @@ class SingleEliminationController extends TourneyController {
         if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
           continue;
         }
-        print $child ."\n";
-        // $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
+        $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
       }
     }
     return $node;
