@@ -464,7 +464,7 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
     module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(14);
     $tournament->build();
-    
+  
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
