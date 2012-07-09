@@ -112,13 +112,40 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
   }
   
   /**
+   * Fix the next match previous match slot numbers for bottom bracket. The
+   * logic for these positions is calculated in a parent class.  Rather than
+   * change the parent class to accommodate this child class, just go back thru
+   * the array and remove the previous position added by parent class.
+   * 
+   * SpecialDoubleElimination::populateLoserPositions() handles putting the
+   * correct slot number in the data array..
+   */
+  public function fixFeeders() {
+    foreach ($this->data['matches'] as $id => &$match) {
+      if ($match['bracket'] == 'loser') {
+        if (!empty($this->data['matches'][$id]['feeder']) 
+          && $this->data['matches'][$id]['feeder'] == TRUE) {
+        
+          unset($this->data['matches'][$id]['previousMatches'][1]);
+        }
+      }
+    }
+  }
+  
+  /**
    * Find and populate next/previous match pathing on the matches data array for
    * each match.
    */
   public function populatePositions() {
     parent::populatePositions();
+    // Populates the loser positions.
     $this->populateLoserPositions();
+    // Fix the next match previous match slot numbers for bottom bracket that 
+    // were populated by parent class.
+    $this->fixFeeders();
   }
+  
+  
   /**
    * Populates nextMatch and previousMatches array on the match data.
    * 
@@ -163,11 +190,12 @@ class SpecialDoubleEliminationController extends SingleEliminationController {
         if (!empty($this->data['matches'][$next['id']]['feeder']) 
           && $this->data['matches'][$next['id']]['feeder'] == TRUE
           || $match['bracket'] != $this->data['matches'][$next['id']]['bracket']) {
+            
           $match['nextMatch']['winner']['slot'] = 2;
           $this->data['matches'][$next['id']]['previousMatches'][2] = $id;
         }
         
-        // Don't overwrite the previousMatch I ust set above for the last match
+        // Don't overwrite the previousMatch I just set above for the last match
         // of the top bracket
         $champion_match = count($this->data['matches']) - 1;
         if ($champion_match != $next['id']) {
