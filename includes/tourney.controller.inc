@@ -99,17 +99,18 @@ class TourneyController implements TourneyControllerInterface {
       ),
     );
   }
-  /**
-   * Method that must be defined in plugin subclass.
-   * 
-   * @todo: Should this be abstract? Do we want to provide a default build?
-   */
-  public function build() {}
   
   /**
-   * Method that must be defined in plugins.
+   * Methods that must be defined in plugin subclass.
+   * 
+   * @todo: Should these be abstract? Do we want to provide a default 
+   *   implemenations?
    */
+  public function build() {}
+  public function populatePositions() {}
+  public function populateSeedPositions() {}
   public function preprocess($template, &$vars) {}
+  public function render() {}
      
   /**
    * Bracket data generator
@@ -483,6 +484,22 @@ interface TourneyControllerInterface {
    * to the Drupal entity system using TourneyController::saveMatches()
    */
   public function build();
+  
+  /**
+   * Populate next/previous match pathing on the matches data array for each match.
+   */
+  public function populatePositions();
+  
+  /**
+   * Calculate and fill seed data into matches. Also marks matches as byes if
+   * the match is a bye.
+   */
+  public function populateSeedPositions();
+  
+  /**
+   * Render the tournament
+   */
+  public function render();
 }
 
 /**
