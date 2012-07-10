@@ -10,6 +10,7 @@
  * this code IS NOT the $node object. $node is the "node" of the tree.
  */
 function template_preprocess_tourney_tournament_tree_node(&$vars) {
+  drupal_add_js(drupal_get_path('module', 'tourney') . '/plugins/tourney_formats/single_elim/theme/tournament-tree-node.js');
   // Set the tree node classes
   $node_classes = array();
   

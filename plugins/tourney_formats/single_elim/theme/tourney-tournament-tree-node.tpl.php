@@ -17,12 +17,14 @@
         <?php print theme('tourney_tournament_tree_node', array('node' => $child, 'plugin' => $plugin)); ?>
       <?php endforeach; ?>
     </div>
-    <div class="connector to-children <?php print $children_classes; ?>"><div class="path"></div></div>
   <?php endif; ?>
   <div class="parent">
+    <?php if ($has_children): ?>
+      <div class="connector to-children <?php print $children_classes; ?>"><div class="path"></div></div>
+    <?php endif; ?>
     <?php print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin)); ?>
-  </div>
-  <div class="connector to-parent<?php print $is_child ? ' child-' . $node['child'] : ''; ?>">
-    <div class="path"></div>
+    <div class="connector to-parent<?php print $is_child ? ' child-' . $node['child'] : ''; ?>">
+      <div class="path"></div>
+    </div>
   </div>
 </div>
