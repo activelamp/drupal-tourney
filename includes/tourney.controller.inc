@@ -43,7 +43,7 @@ define('MAXIMUM_ROUNDS', 5);
  * to the Drupal entity system using TourneyController::saveMatches().
  * 
  * Plugins can render on their own with no knowledge of a tournament entity. If
- * a plugin was constructed with a tournament entity, then information from the
+ * a plugin was instantiated with a tournament entity, then information from the
  * tournament will be preprocessed into the plugin render, and links to matches,
  * and contestant names will appear.
  * 

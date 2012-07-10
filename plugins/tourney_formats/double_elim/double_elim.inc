@@ -2,19 +2,16 @@
 
 /**
  * @file
- * Default plugin for a default style.
+ * Tourney format plugin for special double elimination tournaments.
  */
 
 /**
- * Double Elimination Format
+ * Special Double Elimination Format.
  */
 $plugin = array(
   'title' => t('Double Elimination'),
-  'machine name' => 'double',
+  'machine name' => 'special',
   'description' => t('This is the description of the tournament'),
-  'weight' => 1,
+  'weight' => 2,
   'controller' => 'DoubleEliminationController',
 );
-
-// Define any classes below to extend default functionality in the controllers.
-// The default implementation works for this plugin.
