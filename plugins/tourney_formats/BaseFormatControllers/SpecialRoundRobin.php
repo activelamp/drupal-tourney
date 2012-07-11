@@ -22,6 +22,60 @@ class SpecialRoundRobinController extends TourneyController {
   }
   
   /**
+   * Preprocess variables for the template passed in.
+   * 
+   * @param $template
+   *   The name of the template that is being preprocessed.
+   * @param $vars
+   *   The vars array to add variables to.
+   */
+  public function preprocess($template, &$vars) {
+    if ($template == 'tourney-tournament-render') {
+      $vars['classes_array'][] = 'tourney-tournament-roundrobin';
+
+      $vars['header'] = theme('tourney_roundrobin_standings', array('plugin' => $this));
+      $vars['matches'] = theme('tourney_roundrobin', array('plugin' => $this));
+    }
+    if ($template == 'tourney-match-render') {
+      $last_match = count($vars['plugin']->structure['round-1']['matches']);
+      if ($vars['match']['roundMatch'] == 1) {
+        $vars['classes_array'][] = 'first';
+      }
+      if ($vars['match']['roundMatch'] == $last_match) {
+        $vars['classes_array'][] = 'last';
+      }
+    }
+  }
+  
+  /**
+   * Theme implementations to register with tourney module.
+   *
+   * @see hook_theme().
+   */
+  public static function theme($existing, $type, $theme, $path) {
+    return array(
+      'tourney_roundrobin_standings' => array(
+        'variables' => array('plugin' => NULL),
+        'path' => $path . '/theme',
+        'file' => 'roundrobin.inc',
+        'template' => 'tourney-roundrobin-standings',
+      ),
+      'tourney_roundrobin' => array(
+        'variables' => array('plugin' => NULL),
+        'path' => $path . '/theme',
+        'file' => 'roundrobin.inc',
+        'template' => 'tourney-roundrobin',
+      ),
+      'tourney_tournament_tree_node' => array(
+        'variables' => array('plugin' => NULL, 'node' => NULL),
+        'path' => $path . '/theme',
+        'file' => 'preprocess_tournament_tree_node.inc',
+        'template' => 'tourney-tournament-tree-node',
+      ),
+    );
+  }
+  
+  /**
    * This builds the data array for the plugin. The most important data structure
    * your plugin should implement in build() is the matches array. It is from 
    * this array that matches are saved to the Drupal entity system using 
@@ -150,6 +204,24 @@ class SpecialRoundRobinController extends TourneyController {
   }
   
   /**
+   * Generate a structure based on data
+   */
+  public function structure() {
+    $structure = array();
+    // Loop through our rounds and set up each one
+    foreach ($this->data['rounds'] as $round) {
+      $structure[$round['id']] = $round + array('matches' => array());
+    }
+    // Loop through our matches and add each one to its related round
+    foreach ($this->data['matches'] as $match) {
+      $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
+    }
+    $this->structure = $structure;
+    
+    return $this->structure;
+  }
+  
+  /**
    * Given a match info array, returns both the target match and slot.
    *
    * @param $match_info
@@ -181,9 +253,8 @@ class SpecialRoundRobinController extends TourneyController {
   public function render() {
     // Build our data structure
     $this->build();
-    dpm($this);
-    return 'hello';
-    // $this->structure('tree');
-    //    return theme('tourney_tournament_render', array('plugin' => $this));
+    $this->structure();
+    // drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
+    return theme('tourney_tournament_render', array('plugin' => $this));
   }
 }

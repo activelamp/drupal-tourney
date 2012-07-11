@@ -6,7 +6,7 @@
  * @ingroup tourney_templates
  */
 ?>
-<?php print $match['id']; ?>
-<div class="match">
+
+<div class="match <?php print $classes; ?>">
   <?php print $contestants; ?>
 </div>

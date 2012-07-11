@@ -1,3 +1,40 @@
+.tourney-tournament .match {
+  width: 120px;
+}
+
+.tourney-tournament .match {
+  background: #E0E0E0;
+  border-radius: 7px;
+}
+
+.tourney-tournament .match:hover {
+  background: #E8E8E8;
+}
+
+.tourney-tournament .match .contestant {
+  padding: 0 7px;
+}
+
+.tourney-tournament .match .contestant:hover {
+  background: #F0F0F0;
+}
+
+.tourney-tournament .match .contestant .seed {
+  padding: 0 0.7em 0 0;
+  font-size: 0.7em;
+  float: left;
+  color: #888;
+}
+
+.tourney-tournament .match .contestant-1 {
+  border-radius: 7px 7px 0 0;
+}
+
+.tourney-tournament .match .contestant-2 {
+  border-radius: 0 0 7px 7px;
+  border-top: 1px solid #888;
+}
+
 #tourney-configuration .select-all {width:50px;}
 
 .field-label{font-weight:bold;}

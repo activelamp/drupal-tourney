@@ -1,12 +1,12 @@
 <?php
 
-class TourneyNextMatchTestCase extends DrupalWebTestCase {
+class SingleElimNextMatchTestCase extends DrupalWebTestCase {
   /**
    * Test info.
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test next match positions'),
+      'name' => t('Test Single Elimination next match positions'),
       'description' => t('Tests single elimination tournaments with a varying number or contestants.'),
       'group' => t('Tourney'),
     );

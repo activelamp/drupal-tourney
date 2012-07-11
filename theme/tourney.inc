@@ -11,6 +11,9 @@
 function template_preprocess_tourney_tournament_render(&$vars) {
   $plugin = &$vars['plugin'];
   
+  // Initialize variables exposed in template.
+  $vars['header'] = $vars['footer'] = $vars['matches'] = '';
+  
   drupal_add_css(drupal_get_path('module', 'tourney') . '/theme/tourney.css');
   // Let the plugin preprocess variables
   $plugin->preprocess('tourney-tournament-render', $vars);
@@ -80,6 +83,9 @@ function template_preprocess_tourney_match_render(&$vars) {
   }
   
   $vars['contestants'] = $contestant_output;
+
+  // Build the tourney container classes.
+  $vars['classes'] = join(' ', $vars['classes_array']);
 }
 
 /**

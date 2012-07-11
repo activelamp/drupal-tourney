@@ -141,46 +141,10 @@ function tourney_menu() {
 }
 
 function tourney_testing() {
-  // module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
-  // $tournament = new SingleEliminationController(8);
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialRoundRobin');
   $tournament = new SpecialRoundRobinController(6);
   // $tournament->setPluginOptions(array('third_place' => TRUE));
-  // $tournament->build();
-  // dpm($tournament);
   return $tournament->render();
-  // $contestant1 = (Object) array('name' => 'Home Team', 'id' => 'home');
-  // $contestant2 = (Object) array('name' => 'Away Team', 'id' => 'away');
-  // $contestant3 = (Object) array('name' => 'Alpha Team', 'id' => 'alpha');
-  // $contestant4 = (Object) array('name' => 'Bravo Team', 'id' => 'bravo');
-  // $contestant5 = (Object) array('name' => 'Echo Team', 'id' => 'echo');
-
-  // $tournament->populateSeeds(array($contestant1, $contestant2, $contestant3, $contestant4, $contestant5));
-
-  // $tournament->find('matches', array('round' => 1, 'roundMatch' => 1), TRUE)->win('home');
-  // $tournament->find('matches', array('round' => 1, 'roundMatch' => 2), TRUE)->win('bravo');
-  // $tournament->find('matches', array('round' => 1, 'roundMatch' => 3), TRUE)->win('away');
-  // $tournament->find('matches', array('round' => 1, 'roundMatch' => 4), TRUE)->win('alpha');
-
-  // $tournament->find('matches', array('round' => 2, 'roundMatch' => 1), TRUE)->win('bravo');
-  // $tournament->find('matches', array('round' => 2, 'roundMatch' => 2), TRUE)->win('alpha');
-
-  // $match = $tournament->find('matches', array('id' => 'match-1'), TRUE);
-  // $match->addContestant($contestant1, 1);
-  // $match->addContestant($contestant2, 2);
-  // $match->win('home');
-
-  // $match = $tournament->find('matches', array('id' => 'match-2'), TRUE);
-  // $match->addContestant($contestant3, 1);
-  // $match->addContestant($contestant4, 2);
-  // $match->win('alpha');
-
-  // $match = $tournament->find('matches', array('id' => 'match-3'), TRUE);
-  // $match->win('home');
-
-  //krumo($tournament->structure('tree'));
-  //krumo($tournament);
-  
 }
 
 /**

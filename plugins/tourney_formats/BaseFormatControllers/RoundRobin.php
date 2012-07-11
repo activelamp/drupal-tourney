@@ -37,20 +37,20 @@ class RoundRobinController extends TourneyControllerLegacy implements TourneyCon
    *
    * @see hook_theme().
    */
-  public static function theme($existing, $type, $theme, $path) {
-    return array(
-      'tourney_roundrobin_standings' => array(
-        'variables' => array('tournament' => NULL),
-        'file' => 'roundrobin.inc',
-        'path' => $path . '/theme',
-      ),
-      'tourney_roundrobin' => array(
-        'variables' => array('tournament' => NULL),
-        'file' => 'roundrobin.inc',
-        'path' => $path . '/theme',
-      ),
-    );
-  }
+  // public static function theme($existing, $type, $theme, $path) {
+  //   return array(
+  //     'tourney_roundrobin_standings' => array(
+  //       'variables' => array('tournament' => NULL),
+  //       'file' => 'roundrobin.inc',
+  //       'path' => $path . '/theme',
+  //     ),
+  //     'tourney_roundrobin' => array(
+  //       'variables' => array('tournament' => NULL),
+  //       'file' => 'roundrobin.inc',
+  //       'path' => $path . '/theme',
+  //     ),
+  //   );
+  // }
 
   /**
    * Build an array with tournament structure data.

@@ -52,7 +52,7 @@ class SingleEliminationController extends TourneyController {
         'path' => $path . '/theme',
         'file' => 'preprocess_tournament_tree_node.inc',
         'template' => 'tourney-tournament-tree-node',
-      )
+      ),
     );
   }
   
@@ -324,6 +324,7 @@ class SingleEliminationController extends TourneyController {
   public function render() {
     // Build our data structure
     $this->build();
+    dpm($this);
     $this->structure('tree');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }

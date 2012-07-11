@@ -1,6 +1,3 @@
-.tourney-tournament-tree .match {
-  width: 120px;
-}
 .tourney-tournament-tree .round-space-1 {
   margin-left: 136px;
 }
@@ -45,39 +42,6 @@
   display: table-cell;
   vertical-align: middle;
   padding: 5px 0;
-}
-
-.tourney-tournament-tree .tree-node .parent .match {
-  background: #E0E0E0;
-  border-radius: 7px;
-}
-
-.tourney-tournament-tree .tree-node .parent .match:hover {
-  background: #E8E8E8;
-}
-
-.tourney-tournament-tree .tree-node .parent .match .contestant {
-  padding: 0 7px;
-}
-
-.tourney-tournament-tree .tree-node .parent .match .contestant:hover {
-  background: #F0F0F0;
-}
-
-.tourney-tournament-tree .tree-node .parent .match .contestant .seed {
-  padding: 0 0.7em 0 0;
-  font-size: 0.7em;
-  float: left;
-  color: #888;
-}
-
-.tourney-tournament-tree .tree-node .parent .match .contestant-1 {
-  border-radius: 7px 7px 0 0;
-}
-
-.tourney-tournament-tree .tree-node .parent .match .contestant-2 {
-  border-radius: 0 0 7px 7px;
-  border-top: 1px solid #888;
 }
 
 .tourney-tournament-tree .tree-node .connector {
