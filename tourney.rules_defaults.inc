@@ -17,10 +17,6 @@ function tourney_default_rules_configuration() {
          'entity:select' => 'tourney-game:relation-has-game-tourney-match-reverse:0',
          'type' => 'tourney_match'
        ))
-       ->condition('data_is', array(
-          'data:select' => 'tourney-game:relation-has-game-tourney-match-reverse:0:relation-has-match-tourney-tournament-reverse:0:format',
-          'value' => 'RoundRobinController'
-        ))
        ->action('tourney_action_get_game_count', array(
          'match:select' => 'tourney-game:relation-has-game-tourney-match-reverse:0'
        ))

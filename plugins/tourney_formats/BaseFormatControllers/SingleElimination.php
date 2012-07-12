@@ -325,7 +325,6 @@ class SingleEliminationController extends TourneyController {
   public function render() {
     // Build our data structure
     $this->build();
-    dpm($this);
     $this->structure('tree');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
