@@ -7,7 +7,7 @@
  */
 ?>
 
-<div class="contestant contestant-<?php print $contestant->slot ?>">
+<div class="contestant <?php print $classes ?>">
   <?php if ($seed): ?>
     <span class="seed"><?php print $seed ?></span>
   <?php endif;?>

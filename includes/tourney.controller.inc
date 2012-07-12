@@ -458,18 +458,6 @@ class TourneyController implements TourneyControllerInterface {
     }
     return array_key_exists($mid, $this->data['matches']) ? $this->data['matches'][$mid] : NULL;
   }
-  
-  /**
-   * Get the contestants that are related to this match
-   * 
-   * @param $mid
-   *   Match plugin id
-   */
-  public function getMatchContestants($mid) {
-    $match = $this->getMatchById($mid);
-    // Ensure we have a match object, it's possible isn't created yet.
-    return is_object($match) ? $match->getMatchContestants() : NULL;
-  }
 }
 
 /**

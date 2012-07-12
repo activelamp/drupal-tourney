@@ -545,7 +545,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     $match->cleanGames();
     $this->determineWinner();
     
-    if (!$this->get('no_automation', FALSE) || $this->format != 'SpecialRoundRobinController') {
+    if (!$this->get('no_automation', FALSE) || $this->format != 'RoundRobinController') {
         if (!$match->isFinished()) {
           return;
         }
