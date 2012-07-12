@@ -20,7 +20,30 @@ function template_preprocess_tourney_roundrobin(&$vars) {
  * 
  */
 function template_preprocess_tourney_roundrobin_standings(&$vars) {
+  $plugin = $vars['plugin'];
+  $table = array();
+  $table['header'] = array('Teams', 'Games Played', 'Wins', 'Losses');
+  $table['rows'] = array();
   
+  $slots = $vars['plugin']->numContestants;
+  
+  // If we have a tournament object, load all contestants in tournament.
+  if (is_object($plugin->tournament)) {
+    $contestants = $plugin->tournament->getContestants();
+  }
+  else {
+    // Create fake contestants.
+    for ($contestant = 1; $contestant <= $slots; $contestant++) {
+      $contestants[$contestant] = (object) array('name' => 'Contestant ' . $contestant);
+    }
+  }
+  
+  $games_played = $wins = $losses = 0;
+  foreach ($contestants as $contestant) {
+    $table['rows'][] = array($contestant->name, $games_played, $wins, $losses);
+  }
+  
+  $vars['standings'] = theme('table', $table);
 }
 
 

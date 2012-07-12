@@ -90,6 +90,7 @@ function tourney_action_get_game_count($match) {
  *   The number of games won by leader divided by total games in match.
  */
 function tourney_action_game_is_won($match, $quotient) {
+  $plugin = $match->getTournament()->tourneyFormatPlugin;
   $message = '';
   // Create a new game if enough games have not been won yet.
   if ($quotient >= 2) {
@@ -106,7 +107,7 @@ function tourney_action_game_is_won($match, $quotient) {
     }
 
     // If all our games are played and won, then we'll need to make a new game to continue the match
-    if ( $match->checkGames() == TRUE ) {
+    if ($match->checkGames() == TRUE) {
       $game = $match->addGame();
       $message = t('A new game has been created: !game', array('!game' => l($game->label, 'tourney/game/' . $game->id)));
     }
@@ -116,8 +117,10 @@ function tourney_action_game_is_won($match, $quotient) {
     }
   }
   else {
-    $match->getTournament()->matchIsWon($match);
-    $message = t('Players moved to next round');
+    if ($plugin->moveWinners == TRUE) {
+      $match->getTournament()->matchIsWon($match);
+      $message = t('Players moved to next round');    
+    }
   }
 
   return array(
@@ -133,7 +136,7 @@ function tourney_action_game_is_won($match, $quotient) {
  *   The match the game belongs to
  */
 function tourney_action_set_all_matches($match) {
-  $match->getTournament()->tourneyFormatPlugin->populateMatches($match);
+  $match->getTournament()->populateRoundRobinMatches($match->matchInfo['id']);
   $message = 'Players added to all rounds';
   
   return array(

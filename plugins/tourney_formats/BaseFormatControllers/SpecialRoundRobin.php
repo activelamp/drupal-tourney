@@ -10,15 +10,20 @@
  */
 
 class SpecialRoundRobinController extends TourneyController {
+  public $moveWinners = FALSE;
   
   /**
    * Constructor
    */
   public function __construct($numContestants, $tournament = NULL) {
+    parent::__construct();
     // Set our contestants, and then calculate the slots necessary to fit them 
     $this->numContestants = $numContestants;  
     $this->slots = $numContestants % 2 ? $numContestants + 1 : $numContestants;
     $this->tournament = $tournament;
+    
+    // Flag used in rules to not fire off matchIsWon logic.
+    $this->moveWinners = FALSE;
   }
   
   /**
@@ -197,9 +202,11 @@ class SpecialRoundRobinController extends TourneyController {
     // Calculate the seed positions, then apply them to their matches while
     // also setting the bye boolean
     foreach ($this->data['seeds'] as $mid => $seeds) {
-      $match =& $this->data['matches'][$mid];
-      $match['seeds'] = $seeds;
-      $match['bye'] = $seeds[2] === NULL;
+      if ($this->data['matches'][$mid]['round'] == 1) {
+        $match =& $this->data['matches'][$mid];
+        $match['seeds'] = $seeds;
+        $match['bye'] = $seeds[2] === NULL;
+      }
     }
   }
   
@@ -254,7 +261,7 @@ class SpecialRoundRobinController extends TourneyController {
     // Build our data structure
     $this->build();
     $this->structure();
-    // drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
+    drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
 }

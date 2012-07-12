@@ -545,7 +545,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     $match->cleanGames();
     $this->determineWinner();
     
-    if (!$this->get('no_automation', FALSE)) {
+    if (!$this->get('no_automation', FALSE) || $this->format != 'SpecialRoundRobinController') {
         if (!$match->isFinished()) {
           return;
         }
@@ -564,6 +564,33 @@ class TourneyTournamentEntity extends TourneyEntity {
         }
     }
   }
+  
+  /**
+   * Recursive function that sets players in a RoundRobin tournament in all their
+   * matches once the first round has been setup.
+   *
+   * @param $mid
+   *   The match id from the plugin.
+   */
+    public function populateRoundRobinMatches($mid) {
+      $match = $this->getMatchById($mid);
+      if (array_key_exists('nextMatch', $match->matchInfo)) {
+        foreach ($match->getMatchContestants() as $contestant) {
+          $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
+          $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];
+          
+          
+          if ($next === NULL) continue;
+          
+          $next_match = $this->getMatchById($next);
+          $next_match->addContestant($contestant, $next_slot);
+          
+          // Recurse
+          $this->populateRoundRobinMatches($next);
+        }
+      }
+      
+    }
   
   /**
    * Get settings from tourney settings.

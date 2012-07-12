@@ -7,4 +7,7 @@
  * @ingroup tourney_templates
  */
 ?>
-Standings
+<h2>Round Robin Standings</h2>
+<div id="standings">
+  <?php print $standings; ?>
+</div>

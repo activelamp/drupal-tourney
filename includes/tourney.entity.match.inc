@@ -644,9 +644,9 @@ class TourneyMatchEntity extends TourneyEntity {
   *   Boolean of whether all the games have been won
   */
   public function checkGames() {
-    foreach ( $this->getGameIds() as $game_id ) {
+    foreach ($this->getGameIds() as $game_id) {
       $game = tourney_game_load($game_id);
-      if ( !$game->getWinner() ) {
+      if (!$game->getWinner()) {
         return FALSE;
       }
     }

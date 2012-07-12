@@ -65,11 +65,19 @@ define('MAXIMUM_ROUNDS', 5);
  * bracket.
  */
 class TourneyController implements TourneyControllerInterface {
-  public $data;
+  public $data = NULL;
   public $structure;
   public $numContestants;
   public $tournament;
   public $pluginOptions = array();
+  public $moveWinners = TRUE;
+  
+  /**
+   * Constructor
+   */
+  public function __construct() {
+    $this->pluginInfo = self::getPluginInfo(get_class($this));
+  }
   
   /**
    * Default theme implementations for every tournament format. We could have
@@ -444,8 +452,11 @@ class TourneyController implements TourneyControllerInterface {
    *   An array with information about the match
    */
   public function getMatchInfo($mid) {
-    $this->build();
-    return $this->data['matches'][$mid];
+    // Only build the data array if it is not available.
+    if (is_null($this->data)) {
+      $this->build();
+    }
+    return array_key_exists($mid, $this->data['matches']) ? $this->data['matches'][$mid] : NULL;
   }
   
   /**
