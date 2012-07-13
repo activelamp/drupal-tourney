@@ -36,24 +36,29 @@ class SingleElimimationTestCase extends DrupalWebTestCase {
   public function testSingleElim4() {
     // Create the tournament
     $edit = array();
-    $edit['label'] = $this->randomName(8);
+    $tournament_name = $this->randomName(8);
+    $edit['label'] = $tournament_name;
     $edit['name'] = strtolower($edit['label']);
     $edit['players'] = 4;
     $edit['format'] = 'SingleEliminationController';
     $edit['config_default_games'] = 1;
     
     $this->drupalPost('tourney/add', $edit, t('Save'));
+    $this->assertRaw(t('Your tournament has been saved.'));
     
-    // Set contestants of the first match
+    // Set contestants of the first match.
     $edit = array();
     $edit['contestant1'] = 'user.2';
     $edit['contestant2'] = 'user.2';
     $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
+    // Make sure we can't set the same user twice.
     $this->assertRaw(t('Contestant 1 and Contestant 2 cannot be the same person'));
     
+    // Now change contestant 2 to a different user.
     $edit['contestant2'] = 'user.3';
     $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
     $this->assertRaw(t('Your match has been saved'));
+    $this->assertLink(t('Go to tournament !tournament', array('!tournament' => $tournament_name)));
     
     // First Contestant wins in match 1.
     $edit = array();

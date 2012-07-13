@@ -615,11 +615,14 @@ class TourneyMatchEntity extends TourneyEntity {
     // Check all our games starting from the back to find the games that haven't
     // been won. Since we've already won the match, we're going to remove all
     // the games that no longer serve purpose for the match
-    foreach ( array_reverse($this->getGameIds()) as $game_id ) {
+    foreach (array_reverse($this->getGameIds()) as $game_id) {
       $game = tourney_game_load($game_id);
       // If we've run across a won game, it's almost certain the rest of the
       // first matches have been played, so we don't need to continue
-      if ( $game->getWinner() ) break;
+      if ($game->getWinner()) {
+        break;
+      }
+      
       // @todo: find a way to just load in a single relation based on two
       // related entities. This code just runs through all the related games to
       // the match to find the specific relation for the game to delete, and
