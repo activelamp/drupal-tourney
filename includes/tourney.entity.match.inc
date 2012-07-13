@@ -19,11 +19,8 @@ class TourneyMatchEntity extends TourneyEntity {
   // is no longer being used.
   private $matchGames = array();
   private $matchTournament = NULL;
-  private $matchStarted = NULL;
-  private $matchFinished = NULL;
   private $matchWinner = NULL;
   private $matchLoser = NULL;
-  private $matchSetup = NULL;
 
   public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
@@ -125,8 +122,10 @@ class TourneyMatchEntity extends TourneyEntity {
   }
 
   private static function contestantSort($a, $b) {
-    if ( $a['slot'] == $b['slot'] ) return ( $a['id'] < $b['id'] ) ? -1 : 1;
-    return ( $a['slot'] < $b['slot'] ) ? -1 : 1;
+    if ($a['slot'] == $b['slot']) {
+      return ($a['id'] < $b['id']) ? -1 : 1;
+    }
+    return ($a['slot'] < $b['slot']) ? -1 : 1;
   }
 
   /**
@@ -173,11 +172,15 @@ class TourneyMatchEntity extends TourneyEntity {
       throw new Exception(t('$slot must be a number'));
     }
     $contestants = $this->getMatchContestants();
-    if ( !$contestants ) return NULL;
+    if (!$contestants) {
+      return NULL;
+    }
     $first = reset($contestants);
-    if ( $first->slot !== NULL ) {
-      foreach ( $contestants as $eid => $contestant ) {
-        if ( $contestant->slot == $slot ) return $contestant;
+    if ($first->slot !== NULL) {
+      foreach ($contestants as $eid => $contestant) {
+        if ($contestant->slot == $slot) {
+          return $contestant;
+        }
       }
       return NULL;
     }
@@ -230,6 +233,9 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Load contestants on match entity object.
+   * 
+   * @todo: Not used anywhere in tourney. Pull this out once it is no longer a
+   *   dependency on LoL.
    */
   public function loadContestants() {
     if (empty($this->contestant1) || empty($this->contestant2)) {
@@ -516,7 +522,7 @@ class TourneyMatchEntity extends TourneyEntity {
  */
   public function removeContestant($entity) {
     // If we're locked, can't remove the contestant
-    if ( $this->isLocked() ) {
+    if ($this->isLocked()) {
       $message = t('Match is locked, cannot modify contestants.');
       watchdog('tourney', $message);
       return FALSE;
@@ -581,9 +587,6 @@ class TourneyMatchEntity extends TourneyEntity {
     return NULL;
   }
 
-  public function previousMatches() {
-    return $this->getTournament()->getPreviousMatches($this);
-  }
  /**
   * Adds an empty game to this match
   *

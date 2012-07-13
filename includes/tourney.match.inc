@@ -82,8 +82,6 @@ function tourney_match_form($form, &$form_state, $match) {
 
   $cid = 0;
   foreach (array(1,2) as $slot) {
-    //if ( $contestant != NULL ) continue;
-
     // @todo: replace code below with a scalable contestant field code with a list of text boxes
     $contestant = $match->getContestant($slot);
     $form['contestant' . $slot] = array(
@@ -135,7 +133,9 @@ function tourney_match_form($form, &$form_state, $match) {
     );
 
     foreach ($match->getGames() as $id => $game) {
-      if ( !$game->getWinner() ) continue;
+      if (!$game->getWinner()) {
+        continue;
+      }
       $form['fix_games']['game.' . $id] = array(
         '#type' => 'radios',
         '#title' => t('Game @id', array('@id' => $id)),
