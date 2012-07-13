@@ -80,6 +80,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   }
   
   $vars['contestants'] = $contestant_output;
+  $vars['has_children'] = isset($vars['match']['children']);
 }
 
 /**

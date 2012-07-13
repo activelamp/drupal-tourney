@@ -8,5 +8,8 @@
 ?>
 <?php print $match['id']; ?>
 <div class="match">
+  <?php if ($has_children): ?>
+    <div class="connector to-children <?php print $children_classes; ?>"></div>
+  <?php endif; ?>
   <?php print $contestants; ?>
 </div>

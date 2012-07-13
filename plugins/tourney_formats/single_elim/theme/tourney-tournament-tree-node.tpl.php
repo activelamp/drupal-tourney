@@ -19,10 +19,7 @@
     </div>
   <?php endif; ?>
   <div class="parent">
-    <?php if ($has_children): ?>
-      <div class="connector to-children <?php print $children_classes; ?>"><div class="path"></div></div>
-    <?php endif; ?>
-    <?php print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin)); ?>
+    <?php print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin, 'children_classes' => $children_classes)); ?>
     <div class="connector to-parent<?php print $is_child ? ' child-' . $node['child'] : ''; ?>">
       <div class="path"></div>
     </div>
