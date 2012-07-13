@@ -1,3 +1,40 @@
+.tourney-tournament .match {
+  width: 120px;
+}
+
+.tourney-tournament .match {
+  background: #E0E0E0;
+  border-radius: 7px;
+}
+
+.tourney-tournament .match:hover {
+  background: #E8E8E8;
+}
+
+.tourney-tournament .match .contestant {
+  padding: 0 7px;
+}
+
+.tourney-tournament .match .contestant:hover {
+  background: #F0F0F0;
+}
+
+.tourney-tournament .match .contestant .seed {
+  padding: 0 0.7em 0 0;
+  font-size: 0.7em;
+  float: left;
+  color: #888;
+}
+
+.tourney-tournament .match .contestant-1 {
+  border-radius: 7px 7px 0 0;
+}
+
+.tourney-tournament .match .contestant-2 {
+  border-radius: 0 0 7px 7px;
+  border-top: 1px solid #888;
+}
+
 #tourney-configuration .select-all {width:50px;}
 
 .field-label{font-weight:bold;}
@@ -30,9 +67,6 @@
 .match .label {
   font-size:0.7em;
 }
-/**
- * Match theming should update .match-spacer.small as well to exactly 50% of .match height
- */
 
 .tourney .match {
   height: 4em;
@@ -84,8 +118,6 @@
 .tourney .contestant.contestant-spacer {
   visibility: hidden;
 }
-
-/* Pretty sure this flow theming needs to be redone */
 
 .tourney .match .flow {
   height: 100%;
@@ -156,7 +188,6 @@
   border-width: 0 0 1px;
 }
 
-/* FLOW HIGHLIGHT THEMING */
 
 .tourney .match .flow.bracket-highlight .flow-control {
   border-color: #AAAA00;
@@ -203,14 +234,14 @@
   border-style: dotted;
 }
 
-/* SINGLE */
+
 
 .tourney-single .round {
   width: 12em;
   float: left;
 }
 
-/* DOUBLE */
+
 
 .tourney-double .bracket-bottom {
   clear: left;
@@ -225,7 +256,6 @@
   float: left;
 }
 
-/* ROUND ROBIN */
 
 .tourney-roundrobin .match {
   width: 12em;
@@ -241,18 +271,17 @@
 
 
 
-/* EXAMPLE THEMING */
 
-#page .contestant {
+#page .tourney .contestant {
   height: 21px;
   line-height: 21px;
 }
 
-#page .contestant-1 {
+#page .tourney .contestant-1 {
   margin-top: 5px;
 }
 
-.match .match-title {
+.tourney .match .match-title {
   left: 0;
   position: absolute;
   text-align: center;
@@ -260,6 +289,6 @@
   width: 87%;
 }
 
-#page .contestant.winner {
+.contestant.winner {
   background: #F1F178;
 }

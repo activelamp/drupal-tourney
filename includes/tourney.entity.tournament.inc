@@ -5,7 +5,7 @@
  * Tournament class.
  */
 
-class TourneyTournament extends TourneyEntity {
+class TourneyTournamentEntity extends TourneyEntity {
 
   public  $matchIds = NULL;
   public  $gameIds = NULL;
@@ -29,18 +29,11 @@ class TourneyTournament extends TourneyEntity {
     // available.
     // @todo : Lazy load this?
     if (!empty($this->players)) {
-      // Ensure that matches have been created before retreving them.
-      if ($this->matches_created) {
-        $this->matchIds = $this->getMatchIds();
-        $this->gameIds = $this->getGameIds();
-      }
-
       $tourneyFormatPlugin = $this->format;
       if (!class_exists($tourneyFormatPlugin)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }
-      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this);
-      $this->data = $this->tourneyFormatPlugin->structure();
+      $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this->players, $this);
 
       // Add a url to the object
       $this->uri = $this->getUri();
@@ -81,11 +74,11 @@ class TourneyTournament extends TourneyEntity {
    *   An array of match entity ids.
    */
   public static function fetchGameIds($tournament_id) {
-    $match_ids = TourneyTournament::fetchMatchIds($tournament_id);
+    $match_ids = TourneyTournamentEntity::fetchMatchIds($tournament_id);
 
     $game_ids = array();
     foreach ($match_ids as $mid) {
-      $game_ids = TourneyMatch::fetchGameIds($mid);
+      $game_ids = TourneyMatchEntity::fetchGameIds($mid);
     }
 
     return $game_ids;
@@ -97,9 +90,39 @@ class TourneyTournament extends TourneyEntity {
    */
   public function getMatchIds() {
     if (empty($this->matchIds)) {
-      $this->matchIds = TourneyTournament::fetchMatchIds($this->id);
+      $this->matchIds = TourneyTournamentEntity::fetchMatchIds($this->id);
     }
     return $this->matchIds;
+  }
+  
+  /**
+   * Retrieve a match by machine name.
+   * 
+   * @param $mid
+   *   The match number to get
+   * @return
+   *   A fully loaded match object. 
+   */
+  public function getMatchById($mid) {
+    $entity_id = db_query("SELECT id FROM {tourney_match} WHERE name = :name",
+      array(':name' => $this->name . '_match-' . $mid))
+      ->fetchField();
+  
+    return $entity_id  > 0 ? tourney_match_load($entity_id) : NULL;
+  }
+  
+  /**
+   * Retrieve a match by machine name.
+   * 
+   * @param $mid
+   *   The match number to get
+   * @return
+   *   The URI to the match as a string. 
+   */
+  public function getMatchURI($mid) {
+    $entity = $this->getMatchById($mid);
+    
+    return is_object($entity) ? $entity->uri : NULL;
   }
 
   /**
@@ -108,7 +131,7 @@ class TourneyTournament extends TourneyEntity {
    */
   public function getGameIds() {
     if (empty($this->gameIds)) {
-      $this->gameIds = TourneyMatch::fetchGameIds($this->getMatchIds());
+      $this->gameIds = TourneyMatchEntity::fetchGameIds($this->getMatchIds()); 
     }
     return $this->gameIds;
   }
@@ -172,17 +195,25 @@ class TourneyTournament extends TourneyEntity {
   }
 
   /**
-   * Determine if a tournament is finished (when all matches are finished).
+   * Report if a tournament is finished.
    *
-   * @return bool
-   *   Return TRUE if the tournament is finished.
+   * @param TourneyTournamentEntity $tournament
+   *
+   * @return bool $finished
+   *   Will report TRUE if the tournament is finished, FALSE if not.
    */
-  public function isFinished() {
-    if (is_null($this->tournamentFinished)) {
-      $this->tournamentFinished = $this->tourneyFormatPlugin->isFinished($this);
+  function isFinished() {
+    $matches = tourney_match_load_multiple($this->getMatchIds());
+    if (!empty($matches)) {
+      foreach ($matches as $match) {
+        // Delegate the checking to the match to see if each match is finished
+        if (!$match->isFinished()) {
+          return FALSE;
+        }
+      }
+      return TRUE;
     }
-
-    return $this->tournamentFinished;
+    throw new Exception(t('There are no matches for this tournament'));
   }
 
   /**
@@ -190,10 +221,21 @@ class TourneyTournament extends TourneyEntity {
    */
   public function determineWinner() {
     if ($this->isFinished()) {
-      $this->tourneyFormatPlugin->determineWinner($this);
+      $ranks = $this->fetchRanks();
+      $standings = $this->getStandings();
+
+      // todo : remove quick hack, implement custom uasort callback.
+      foreach ($standings as $key => $standing) {
+        $winners[$key] = $standing['wins'];
+      }
+      arsort($winners);
+
+      $keys = array_keys($winners);
+      $this->winner = $keys[0];
+      $this->save();
     }
     else {
-      if ( $this->winner ) {
+      if ($this->winner) {
         $this->winner = NULL;
         $this->save();
       }
@@ -213,7 +255,7 @@ class TourneyTournament extends TourneyEntity {
    * Return the uri to the entity object
    */
   public function getUri() {
-    return TourneyTournament::path($this->id);
+    return TourneyTournamentEntity::path($this->id);
   }
 
   /**
@@ -242,15 +284,14 @@ class TourneyTournament extends TourneyEntity {
   public function save() {
     // Store the is_new property in local variable. The property is no longer
     // there after the entity is initially saved.
-    // @todo: Change the is_new property if this entity patch gets in:
-    //   Patch at - http://drupal.org/node/1558266
     $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
     parent::save();
 
     // Create the matches and first game if new tournament.
     if ($new) {
-      $controller = new TourneyController($this);
-      $controller->createMatches();
+      $controller = TourneyController::loadPlugin($this);
+      $controller->build();
+      $controller->saveMatches();
 
       // Update the tournament with the number of matches created
       $this->matches_created = count($this->getMatchIds());
@@ -259,13 +300,40 @@ class TourneyTournament extends TourneyEntity {
   }
 
 /**
- * Gets a list of participating contestants in seed order
+ * Gets a list of participating contestants in seed order from the first round.
  *
  * @return array $contestants
- *   List of contestants, all entities
+ *   List of contestants, all entities from the first round of a tournament.
  */
   public function getContestants() {
-    return $this->tourneyFormatPlugin->getContestants();
+    if (is_null($this->contestants)) {
+      $matches = $this->tourneyFormatPlugin->data['matches'];
+      
+      // Set up two arrays to fill for seed order
+      $seed_1 = array();
+      $seed_2 = array();
+      foreach ($matches as $mid => $match_info) {
+        if ($match_info['round'] == 1) {
+          // If the match is a bye, get the next match id
+          if (array_key_exists('bye', $match_info) && $match_info['bye'] == TRUE) {
+            $mid = $match_info['nextMatch']['winner']['id'];
+          }
+          
+          $match = $this->tourneyFormatPlugin->getMatchById($mid);
+          if (is_object($match)) {
+            $seed = 1;
+            foreach ($match->getMatchContestants() as $eid => $contestant) {
+              $group = "seed_" . $seed++;
+              ${$group}[$eid] = $contestant;
+            }
+          }
+        }
+      }
+      // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
+      $this->contestants = array_merge($seed_1, array_reverse($seed_2));
+    }
+    
+    return $this->contestants;
   }
 
 /**
@@ -281,13 +349,17 @@ class TourneyTournament extends TourneyEntity {
     foreach ($matches as $match) {
       $match = entity_load_single('tourney_match', $match);
       // If a match hasn't been won yet, don't count its games
-      if ( !$match->getWinner() ) continue;
-      foreach ( $match->getContestantIds() as $var => $contestant ) {
+      if (!$match->getWinner()) {
+        continue;
+      }
+      foreach ($match->getContestantIds() as $var => $contestant) {
         // If the standings array doesn't have this contestant yet, add it
-        if ( !array_key_exists($eid = $contestant['eid'], $standings) )
+        if (!array_key_exists($eid = $contestant['eid'], $standings)) {
           $standings[$eid] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
+        }
+          
         // Tally either as a winner or a loser, then up the total matches played
-        if ( $match->getWinner() == $eid ) {
+        if ($match->getWinner() == $eid) {
           $standings[$eid]['wins']++;
         }
         else {
@@ -295,170 +367,59 @@ class TourneyTournament extends TourneyEntity {
         }
         $standings[$eid]['total']++;
         // First is used for the rare case of ties, just to see who won first
-        if ( $standings[$eid]['first'] == -1 )
+        if ($standings[$eid]['first'] == -1) {
           $standings[$eid]['first'] = $i++;
+        }
       }
     }
     return $standings;
   }
-
- /**
-  * Retrieve the callback from the plugin for next match and pass and delegate
-  * responsibility to the plugin.
-  *
-  * @param $match
-  *   Match object to compare with the internal matchIds property to get its
-  *   match placement
-  * @param $direction
-  *   Either 'winner' or 'loser'
-  * @return $match
-  *   Match entity of the desired match, otherwise NULL
-  */
-  public function getNextMatch($match, $direction = 'winner') {
-    $plugin =& $this->tourneyFormatPlugin;
-    if ( !array_key_exists($match->entity_id, $plugin->flowMap) ) {
-      $plugin->flowMap[$match->entity_id] = array();
-    }
-    if ( !array_key_exists($direction, $plugin->flowMap[$match->entity_id]) ) {
-      // Get the callback for this match
-      $info = $match->matchInfo;
-      if ( !$info ) return NULL;
-      if ( !method_exists($plugin, $info['next_match']['callback']) ) return NULL;
-      $plugin->flowMap[$match->entity_id][$direction] = $plugin->$info['next_match']['callback']($match, $direction);
-    }
-    return $plugin->flowMap[$match->entity_id][$direction];
-  }
-
- /**
-  * Iterate and cache all the tournament's matches' next matches.
-  *
-  */
-  public function populateFlowMap() {
-    $populated = &drupal_static(__FUNCTION__, FALSE);
-    $plugin =& $this->tourneyFormatPlugin;
-    if ( !$populated ) {
-      $matches = entity_load('tourney_match', $this->getMatchIds());
-      foreach ( $matches as $match ) {
-        foreach ( $plugin->directions as $direction ) {
-          $this->getNextMatch($match, $direction);
-        }
-      }
-      $populated = TRUE;
-    }
-    return $plugin->flowMap;
-  }
-
- /**
-  * Get the parent matched to the provided match. Logic will go through
-  * and populate the flow map to obtain all next matches and get all
-  * matches who lead to the provided.
-  *
-  * @param $match
-  *   Match object
-  * @return $match
-  *   Array of entities of the desired match
-  */
-  public function getPreviousMatches($match) {
-    $this->populateFlowMap();
-    $plugin =& $this->tourneyFormatPlugin;
-    $matches = array();
-    foreach ( $plugin->flowMap as $pid => $flow ) {
-      foreach ( $flow as $dir => $child ) {
-        if ( $child && $child->entity_id == $match->entity_id )
-          $matches[] = $pid;
-      }
-    }
-    return array_values(entity_load('tourney_match', $matches));
-  }
-
+  
+  /**
+   * Renders the bracket of the tournament.
+   */
   public function render() {
-    $info = $this->tourneyFormatPlugin->getPluginInfo(get_class($this->tourneyFormatPlugin));
-
-    // Build a classes array for the tournament wrapper
-    $classes_array = array('tourney', "tourney-" . $info['machine name']);
-    $classes_array[] = $this->get('hide_byes') ? 'hide-byes' : '';
-    $output = "<div class='" . join(" ", $classes_array) . "'><div class='tourney-inner'>";
-    $output .= $this->tourneyFormatPlugin->render();
-    $output .= "</div></div>";
-    return $output;
+    return $this->tourneyFormatPlugin->render();
   }
 
   /**
    * Function to determine if a match can be edited
    *
-   * @param $match
-   *   Match object
+   * @param $mid
+   *   The match machine name from the plugin
    * @return
    *   Bitwise value with contestant slots turned on (slot 1 in right most position)
    */
-  public function canSetContestants($match) {
+  public function canSetContestants($mid) {
     $return = 0;
-                             
+    $match = $this->getMatchById($mid);
+    
     // If no automation is turned on, we should be able to edit both contestants.
     if ($this->get('no_automation', FALSE)) {
       return 0x3;
     }
-    if (user_access("edit tourney") == FALSE || count($match->getGameIds()) > 1) {
+    if ((user_access('administer tourney') == FALSE && user_access("edit tourney") == FALSE) 
+      || count($match->getGameIds()) > 1) {
       return FALSE;
     }
-    
-    $roundinfo = $match->matchInfo['round'];
-    if ($this->get('hide_byes') &&
-      array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
+    $round = $match->matchInfo['round'];
+    if (!$this->get('show_byes') && $round == 2) {
        $match->findSeedInfo();
     }
+    
     // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
-    if ($roundinfo['id'] == 1 && $match->matchInfo['bracket']['id'] === 'main') {
+    if ($round == 1 && $match->matchInfo['bracket'] === 'main') {
       // Both slots can be set
       $return = 0x3;
     }
-    elseif (array_key_exists('seed_position', $match->matchInfo)) {
-      foreach (array(0,1) as $slot) {
-        if (array_key_exists($slot, $match->matchInfo['seed_position'])) {
-          $return += ($slot + 1);
+    elseif (array_key_exists('seeds', $match->matchInfo)) {
+      foreach (array(1,2) as $slot) {
+        if (array_key_exists($slot, $match->matchInfo['seeds'])) {
+          $return += $slot;
         }
       }
     }
     return $return;
-  }
-
-  /**
-   * Deprecated function. Use the structure in plugin instead.
-   *
-   * Return all the matches that have a relation 'has_match' with the passed
-   * in tournament object.
-   *
-   * @param $raw
-   *   If set to true only return the matches, do not return brackets and
-   *   rounds with it.
-   * @param $reset
-   *   Boolean to reset the cache.
-   * @return
-   *   An array of all the rounds and matches.
-   */
-  public function buildMatches($raw = FALSE, $reset = FALSE) {
-    $relations = relation_query('tourney_tournament', $this->id)
-      ->entityCondition('bundle', 'has_match')
-      ->execute();
-
-    $brackets = array();
-    foreach ( $relations as $rid => $relation ) {
-      $relation = relation_load($rid);
-      $bracket  = $relation->bracket[LANGUAGE_NONE][0]['safe_value'];
-      $round    = $relation->round[LANGUAGE_NONE][0]['safe_value'];
-
-      $match    = $relation->endpoints[LANGUAGE_NONE][1]['entity_id'];
-      $match    = entity_load_single('tourney_match', $match);
-
-      if ( !array_key_exists($bracket, $brackets) )
-        $brackets[$bracket] = array();
-      if ( !array_key_exists($round, $brackets[$bracket]) )
-        $brackets[$bracket][$round] = array();
-      if (is_object($match))
-        $brackets[$bracket][$round][$match->entity_id] = $match;
-    }
-
-    return $brackets;
   }
 
   /**
@@ -472,29 +433,94 @@ class TourneyTournament extends TourneyEntity {
   public function matchIsWon($match) {
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
-    if (!$info || !method_exists($plugin, $info['is_won']['callback'])) {
-      return NULL;
-    }
     $match->cleanGames();
     $this->determineWinner();
     
-    if (!$this->get('no_automation', FALSE)) {
-      $plugin->$info['is_won']['callback']($match); 
+    if (!$this->get('no_automation', FALSE) || $this->format != 'RoundRobinController') {
+        if (!$match->isFinished()) {
+          return;
+        }
+        // clear winner and loser so we can get a fresh winner, just in case
+        $match->clearWinner();
+        $winner = $match->getWinnerEntity();
+        $loser = $match->getLoserEntity();
+        
+        if ($match->nextMatch('winner')) {
+          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+          $match->nextMatch('winner')->addContestant($winner, $slot);
+        }
+        if ($match->nextMatch('loser')) {
+          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
+          $match->nextMatch('loser')->addContestant($loser, $slot);
+        }
     }
   }
-
+  
+  /**
+   * Recursive function that sets players in a RoundRobin tournament in all their
+   * matches once the first round has been setup.
+   *
+   * @param $mid
+   *   The match id from the plugin.
+   */
+    public function populateRoundRobinMatches($mid) {
+      $match = $this->getMatchById($mid);
+      if (array_key_exists('nextMatch', $match->matchInfo)) {
+        foreach ($match->getMatchContestants() as $contestant) {
+          $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
+          $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];
+          
+          
+          if ($next === NULL) continue;
+          
+          $next_match = $this->getMatchById($next);
+          $next_match->addContestant($contestant, $next_slot);
+          
+          // Recurse
+          $this->populateRoundRobinMatches($next);
+        }
+      }
+      
+    }
+  
+  /**
+   * Get settings from tourney settings.
+   * 
+   * @param $name
+   *   The name of the setting to retrieve, or pass in **ALL** to retrieve all
+   *   settings for the current tournament.
+   * @param $default
+   *   If the setting does not exists, the default value to return.
+   */
   public function get($name, $default = NULL) {
-    // if (!property_exists($this, 'entity_id')) {
-    //   return isset($this->config[$name]) ? $this->config[$name] : $default;
-    // }
+    if (!property_exists($this, 'entity_id')) {
+      if ($name == '**ALL**') {
+        return isset($this->config) ? $this->config : array();
+      }
+      return isset($this->config[$name]) ? $this->config[$name] : $default;
+    }
 
     global $_tourney_config;
-    if ( !isset($_tourney_config) ) tourney_initialize_configuration();
+    if (!isset($_tourney_config)) {
+      tourney_initialize_configuration();
+    }
     
+    if ($name == '**ALL**') {
+      return !empty($this->id) && !empty($_tourney_config[$this->id]) 
+        ? $_tourney_config[$this->id] : array();
+    }
     return !empty($this->id) && !empty($_tourney_config[$this->id][$name]) 
       ? $_tourney_config[$this->id][$name] : $default;
   }
-
+  
+  /**
+   * Set a setting in tourney configuration table
+   * 
+   * @param $name
+   *   The name of the setting to store.
+   * @param $value
+   *   The value to store for the setting.
+   */
   public function set($name, $value) {
     global $_tourney_config;
     if ( !isset($_tourney_config) ) tourney_initialize_configuration();

@@ -2,535 +2,363 @@
 
 /**
  * @file
- * Single elimination controller.
+ * Single elimination controller, new system.
  */
 
 /**
- * A class defining how matches are created for this style tournament.
+ * A class defining how matches are created, and rendered for this style
+ * tournament.
  */
-class SingleEliminationController extends TourneyController implements TourneyControllerInterface {
-
+class SingleEliminationController extends TourneyController {
   public $slots;
-  protected $tournament;
-  protected $rounds;
-  protected $matches;
-  protected $seedPositions = NULL;
-  public $flowMap = array();
-  public $directions = array('winner');
 
   /**
    * Constructor
-   *
-   * @todo The methods in this constuctor should be moved out and called
-   *   explicitly when building tournaments.
    */
-  public function __construct(TourneyTournament $tournament) {
-    $this->tournament = $tournament;
-
-    if (!empty($tournament->players) && $tournament->players > 0) {
-      // Populate the object with some meta data.
-      $this->calculateRounds($tournament->players);
-    }
+  public function __construct($numContestants, $tournament = NULL) {
     parent::__construct();
-  }  
+    // Set our contestants, and then calculate the slots necessary to fit them 
+    $this->numContestants = $numContestants;  
+    $this->slots = pow(2, ceil(log($this->numContestants, 2)));
+    $this->tournament = $tournament;
+  }
   
   /**
-   * Default options form that provides the label widget that all fields
-   * should have.
+   * Options for this plugin.
    */
   public function optionsForm(&$form_state) {
+    $this->getPluginOptions();
+    $options = $this->pluginOptions;
+    $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
+    
     $form['third_place'] = array(
       '#type' => 'checkbox',
       '#title' => t('Generate a third place match'),
       '#description' => t('By checking this option, a Consolation bracket will be created with one match to determine third place.'),
-      '#default_value' => '',
+      '#default_value' => array_key_exists('third_place', $plugin_options) 
+        ? $plugin_options['third_place'] : -1,
+      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
     );
     
     return $form;
   }
-
+  
   /**
-   * Slots getter function
-   *
-   * @return $slots
+   * Theme implementations specific to this plugin.
    */
-  public function getSlots() {
-    return $this->slots;
+  public static function theme($existing, $type, $theme, $path) {
+    return parent::theme($existing, $type, $theme, $path) + array(
+      'tourney_tournament_tree_node' => array(
+        'variables' => array('plugin' => NULL, 'node' => NULL),
+        'path' => $path . '/theme',
+        'file' => 'preprocess_tournament_tree_node.inc',
+        'template' => 'tourney-tournament-tree-node',
+      ),
+    );
+  }
+  
+  /**
+   * Preprocess variables for the template passed in.
+   * 
+   * @param $template
+   *   The name of the template that is being preprocessed.
+   * @param $vars
+   *   The vars array to add variables to.
+   */
+  public function preprocess($template, &$vars) {
+    if ($template == 'tourney-tournament-render') {
+      $vars['classes_array'][] = 'tourney-tournament-tree';
+      $vars['matches'] = '';
+      $node = $this->structure['tree'];
+      
+      // Set the matches variable.
+      if (!empty($this->pluginOptions) && $this->pluginOptions[get_class($this)]['third_place']) {
+        // Don't try to render the children of a third place match.
+        unset($node['children']);
+        
+        // New tree should start from the second to last match.
+        $match = $this->data['matches'][$node['id'] - 1];
+        $last_node = $this->structureTreeNode($match); 
+        
+        // Render the consolation bracket out.
+        $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $last_node));
+      }
+      $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $node));
+    }
   }
 
   /**
-   * Build the Single Elimination match list.
-   *
-   * @return $matches
-   *   A flat array that can be used by TourneyController::saveMatches().
+   * This builds the data array for the plugin. The most important data structure
+   * your plugin should implement in build() is the matches array. It is from 
+   * this array that matches are saved to the Drupal entity system using 
+   * TourneyController::saveMatches().
    */
   public function build() {
-    $matches = array();
-    $structure = $this->structure();
-    foreach ($structure as $bracket_name => $bracket_info) {
-      foreach ($bracket_info['rounds'] as $round_name => $round_info) {
-        foreach ($round_info['matches'] as $match_name => $match_info) {
-          $matches[] = array(
-            'bracket_name' => $bracket_name,
-            'round_name' => $round_name,
-            'match_name' => $match_name,
-            'match_info' => $match_info,
-          );
-        }
+    $this->buildBrackets();
+    $this->buildMatches();
+    $this->buildGames();    
+    
+    // Check to see if we need to create a consolation bracket and matches.
+    $this->getPluginOptions();
+    $options = $this->pluginOptions;
+    $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
+    if (!empty($plugin_options) && $plugin_options['third_place']) {
+      // Add the third place match to the data.
+      $this->buildThirdPlace();
+    }
+    
+    $this->data['contestants'] = array();     
+    
+    // Calculate and set the match pathing
+    $this->populatePositions();
+    // Set in the seed positions
+    $this->populateSeedPositions();
+  }
+  
+  public function buildBrackets() {
+    $this->data['brackets']['main'] = $this->buildBracket(array(
+      'id' => 'main',
+      'rounds' => log($this->slots, 2),
+    ));
+  }
+  
+  public function buildMatches() {
+    $slots = $this->slots;
+    $match = &drupal_static('match', 0);
+    $round = &drupal_static('round', 0);
+    
+    // Calculate and iterate through rounds and their matches based on slots
+    while (($slots /= 2) >= 1) {
+      // Add current round information to the data array
+      $this->data['rounds'][++$round] = 
+        $this->buildRound(array('id' => $round, 'bracket' => 'main'));
+
+      // Add in all matches and their information for this round
+      foreach (range(1, $slots) as $roundMatch) {
+        $this->data['matches'][++$match] = 
+          $this->buildMatch(array(
+            'id' => $match,
+            'round' => $round,
+            'roundMatch' => (int) $roundMatch,
+            'bracket' => 'main',
+          ));
       }
     }
-
-    $this->matches = $matches;
-    return $this->matches;
   }
-
-  /**
-   * Rounds contestants up to the nearest power of two, and also sets and returns
-   * the number of rounds
-   *
-   * @return $rounds
-   *   Number of rounds needed from the given contestants
-   */
-  public function calculateRounds($contestants = NULL) {
-    // Populate contestants with our internal value if no argument given
-    if ( $contestants == NULL ) $contestants = $this->slots;
-    // @todo: perhaps change this to a maximum contestants with validation to keep it a power of two?
-    $max_contestants = pow(2, MAXIMUM_ROUNDS);
-    // Display an error if the maximum was pushed over
-    if ( $contestants > $max_contestants ) {
-      drupal_set_message(check_plain(t('Tournaments can only be !num rounds at the most with !player contestants. Some teams will not be able to play.',
-        array('!num' => MAXIMUM_ROUNDS, '!player' => $maximum_contestants))), 'warning');
-      $contestants = $max_contestants;
+  
+  public function buildGames() {
+    foreach ($this->data['matches'] as $id => &$match) {
+      $this->data['games'][$id] = $this->buildGame(array(
+        'id' => $id,
+        'match' => $id,
+        'game' => 1, 
+      ));
+      $this->data['matches'][$id]['games'][] = $id;
     }
-    // ceil(log2(n)) will get up the minimum number of rounds required for n contestants
-    $this->rounds = ceil(log($contestants, 2));
-    // The rounded round count will reaffirm our contestants are a power of two
-    $this->slots = pow(2, $this->rounds);
-    return $this->rounds;
+  }
+  
+  public function buildThirdPlace() {
+    $match = &drupal_static('match', 0);
+    
+    $this->data['brackets']['consolation'] = $this->buildBracket(array('id' => 'consolation'));
+    
+    $this->data['matches'][++$match] = $this->buildMatch(array(
+      'id' => $match,
+      'round' => 1,
+      'roundMatch' => 1,
+      'bracket' => 'consolation',
+    ));
+    
+    // Populate positions for third place match.
+    $this->populatePositionsThirdPlace();
+  }
+  
+  /**
+   * Find and populate next/previous match for third place.
+   */
+  public function populatePositionsThirdPlace() {
+    $count = count($this->data['matches']);
+    $this->data['matches'][$count]['previousMatches'] = array($count - 3, $count - 2);
+    
+    // Set the next match for losers.
+    foreach ($this->data['matches'][$count]['previousMatches'] as $mid) {
+      $this->data['matches'][$mid]['nextMatch']['loser']['id'] = $count;
+    }
   }
 
+
   /**
-   * Calculate the starting seed positions.
-   *
-   * @return $matches
-   *   An array of match pairs with seed numbers, or NULL for bye slots.
+   * Find and populate next/previous match pathing on the matches data array for
+   * each match.
    */
-  public function calculateSeedPositions($num_contestants, $reset = FALSE) {
-    if ( $reset || $this->seedPositions === NULL ) {
-      // Initialize a the first match in the first round matches.
-      $first_round_matches = array(array(1, 2));
-      $num_first_round_matches = pow(2, $this->rounds) / 2;
-
-      // Continue to find seed positions until we have all the first round
-      // matches populated, based on the number of "real" matches (w/o byes).
-      //
-      // $first_round_matches array contains that matches that have already
-      // been populated from this method.
-      while(count($first_round_matches) < $num_first_round_matches) {
-        // The $multiplier is the number we need to multiply the number of
-        // currentlybuilt rounds to get the seed position number of the very
-        // last place.
-        $multiplier = 4;
-        // Last seed position plus 1
-        $last_seed_position = (count($first_round_matches) * $multiplier) + 1;
-
-        $new_matches = array();
-        // Go through each match already created and update according to what
-        // the latest seed positions being added to tournament.
-        foreach ($first_round_matches as $match) {
-          foreach ($match as $seed_position) {
-            // Match the current seed_position being processed with the
-            // last_seed_position - this seed_position. If the last seed
-            // position doesn't exist, create a bye.
-            if ($last_seed_position - $seed_position <= $num_contestants) {
-              $new_matches[] = array($seed_position, $last_seed_position - $seed_position);
-            }
-            else {
-              // Create a bye match.
-              $new_matches[] = array($seed_position, NULL);
-            }
-          }
-        }
-        $first_round_matches = $new_matches;
+  public function populatePositions() {
+    $top_matches = $this->slots - 1;
+    // Go through all the matches
+    $count = count($this->data['matches']);
+    foreach ($this->data['matches'] as $id => &$match) {
+      // Nothing to do for the last match, continue.
+      if ($id == $top_matches || $id == $count) {
+        continue;
       }
-      $this->seedPositions = $first_round_matches;
-    }
-    return $this->seedPositions;
-  }
-
-  /**
-   * Determine if byes in the previous round create manual slots in this round
-   */
-  protected function setByeManuals($matches, $round = 2) {
-    foreach ($matches['round-'. $round] as $m => $match) {
-      // Look at each match in this round
-
-      foreach (array('previous-1', 'previous-2') as $previous) {
-        // set_match_path() gave us a path to follow back to the matches that
-        // fed into this one.
-
-        // Navigate to the previous match. $child will be the previous match.
-        $parents = explode('_', $match[$previous]);
-        array_shift($parents);  // shift off bracket
-        $child = $matches;
-        while ($parent = array_shift($parents)) {
-          $child = $child[$parent];
-        }
-
-        if ($child['contestant-2'] == 'bye') {
-          // Only contestant 2 can be a bye. If this match was a bye, set the
-          // current contestant to manual select
-
-          $current_contestant = ($previous == 'previous-1' ? 'contestant-1' : 'contestant-2');
-          $matches['round-'. $round][$m][$current_contestant] = 'manual';
-        }
+      
+      $next = $this->calculateNextPosition($match, 'winner');
+      if ($next) {
+        $match['nextMatch']['winner'] = $next;
+        $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
       }
     }
-    return $matches;
   }
 
   /**
-   * Sets the winner property and saves tournament.
-   *
-   * Retrieves rankings and sorts the list by total number of winnings. Sets
-   * winner to the first contestant in the ranking list.
-   *
-   * @param TourneyTournament $tournament
-   *
-   * @return TourneyTournament $this
-   *   Returns $this for chaining.
+   * Calculate and fill seed data into matches. Also marks matches as byes if
+   * the match is a bye.
    */
-  public function determineWinner($tournament) {
-    if ( !$this->isFinished($tournament) ) return $tournament;
-    $ranks = $tournament->fetchRanks();
-    $standings = $tournament->getStandings();
-
-    // todo : remove quick hack, implement custom uasort callback.
-    foreach ($standings as $key => $standing) {
-      $winners[$key] = $standing['wins'];
-    }
-    arsort($winners);
-
-    $keys = array_keys($winners);
-    $tournament->winner = $keys[0];
-    $tournament->save();
-
-    return $tournament;
-  }
-
-  /**
-   * Report if a tournament is finished.
-   *
-   * @param TourneyTournament $tournament
-   *
-   * @return bool $finished
-   *   Will report TRUE if the tournament is finished, FALSE if not.
-   */
-  function isFinished($tournament) {
-    $matches = tourney_match_load_multiple($tournament->getMatchIds());
-    if (!empty($matches)) {
-      foreach ($matches as $match) {
-        // Delegate the checking to the match to see if each match is finished
-        if (!$match->isFinished()) {
-          return FALSE;
-        }
+  public function populateSeedPositions() {
+    $this->calculateSeeds();
+    // Calculate the seed positions, then apply them to their matches while
+    // also setting the bye boolean
+    foreach ($this->data['seeds'] as $id => $seeds) {
+      $match =& $this->data['matches'][$id];
+      $match['seeds'] = $seeds;
+      $match['bye'] = $seeds[2] === NULL;
+      if ($match['bye'] && isset($match['nextMatch'])) {
+        $slot = $match['id'] % 2 ? 1 : 2;
+        $this->data['matches'][$match['nextMatch']['winner']['id']]['seeds'][$slot] = $seeds[1];
       }
-      return TRUE;
     }
-    throw new Exception(t('There are no matches for this tournament'));
   }
 
   /**
-   * Given a match place integer, returns the next match place based on either
-   * 'winner' or 'loser' direction. Calls the necessary tournament format
-   * plugin to get its result
-   *
-   * @param $match
-   *   Match object to compare with the internal matchIds property to get its
-   *   match placement
-   * @param $direction
-   *   Either 'winner' or 'loser'
-   * @return $match
-   *   Match entity of the desired match, otherwise NULL
+   * Generate a structure based on data
    */
-  public function getNextMatch($match, $direction = NULL) {
-    $ids = array_flip($this->tournament->getMatchIds());
-    $next = $this->calculateNextPosition($ids[$match->entity_id], $direction);
-    if ( $next === NULL ) return NULL;
-    $ids = array_flip($ids);
-    if ( !array_key_exists((int)$next, $ids) ) return NULL;
-    return entity_load_single('tourney_match', $ids[$next]);
+  public function structure($type = 'nested') {
+    switch ($type) {
+      case 'nested':
+        $this->structure['nested'] = $this->structureNested();
+        break;
+      case 'tree':
+        $this->structure['tree'] = $this->structureTree();
+        break;
+    }
+    return $this->structure[$type];
   }
 
-  public function getPreviousMatches($match) {
-    $ids = array_flip($this->tournament->getMatchIds());
-    $prevs = $this->calculatePreviousPositions($ids[$match->id]);
-    if ( $prevs === NULL ) return array(NULL, NULL);
-    $ids = array_flip($ids);
-    return array_values(entity_load('tourney_match', array($ids[$prevs[0]], $ids[$prevs[1]])));
+  public function structureNested() {
+    $structure = array();
+    // Loop through our rounds and set up each one
+    foreach ($this->data['rounds'] as $round) {
+      $structure[$round['id']] = $round + array('matches' => array());
+    }
+    // Loop through our matches and add each one to its related round
+    foreach ($this->data['matches'] as $match) {
+      $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
+    }
+    return $structure;
   }
+
+  public function structureTree() {
+    $match = end($this->data['matches']);
+    return $this->structureTreeNode($match);
+  }
+
+  public function structureTreeNode($match) {
+    $node = $match;
+    if (isset($match['previousMatches'])) {
+      foreach ($match['previousMatches'] as $child) {
+        // If this is a feeder match, don't build child that goes to other bracket.
+        if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
+          continue;
+        }
+        $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
+      }
+    }
+    return $node;
+  }
+
+  /**
+   * Calculate contestant starting positions
+   */
+  public function calculateSeeds() {
+    // Set up the first seed position
+    $seeds = array(1);
+    // Setting a count variable lets us speed up execution by not calling it
+    // several times each iteration
+    $count = 0;
+    // Keep generating the series until we've met our number of slots
+    while (($count = count($seeds)) < $this->slots) {
+      $new_seeds = array();
+      // For every current seed number, we'll add in one after it that
+      // matches the current from the end of the new count.
+      // Example:
+      // (1, 2)
+      //   The new series will have 4 elements, which is the current * 2
+      // 4 - 1 = 3, however because we're 1-based, add 1: 4
+      //  (1, 4)
+      // 4 - 2 = 2 + 1 = 3
+      //  (2, 3)
+      // New series:
+      // (1, 4, 2, 3)
+      foreach ( $seeds as $seed ) {
+        $new_seeds[] = $seed;
+        $new_seeds[] = ($count * 2 + 1) - $seed;
+      }
+      // Set these changes to be iterated through again if necessary
+      $seeds = $new_seeds;
+    }
+    // Now that we've generated a full list of positions, fill them out into
+    // a series of matches with two positions per.
+    // Loop through each two of them, and fill out all the seeds as long as
+    // they're within the number of participating contestants.
+    $positions = array();
+    for ($p = 0; $p < $count; $p += 2) {
+      $a = $seeds[$p];
+      $b = $seeds[$p+1];
+      $positions[] = array(1 => $a, 2 => $b <= $this->numContestants ? $b : NULL);
+    }
+    // This logic changed our zero-based array to one-based so our match
+    // ids will line up
+    array_unshift($positions, NULL);
+    unset($positions[0]);
+    $this->data['seeds'] = $positions;
+  }
+
+  public function render() {
+    // Build our data structure
+    $this->build();
+    $this->structure('tree');
+    return theme('tourney_tournament_render', array('plugin' => $this));
+  }
+  
   /**
    * Given a match place integer, returns the next match place based on either
    * 'winner' or 'loser' direction
    *
-   * @param $place
-   *   Match placement, zero-based. round 1 match 1's match placement is 0
+   * @param $match_info
+   *   The match info data array created by a plugin.
    * @param $direction
    *   Either 'winner' or 'loser'
    * @return $place
    *   Match placement of the desired match, otherwise NULL
    */
-  protected function calculateNextPosition($place, $direction = 'winner') {
-    if ( $direction == 'loser' ) return NULL;
+  protected function calculateNextPosition($match_info, $direction = 'winner') {
     $matches = $this->slots - 1;
-    // If it's the last match, it doesn't go anywhere
-    if ( $place == $matches - 1 ) return NULL;
-    // Otherwise some math!
-    return ( ($matches + 1) / 2 ) + floor($place / 2);
-  }
-
-  protected function calculatePreviousPositions($place) {
-    $matches = $this->slots - 1;
-    if ( $place < $this->slots / 2 ) return NULL;
-    $first = ( $place * 2 ) - $this->slots;
-    return array($first, $first + 1);
-  }
-
-  /**
-   * Build an array with tournament structure data.
-   *
-   * @return $structure
-   *   An array of the tournament structure and meta data.
-   */
-  public function structure($type = 'rounds') {
-    static $last_type = '';
-    if ( $last_type === $type && property_exists($this, 'structure') ) return $this->structure;
-    $last_type = $type;
-    switch ($type) {
-      case 'rounds':
-        return $this->structure = $this->buildBracketByRounds($this->slots);
-      case 'tree':
-        return $this->structure = $this->buildBracketByTree($this->slots);
+    if (!array_key_exists('id', $match_info)) {
+      return;
     }
-  }
-
-  /**
-   * Build bracket structure and logic.
-   *
-   * @param $slots
-   *   The number of slots in the first round.
-   * @return
-   *   An array of bracket structure and logic.
-   */
-  protected function buildBracketByTree($slots) {
-    $num_matches = $slots - 1;
-    $num_rounds = log($slots, 2);
-    $bracket_info = array(
-      'id'    => 'main',
-      'name'  => 'bracket-main',
-      'title' => t('Main Bracket'),
-    );
-
-    if (!is_int($num_rounds)) {
-      // @todo: Acocunt for byes.
-    }
-
-    return $this->buildChildren($slots, $num_rounds, $num_matches, $bracket_info);
-  }
-
-  protected function buildChildren($slots, $round_num, $match_num, $bracket_info) {
-    $round_info = array(
-      'id'    => $round_num,
-      'name'  => 'round-' . $round_num,
-      'title' => $this->getRoundTitle(array('round_num' => $round_num, 'bracket' => $bracket_info['id'])),
-    );
-    $tree = $this->buildMatch($match_num, $round_info, $bracket_info);
-
-    if ($round_num > 1) {
-      $child_match_num = ($match_num - ($slots / 2)) * 2;
-      $tree['children'][] = $this->buildChildren($slots, $round_num - 1, $child_match_num - 1, $bracket_info);
-      $tree['children'][] = $this->buildChildren($slots, $round_num - 1, $child_match_num, $bracket_info);
-    }
-
-    return $tree;
-  }
-
-  /**
-   * Build bracket structure and logic.
-   *
-   * @param $slots
-   *   The number of slots in the first round.
-   * @return
-   *   An array of bracket structure and logic.
-   */
-  protected function buildBracketByRounds($slots) {
-    $bracket_info = array(
-      'id'    => 'main',
-      'name'  => 'bracket-main',
-      'title' => t('Main Bracket'),
-    );
-    $return = array(
-      'bracket-top' => $bracket_info + $this->buildRounds($slots, $bracket_info),
-    );
-    // Check to see if we need to create a consolation bracket  
-    if ($plugin_options = $this->tournament->get(__CLASS__, array())) {
-      $consolation_bracket_info = array(
-        'id'    => 'consolation',
-        'name'  => 'bracket-consolation',
-        'title' => t('Consolation Bracket'),
+    // Losers and last match, isn't handled here.
+    if ($direction == 'loser' || $match_info['id'] == $matches) {
+      return array(
+        'id' => NULL,
+        'slot' => NULL,
       );
-      
-      $return['bracket-consolation'] = $consolation_bracket_info + $this->buildRounds(2, $bracket_info);
     }
     
-    return $return;
-  }
-
-  /**
-   * Build rounds.
-   *
-   * @param $slots
-   *   The number of slots in the first round.
-   * @return
-   *   The rounds array completely built out.
-   */
-  protected function buildRounds($slots, $bracket_info) {
-    $rounds = array();
-    $round_num = 1;
-    $static_match_num = &drupal_static('match_num_iterator', 1);
-
-    for ($slots_left = $slots; $slots_left >= 2; $slots_left /= 2) {
-      $round_info = array(
-        'id'    => $round_num,
-        'name'  => 'round-' . $round_num,
-        'title' => $this->getRoundTitle(array('round_num' => $round_num, 'bracket' => $bracket_info['id'])),
-      );
-      $rounds['rounds']['round-' . $round_num] = $this->buildRound($slots_left, $round_info, $bracket_info);
-      $round_num++;
-    }
-
-    return $rounds;
-  }
-
-  protected function buildRound($slots, $round_info, $bracket_info) {
-    $static_match_num = &drupal_static('match_num_iterator', 1);
-    // Copy round info to the round level of the array for convenience.
-    $round = $round_info;
-
-    for ($match_num = 1; $match_num <= ($slots / 2); ++$match_num) {
-      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num, $round_info, $bracket_info);
-      $static_match_num++;
-    }
-
-    return $round;
-  }
-
-  /**
-   * Build out match data.
-   */
-  protected function buildMatch($match_num, $round, $bracket) {
-    $match = array();
-    $seed_positions = $this->calculateSeedPositions($this->tournament->players);
-    $match_position = $match_num - 1;
-
-    if (!empty($seed_positions[$match_position])) {
-      $match += array('seed_position' => array(
-        $seed_positions[$match_position][0],
-        $seed_positions[$match_position][1],
-      ));
-      // Set a bye flag if this is a bye match
-      $match += array_search(NULL, $seed_positions[$match_position])
-        ? array('bye' => TRUE) : array();
-    }
-
-    $match += array(
-      'id' => $match_num,
-      'name' => 'match-' . $match_num,
-      'round' => $round,
-      'bracket' => $bracket,
-      'current_match' => array(
-        'callback' => 'getMatchByName',
-        'args' => array(
-          'match_name' => 'match-' . $match_num,
-        ),
-      ),
-      'previous_matches' => array(
-        'callback' => 'getPreviousMatches',
-      ),
-      'next_match' => array(
-        'callback' => 'getNextMatch',
-        'args' => array(
-          'direction' => 'winner',
-        ),
-      ),
-      'is_won' => array(
-        'callback' => 'matchIsWon',
-      ),
-    );
-
-    return $match;
-  }
-
-  /**
-   * Theme implementations to register with tourney module.
-   *
-   * @see hook_theme().
-   */
-  public static function theme($existing, $type, $theme, $path) {
+    $next_id = (($matches + 1) / 2) + ceil($match_info['id'] / 2);
     return array(
-      'tourney_single_tree' => array(
-        'variables' => array('tournament' => NULL),
-        'file' => 'single.inc',
-        'path' => $path . '/theme',
-      ),
+      // Otherwise some math!
+      'id' => $next_id,
+      'slot' => $match_info['roundMatch'] % 2 ? 1 : 2,
     );
   }
-
-  /**
-   * Renders the html for each round tournament
-   *
-   * @param $tournament
-   *   The tournament object
-   * @param $matches
-   *   An array of all the rounds and matches in a tournament.
-   */
-  public function render() {
-    drupal_add_js($this->pluginInfo['path'] . '/theme/single.js');
-    return theme('tourney_single_tree', array('tournament' => $this->tournament));
-  }
-
-  /**
-   * Get the round title
-   */
-  public function getRoundTitle($vars) {
-    $round_num = $vars['round_num'];
-    $bracket = $vars['bracket'];
-    if ($bracket == 'championship') {
-      return $bracket . ' - Championship';
-    }
-    else if ($bracket == 'main') {
-      return 'Upper Round ' . $round_num;
-    }
-    else if ($bracket == 'bottom') {
-      return 'Lower Round ' . $round_num;
-    }
-    return 'Round ' . $round_num;
-  }
-
-  /**
-   * Callback when a match is won, handles moving contestants
-   *
-   * @param $match
-   *   Match object to win
-   */
-  public function matchIsWon($match) {
-    if (!$match->isFinished()) return;
-    // clear winner and loser so we can get a fresh winner, just in case
-    $match->clearWinner();
-    $winner = $match->getWinnerEntity();
-    // odd matches go to top slot, evens to bottom
-    $slot = $match->matchInfo['id'] % 2 ? 1 : 2;
-    if ( $match->nextMatch() )
-      $match->nextMatch()->addContestant($winner, $slot);
-  }
+  
 }

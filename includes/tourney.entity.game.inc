@@ -6,7 +6,7 @@
  *
  */
 
-class TourneyGame extends TourneyEntity {
+class TourneyGameEntity extends TourneyEntity {
 
   public  $tournamentId = NULL;
   public  $matchId = NULL;
@@ -27,35 +27,6 @@ class TourneyGame extends TourneyEntity {
       // Add a url to the object
       $this->uri = $this->getUri();
     }
-    
-    // Remove this once I know for sure that modules aren't depending on
-    // properties directly on the match object.
-    if ( variable_get('tourney_backward_compatibility', FALSE) ) {
-      $this->backwardCompatibility();
-    }
-  }
-  
-  /**
-   * For backward compatibility I'm loading public properties on the object 
-   * that used to be in hook_entity_load().
-   * 
-   * The tourney module does not have any dependencies on these properties. 
-   * This is only here in case Riot is expecting these properties on the object
-   * and is not using one of the public API methods to retrieve property.
-   */
-  private function backwardCompatibility() {
-    $this->title = $this->label;
-    // Set the parent match on the game entity.
-    $match = tourney_match_load($this->matchId, TRUE);
-    $this->match = $match;
-
-    // Load the contestants property on the object.
-    foreach ( array(1, 2) as $i ) {
-      if (is_object($match) && is_object($match->getContestant($i))) {
-        $contestant = $match->getContestant($i);
-        $this->contestants[$contestant->eid] = entity_load_single_by_eid($contestant->eid);
-      }
-    }
   }
 
   /**
@@ -66,8 +37,10 @@ class TourneyGame extends TourneyEntity {
    *  ids. Array will be empty if no matches are found.
    */
   public function getMatchId() {
-    if ( !property_exists($this, 'id') || is_null($this->id) ) return NULL;
-    if ( is_null($this->matchId) ) {
+    if (!property_exists($this, 'id') || is_null($this->id)) {
+      return NULL;
+    }
+    if (is_null($this->matchId)) {
       $query = relation_query('tourney_game', $this->id);
       $query->entityCondition('bundle', 'has_game');
       $results = $query->execute();
@@ -184,9 +157,8 @@ class TourneyGame extends TourneyEntity {
    */
   public function getContestantIds() {
     if (is_null($this->gameContestantIds)) {
-      $this->gameContestantIds = TourneyMatch::fetchContestantIds($this->getMatchId());
+      $this->gameContestantIds = TourneyMatchEntity::fetchContestantIds($this->getMatchId());
     }
-
     return $this->gameContestantIds;
   }
 
@@ -206,7 +178,7 @@ class TourneyGame extends TourneyEntity {
    * Return the uri to the entity object
    */
   public function getUri() {
-    return TourneyGame::path($this->id);
+    return TourneyGameEntity::path($this->id);
   }   
 
   public function delete() {

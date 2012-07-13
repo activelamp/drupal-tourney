@@ -2,7 +2,7 @@
 
 /*
  * @file
- * Holds the implementations for rendering the games table on the match view 
+ * Holds the implementations for rendering the games table on the match edit 
  * page with the form buttons built in for the current game to choose a winner.
  * 
  */

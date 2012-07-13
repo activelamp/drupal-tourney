@@ -1,12 +1,12 @@
 <?php
 
-class TourneyNextMatchTestCase extends DrupalWebTestCase {
+class SingleElimNextMatchTestCase extends DrupalWebTestCase {
   /**
    * Test info.
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test next match positions'),
+      'name' => t('Test Single Elimination next match positions'),
       'description' => t('Tests single elimination tournaments with a varying number or contestants.'),
       'group' => t('Tourney'),
     );
@@ -464,7 +464,7 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
     module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(14);
     $tournament->build();
-    
+  
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -2096,8 +2096,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
     $this->checkNextMatch($match, $tournament->data['matches']);
   }
   
-  
-  
   /**
 	 * Testing 31 contestants
 	 */
@@ -2106,7 +2104,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
     $tournament = new SingleEliminationController(31);
     $tournament->build();
     
-    // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
         'winner' => 17,
@@ -2139,6 +2136,7 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
       9 => array(
         'winner' => 21,
         'slot' => 1,
+      ),
       10 => array(
         'winner' => 21,
         'slot' => 2,
@@ -2275,6 +2273,7 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
       9 => array(
         'winner' => 21,
         'slot' => 1,
+      ),
       10 => array(
         'winner' => 21,
         'slot' => 2,

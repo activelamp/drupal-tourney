@@ -5,7 +5,7 @@
  * Tournament match class.
  */
 
-class TourneyMatch extends TourneyEntity {
+class TourneyMatchEntity extends TourneyEntity {
 
   public  $tournamentId = NULL;
   public  $gameIds = NULL;
@@ -19,11 +19,8 @@ class TourneyMatch extends TourneyEntity {
   // is no longer being used.
   private $matchGames = array();
   private $matchTournament = NULL;
-  private $matchStarted = NULL;
-  private $matchFinished = NULL;
   private $matchWinner = NULL;
   private $matchLoser = NULL;
-  private $matchSetup = NULL;
 
   public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
@@ -34,14 +31,7 @@ class TourneyMatch extends TourneyEntity {
       // Add a url to the object
       $this->uri = $this->getUri();
 
-      // @todo: Do we really want to load this on instanstiation
       $this->matchInfo = $this->getMatchInfo();
-    }
-
-    // Remove this once I know for sure that modules aren't depending on
-    // properties directly on the match object.
-    if ( variable_get('tourney_backward_compatibility', TRUE) ) {
-      $this->backwardCompatibility();
     }
   }
 
@@ -126,36 +116,16 @@ class TourneyMatch extends TourneyEntity {
         'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
       );
     }
-    uasort($contestants, 'TourneyMatch::contestantSort');
+    uasort($contestants, 'TourneyMatchEntity::contestantSort');
 
     return $contestants;
   }
 
   private static function contestantSort($a, $b) {
-    if ( $a['slot'] == $b['slot'] ) return ( $a['id'] < $b['id'] ) ? -1 : 1;
-    return ( $a['slot'] < $b['slot'] ) ? -1 : 1;
-  }
-
-  /**
-   * For backward compatibility I'm loading public properties on the object
-   * that used to be in hook_entity_load().
-   *
-   * The tourney module does not have any dependencies on these properties.
-   * This is only here in case Riot is expecting these properties on the object
-   * and is not using one of the public API methods to retrieve property.
-   */
-  private function backwardCompatibility() {
-    $this->title = $this->label;
-
-    // Get the contestants in this match on the object.
-    $this->contestant1 = $this->getContestant(1);
-    $this->contestant2 = $this->getContestant(2);
-
-    // Put the tournament object on the object
-    $this->tournament = $this->getTournament();
-
-    // Load the game ids onto the object
-    $this->games_played = $this->getGameIds();
+    if ($a['slot'] == $b['slot']) {
+      return ($a['id'] < $b['id']) ? -1 : 1;
+    }
+    return ($a['slot'] < $b['slot']) ? -1 : 1;
   }
 
   /**
@@ -173,9 +143,22 @@ class TourneyMatch extends TourneyEntity {
    */
   public function getMatchInfo() {
     if (is_null($this->matchInfo) && is_object($this->getTournament())) {
-      $this->matchInfo = $this->getTournament()->tourneyFormatPlugin->getMatchInfo($this);
+      // Extract just the match id from the machine name.
+      $mid = $this->getMID();
+      
+      // Get the plugin data for the match id passed in.
+      $tournament = $this->getTournament(); 
+      $this->matchInfo = $tournament->tourneyFormatPlugin->getMatchInfo($mid);
     }
     return $this->matchInfo;
+  }
+  
+  /**
+   * Extract just the match id from the machine name of the entity.
+   */
+  public function getMID() {
+    $tournament = $this->getTournament();
+    return substr($this->name, strlen($tournament->name .'_match-'));
   }
 
   /**
@@ -188,12 +171,16 @@ class TourneyMatch extends TourneyEntity {
     if (!is_numeric($slot)) {
       throw new Exception(t('$slot must be a number'));
     }
-    $contestants = $this->getContestants();
-    if ( !$contestants ) return NULL;
+    $contestants = $this->getMatchContestants();
+    if (!$contestants) {
+      return NULL;
+    }
     $first = reset($contestants);
-    if ( $first->slot !== NULL ) {
-      foreach ( $contestants as $eid => $contestant ) {
-        if ( $contestant->slot == $slot ) return $contestant;
+    if ($first->slot !== NULL) {
+      foreach ($contestants as $eid => $contestant) {
+        if ($contestant->slot == $slot) {
+          return $contestant;
+        }
       }
       return NULL;
     }
@@ -206,7 +193,7 @@ class TourneyMatch extends TourneyEntity {
    */
   public function getTournamentId() {
     if (is_null($this->tournamentId)) {
-      $this->tournamentId = TourneyMatch::fetchTournamentId($this->id);
+      $this->tournamentId = TourneyMatchEntity::fetchTournamentId($this->id);
     }
     return $this->tournamentId;
   }
@@ -216,7 +203,7 @@ class TourneyMatch extends TourneyEntity {
    */
   public function getGameIds() {
     if (is_null($this->gameIds)) {
-      $this->gameIds = TourneyMatch::fetchGameIds($this->id);
+      $this->gameIds = TourneyMatchEntity::fetchGameIds($this->id);
     }
     return $this->gameIds;
   }
@@ -226,7 +213,7 @@ class TourneyMatch extends TourneyEntity {
    */
   public function getContestantIds() {
     if (is_null($this->contestantIds)) {
-      $this->contestantIds = TourneyMatch::fetchContestantIds($this->id);
+      $this->contestantIds = TourneyMatchEntity::fetchContestantIds($this->id);
     }
     return $this->contestantIds;
   }
@@ -234,9 +221,9 @@ class TourneyMatch extends TourneyEntity {
   /**
    * Get the contestant entities
    */
-  public function getContestants() {
+  public function getMatchContestants() {
     $entities = array();
-    foreach ( $this->getContestantIds() as $contestant ) {
+    foreach ($this->getContestantIds() as $contestant) {
       $entity = entity_load_single_by_eid($contestant['eid']);
       $entities[$entity->eid] = $entity;
       $entities[$entity->eid]->slot = $contestant['slot'];
@@ -246,6 +233,9 @@ class TourneyMatch extends TourneyEntity {
 
   /**
    * Load contestants on match entity object.
+   * 
+   * @todo: Not used anywhere in tourney. Pull this out once it is no longer a
+   *   dependency on LoL.
    */
   public function loadContestants() {
     if (empty($this->contestant1) || empty($this->contestant2)) {
@@ -317,11 +307,11 @@ class TourneyMatch extends TourneyEntity {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'tourney_cache')) {
       $games = array();
       
-      if (!array_key_exists('bye', $this->matchInfo) && count($this->getContestants()) < 2) {
+      if (!array_key_exists('bye', $this->matchInfo) && count($this->getMatchContestants()) < 2) {
         return array();
       }
 
-      foreach ($this->getContestants() as $eid => $contestant) {
+      foreach ($this->getMatchContestants() as $eid => $contestant) {
         $winners[$eid] = 0;
       }
       foreach ($this->getGames() as $gid => $game) {
@@ -365,7 +355,7 @@ class TourneyMatch extends TourneyEntity {
    */
   public function isFinished() {
     // If this is a bye, it's finished
-    if (array_key_exists('bye', $this->matchInfo)) {
+    if (array_key_exists('bye', $this->matchInfo) && $this->matchInfo['bye']) {
       return TRUE;
     }
     
@@ -458,7 +448,7 @@ class TourneyMatch extends TourneyEntity {
    * Return the uri to the entity object
    */
   public function getUri() {
-    return TourneyMatch::path($this->id);
+    return TourneyMatchEntity::path($this->id);
   }
 
   /**
@@ -532,7 +522,7 @@ class TourneyMatch extends TourneyEntity {
  */
   public function removeContestant($entity) {
     // If we're locked, can't remove the contestant
-    if ( $this->isLocked() ) {
+    if ($this->isLocked()) {
       $message = t('Match is locked, cannot modify contestants.');
       watchdog('tourney', $message);
       return FALSE;
@@ -564,7 +554,7 @@ class TourneyMatch extends TourneyEntity {
    */
   public function addContestant($entity, $slot = NULL) {
     //@todo logic to remove existing conflicting contestant(s)
-    if ( $slot && $this->getContestant($slot) ) {
+    if ($slot && $this->getContestant($slot)) {
       $this->removeContestant($this->getContestant($slot));
     }
     $entity_keys = array(
@@ -580,41 +570,23 @@ class TourneyMatch extends TourneyEntity {
     $this->contestantIds = NULL;
   }
 
-  /**
-   * Add contestant to previous match
-   *
-   * @param $entity
-   *   The contestant entity to add to a match
-   * @param $slot
-   *   The slot to add the contestant to.
-   */
-  public function addContestantPrevious($entity, $slot = NULL) {
-    $roundinfo = $this->matchInfo['round'];
-    if (array_key_exists('id', $roundinfo) && $roundinfo['id'] == 2) {
-      $this->findSeedInfo();
-      if (array_key_exists('seed_position', $this->matchInfo)
-        && array_key_exists($slot - 1, $this->matchInfo['seed_position'])) {
-          $matches = $this->previousMatches();
-          $matches[$slot - 1]->addContestant($entity, 1);
-      }
-    }
-  }
-
  /**
   * Get this match's next match contestants go to when they either win or lose
   *
   * @param $direction
   *   Either 'winner' or 'loser'
-  * @return $place
-  *   Match placement of the desired match, otherwise NULL
+  * @return $match
+  *   Match entity of the desired match, otherwise NULL
   */
   public function nextMatch($direction = 'winner') {
-    return $this->getTournament()->getNextMatch($this, $direction);
+    if (array_key_exists('nextMatch', $this->matchInfo) 
+      && array_key_exists($direction, $this->matchInfo['nextMatch'])) {
+      $next_plugin_id = $this->matchInfo['nextMatch'][$direction]['id'];
+      return $this->getTournament()->getMatchById($next_plugin_id);
+    }
+    return NULL;
   }
 
-  public function previousMatches() {
-    return $this->getTournament()->getPreviousMatches($this);
-  }
  /**
   * Adds an empty game to this match
   *
@@ -624,7 +596,7 @@ class TourneyMatch extends TourneyEntity {
   public function addGame() {
     $this->cleanGames();
     $game_count = count($this->getGameIds());
-    $game = new TourneyGame(array(
+    $game = new TourneyGameEntity(array(
       'type'  => $this->getTournament()->get('game_bundle', 'game'),
       'title' => 'Game ' . ++$game_count,
       'name'  => $this->name . '_game-' . ++$game_count,
@@ -675,9 +647,9 @@ class TourneyMatch extends TourneyEntity {
   *   Boolean of whether all the games have been won
   */
   public function checkGames() {
-    foreach ( $this->getGameIds() as $game_id ) {
+    foreach ($this->getGameIds() as $game_id) {
       $game = tourney_game_load($game_id);
-      if ( !$game->getWinner() ) {
+      if (!$game->getWinner()) {
         return FALSE;
       }
     }

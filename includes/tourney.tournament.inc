@@ -72,11 +72,11 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => 0,
   );
 
-  $form['tourney']['config_hide_byes'] = array(
+  $form['tourney']['config_show_byes'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Hide Byes'),
-    '#description' => t('Hide matches where the contestant advances automatically due to an uneven number of players.'),
-    '#default_value' => $tourney->get('hide_byes'),
+    '#title' => t('Show Byes'),
+    '#description' => t('Show matches where the contestant advances automatically due to an uneven number of players.'),
+    '#default_value' => $tourney->get('show_byes', FALSE),
   );
   
   $form['tourney']['config_no_automation'] = array(
@@ -110,7 +110,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => $tourney->get('match_bundle', 'match'),
     '#disabled' => isset($tourney->id) ? TRUE : FALSE,
   );
-
+  
   $form['bundles']['config_game_bundle'] = array(
     '#type' => 'select',
     '#title' => t('Game Bundle'),
@@ -119,6 +119,36 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => $tourney->get('game_bundle', 'game'),
     '#disabled' => isset($tourney->id) ? TRUE : FALSE,
   );
+  
+  $form['bundles']['config_default_games'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default Number of Games'),
+    '#size' => 10,
+    '#description' => t('Enter the default number of games for each match.'),
+    '#default_value' => $tourney->get('default_games', TOURNEY_GAMES),
+    '#disabled' => isset($tourney->id) ? TRUE : FALSE,
+  );
+  
+  $form['contestants'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Contestant Settings'),
+    '#description' => t('Settings pertaining to contestants.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',  
+    '#access' => user_access('administer tourney'),
+    '#weight' => 20,
+  );
+  
+  $form['contestants']['config_truncate'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of characters to truncate contestant names to.'),
+    '#description' => t('Names that have been truncated will have an ellipsis added to the end of the string.'),
+    '#size' => 40,
+    '#maxlength' => 255,
+    '#default_value' => $tourney->get('config_truncate', TOURNEY_TRUNCATE),
+  );
+  
 
   $path = array();
   if ( !empty($tourney->entity_id) ) {
@@ -131,7 +161,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
 
   $form['path'] = array(    
     '#type' => 'fieldset', 
-    '#title' => t('URL path settings'), 
+    '#title' => t('URL Path Settings'), 
     '#collapsible' => TRUE, 
     '#collapsed' => empty($path['alias']), 
     '#group' => 'additional_settings', 
@@ -198,6 +228,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#collapsed' => TRUE,
     '#group' => 'additional_settings',  
     '#access' => user_access('administer tourney'),
+    '#weight' => 100,
   );
   
   $form['debug']['config_show_next_match_path'] = array(
@@ -257,17 +288,27 @@ function tourney_tournament_delete_submit($form, &$form_state) {
  */
 function tourney_tournament_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
+  
+  // Save settings to a config array, for use before config is actually saved
+  // to the tourney table.
   $tourney->config = array();
+  foreach ($form_state['values'] as $key => $value) {
+    if (substr($key, 0, 7) != 'config_') {
+      continue;
+    }
+    $tourney->config[substr($key, 7)] = $value;
+  }
+  tourney_set_plugin_options($tourney, $form_state, TRUE);
+  
   
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
-  tourney_tournament_save($tourney);                                     
+  tourney_tournament_save($tourney);
   
   // Any fields preceded with "config_" should be saved as configuration.
   foreach ($form_state['values'] as $key => $value) {
     if (substr($key, 0, 7) != 'config_') {
       continue;
     }
-    $tourney->config[substr($key, 7)] = $value; 
     $tourney->set(substr($key, 7), $value); 
   }
   
@@ -300,7 +341,7 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
   $entity->content['tourney_format'] = array(
    '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
    '#suffix' => '</div>',
-   '#markup' => $info['name'],
+   '#markup' => $info['title'],
   );
   $entity->content['tourney_players'] = array(
    '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
@@ -312,12 +353,10 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
    '#suffix' => '</div>',
    '#markup' => $entity->winner,
   );
-
   // Add the matches for this tournament
   $entity->content['matches'] = array(
     '#prefix' => '<h2>Matches in this tournament</h2>',
-    '#theme' => 'tourney_render_tourney',
-    '#tournament' => $entity,
+    '#markup' => $entity->render(),
   );
 }
 
@@ -405,7 +444,7 @@ function tourney_get_type_options($reset = FALSE) {
   $plugins = tourney_get_types();       
   uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
-    $options[$info['controller']] = $info['name'];
+    $options[$info['controller']] = $info['title'];
   }
   return $options;
 }
@@ -419,12 +458,17 @@ function tourney_get_type_options($reset = FALSE) {
  *   we have a ton of Tournament styles.
  */
 function tourney_get_plugin_options($tourney, &$form, &$form_state) {
-  $plugins = tourney_get_types();           
+  $form['plugin_options'] = array(
+    '#type' => 'container',
+    '#tree' => TRUE,
+  );
+  
+  $plugins = tourney_get_types();
   uasort($plugins, 'ctools_plugin_sort');  
   foreach ($plugins as $info) {
     $controller = ctools_plugin_get_class($info, 'controller');
     if (class_exists($controller) && method_exists($controller, 'optionsForm')) {
-      $plugin = new $controller($tourney);
+      $plugin = new $controller(0, $tourney);
       $options_form = $plugin->optionsForm($form_state);
       
       // If no options are defined move on.
@@ -432,13 +476,9 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
         continue;
       }
       
-      $form['plugin_options'] = array(
-        '#type' => 'container',
-        '#tree' => TRUE,
-      );
       $form['plugin_options'][$controller] = array(
         '#type' => 'fieldset',
-        '#title' => t('Tourney Format Settings'),
+        '#title' => t('!title Settings', array('!title' => $info['title'])),
         '#collapsible' => FALSE,
         '#access' => user_access('administer tourney'),
         '#tree' => TRUE,
@@ -454,10 +494,23 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
 
 /**
  * Save any options the plugin has set
+ * 
+ * @param $tourney
+ *   The tourney object to save settings for.
+ * @param $form_state
+ *   The tourney form.
+ * @param $to_cache
+ *   If a tournament hasn't been saved yet, use this flag to store setting to cache.
  */
-function tourney_set_plugin_options(&$tourney, &$form_state) {
-  foreach ($form_state['values']['plugin_options'] as $name => $values) {
-    $tourney->set($name, $values);
-    $tourney->config[$name] = $values; 
+function tourney_set_plugin_options(&$tourney, &$form_state, $to_cache = FALSE) {
+  if (!empty($form_state['values']['plugin_options'])) {
+    foreach ($form_state['values']['plugin_options'] as $name => $values) {
+      if ($to_cache == TRUE) {
+        $tourney->config[$name] = $values;
+      }
+      else {
+        $tourney->set($name, $values);
+      }
+    }
   }
 }

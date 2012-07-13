@@ -5,6 +5,7 @@
  */
 
 define('TOURNEY_GAMES', 5);
+define('TOURNEY_TRUNCATE', 12);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
 /**
@@ -130,8 +131,20 @@ function tourney_menu() {
     'file' => 'includes/tourney.admin.inc',
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['tourney/testing'] = array(
+    'title' => 'TESTING',
+    'page callback' => 'tourney_testing',
+    'access arguments' => array('administer tourney'),
+  );
 
   return $items;
+}
+
+function tourney_testing() {
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialRoundRobin');
+  $tournament = new RoundRobinController(6);
+  // $tournament->setPluginOptions(array('third_place' => TRUE));
+  return $tournament->render();
 }
 
 /**
@@ -278,9 +291,9 @@ function tourney_entity_info() {
     $entity_short = substr($entity_name, 8);
 
     $entity_class = 'Entity';
-    $entity_class = ($entity_short == 'tournament') ? 'TourneyTournament' : $entity_class;
-    $entity_class = ($entity_short == 'match') ? 'TourneyMatch' : $entity_class;
-    $entity_class = ($entity_short == 'game') ? 'TourneyGame' : $entity_class;
+    $entity_class = ($entity_short == 'tournament') ? 'TourneyTournamentEntity' : $entity_class;
+    $entity_class = ($entity_short == 'match') ? 'TourneyMatchEntity' : $entity_class;
+    $entity_class = ($entity_short == 'game') ? 'TourneyGameEntity' : $entity_class;
 
     $return[$entity_name] = array(
       'label' => $entity_name,
@@ -815,8 +828,6 @@ function tourney_tournament_save(&$tourney) {
  */
 function tourney_match_save(&$match) {
   entity_save('tourney_match', $match);
-
-
 }
 
 /**
@@ -829,124 +840,6 @@ function tourney_game_save(&$game) {
     cache_clear_all('tourney_match_games_' . $game->match->id, 'cache_tourney', TRUE);
     cache_clear_all('tourney_build_matches_' . $game->match->getTournament()->id, 'cache_tourney', TRUE);
   }
-}
-
-/**
- * Reports the winner of a tournament.
- *
- */
-function tourney_tournament_calc_winner($tournaments, &$winners = array()) {
-  if (is_array($tournaments)) {
-    foreach ($tournaments as $tournament) {
-      tourney_tournament_calc_winner($tournament, $winners);
-    }
-    return $winners;
-  }
-  elseif (!isset($tournaments) || (!is_int($tournaments) && !is_object($tournaments))) {
-    throw new Exception(t('Required parameter is missing or invalid'));
-  }
-  $tournament = is_int($tournaments) ? tourney_tournament_load($tournaments) : $tournaments;
-  $finished = tourney_tournament_count_finished($tournament);
-  $id = $tournament->id;
-
-  if ($tournament->matches_created == $finished[$id]) {
-    // Load plugin to determine winner.
-    if (!class_exists($match_style = $tournament->format)) {
-      throw new Exception(t('No such claass'));
-    }
-    $interfaces = class_implements($match_style);
-    if (!isset($interfaces['TourneyControllerInterface'])) {
-      throw new Exception(t('Wrong implementation.'));
-    }
-
-    $tourneyPlugin = new $match_style($tournament->players);
-    // May not call static method with class as variable until php5.3
-    $win = $tourneyPlugin->determin_winner($tournament);
-    if (is_array($win)) {
-      $winners[$id] = $win[0] . '.' . $win[1];
-    }
-  }
-
-  return $winners;
-}
-
-/**
- * Report how many matches have been finished in a tournament
- *
- * @todo Remove excessive error checks for production.
- *
- * @param array|object|int $tournaments
- *   Tournament entity object or tournament entity id or an array containing
- *   them (mixed, and recursive, but why would you want to?).
- *
- * @return array
- *   An array of integers describing the count of finished matches keyed by
- *   tournament entity id.
- */
-function tourney_tournament_count_finished($tournaments, &$finished = array()) {
-  if (is_array($tournaments)) {
-    foreach ($tournaments as $tournament) {
-      tourney_tournament_count_finished($tournament, $finished);
-    }
-    return $finished;
-  }
-  elseif (!isset($tournaments) || (!is_int($tournaments) && !is_object($tournaments))) {
-    throw new Exception(t('Required parameter is missing or invalid'));
-  }
-
-  try {
-    $tournament = is_int($tournaments) ? tourney_tournament_load($tournaments) : $tournaments;
-    $matches = $tournament->buildMatches(TRUE, TRUE);
-  }
-  catch (Exception $e) {
-    throw new Exception(t('Can not load matches for tournament') . ': ' . $e->getMessage(), 'error');
-  }
-
-  $finished[$tournament->id] = 0;
-  foreach ($matches as $match) {
-    $finished[$tournament->id] += (strlen($match->winner) > 0);
-  }
-
-  return $finished;
-}
-
-/**
- * Get the standings for a tournament
- *
- * @param $tournament
- *   A tournament object to get the standings for.
- * @return
- *   An associative array keyed with wins, losses, and total played games.
- */
-function tourney_get_standings($tournament) {
-  $matches = $tournament->buildMatches(TRUE);
-  // Get the wins for each match
-
-  $standings = array();
-  $i = 0;
-
-  foreach ($matches as $match) {
-    if ( $match->getWinner() == '' ) continue;
-    $c1 = $match->getContestant(1)->eid;
-    $c2 = $match->getContestant(2)->eid;
-    if ( !array_key_exists($c1, $standings) )
-      $standings[$c1] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
-    if ( !array_key_exists($c2, $standings) )
-      $standings[$c2] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
-    if ( $match->winner == $c1 ) {
-      $standings[$c1]['wins']++;
-      $standings[$c2]['losses']++;
-      if ( $standings[$c1]['first'] == -1 ) $standings[$c1]['first'] = $i++;
-    }
-    else {
-      $standings[$c2]['wins']++;
-      $standings[$c1]['losses']++;
-      if ( $standings[$c2]['first'] == -1 ) $standings[$c2]['first'] = $i++;
-    }
-    $standings[$c1]['total']++;
-    $standings[$c2]['total']++;
-  }
-  return $standings;
 }
 
 /**
@@ -1095,7 +988,7 @@ function tourney_initialize_configuration() {
   }
   else {
     $name = 'tourney_variable_init';
-    if ( !lock_acquire($name, 1) ) {
+    if (!lock_acquire($name, 1)) {
       lock_wait($name);
       return tourney_initialize_configuration();
     }
