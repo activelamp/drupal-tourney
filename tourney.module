@@ -141,8 +141,8 @@ function tourney_menu() {
 }
 
 function tourney_testing() {
-  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RoundRobin');
-  $tournament = new RoundRobinController(6);
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
+  $tournament = new DoubleEliminationController(8);
   // $tournament->setPluginOptions(array('third_place' => TRUE));
   return $tournament->render();
 }
