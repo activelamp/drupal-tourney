@@ -40,7 +40,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   }
   
   // Get the contestants for the match, if match object exists.
-  $contestants = is_object($match) ? $match->getMatchContestants() : array();
+  $contestants = !empty($match) && is_object($match) ? $match->getMatchContestants() : array();
   
   // If there is one contestants, pad the beginning if it's occupying slot 2
   if (count($contestants) == 1) {
