@@ -16,6 +16,7 @@ class SingleEliminationController extends TourneyController {
    * Constructor
    */
   public function __construct($numContestants, $tournament = NULL) {
+    parent::__construct();
     // Set our contestants, and then calculate the slots necessary to fit them 
     $this->numContestants = $numContestants;  
     $this->slots = pow(2, ceil(log($this->numContestants, 2)));
@@ -52,7 +53,7 @@ class SingleEliminationController extends TourneyController {
         'path' => $path . '/theme',
         'file' => 'preprocess_tournament_tree_node.inc',
         'template' => 'tourney-tournament-tree-node',
-      )
+      ),
     );
   }
   
@@ -325,7 +326,6 @@ class SingleEliminationController extends TourneyController {
     // Build our data structure
     $this->build();
     $this->structure('tree');
-    dpm($this);
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
   
@@ -342,6 +342,9 @@ class SingleEliminationController extends TourneyController {
    */
   protected function calculateNextPosition($match_info, $direction = 'winner') {
     $matches = $this->slots - 1;
+    if (!array_key_exists('id', $match_info)) {
+      return;
+    }
     // Losers and last match, isn't handled here.
     if ($direction == 'loser' || $match_info['id'] == $matches) {
       return array(

@@ -1,12 +1,12 @@
 <?php
 
-class TourneyNextMatchTestCase extends DrupalWebTestCase {
+class SingleElimNextMatchTestCase extends DrupalWebTestCase {
   /**
    * Test info.
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test next match positions'),
+      'name' => t('Test Single Elimination next match positions'),
       'description' => t('Tests single elimination tournaments with a varying number or contestants.'),
       'group' => t('Tourney'),
     );
@@ -16,6 +16,7 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
    * Set up test.
    */
   public function setUp() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
     parent::setUp(array(
       'tourney',
     ));
@@ -41,7 +42,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 4 contestants
 	 */
   public function testSingleElim4() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(4);
     $tournament->build();
     
@@ -65,7 +65,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 5 contestants
 	 */
   public function testSingleElim5() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(5);
     $tournament->build();
     
@@ -93,7 +92,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 6 contestants
 	 */
   public function testSingleElim6() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(7);
     $tournament->build();
     
@@ -125,7 +123,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 7 contestants
 	 */
   public function testSingleElim7() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(7);
     $tournament->build();
     
@@ -161,7 +158,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 8 contestants
 	 */
   public function testSingleElim8() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(8);
     $tournament->build();
     
@@ -201,7 +197,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 9 contestants
 	 */
   public function testSingleElim9() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(9);
     $tournament->build();
     
@@ -245,7 +240,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 10 contestants
 	 */
   public function testSingleElim10() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(10);
     $tournament->build();
     
@@ -293,7 +287,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 11 contestants
 	 */
   public function testSingleElim11() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(11);
     $tournament->build();
     
@@ -345,7 +338,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 12 contestants
 	 */
   public function testSingleElim12() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(12);
     $tournament->build();
     
@@ -401,7 +393,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 13 contestants
 	 */
   public function testSingleElim13() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(13);
     $tournament->build();
     
@@ -461,10 +452,9 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 14 contestants
 	 */
   public function testSingleElim14() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(14);
     $tournament->build();
-    
+  
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -525,7 +515,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 15 contestants
 	 */
   public function testSingleElim15() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(15);
     $tournament->build();
     
@@ -593,7 +582,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 16 contestants
 	 */
   public function testSingleElim16() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(16);
     $tournament->build();
     
@@ -665,7 +653,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 17 contestants
 	 */
   public function testSingleElim17() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(17);
     $tournament->build();
     
@@ -741,7 +728,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 18 contestants
 	 */
   public function testSingleElim18() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(18);
     $tournament->build();
     
@@ -821,7 +807,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 19 contestants
 	 */
   public function testSingleElim19() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(19);
     $tournament->build();
     
@@ -905,7 +890,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 20 contestants
 	 */
   public function testSingleElim20() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(20);
     $tournament->build();
     
@@ -993,7 +977,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 21 contestants
 	 */
   public function testSingleElim21() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(21);
     $tournament->build();
     
@@ -1085,7 +1068,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 22 contestants
 	 */
   public function testSingleElim22() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(22);
     $tournament->build();
     
@@ -1182,7 +1164,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 23 contestants
 	 */
   public function testSingleElim23() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(23);
     $tournament->build();
     
@@ -1283,7 +1264,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 24 contestants
 	 */
   public function testSingleElim24() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(24);
     $tournament->build();
     
@@ -1388,7 +1368,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 25 contestants
 	 */
   public function testSingleElim25() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(25);
     $tournament->build();
     
@@ -1497,7 +1476,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 26 contestants
 	 */
   public function testSingleElim26() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(26);
     $tournament->build();
     
@@ -1610,7 +1588,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 27 contestants
 	 */
   public function testSingleElim27() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(27);
     $tournament->build();
     
@@ -1727,7 +1704,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 28 contestants
 	 */
   public function testSingleElim28() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(28);
     $tournament->build();
     
@@ -1848,7 +1824,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 29 contestants
 	 */
   public function testSingleElim29() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(29);
     $tournament->build();
     
@@ -1973,7 +1948,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 30 contestants
 	 */
   public function testSingleElim30() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(30);
     $tournament->build();
     
@@ -2100,7 +2074,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 31 contestants
 	 */
   public function testSingleElim31() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(31);
     $tournament->build();
     
@@ -2232,7 +2205,6 @@ class TourneyNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing 32 contestants
 	 */
   public function testSingleElim32() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
     $tournament = new SingleEliminationController(32);
     $tournament->build();
     

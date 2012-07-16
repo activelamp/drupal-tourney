@@ -43,7 +43,7 @@ define('MAXIMUM_ROUNDS', 5);
  * to the Drupal entity system using TourneyController::saveMatches().
  * 
  * Plugins can render on their own with no knowledge of a tournament entity. If
- * a plugin was constructed with a tournament entity, then information from the
+ * a plugin was instantiated with a tournament entity, then information from the
  * tournament will be preprocessed into the plugin render, and links to matches,
  * and contestant names will appear.
  * 
@@ -65,11 +65,19 @@ define('MAXIMUM_ROUNDS', 5);
  * bracket.
  */
 class TourneyController implements TourneyControllerInterface {
-  public $data;
+  public $data = NULL;
   public $structure;
   public $numContestants;
   public $tournament;
   public $pluginOptions = array();
+  public $moveWinners = TRUE;
+  
+  /**
+   * Constructor
+   */
+  public function __construct() {
+    $this->pluginInfo = self::getPluginInfo(get_class($this));
+  }
   
   /**
    * Default theme implementations for every tournament format. We could have
@@ -99,17 +107,18 @@ class TourneyController implements TourneyControllerInterface {
       ),
     );
   }
-  /**
-   * Method that must be defined in plugin subclass.
-   * 
-   * @todo: Should this be abstract? Do we want to provide a default build?
-   */
-  public function build() {}
   
   /**
-   * Method that must be defined in plugins.
+   * Methods that must be defined in plugin subclass.
+   * 
+   * @todo: Should these be abstract? Do we want to provide a default 
+   *   implemenations?
    */
+  public function build() {}
+  public function populatePositions() {}
+  public function populateSeedPositions() {}
   public function preprocess($template, &$vars) {}
+  public function render() {}
      
   /**
    * Bracket data generator
@@ -443,20 +452,11 @@ class TourneyController implements TourneyControllerInterface {
    *   An array with information about the match
    */
   public function getMatchInfo($mid) {
-    $this->build();
-    return $this->data['matches'][$mid];
-  }
-  
-  /**
-   * Get the contestants that are related to this match
-   * 
-   * @param $mid
-   *   Match plugin id
-   */
-  public function getMatchContestants($mid) {
-    $match = $this->getMatchById($mid);
-    // Ensure we have a match object, it's possible isn't created yet.
-    return is_object($match) ? $match->getMatchContestants() : NULL;
+    // Only build the data array if it is not available.
+    if (is_null($this->data)) {
+      $this->build();
+    }
+    return array_key_exists($mid, $this->data['matches']) ? $this->data['matches'][$mid] : NULL;
   }
 }
 
@@ -483,345 +483,22 @@ interface TourneyControllerInterface {
    * to the Drupal entity system using TourneyController::saveMatches()
    */
   public function build();
-}
-
-/**
- * A Default factory for building matches and the first game of a match for a
- * tourney tournament.
- * 
- * @legacy This controller is being phased out
- */
-class TourneyControllerLegacy {
-  private static $controller = NULL;
-  protected $tourneyFormatPlugin;
-  protected $matches;
-  protected $tournament;
-  protected $pluginInfo;
-
-  /**
-   * Constructor
-   */
-  public function __construct($tournament = NULL) {
-    if (!is_null($tournament)) {
-      $this->tournament = $tournament;
-      $tourneyFormatPlugin = $tournament->format;
-
-      if (!class_exists($tourneyFormatPlugin)) {
-        trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class not found.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
-      }
-
-      $interfaces = class_implements($tourneyFormatPlugin);
-      if (isset($interfaces['TourneyControllerInterface'])) {
-        $this->tourneyFormatPlugin = new $tourneyFormatPlugin($tournament);
-      }
-      else {
-        trigger_error(check_plain(t('Unable to create !tourneyFormatPlugin matches. Class does not implement TourneyControllerInterface.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
-      }
-    }
-    $this->pluginInfo = self::getPluginInfo(get_class($this));
-  }
   
   /**
-   * Get the machine name of the plugin.
+   * Populate next/previous match pathing on the matches data array for each match.
    */
-  public static function getPluginInfo($controller) {
-    $plugins = tourney_get_types();
-    foreach ($plugins as $info) {
-      if ($info['controller'] == $controller) {
-        return $info;
-      }
-    }
-  }
+  public function populatePositions();
   
   /**
-   * Create matches for a tournament.
-   * @deprecated
+   * Calculate and fill seed data into matches. Also marks matches as byes if
+   * the match is a bye.
    */
-  public function createMatches() {
-    // Create the actual match entities and the first game.
-    $this->save();
-  }
-
-  /**
-   * Build the match entities for the tournament. The array construction is
-   * delegated to the plugin of this tournament.
-   */
-  public function build() {
-    // Build the match structure
-    $this->matches = $this->tourneyFormatPlugin->build();
-  }
-
-  /**
-   * Wrapper function for saving matches. Delegate saving matches to the plugin.
-   */
-  public function save() {
-    // Make sure we have a matches array to save.
-    if (empty($this->matches)) {
-      $this->build();
-    }
-    $this->tourneyFormatPlugin->saveMatches($this->tournament);
-  }
-
-  /**
-   * Default method for saving matches. Plugins override this and define their
-   * own way to save matches.
-   * 
-   * Loops through all the built match elements and creates new matches, along 
-   * with their initial games and appropriate relations.
-   * 
-   * If a subclass changes the way matches are saved, the subclass will likely
-   * need to change the getMatch() method. getMatch() and getMatchAddress() is 
-   * dependent on saveMatches().
-   * 
-   * @see TourneyController::getMatch()
-   *
-   * @param $tournament
-   *   The tournament object this match is related to.
-   */
-  protected function saveMatches($tournament) {
-    $matches = $this->matches;
-    foreach ( $matches as $mid => $match ) {
-      // Set $id to the round number
-      @list(, $bracket_id) = explode('-', $match['bracket_name']);
-      @list(, $round_num) = explode('-', $match['round_name']);
-      @list(, $match_num) = explode('-', $match['match_name']);
-
-      // Set the games to zero for byes.
-      $games = array_key_exists('bye', $match['match_info']) && $match['match_info']['bye']
-        ? 0 : variable_get('tourney_games_all', TOURNEY_GAMES);
-
-      $values = array(
-        'type' => $tournament->get('match_bundle', 'match'),
-        'title' => 'Match ' . $match_num,
-        'name' => $tournament->name . '_' . $match['match_name'],
-        'games' => $games,
-      );
-      $new_match = new TourneyMatchEntity($values);
-      $new_match->save();
-
-      // Create the Tourney/Match relation and save bracket and round data to it
-      $rid = tourney_create_relation('has_match', 'tourney_tournament', $tournament->id, 'tourney_match', $new_match->id);
-      $relation = relation_load($rid);
-      $relation->bracket[LANGUAGE_NONE][0]['value'] = $bracket_id;
-      $relation->round[LANGUAGE_NONE][0]['value'] = $round_num;
-      relation_save($relation);
-
-      // Create the Match/Game relation
-      if ($games > 0) {
-        $game = new TourneyGameEntity(array(
-          'type' => $tournament->get('game_bundle', 'game'),
-          'title' => 'Game 1',
-          'name' => $new_match->name . '_game-1',
-        ));
-        $game->save();
-        tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
-      }
-    }
-  }
+  public function populateSeedPositions();
   
   /**
-   * Return the match object based on a location in the bracket.
-   * 
-   * The SingleElimination plugin stores information about the location of the
-   * match in a relation entity. This getMatch method is dependent on how the
-   * saveMatches() method is written. If saveMatches() is overridden, it is
-   * likely that getMatch() should be overridden as well.
-   * 
-   * @see TourneyController::saveMatches()
-   * 
-   * @param $round_num int
-   *   The round number for the match.
-   * @param $match_num int
-   *   The match number for the match.
-   * @return $match
-   *   Returns a fully loaded match object.
+   * Render the tournament
    */
-  public function getMatch($round_num, $match_num) {
-    $query = relation_query('tourney_tournament', $this->tournament->id);
-    $query->entityCondition('bundle', 'has_match')
-          ->fieldCondition('round', 'value', $round_num);
-    $results = $query->execute();
-    
-    $match_ids = array();
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $match_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-    }
-    $matches = tourney_match_load_multiple($match_ids);
-    
-    foreach ($matches as $match) {
-      if ( $match->name == $this->tournament->name . '_match-' . $match_num ) {
-        return $match;
-      }
-    }
-  }
-  
-  /**
-   * Retrieve a match by machine name.
-   * 
-   * @todo: Get this working with EntityAPIControllerExportable.
-   *   Loading entities by name comes with EntityAPIControllerExportable, but
-   *   it EntityAPIControllerExportable removes rules integration, which we 
-   *   need also. For now, do a db_query to find the entity id to load.
-   * 
-   * @param $args
-   *   An array of variables passed from the plugin.
-   * @return
-   *   A full loaded match object. 
-   */
-  public function getMatchByName($args) {
-    $entity_id = db_query("SELECT id FROM {tourney_match} WHERE name = :name",
-      array(':name' => $this->tournament->name . '_' . $args['match_name']))
-      ->fetchField();
-      
-    return tourney_match_load($entity_id);
-  } 
-  
-  /**
-   * Return the match location in the bracket of a match object.
-   * 
-   * The SingleElimination plugin stores information about the location of the
-   * match in a relation entity. This getMatchAddress method is dependent on how
-   * the saveMatches() method is written. If saveMatches() is overridden, it is
-   * likely that getMatchAddress() should be overridden as well.
-   * 
-   * @see TourneyController::saveMatches()
-   * 
-   * @param $match
-   *   The match object to get the address for
-   * @return array
-   *   An array keyed with 
-   */
-  protected function getMatchAddress($match) {
-    $query = relation_query('tourney_match', $match->id);
-    $query->entityCondition('bundle', 'has_match');
-    $results = $query->execute();
-    
-    $name_parts = explode('_', $match->name);
-    $match_ids = array();
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      return array(
-        'bracket' => $r->bracket[LANGUAGE_NONE][0]['safe_value'],
-        'round_num' => $r->round[LANGUAGE_NONE][0]['safe_value'],
-        'match_num' => substr(strstr($name_parts[1], '-'), 1),
-      );
-    }
-  }
-  /**
-   * Gets a list of participating contestants in seed order
-   *
-   * @return array $contestants 
-   *   List of contestants, all entities
-   * @deprecated
-   */
-  public function getContestants() {
-    if (is_null($this->tournament->contestants)) {
-      // Take matches from only the first round, since those are the manually populated ones
-      $copy = $this->tournament->data;
-      $brackets = array_shift($copy);
-      $matches = $brackets['rounds']['round-1']['matches'];
-
-      // Set up two arrays to fill for seed order
-      $seed_1 = array();
-      $seed_2 = array();
-      foreach ($matches as $match_callbacks) {
-        $match = $this->tournament->tourneyFormatPlugin
-          ->$match_callbacks['current_match']['callback']($match_callbacks['current_match']['args']);
-
-        $seed = 1;
-        foreach ( $match->getContestants() as $eid => $contestant ) {
-          $group = "seed_" . $seed++;
-          ${$group}[$eid] = $contestant;
-        }
-      }
-      // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
-      $this->tournament->contestants = array_merge($seed_1, array_reverse($seed_2));
-    }
-    
-    return $this->tournament->contestants;
-  }
-  
-  /**
-   * Get the callbacks for this match from the structure of the plugin.
-   * 
-   * @param $match
-   *   Match object.
-   */
-  public function getMatchCallbacks($match) {
-    $match_location = $this->getMatchAddress($match);    
-    // Return just the portion of the structure array that we need. We know how 
-    // this structure array is built, because this array was defined in this
-    // plugin.
-    return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
-  }
-  
-  /**
-   * Get match info for a match that is passed in. Traverses the structure of the 
-   * tournament until it finds the match and returns information about the match
-   * 
-   * @param $match
-   *   Match object
-   * @param array
-   *   An array with information about the match
-   */
-  public function getMatchInfo($match) {
-    @list(, $match_name) = explode('_', $match->name);
-    return $this->findMatchInfo($match_name, $this->tournament->tourneyFormatPlugin->structure());
-  }
-  
-  /**
-   * Get the parent structure from structure array that contains the key element
-   * that is being looked for.
-   * 
-   * @param $key_value
-   *   The key to look for in the structure array.
-   * @param $structure
-   *   The structure array from the plugin.
-   * @return
-   *   A portion of the structure array that contains the $key_value passed in.
-   */
-  protected function findMatchInfo($key_value, $structure) {
-    // Rewritten, since we know the structure of the brackets
-    foreach ( $structure as $b_name => $bracket ) {
-      foreach ( $bracket['rounds'] as $r_name => $round ) {
-        if ( !array_key_exists('matches', $round) ) continue;
-        foreach ( $round['matches'] as $m_name => $match ) {
-          if ( $m_name == $key_value ) return $match;
-        }
-      }
-    }
-  }
-}
-
-/**
- * Default interface for any classes that will define a match style.
- */
-interface TourneyControllerLegacyInterface {
-  /**
-   * Builds the array structure for all matches to be created.
-   */
-  public function build();
-  
-  /**
-   * Defines the structure of matches in tournament.
-   */
-  public function structure();
-  
-  /**
-   * Defines how to get the callbacks for a given match
-   */
-  public function getMatchCallbacks($match);
-  
-  /**
-   * Determines which contestant is the winner.
-   */
-  public function determineWinner($tournament);
-  
-  /**
-   * Determines if the tournament is finished.
-   */
-  public function isFinished($tournament);
+  public function render();
 }
 
 abstract class TourneyEntity extends Entity {

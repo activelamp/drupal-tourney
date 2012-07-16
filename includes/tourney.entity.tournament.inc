@@ -29,18 +29,11 @@ class TourneyTournamentEntity extends TourneyEntity {
     // available.
     // @todo : Lazy load this?
     if (!empty($this->players)) {
-      // Ensure that matches have been created before retreving them.
-      // if ($this->matches_created) {
-      //   $this->matchIds = $this->getMatchIds();
-      //   $this->gameIds = $this->getGameIds();
-      // }
-
       $tourneyFormatPlugin = $this->format;
       if (!class_exists($tourneyFormatPlugin)) {
         throw new Exception(t('Tourney format plugin does not exist'));
       }
       $this->tourneyFormatPlugin = new $tourneyFormatPlugin($this->players, $this);
-      // $this->data = $this->tourneyFormatPlugin->structure();
 
       // Add a url to the object
       $this->uri = $this->getUri();
@@ -356,13 +349,17 @@ class TourneyTournamentEntity extends TourneyEntity {
     foreach ($matches as $match) {
       $match = entity_load_single('tourney_match', $match);
       // If a match hasn't been won yet, don't count its games
-      if ( !$match->getWinner() ) continue;
-      foreach ( $match->getContestantIds() as $var => $contestant ) {
+      if (!$match->getWinner()) {
+        continue;
+      }
+      foreach ($match->getContestantIds() as $var => $contestant) {
         // If the standings array doesn't have this contestant yet, add it
-        if ( !array_key_exists($eid = $contestant['eid'], $standings) )
+        if (!array_key_exists($eid = $contestant['eid'], $standings)) {
           $standings[$eid] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
+        }
+          
         // Tally either as a winner or a loser, then up the total matches played
-        if ( $match->getWinner() == $eid ) {
+        if ($match->getWinner() == $eid) {
           $standings[$eid]['wins']++;
         }
         else {
@@ -370,80 +367,12 @@ class TourneyTournamentEntity extends TourneyEntity {
         }
         $standings[$eid]['total']++;
         // First is used for the rare case of ties, just to see who won first
-        if ( $standings[$eid]['first'] == -1 )
+        if ($standings[$eid]['first'] == -1) {
           $standings[$eid]['first'] = $i++;
+        }
       }
     }
     return $standings;
-  }
-
- /**
-  * Retrieve the callback from the plugin for next match and pass and delegate
-  * responsibility to the plugin.
-  *
-  * @param $match
-  *   Match object to compare with the internal matchIds property to get its
-  *   match placement
-  * @param $direction
-  *   Either 'winner' or 'loser'
-  * @return $match
-  *   Match entity of the desired match, otherwise NULL
-  */
-  public function getNextMatch($match, $direction = 'winner') {
-    $plugin =& $this->tourneyFormatPlugin;
-    if ( !array_key_exists($match->entity_id, $plugin->flowMap) ) {
-      $plugin->flowMap[$match->entity_id] = array();
-    }
-    if ( !array_key_exists($direction, $plugin->flowMap[$match->entity_id]) ) {
-      // Get the callback for this match
-      $info = $match->matchInfo;
-      if ( !$info ) return NULL;
-      if ( !method_exists($plugin, $info['next_match']['callback']) ) return NULL;
-      $plugin->flowMap[$match->entity_id][$direction] = $plugin->$info['next_match']['callback']($match, $direction);
-    }
-    return $plugin->flowMap[$match->entity_id][$direction];
-  }
-
- /**
-  * Iterate and cache all the tournament's matches' next matches.
-  *
-  */
-  public function populateFlowMap() {
-    $populated = &drupal_static(__FUNCTION__, FALSE);
-    $plugin =& $this->tourneyFormatPlugin;
-    if ( !$populated ) {
-      $matches = entity_load('tourney_match', $this->getMatchIds());
-      foreach ( $matches as $match ) {
-        foreach ( $plugin->directions as $direction ) {
-          $this->getNextMatch($match, $direction);
-        }
-      }
-      $populated = TRUE;
-    }
-    return $plugin->flowMap;
-  }
-
- /**
-  * Get the parent matched to the provided match. Logic will go through
-  * and populate the flow map to obtain all next matches and get all
-  * matches who lead to the provided.
-  *
-  * @param $match
-  *   Match object
-  * @return $match
-  *   Array of entities of the desired match
-  */
-  public function getPreviousMatches($match) {
-    $this->populateFlowMap();
-    $plugin =& $this->tourneyFormatPlugin;
-    $matches = array();
-    foreach ( $plugin->flowMap as $pid => $flow ) {
-      foreach ( $flow as $dir => $child ) {
-        if ( $child && $child->entity_id == $match->entity_id )
-          $matches[] = $pid;
-      }
-    }
-    return array_values(entity_load('tourney_match', $matches));
   }
   
   /**
@@ -469,7 +398,8 @@ class TourneyTournamentEntity extends TourneyEntity {
     if ($this->get('no_automation', FALSE)) {
       return 0x3;
     }
-    if (user_access("edit tourney") == FALSE || count($match->getGameIds()) > 1) {
+    if ((user_access('administer tourney') == FALSE && user_access("edit tourney") == FALSE) 
+      || count($match->getGameIds()) > 1) {
       return FALSE;
     }
     $round = $match->matchInfo['round'];
@@ -493,45 +423,6 @@ class TourneyTournamentEntity extends TourneyEntity {
   }
 
   /**
-   * Deprecated function. Use the structure in plugin instead.
-   *
-   * Return all the matches that have a relation 'has_match' with the passed
-   * in tournament object.
-   *
-   * @param $raw
-   *   If set to true only return the matches, do not return brackets and
-   *   rounds with it.
-   * @param $reset
-   *   Boolean to reset the cache.
-   * @return
-   *   An array of all the rounds and matches.
-   */
-  public function buildMatches($raw = FALSE, $reset = FALSE) {
-    $relations = relation_query('tourney_tournament', $this->id)
-      ->entityCondition('bundle', 'has_match')
-      ->execute();
-
-    $brackets = array();
-    foreach ( $relations as $rid => $relation ) {
-      $relation = relation_load($rid);
-      $bracket  = $relation->bracket[LANGUAGE_NONE][0]['safe_value'];
-      $round    = $relation->round[LANGUAGE_NONE][0]['safe_value'];
-
-      $match    = $relation->endpoints[LANGUAGE_NONE][1]['entity_id'];
-      $match    = entity_load_single('tourney_match', $match);
-
-      if ( !array_key_exists($bracket, $brackets) )
-        $brackets[$bracket] = array();
-      if ( !array_key_exists($round, $brackets[$bracket]) )
-        $brackets[$bracket][$round] = array();
-      if (is_object($match))
-        $brackets[$bracket][$round][$match->entity_id] = $match;
-    }
-
-    return $brackets;
-  }
-
-  /**
    * Rules called function, usually, to run win code on a match. Calls the plugin
    * specific callback, if there, then checks internally if the tournament's been
    * given a winner
@@ -545,7 +436,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     $match->cleanGames();
     $this->determineWinner();
     
-    if (!$this->get('no_automation', FALSE)) {
+    if (!$this->get('no_automation', FALSE) || $this->format != 'RoundRobinController') {
         if (!$match->isFinished()) {
           return;
         }
@@ -564,6 +455,33 @@ class TourneyTournamentEntity extends TourneyEntity {
         }
     }
   }
+  
+  /**
+   * Recursive function that sets players in a RoundRobin tournament in all their
+   * matches once the first round has been setup.
+   *
+   * @param $mid
+   *   The match id from the plugin.
+   */
+    public function populateRoundRobinMatches($mid) {
+      $match = $this->getMatchById($mid);
+      if (array_key_exists('nextMatch', $match->matchInfo)) {
+        foreach ($match->getMatchContestants() as $contestant) {
+          $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
+          $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];
+          
+          
+          if ($next === NULL) continue;
+          
+          $next_match = $this->getMatchById($next);
+          $next_match->addContestant($contestant, $next_slot);
+          
+          // Recurse
+          $this->populateRoundRobinMatches($next);
+        }
+      }
+      
+    }
   
   /**
    * Get settings from tourney settings.

@@ -9,29 +9,49 @@
  * A class defining how matches are created for this style tournament.
  */
 
-class RoundRobinController extends TourneyControllerLegacy implements TourneyControllerInterface {
-
-  protected $tournament;
-  protected $slots;
-  protected $contestants;
-  protected $matches;
-  public $flowMap = array();
-  public $directions = array(1, 2);
-
+class RoundRobinController extends TourneyController {
+  public $moveWinners = FALSE;
+  
   /**
    * Constructor
    */
-  public function __construct(TourneyTournamentEntity $tournament) {
-    $this->tournament = $tournament;
-
-    $this->contestants = $tournament->players;
-    // Ensure we have an even number of slots
-    $slots = $this->contestants % 2 ? $this->contestants + 1 : $this->contestants;
-    $this->slots = $slots;
-
+  public function __construct($numContestants, $tournament = NULL) {
     parent::__construct();
+    // Set our contestants, and then calculate the slots necessary to fit them 
+    $this->numContestants = $numContestants;  
+    $this->slots = $numContestants % 2 ? $numContestants + 1 : $numContestants;
+    $this->tournament = $tournament;
+    
+    // Flag used in rules to not fire off matchIsWon logic.
+    $this->moveWinners = FALSE;
   }
+  
+  /**
+   * Preprocess variables for the template passed in.
+   * 
+   * @param $template
+   *   The name of the template that is being preprocessed.
+   * @param $vars
+   *   The vars array to add variables to.
+   */
+  public function preprocess($template, &$vars) {
+    if ($template == 'tourney-tournament-render') {
+      $vars['classes_array'][] = 'tourney-tournament-roundrobin';
 
+      $vars['header'] = theme('tourney_roundrobin_standings', array('plugin' => $this));
+      $vars['matches'] = theme('tourney_roundrobin', array('plugin' => $this));
+    }
+    if ($template == 'tourney-match-render') {
+      $last_match = count($vars['plugin']->structure['round-1']['matches']);
+      if ($vars['match']['roundMatch'] == 1) {
+        $vars['classes_array'][] = 'first';
+      }
+      if ($vars['match']['roundMatch'] == $last_match) {
+        $vars['classes_array'][] = 'last';
+      }
+    }
+  }
+  
   /**
    * Theme implementations to register with tourney module.
    *
@@ -40,343 +60,202 @@ class RoundRobinController extends TourneyControllerLegacy implements TourneyCon
   public static function theme($existing, $type, $theme, $path) {
     return array(
       'tourney_roundrobin_standings' => array(
-        'variables' => array('tournament' => NULL),
-        'file' => 'roundrobin.inc',
+        'variables' => array('plugin' => NULL),
         'path' => $path . '/theme',
+        'file' => 'roundrobin.inc',
+        'template' => 'tourney-roundrobin-standings',
       ),
       'tourney_roundrobin' => array(
-        'variables' => array('tournament' => NULL),
-        'file' => 'roundrobin.inc',
+        'variables' => array('plugin' => NULL),
         'path' => $path . '/theme',
+        'file' => 'roundrobin.inc',
+        'template' => 'tourney-roundrobin',
       ),
     );
   }
-
+  
   /**
-   * Build an array with tournament structure data.
-   *
-   * @return $structure
-   *   An array of the tournament structure and meta data.
-   */
-  public function structure($type = 'rounds') {
-    return $this->structure = $this->buildBracketByRounds($this->slots);
-  }
-
-  /**
-   * Build bracket structure and logic.
-   *
-   * @param $slots
-   *   The number of slots in the first round.
-   * @return
-   *   An array of bracket structure and logic.
-   */
-  protected function buildBracketByRounds($slots) {
-    return array(
-      'bracket-roundrobin' => array(
-        'title'  => t('Main Bracket'),
-      ) + $this->buildRounds($slots),
-    );
-  }
-
-  /**
-   * Build rounds.
-   *
-   * @param $slots
-   *   The number of slots in the first round.
-   * @return
-   *   The rounds array completely built out.
-   */
-  protected function buildRounds($slots) {
-    $total_rounds = $slots - 1;
-    $rounds = array();
-    $static_match_num = &drupal_static('match_num_iterator', 1, TRUE);
-
-    for ($round_num = 1; $round_num <= $total_rounds; $round_num++) {
-      $rounds['rounds']['round-' . $round_num] = $this->buildRound($slots, $round_num);
-    }
-
-    return $rounds;
-  }
-
-  protected function buildRound($slots, $round_num) {
-    $static_match_num = &drupal_static('match_num_iterator', 1);
-
-    $round = array(
-      'id' => $round_num,
-      'name' => 'round-' . $round_num,
-      'title' => t('Round ') . $round_num,
-    );
-
-    for ($match_num = 1; $match_num <= ($slots / 2); $match_num++) {
-      $round['matches']['match-' . $static_match_num] = $this->buildMatch($static_match_num, $round_num);
-      $static_match_num++;
-    }
-
-    return $round;
-  }
-
-  /**
-   * Define the match callbacks implemented in this plugin.
-   */
-  protected function buildMatch($match_num, $round_num) {
-    return array(
-      'bracket' => array(
-        'id' => 'main',
-      ),
-      'round' => array(
-        'id' => $round_num,
-        'name' => 'round-' . $round_num,
-        'title' => t('Round ') . $round_num,
-      ),
-      'current_match' => array(
-        'callback' => 'getMatchByName',
-        'args' => array(
-          'match_name' => 'match-' . $match_num,
-        ),
-      ),
-      'previous_match' => array(
-        'callback' => 'getPreviousMatch',
-      ),
-      'next_match' => array(
-        'callback' => 'getNextMatch',
-        'args' => array(
-          'direction' => 'winner',
-        ),
-      ),
-      'is_won' => array(
-        'callback' => NULL,
-      ),
-    );
-  }
-
-  /**
-   * Renders the html for each round of a round robin tournament
-   *
-   * @param $tournament
-   *   The tournament object
-   * @param $matches
-   *   An array of all the rounds and matches in a tournament.
-   */
-  public function render() {
-    drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
-    return theme('tourney_roundrobin', array('tournament' => $this->tournament));
-  }
-
-  public function getSlots() {
-    return $this->slots;
-  }
-
-  /**
-   * Build an array with all possible matches.
-   * @see http://www.ehow.com/how_5796594_create-round_robin-schedule.html
-   *
-   * With round robin tournaments the teams switch off between being the "home"
-   * team and the "away" team.  To accomodate this, assume the following is true:
-   *   HOME TEAM = 'contestant-1'
-   *   AWAY TEAM = 'contestant-2'
-   *
+   * This builds the data array for the plugin. The most important data structure
+   * your plugin should implement in build() is the matches array. It is from 
+   * this array that matches are saved to the Drupal entity system using 
+   * TourneyController::saveMatches().
    */
   public function build() {
-    $matches = array();
-    $structure = $this->structure();
-    // Number of rounds is (n - 1), n being contestants
-    $rounds = $this->slots - 1;
-    foreach ($structure as $bracket_name => $bracket_info) {
-      foreach ($bracket_info['rounds'] as $round_name => $round_info) {
-        foreach ($round_info['matches'] as $match_name => $match_info) {
-          $matches[] = array(
-            'bracket_name' => $bracket_name,
-            'round_name' => $round_name,
-            'match_name' => $match_name,
-            'match_info' => $match_info,
-          );
-        }
-      }
-    }
-    $this->matches = $matches;
-    return $this->matches;
+    $this->buildBrackets();
+    $this->buildMatches();
+    $this->buildGames();    
+    
+    $this->data['contestants'] = array();     
+    
+    // Calculate and set the match pathing
+    $this->populatePositions();
+    // Set in the seed positions
+    $this->populateSeedPositions();
+  }
+  
+  public function buildBrackets() {
+    $this->data['brackets']['main'] = $this->buildBracket(array(
+      'id' => 'main',
+      'rounds' => $this->slots - 1,
+    ));
   }
 
-  /**
-   * Figure out where each team needs to go next based on standard round robin
-   * logic. Build the array that determines the placeholder slots.
-   *
-   * @param $slots
-   *   The (even) number of players in the tournament.
-   */
-  public function placeholders($slots) {
-    static $matches = array();
+  public function buildMatches() {
+    $slots = $this->slots;
+    $match = &drupal_static('match', 0);
 
-    if ( empty($matches) ) {
+    // Calculate and iterate through rounds and their matches based on slots
+    for ($round = 1; $round < $slots; $round++) {
+      // Add current round information to the data array
+      $this->data['rounds'][$round] = 
+        $this->buildRound(array('id' => $round, 'bracket' => 'main'));
+
+      // Add in all matches and their information for this round
+      foreach (range(1, $slots / 2) as $roundMatch) { 
+        $this->data['matches'][++$match] = 
+          $this->buildMatch(array(
+            'id' => $match,
+            'round' => $round,
+            'roundMatch' => (int) $roundMatch,
+            'bracket' => 'main',
+          ));
+      }
+    }
+  }
+
+  public function buildGames() {
+    foreach ($this->data['matches'] as $id => &$match) {
+     $this->data['games'][$id] = $this->buildGame(array(
+       'id' => $id,
+       'match' => $id,
+       'game' => 1, 
+     ));
+     $this->data['matches'][$id]['games'][] = $id;
+    }
+  }
+  
+  /**
+   * Find and populate next/previous match pathing on the matches data array for
+   * each match.
+   */
+  public function populatePositions() {
+    $this->calculateSeeds();
+    foreach ($this->data['matches'] as $id => &$match) {
+      $slot1 = $this->calculateNextPosition($match, 1);
+      $slot2 = $this->calculateNextPosition($match, 2);
+      if ($slot1) {
+        $match['nextMatch'][1] = $slot1;
+        $this->data['matches'][$slot1['id']]['previousMatches'][$slot1['slot']] = $id;
+      }
+      if ($slot2) {
+        $match['nextMatch'][2] = $slot2;
+        $this->data['matches'][$slot2['id']]['previousMatches'][$slot2['slot']] = $id;
+      }
+    }
+  }
+  
+  /**
+   * Figures out what seed position is playing in every match of the tournament.
+   * 
+   * Creates a keyed array with the key being match number and slots array as
+   * the value, and the seed position as the values of that array.
+   */
+  public function calculateSeeds() {
+    static $matches = array();
+    $mid = 1;
+    $slots = $this->slots;
+    
+    if (empty($matches)) {
       $matches = array();
-      foreach ( range(1, $slots - 1) as $round ) {
+      foreach (range(1, $slots - 1) as $round) {
         $list = range(2, $slots);
         $list = array_merge(array(1), array_slice(array_merge($list, $list), $slots-$round, $slots-1));
-        foreach ( range(1, $slots / 2) as $match ) {
+        foreach (range(1, $slots / 2) as $match) {
           $match = array($list[$match-1], $list[$slots-$match]);
-          $matches[] = ( $round % 2 ) ? $match : array_reverse($match);
+          
+          // Slot positions need to flip every other round.
+          $match = ($round % 2) ? $match : array_reverse($match);
+          
+          // Make the array 1-based
+          array_unshift($match, NULL);
+          unset($match[0]);
+          
+          $matches[$mid++] = $match;
         }
       }
     }
-    return $matches;
+    return $this->data['seeds'] = $matches;
   }
 
   /**
-   * Sets the winner property and saves tournament.
-   *
-   * Retrieves rankings and sorts the list by total number of winnings. Sets
-   * winner to the first contestant in the ranking list.
-   *
-   * @param TourneyTournamentEntity $tournament
-   *
-   * @return TourneyTournamentEntity $this
-   *   Returns $this for chaining.
-   *
-   * @see tourney_roundrobin_standings_sort()
+   * Calculate and fill seed data into matches. Also marks matches as byes if
+   * the match is a bye.
    */
-  public function determineWinner($tournament) {
-    module_load_include('inc', 'tourney', 'theme/type/roundrobin');
-    $ranks = $tournament->fetchRanks();
-    $standings = $tournament->getStandings();
-    uasort($standings, 'tourney_roundrobin_standings_sort');
-
-    $keys = array_keys($standings);
-    $tournament->winner = $keys[0];
-    $tournament->save();
-
-    return $tournament;
-  }
-
-  /**
-   * Report if a tournament is finished.
-   *
-   * @param TourneyTournamentEntity $tournament
-   *
-   * @return bool $finished
-   *   Will report TRUE if the tournament is finished, FALSE if not.
-   */
-  function isFinished($tournament) {
-    if (!property_exists($tournament, 'id')) {
-      throw new Exception(t('Required parameter is not correct.'));
-    }
-
-    $finished = FALSE;
-
-    // If all matches are finished then the tournament is finished.
-    $matches = tourney_match_load_multiple($tournament->getMatchIds());
-    if (!empty($matches)) {
-      $finished = TRUE;
-      foreach ($matches as $match) {
-        $finished = ($finished) ? $match->isFinished() : FALSE;
+  public function populateSeedPositions() {
+    $this->calculateSeeds();
+    // Calculate the seed positions, then apply them to their matches while
+    // also setting the bye boolean
+    foreach ($this->data['seeds'] as $mid => $seeds) {
+      if ($this->data['matches'][$mid]['round'] == 1) {
+        $match =& $this->data['matches'][$mid];
+        $match['seeds'] = $seeds;
+        $match['bye'] = $seeds[2] === NULL;
       }
     }
-
-    return $finished;
   }
-
- /**
-  * Given a match place integer and a direction, returns both the target match
-  * and slot
-  *
-  * @param $place
-  *   Match placement, zero-based. round 1 match 1's match placement is 0
-  * @param $slot
-  *   Either '0' or '1'
-  * @return $result
-  *   Keyed array giving both the target match and slot
-  */
-  function getNextMatchSlot($place, $slot) {
-    if ( !$slot ) return NULL;
-    $placeholders = $this->placeholders($this->slots);
+  
+  /**
+   * Generate a structure based on data
+   */
+  public function structure() {
+    $structure = array();
+    // Loop through our rounds and set up each one
+    foreach ($this->data['rounds'] as $round) {
+      $structure[$round['id']] = $round + array('matches' => array());
+    }
+    // Loop through our matches and add each one to its related round
+    foreach ($this->data['matches'] as $match) {
+      $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
+    }
+    $this->structure = $structure;
+    
+    return $this->structure;
+  }
+  
+  /**
+   * Given a match info array, returns both the target match and slot.
+   *
+   * @param $match_info
+   *   The match data array.
+   * @param $slot
+   *   Slot placement, one-based.
+   * @return $result
+   *   Keyed array giving both the target match and slot
+   */
+  function calculateNextPosition($match_info, $slot) {
+    $seeds = $this->data['seeds'];
+    $place = $match_info['id'];
+    
     // Get the current contestant slot number
-    $id = $placeholders[$place][$slot-1];
-    foreach ( $placeholders as $m => $slots ) {
-      if ( $m <= $place ) continue;
+    $id = $seeds[$place][$slot];
+    foreach ($seeds as $mid => $slots) {
+      if ($mid <= $place) {
+        continue;
+      }
       // Check for the next instance of it after the current match
-      if ( in_array($id, $slots) ) {
+      if (in_array($id, $slots)) {
         $slots = array_flip($slots);
-        return array('match' => $m, 'slot' => $slots[$id]);
+        return array('id' => $mid, 'slot' => $slots[$id]);
       }
     }
     return NULL;
   }
-
- /**
-  * Given a match place integer, returns the next match place based on either
-  * 'home' or 'away' direction
-  *
-  * @param $match
-  *   Match object.
-  * @param $slot
-  *   Either '0' or '1'
-  * @return $place
-  *   Match placement of the desired match, otherwise NULL
-  */
-  function getNextMatch($match, $slot) {
-    $ids = array_flip($this->tournament->getMatchIds());
-    $next = $this->getNextMatchSlot($ids[$match->entity_id], $slot);
-    if ( $next === NULL ) return NULL;
-
-    $ids = array_flip($ids);
-    if (!array_key_exists((int)$next['match'], $ids)) return NULL;
-    return entity_load_single('tourney_match', $ids[$next['match']]);
-  }
-
-
- /**
-  * Given a match place integer, returns the next match slot based on either
-  * 'home' or 'away' direction
-  *
-  * @param $match
-  *   Match entity, since the tournament isn't handling this method to provide a
-  *   zero-index match place
-  * @param $direction
-  *   Either 'home' or 'away'
-  * @return $place
-  *   Slot placement of the desired match, otherwise NULL (1 based counting)
-  */
-  function getNextSlot($match, $direction) {
-    $ids = array_flip($match->getTournament()->getMatchIds());
-    $next = $this->getNextMatchSlot($ids[$match->entity_id], $direction);
-    if ( $next === NULL ) return NULL;
-    return $next['slot'] + 1;
-  }
-
-  /**
-   * Get the callbacks for this match from the structure of the plugin.
-   */
-  public function getMatchCallbacks($match) {
-    $match_location = $this->getMatchAddress($match);
-    // Return just the portion of the structure array that we need. We know how
-    // this structure array is built, because this array was defined in this
-    // plugin.
-    //
-    // @todo: For some reason in round robin, this data variable isn't populated
-    // on instantiation.
-    $this->tournament->data = $this->tournament->tourneyFormatPlugin->structure();
-
-    return $this->tournament->data['bracket-' . $match_location['bracket']]['rounds']['round-' . $match_location['round_num']]['matches']['match-' . $match_location['match_num']];
-  }
-
-/**
- * Recursive function that sets players in a RoundRobin tournament in all their
- * matches once the first round has been setup.
- *
- * @param $match (object)
- *   The match the game belongs to
- */
-  public function populateMatches($match) {
-    foreach ($match->getMatchContestants() as $contestant) {
-      $next = $match->nextMatch($contestant->slot);
-
-      if ( $next === NULL ) continue;
-      $slot = $match->getTournament()->tourneyFormatPlugin->getNextSlot($match, $contestant->slot);
-
-      // If the slot is already taken, don't do anything
-      if ( $next->getContestant($slot) ) continue;
-      $next->addContestant($contestant, $slot);
-      // Recurse
-      $this->populateMatches($next);
-    }
+  
+  public function render() {
+    // Build our data structure
+    $this->build();
+    $this->structure();
+    drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
+    return theme('tourney_tournament_render', array('plugin' => $this));
   }
 }

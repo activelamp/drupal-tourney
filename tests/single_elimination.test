@@ -1,0 +1,84 @@
+<?php
+
+class SingleElimimationTestCase extends DrupalWebTestCase {
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Test Single Elimination Tournament'),
+      'description' => t('Steps through setting up a single elimination tournament and playing all the way through.'),
+      'group' => t('Tourney'),
+    );
+  }
+  
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'tourney',
+    ));
+    
+    // Create and log in our privileged user.
+    $this->privileged_user = $this->drupalCreateUser(array('administer tourney', 'create tourney', 'edit tourney'));
+    $this->drupalLogin($this->privileged_user);
+    
+    // Create 20 users
+    for ($i = 1; $i <= 20; $i++) {
+      $this->drupalCreateUser(array('access content'));
+    }
+  }
+  
+  /**
+   * Testing 4 contestants
+   */
+  public function testSingleElim4() {
+    // Create the tournament
+    $edit = array();
+    $tournament_name = $this->randomName(8);
+    $edit['label'] = $tournament_name;
+    $edit['name'] = strtolower($edit['label']);
+    $edit['players'] = 4;
+    $edit['format'] = 'SingleEliminationController';
+    $edit['config_default_games'] = 1;
+    
+    $this->drupalPost('tourney/add', $edit, t('Save'));
+    $this->assertRaw(t('Your tournament has been saved.'));
+    
+    // Set contestants of the first match.
+    $edit = array();
+    $edit['contestant1'] = 'user.2';
+    $edit['contestant2'] = 'user.2';
+    $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
+    // Make sure we can't set the same user twice.
+    $this->assertRaw(t('Contestant 1 and Contestant 2 cannot be the same person'));
+    
+    // Now change contestant 2 to a different user.
+    $edit['contestant2'] = 'user.3';
+    $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
+    $this->assertRaw(t('Your match has been saved'));
+    $this->assertLink(t('Go to tournament !tournament', array('!tournament' => $tournament_name)));
+    
+    // First Contestant wins in match 1.
+    $edit = array();
+    $this->drupalPost('tourney/match/1', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
+    $this->assertRaw(t('Players moved to next round'));
+    // Check to see if the winner is printed on the page.
+    $this->assertRaw(t('user.2'));
+    
+    // Set contestants of the second match
+    $edit = array();
+    $edit['contestant1'] = 'user.4';
+    $edit['contestant2'] = 'user.5';
+    $this->drupalPost('tourney/match/2/edit', $edit, t('Save'));
+    $this->assertRaw(t('Your match has been saved'));
+    
+    // Second Contestant wins in match 2.
+    $edit = array();
+    $this->drupalPost('tourney/match/2', $edit, t('Win'), array(), array(), 'tourney-game-win-form--2');
+    $this->assertRaw(t('Players moved to next round'));
+    // Check to see if the winner is printed on the page.
+    $this->assertRaw(t('user.5'));
+  }
+}
