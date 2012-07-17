@@ -20,7 +20,7 @@
   <?php endif; ?>
   <div class="parent">
     <?php print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin, 'children_classes' => $children_classes)); ?>
-    <div class="connector to-parent<?php print $is_child ? ' child-' . $node['child'] : ''; ?>">
+    <div class="connector to-parent <?php print $node_classes; ?>">
       <div class="path"></div>
     </div>
   </div>

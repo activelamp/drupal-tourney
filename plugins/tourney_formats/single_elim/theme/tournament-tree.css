@@ -145,12 +145,12 @@
   margin-top:0;
 }
 .tourney-tournament-tree .tree-node.only-child .connector.child-1 .path {
- bottom:50%;
- top:auto;
- height:34px;
-}
-.tourney-tournament-tree .tree-node.only-child .children-2 > .child-1 .parent .connector.child-1 .path {
+  top:auto;
+  bottom:50%;
   height:50%;
+}
+.tourney-tournament-tree .tree-node.only-child .connector.only-child > .path {
+  height:34px;
 }
 /*.tourney-tournament-tree .tree-node .bracket-match {
   margin:0 5px;
