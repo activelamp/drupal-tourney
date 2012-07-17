@@ -80,6 +80,8 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   }
   $vars['node'] = $node;
   
+  $node_classes[] = 'child-' . $node['child'];
+  
   if ($is_bye) {
     $node_classes[] = 'bye';
   }       
@@ -118,6 +120,9 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   
   // Set the children classes
   $children_classes = array();
+  if (array_key_exists('children', $node)) {
+    $children_classes[] = 'children-' . count($node['children']);
+  }
   if ($both_byes) {
     $children_classes[] = 'bye';
   }

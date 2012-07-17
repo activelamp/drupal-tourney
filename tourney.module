@@ -142,7 +142,7 @@ function tourney_menu() {
 
 function tourney_testing() {
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $tournament = new DoubleEliminationController(8);
+  $tournament = new DoubleEliminationController(32);
   // $tournament->setPluginOptions(array('third_place' => TRUE));
   return $tournament->render();
 }
