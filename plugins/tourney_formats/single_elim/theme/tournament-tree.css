@@ -156,3 +156,15 @@
   margin:0 5px;
   position:relative;
 }*/
+
+.tourney-tournament {
+  margin-top: 35px;
+}
+
+h2.round-title {
+  position: absolute;
+  top: -40px;
+  width: 120px;
+  text-align: center;
+  visibility: visible;
+}

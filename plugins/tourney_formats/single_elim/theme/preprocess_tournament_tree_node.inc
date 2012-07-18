@@ -25,6 +25,12 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
     $vars['node'] = $vars['plugin']->structure['tree'];
   }
   $node = $vars['node'];
+  
+  // Set the round name
+  $vars['round_name'] = '';
+  if ($node['roundMatch'] == 1) {
+    $vars['round_name'] = 'Round ' . $node['round'];
+  }
 
   $is_bye = isset($node['bye']) ? $node['bye'] : FALSE;
   $is_child = isset($node['child']);
