@@ -1,0 +1,236 @@
+<?php
+
+  /**
+   * Implements hook_menu().
+   */
+function tourney_series_menu() {
+  $items = array();
+  $items['tourney-series/add'] = array(
+    'title' => 'Add a new tournament series',
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('tourney_series', NULL, 'add'),
+    'access arguments' => array('create tourney'),
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'includes/tourney_series.admin.inc',
+  );
+  $items['tourney-series/%tourney_series/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'tourney_series_edit',
+    'page arguments' => array(2),
+    'access callback' => 'tourney_access',
+    'access arguments' => array('edit', 'series'),
+    'file' => 'includes/tourney_series.admin.inc',
+    'weight' => 0,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+  $items['tourney-series/%tourney_series/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'tourney_series_confirm_delete_page',
+    'page arguments' => array(2),
+    'access callback' => 'tourney_access',
+    'access arguments' => array('delete', 'series'),
+    'file' => 'includes/tourney_series.admin.inc',
+    'weight' => 10,
+    'type' => MENU_CALLBACK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+  //add another way to create a tournament and associate it with a series
+  $items['admin/tourney-series-tournament-add/%'] = array(
+    'title' => 'Add a new tournament to series',
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('tourney_tournament', NULL, 'add'),
+    'access arguments' => array('create tourney'),
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file path' => drupal_get_path('module', 'tourney'),
+    'file' => 'includes/tourney.tournament.inc',
+  );
+  $items['tourney_series/autocomplete'] = array(
+    'page callback' => '_tourney_series_autocomplete',
+    'access arguments' => array('tourney_access'),
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function tourney_series_entity_info() {
+  $return = array();
+  $entity_name  = 'tourney_series';
+  $entity_short = 'series';
+  $entity_class = 'TourneySeries';
+
+  $return[$entity_name] = array(
+    'label' => $entity_name,
+    'entity class' => $entity_class,
+    'controller class' => 'EntityAPIController',
+    'base table' => $entity_name,
+    'fieldable' => TRUE,
+    'uri callback' => 'tourney_uri',
+    'static cache' => TRUE,
+    'translation' => array(
+      'locale' => TRUE,
+    ),
+    'entity keys' => array(
+      'id' => 'id',
+      'bundle' => 'type',
+      'label' => 'label',
+    ),
+    'bundles' => array(),
+    'bundle keys' => array(
+      'bundle' => 'name',
+    ),
+    'access callback' => 'tourney_access',
+    'module' => 'tourney',
+  );
+
+  // Add bundle info but bypass entity_load() as we cannot use it here.
+  $types = db_select($entity_name . '_type', 'ttp')
+    ->fields('ttp')
+    ->execute()
+    ->fetchAllAssoc('name');
+
+  foreach ($types as $type => $info) {
+    $return[$entity_name]['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path' => 'admin/structure/tourney/' . $entity_short . '/manage/%' . $entity_name . '_type',
+        'real path' => 'admin/structure/tourney/' . $entity_short . '/manage/' . $type,
+        'bundle argument' => 5,
+        'access arguments' => array('access content'),
+      ),
+    );
+  }
+
+  $return[$entity_name . '_type'] = array(
+    'label' => t('@entity type', array('@entity' => ucfirst($entity_short))),
+    'plural label' => t('@entity types', array('@entity' => ucfirst($entity_short))),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIControllerExportable',
+    'base table' => $entity_name . '_type',
+    'fieldable' => FALSE,
+    'bundle of' => $entity_name,
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'name',
+      'label' => 'label',
+    ),
+    'access callback' => 'tourney_type_access',
+    'module' => 'tourney',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/structure/tourney/' . $entity_short,
+      'file' => 'includes/tourney.admin.inc',
+    ),
+  );
+
+  return $return;
+}
+
+function tourney_series_get_tournaments_on_series($series) {
+  //$tourney = relation_get_related_entity('node', $event->nid, 'event_tournament', 0);
+  $query = relation_query('tourney_series', $series->id);
+  $query->entityCondition('bundle', 'has_tournament');
+  $results = $query->execute();
+  if(is_array($results) && !empty($results)) {
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
+      $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+      $series_arr[] = array(
+        'type' => $type,
+        'id' => $id,
+        'eid' => $type . '.' . $id,
+        'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
+      );
+    }
+    if(is_array($series_arr) && !empty($series_arr)) {
+      foreach ($series_arr as $s) {
+        $return_array[] = entity_load_single_by_eid($s['eid']);
+      }
+      return $return_array;
+    }
+  }
+}
+
+function tourney_series_get_series_by_tourney($tourney) {
+  //$tourney = relation_get_related_entity('node', $event->nid, 'event_tournament', 0);
+  $query = relation_query('tourney_tournament', $tourney->id);
+  $query->entityCondition('bundle', 'has_tournament');
+  $results = $query->execute();
+  if(is_array($results) && !empty($results)) {
+    foreach ($results as $relation) {
+      $r = relation_load($relation->rid);
+      $type = $r->endpoints[LANGUAGE_NONE][0]['entity_type'];
+      $id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+      $series_arr[] = array(
+        'type' => $type,
+        'id' => $id,
+        'eid' => $type . '.' . $id,
+        'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
+      );
+    }
+    if(is_array($series_arr) && !empty($series_arr)) {
+      foreach ($series_arr as $s) {
+        $return_array[] = entity_load_single_by_eid($s['eid']);
+      }
+      return $return_array;
+    }
+  }
+}
+
+function tourney_series_form_tourney_tournament_form_alter(&$form, &$form_state) {
+  $form_state['series'] = arg(1) === 'tourney-series-tournament-add' ? arg(2) : NULL;
+  if ($form_state['series']) {
+    array_push($form['#submit'], 'tourney_series_tourney_tournament_form_submit');
+  }
+}
+
+/**
+ * Submit callback for tourney_tournement entities.
+ *
+ * @see lol_tourney_form_tourney_tournament_form_alter()
+ */
+function tourney_series_tourney_tournament_form_submit($form, &$form_state) {
+  $series_eid  = $form_state['series'];
+  $tourney_id = $form_state['tourney_tournament']->id;
+  if ($series_eid && $tourney_id) {
+    $tourney = lol_tourney_get_event_tournament_by_series($series_eid);
+    $entity_keys = array(
+      array('entity_type' => 'tourney_series', 'entity_id' => $series_eid),
+      array('entity_type' => 'tourney_tournament', 'entity_id' => $tourney_id),
+    );
+    $rid = relation_insert('has_tournament', $entity_keys);
+  }
+}
+
+function tourney_series_autocomplete_form_validate($form, &$form_state) {
+  if($form_state['triggering_element']['#value'] == 'Add') {
+    $series_eid  = $form_state['series']->id;
+    $tourney_id = $form['attach_tourneys']['#value'];
+    if ($series_eid && $tourney_id) {
+      $entity_keys = array(
+        array('entity_type' => 'tourney_series', 'entity_id' => $series_eid),
+        array('entity_type' => 'tourney_tournament', 'entity_id' => $tourney_id),
+      );
+      $rid = relation_insert('has_tournament', $entity_keys);
+    }
+  }
+}
+
+function _tourney_series_autocomplete($string) {
+  $query = db_select('tourney_tournament', 't')
+    ->fields('t', array('id', 'label'))
+    ->condition('t.label', '%' . db_like($string) . '%', 'LIKE')
+    ->range(0,10)
+    ->execute();
+
+  foreach($query as $row) {
+    $matches[$row->id] = check_plain($row->label);
+  }
+
+  drupal_json_output($matches);
+}

@@ -312,25 +312,27 @@ class TourneyTournamentEntity extends TourneyEntity {
       // Set up two arrays to fill for seed order
       $seed_1 = array();
       $seed_2 = array();
-      foreach ($matches as $mid => $match_info) {
-        if ($match_info['round'] == 1) {
-          // If the match is a bye, get the next match id
-          if (array_key_exists('bye', $match_info) && $match_info['bye'] == TRUE) {
-            $mid = $match_info['nextMatch']['winner']['id'];
-          }
+      if(is_array($matches)) {
+        foreach ($matches as $mid => $match_info) {
+          if ($match_info['round'] == 1) {
+            // If the match is a bye, get the next match id
+            if (array_key_exists('bye', $match_info) && $match_info['bye'] == TRUE) {
+              $mid = $match_info['nextMatch']['winner']['id'];
+            }
           
-          $match = $this->tourneyFormatPlugin->getMatchById($mid);
-          if (is_object($match)) {
-            $seed = 1;
-            foreach ($match->getMatchContestants() as $eid => $contestant) {
-              $group = "seed_" . $seed++;
-              ${$group}[$eid] = $contestant;
+            $match = $this->tourneyFormatPlugin->getMatchById($mid);
+            if (is_object($match)) {
+              $seed = 1;
+              foreach ($match->getMatchContestants() as $eid => $contestant) {
+                $group = "seed_" . $seed++;
+                ${$group}[$eid] = $contestant;
+              }
             }
           }
         }
+        // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
+        $this->contestants = array_merge($seed_1, array_reverse($seed_2));
       }
-      // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5 
-      $this->contestants = array_merge($seed_1, array_reverse($seed_2));
     }
     
     return $this->contestants;

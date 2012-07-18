@@ -40,18 +40,18 @@ function template_preprocess_tourney_roundrobin_standings(&$vars) {
     }
   }
   
-  
-  foreach ($contestants as $id => $contestant) {
-    if (array_key_exists($id, $standings)) {
-      $games_played = $standings[$id]['total'] ? $standings[$id]['total'] : 0;
-      $wins = $standings[$id]['wins'] ? $standings[$id]['wins'] : 0;
-      $losses = $standings[$id]['losses'] ? $standings[$id]['losses'] : 0;
-    }
-    else {
-      $games_played = $wins = $losses = 0;
-    }
+  if(is_array($contestants)) {
+    foreach ($contestants as $id => $contestant) {
+      if (array_key_exists($id, $standings)) {
+        $games_played = $standings[$id]['total'] ? $standings[$id]['total'] : 0;
+        $wins = $standings[$id]['wins'] ? $standings[$id]['wins'] : 0;
+        $losses = $standings[$id]['losses'] ? $standings[$id]['losses'] : 0;
+      } else {
+        $games_played = $wins = $losses = 0;
+      }
     
-    $table['rows'][] = array($contestant->name, $games_played, $wins, $losses);
+      $table['rows'][] = array($contestant->name, $games_played, $wins, $losses);
+    }
   }
   
   $vars['standings'] = theme('table', $table);

@@ -306,9 +306,10 @@ class TourneyMatchEntity extends TourneyEntity {
   public function fetchRanks($reset = FALSE) {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'tourney_cache')) {
       $games = array();
-      
+      if(is_array($this->matchInfo)) {
       if (!array_key_exists('bye', $this->matchInfo) && count($this->getMatchContestants()) < 2) {
         return array();
+      }
       }
 
       foreach ($this->getMatchContestants() as $eid => $contestant) {
@@ -355,8 +356,10 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function isFinished() {
     // If this is a bye, it's finished
-    if (array_key_exists('bye', $this->matchInfo) && $this->matchInfo['bye']) {
-      return TRUE;
+    if(isset($this->matchInfo)) {
+      if (array_key_exists('bye', $this->matchInfo) && $this->matchInfo['bye']) {
+        return TRUE;
+      }
     }
     
     $games = tourney_game_load_multiple($this->getGameIds());
