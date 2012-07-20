@@ -8,7 +8,40 @@
  * Implements hook_views_data_alter().
  */
 function tourney_views_data_alter(&$data) {
+  $data['tourney_tournament']['edit_link'] = array(
+    'field' => array(
+      'title' => t('Edit Link'),
+      'help' => t('Provide a simple link to edit the tournament.'),
+      'handler' => 'tourney_handler_field_entity_link_edit',
+    )
+  );
+
+  $data['tourney_tournament']['match_view_link'] = array(
+    'field' => array(
+      'title' => t('Match View Link'),
+      'help' => t('Provide a link to the match view.'),
+      'handler' => 'tourney_handler_field_match_view_link',
+    )
+  );
+
   // Tournery Match additions
+
+  $data['tourney_match']['edit_link'] = array(
+    'field' => array(
+      'title' => t('Edit Link'),
+      'help' => t('Provide a simple link to edit the match.'),
+      'handler' => 'tourney_handler_field_entity_link_edit',
+    )
+  );
+
+  $data['tourney_match']['game_view_link'] = array(
+    'field' => array(
+      'title' => t('Game View Link'),
+      'help' => t('Provide a link to list the games in a given match.'),
+      'handler' => 'tourney_handler_field_game_view_link',
+    )
+  );
+
   $data['tourney_match']['match_tree'] = array(
     'title' => t('Match Tree'),
     'help' => t('Match ID with depth'),
@@ -58,6 +91,22 @@ function tourney_views_data_alter(&$data) {
     ),
   );
   
+  // generic footer/header links
+  $data['views']['parent_match'] = array(
+    'title' => t('Link to Parent Match'),
+    'help' => t('Provide a link to the parent match.'),
+    'area' => array(
+      'handler' => 'views_handler_parent_match_link',
+    ),
+  );
+  $data['views']['parent_tourney'] = array(
+    'title' => t('Link to Parent Tournament'),
+    'help' => t('Provide a link to the parent tourney.'),
+    'area' => array(
+      'handler' => 'views_handler_parent_tourney_link',
+    ),
+  );
+
 }
 
 function tourney_views_plugins() {
