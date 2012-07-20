@@ -549,7 +549,7 @@ function tourney_configure_rounds($js = FALSE, $object_id, $controller, $slots) 
     'controller' => $controller,
     'slots' => $slots,
     'object_id' => $object_id,
-  );  
+  );
   
   if ($js) {
     ctools_include('ajax');
@@ -568,11 +568,17 @@ function tourney_configure_rounds($js = FALSE, $object_id, $controller, $slots) 
     exit;
   }
   else {
-    return drupal_get_form('tourney_configure_rounds_form', $form_state);
+    return drupal_get_form('tourney_configure_rounds_form', $form_state, $form_state);
   }
 }
 
 function tourney_configure_rounds_form($form, &$form_state) {
+  if (!array_key_exists('controller', $form_state) && $form_state['build_info']['args'][0]['controller']) {
+    $form_state['controller'] = $form_state['build_info']['args'][0]['controller'];
+    $form_state['slots'] = $form_state['build_info']['args'][0]['slots'];
+    $form_state['object_id'] = $form_state['build_info']['args'][0]['object_id'];
+  }
+  
   // Instantiate a tournament so we can look at the data array.
   $tourney = new $form_state['controller']($form_state['slots']);
   $tourney->build();
@@ -592,7 +598,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
       '#description' => t('Enter the title for Round: %round_name in Bracket: %bracket_name here.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
       '#size' => 40,
       '#maxlength' => 255,
-      '#default_value' => $form_state['object']->$property,
+      '#default_value' => property_exists($form_state['object'], $property) ? $form_state['object']->$property : '',
     );
   }
   
