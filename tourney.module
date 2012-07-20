@@ -131,11 +131,18 @@ function tourney_menu() {
     'file' => 'includes/tourney.admin.inc',
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['tourney/%ctools_js/rounds/configure'] = array(
+    'page callback' => 'tourney_configure_rounds',
+    'page arguments' => array(1),
+    'access arguments' => array('create tourney'),
+    'file' => 'includes/tourney.tournament.inc',
+  );
   $items['tourney/testing'] = array(
     'title' => 'TESTING',
     'page callback' => 'tourney_testing',
     'access arguments' => array('administer tourney'),
   );
+  
 
   return $items;
 }
@@ -143,6 +150,8 @@ function tourney_menu() {
 function tourney_testing() {
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
   $tournament = new DoubleEliminationController(12);
+  $tournament->buildMatches();
+  dpm($tournament);
   // $tournament->setPluginOptions(array('third_place' => TRUE));
   return $tournament->render();
 }
