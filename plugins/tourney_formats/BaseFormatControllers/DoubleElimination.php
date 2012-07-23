@@ -86,6 +86,7 @@ class DoubleEliminationController extends SingleEliminationController {
           $this->buildMatch(array(
             'id' => $match,
             'round' => $round_num,
+            'tourneyRound' => $round,
             'roundMatch' => (int) $roundMatch,
             'bracket' => 'loser',
         ));
@@ -105,6 +106,7 @@ class DoubleEliminationController extends SingleEliminationController {
         $this->buildMatch(array(
           'id' => $match,
           'round' => $round_num,
+          'tourneyRound' => $round,
           'roundMatch' => 1,
           'bracket' => 'champion',
       ));

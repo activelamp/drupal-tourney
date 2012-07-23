@@ -33,8 +33,8 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
     // If we have a tournament get the round names
     $vars['round_name'] = is_object($plugin->tournament) ? 
       $plugin->tournament
-        ->get('round_' . $node['round'], $plugin->data['rounds'][$node['round']]['title']) 
-        : $plugin->data['rounds'][$node['round']]['title'];
+        ->get('round_' . $node['tourneyRound'], $plugin->data['rounds'][$node['tourneyRound']]['title']) 
+        : $plugin->data['rounds'][$node['tourneyRound']]['title'];
   }
 
   $is_bye = isset($node['bye']) ? $node['bye'] : FALSE;

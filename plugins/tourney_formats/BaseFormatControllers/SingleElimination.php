@@ -139,6 +139,7 @@ class SingleEliminationController extends TourneyController {
           $this->buildMatch(array(
             'id' => $match,
             'round' => $round,
+            'tourneyRound' => $round,
             'roundMatch' => (int) $roundMatch,
             'bracket' => 'main',
           ));
