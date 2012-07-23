@@ -10,6 +10,7 @@
  * this code IS NOT the $node object. $node is the "node" of the tree.
  */
 function template_preprocess_tourney_tournament_tree_node(&$vars) {
+  $plugin = &$vars['plugin'];
   drupal_add_js(drupal_get_path('module', 'tourney') . '/plugins/tourney_formats/single_elim/theme/tournament-tree-node.js');
   // Set the tree node classes
   $node_classes = array();
@@ -22,14 +23,18 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   
   // Use the very top of the tree if a child tree node is not passed in.
   if (!isset($vars['node'])) {
-    $vars['node'] = $vars['plugin']->structure['tree'];
+    $vars['node'] = $plugin->structure['tree'];
   }
   $node = $vars['node'];
   
   // Set the round name
   $vars['round_name'] = '';
   if ($node['roundMatch'] == 1) {
-    $vars['round_name'] = 'Round ' . $node['round'];
+    // If we have a tournament get the round names
+    $vars['round_name'] = is_object($plugin->tournament) ? 
+      $plugin->tournament
+        ->get('round_' . $node['round'], $plugin->data['rounds'][$node['round']]['title']) 
+        : $plugin->data['rounds'][$node['round']]['title'];
   }
 
   $is_bye = isset($node['bye']) ? $node['bye'] : FALSE;
@@ -65,7 +70,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
         $child['fix-height'] = TRUE;
       }
       if ($node['bracket'] == 'champion' && $node['round'] == 1) {
-        $brackets = $vars['plugin']->data['brackets'];
+        $brackets = $plugin->data['brackets'];
         if ($id == 0) {
           $node_classes[] = 'no-tail-to-parent';
           $child['spacer'] = $brackets['loser']['rounds'] - $brackets['main']['rounds'];
