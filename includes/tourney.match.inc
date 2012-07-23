@@ -358,6 +358,12 @@ function tourney_match_form_submit($form, &$form_state) {
     }
   }
 
+  //support for autotitle involving contestant tokens
+  if(module_exists('auto_entitylabel') && !empty($match->auto_entitylabel_applied) && $match->auto_entitylabel_applied == 1) {
+    //the title was created prior to Contestants being added, we need to force the re-title.
+    unset($match->auto_entitylabel_applied);
+  }
+
   entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
 
   $match->save();

@@ -34,8 +34,14 @@ function tourney_token_info() {
       'name' => t('Contestant 2'),
       'description' => t('Contestant in slot 2 of the match'),
     ),
+    
   );
-
+  $info['tokens']['tourney_game'] = array(
+    'game_number' => array(
+      'name' => t('Game Number'),
+      'description' => t('Game number in match'),
+    ),
+  );
   return $info;
 }
 
@@ -53,7 +59,7 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
           $replacements[$original] = $match->matchInfo['bracket']['title'];
           break;
         case 'round_name':
-          $replacements[$original] = $match->matchInfo['round']['title'];
+          $replacements[$original] = t('Round') . ' ' . $match->matchInfo['round'] . ' ';
           break;
         case 'round_number':
           $replacements[$original] = $match->matchInfo['round']['id'];
@@ -68,6 +74,16 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
         case 'contestant_2':
           $contestant = $match->getContestant(2);
           $replacements[$original] = $contestant ? $contestant->entity_name : 'TBD';
+          break;
+      }
+    }
+  } else if ( $type == 'tourney_game' && !empty($data['tourney_game']) ) {
+    foreach ( $tokens as $name => $original ) {
+      switch ( $name ) {
+        case 'game_number':
+          //the game id increments by 2, for display purposes we need to subtract 1 when the id > 1
+          $id = array_pop(explode('-', $data['tourney_game']->name));
+          $replacements[$original] = $id == 1 ? $id : $id - 1;
           break;
       }
     }
