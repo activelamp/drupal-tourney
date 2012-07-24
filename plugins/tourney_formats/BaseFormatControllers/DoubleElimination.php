@@ -314,11 +314,10 @@ class DoubleEliminationController extends SingleEliminationController {
         //
         
         // Get the number of matches in this round
-        $find_matches = $this->find('matches', array(
-          'round' => $this->data['matches'][$place]['round'],
-          'bracket' => $this->data['matches'][$place]['bracket'],
-        ));
-        $round_matches = count($find_matches);
+        $round = $this->data['matches'][$place]['round'];
+        $bracket = $this->data['matches'][$place]['bracket'];
+        
+        $round_matches = $this->matchesInRound($bracket, $round);
         $half = $round_matches / 2;
         
         // Figure out if we need to reverse the round, set a boolean flag if
@@ -358,6 +357,25 @@ class DoubleEliminationController extends SingleEliminationController {
       }
     }
     return NULL;
+  }
+  
+  /**
+   * Look at each match in the data array and count how many matches are in the
+   * given round passed in.
+   * 
+   * @param $bracket
+   *   The machine name of the bracket.
+   * @param $round
+   *   The machine name of the round.
+   */
+  protected function matchesInRound($bracket, $round) {
+    $count = 0;
+    foreach ($this->data['matches'] as $match) {
+      if ($match['bracket'] == $bracket && $match['round'] == $round) {
+        $count++;
+      }
+    }
+    return $count;
   }
   
   /**

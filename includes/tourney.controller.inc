@@ -109,12 +109,19 @@ class TourneyController implements TourneyControllerInterface {
   }
   
   /**
+   * Reset static variables anytime data array is built.
+   */
+  public function build() {
+    drupal_static_reset('match');
+    drupal_static_reset('round');
+  }
+  
+  /**
    * Methods that must be defined in plugin subclass.
    * 
    * @todo: Should these be abstract? Do we want to provide a default 
    *   implemenations?
    */
-  public function build() {}
   public function populatePositions() {}
   public function populateSeedPositions() {}
   public function preprocess($template, &$vars) {}

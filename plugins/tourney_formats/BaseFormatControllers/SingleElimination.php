@@ -94,6 +94,7 @@ class SingleEliminationController extends TourneyController {
    * TourneyController::saveMatches().
    */
   public function build() {
+    parent::build();
     $this->buildBrackets();
     $this->buildMatches();
     $this->buildGames();    
@@ -327,7 +328,6 @@ class SingleEliminationController extends TourneyController {
     // Build our data structure
     $this->build();
     $this->structure('tree');
-    dpm($this);
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
   

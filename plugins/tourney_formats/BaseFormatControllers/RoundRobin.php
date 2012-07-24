@@ -81,6 +81,7 @@ class RoundRobinController extends TourneyController {
    * TourneyController::saveMatches().
    */
   public function build() {
+    parent::build();
     $this->buildBrackets();
     $this->buildMatches();
     $this->buildGames();    

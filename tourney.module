@@ -148,10 +148,16 @@ function tourney_menu() {
 }
 
 function tourney_testing() {
+  $output = '';
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
+  $single = new SingleEliminationController(8);
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $tournament = new DoubleEliminationController(18);
+  $double = new DoubleEliminationController(18);
   // $tournament->setPluginOptions(array('third_place' => TRUE));
-  return $tournament->render();
+  $output .= $single->render();
+  $output .= $double->render();
+  
+  return $output;
 }
 
 /**
