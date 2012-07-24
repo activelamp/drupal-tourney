@@ -34,7 +34,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   // Set the round name
   $vars['round_name'] = '';
   // If the options is checked to show round names, set the variable.
-  if ($options['show_round_names'] == TRUE) {
+  if (array_key_exists('show_round_names', $options) && $options['show_round_names'] == TRUE) {
     if ($node['roundMatch'] == 1) {
       // If we have a tournament get the round names
       $vars['round_name'] = is_object($plugin->tournament) ? 
