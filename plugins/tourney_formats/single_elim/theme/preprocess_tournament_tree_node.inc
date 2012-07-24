@@ -15,6 +15,10 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   // Set the tree node classes
   $node_classes = array();
   
+  // Get any plugin options
+  $plugin->getPluginOptions();
+  $options = $plugin->pluginOptions;
+  
   // @todo: There is probably a better way to find the path of this directory.
   // I don't like how this $plugin_dir variable is hard coded to this path,
   // need to figure out how to get the relative path of this file.
@@ -29,14 +33,17 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   
   // Set the round name
   $vars['round_name'] = '';
-  if ($node['roundMatch'] == 1) {
-    // If we have a tournament get the round names
-    $vars['round_name'] = is_object($plugin->tournament) ? 
-      $plugin->tournament
-        ->get('round_' . $node['tourneyRound'], $plugin->data['rounds'][$node['tourneyRound']]['title']) 
-        : $plugin->data['rounds'][$node['tourneyRound']]['title'];
+  // If the options is checked to show round names, set the variable.
+  if ($options['show_round_names'] == TRUE) {
+    if ($node['roundMatch'] == 1) {
+      // If we have a tournament get the round names
+      $vars['round_name'] = is_object($plugin->tournament) ? 
+        $plugin->tournament
+          ->get('round_' . $node['tourneyRound'], $plugin->data['rounds'][$node['tourneyRound']]['title']) 
+          : $plugin->data['rounds'][$node['tourneyRound']]['title'];
+    }
   }
-
+  
   $is_bye = isset($node['bye']) ? $node['bye'] : FALSE;
   $is_child = isset($node['child']);
   $is_only_child = isset($node['only']) ? $node['only'] : FALSE;

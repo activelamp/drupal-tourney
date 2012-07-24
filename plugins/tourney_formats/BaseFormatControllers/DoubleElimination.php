@@ -149,7 +149,8 @@ class DoubleEliminationController extends SingleEliminationController {
   
   
   /**
-   * Populates nextMatch and previousMatches array on the match data.
+   * Populates nextMatch and previousMatches array on the match data that has
+   * already been built from parent class.
    * 
    * @todo: Clean this function up... Way too complicated.
    */
@@ -167,7 +168,7 @@ class DoubleEliminationController extends SingleEliminationController {
         if (!array_key_exists('previousMatches', $this->data['matches'][$next['id']])
           || $top_matches != $id) {
           $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
-        }        
+        }
         
         // Set the winner path for the last match of the main bracket
         if ($top_matches == $id) {
@@ -365,6 +366,20 @@ class DoubleEliminationController extends SingleEliminationController {
    */
   public function populateSeedPositions() {
     parent::populateSeedPositions();
+    
+    // Populate the necessary byes in bottom bracket.
+    foreach ($this->data['matches'] as $id => &$match) {
+      // Set the paths for the main bracket
+      if ($match['bracket'] == 'main') {
+        // Calculate all the next loser positions in the top bracket.
+        $next = $this->calculateNextPosition($match, 'loser');
+        // Set any byes if necessary.
+        if (array_key_exists('bye', $match) && $match['bye'] == TRUE) {
+          $this->data['matches'][$next['id']]['bye'] = TRUE;
+        }
+      }
+    }
+    
     $this->populateLoserByes();
   }
   
