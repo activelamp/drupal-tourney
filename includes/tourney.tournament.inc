@@ -40,6 +40,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#maxlength' => 255,
     '#default_value' => isset($tourney->label) ? $tourney->label : '',
     '#weight' => -10,
+    '#required' => TRUE,
   );
   
   $form['name'] = array(
@@ -74,13 +75,15 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['players'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of contestants'),
-    '#description' => t('Enter the number contestants playing in this tournament'),
+    '#description' => t('Enter the number contestants playing in this tournament. Must be at least 4 or more players.'),
     '#size' => 10,
+    '#required' => TRUE,
     '#maxlength' => 2,
     '#disabled' => isset($tourney->players) ? TRUE : FALSE,
     '#default_value' => isset($tourney->players) ? $tourney->players : '',
     '#attributes' => array('class' => array('edit-configure-round-names-url')),
     '#weight' => 1,
+    '#element_validate' => array('tourney_tournament_validate_contestants'),
   );
 
   $form['additional_settings'] = array(
@@ -300,6 +303,16 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['#submit'][] = 'tourney_tournament_form_submit';
 
   return $form;
+}
+
+/**
+ * Validate the number of contestants. Needs to be a number greater than 3
+ */
+function tourney_tournament_validate_contestants($element, &$form_state) {
+  $value = $element['#value'];
+  if ($value !== '' && (!is_numeric($value) || intval($value) != $value || $value <= 3)) {
+    form_error($element, t('%name must be four or more.', array('%name' => $element['#title'])));
+  }
 }
 
 /**
