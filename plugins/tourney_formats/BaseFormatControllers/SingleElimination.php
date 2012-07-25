@@ -80,7 +80,7 @@ class SingleEliminationController extends TourneyController {
         $match = $this->data['matches'][$node['id'] - 1];
         $last_node = $this->structureTreeNode($match); 
         
-        // Render the consolation bracket out.
+        // Render the bracket out without the consolation bracket.
         $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $last_node));
       }
       $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $node));

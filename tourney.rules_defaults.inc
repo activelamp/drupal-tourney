@@ -43,6 +43,9 @@ function tourney_default_rules_configuration() {
          'data:select' => 'tourney-match:relation-has-match-tourney-tournament-reverse:0:format',
          'value' => 'RoundRobinController'
        ))
+       ->condition('data_is_empty', array(
+          'data:select' => 'tourney-match:relation-has-game-tourney-game:0:winner',
+        ))
        ->action('tourney_action_set_all_matches', array(
          'match:select' => 'tourney-match'
        ))
