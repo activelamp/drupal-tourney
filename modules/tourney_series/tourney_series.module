@@ -50,8 +50,28 @@ function tourney_series_menu() {
     'access arguments' => array('tourney_access'),
     'type' => MENU_CALLBACK
   );
+  $items['admin/tourney-series-tournament-remove/%/%'] = array(
+    'title' => 'Remove tournament',
+    'page callback' => 'tourney_series_remove_tourney',
+    'page arguments' => array(2, 3),
+    'access arguments' => array('remove tourney from series'),
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'includes/tourney_series.admin.inc',
+  );
   return $items;
 }
+
+/**
+ * Implements hook_permission().
+ */
+function tourney_series_permission() {
+  return array(
+    'remove tourney from series' =>  array(
+      'title' => t('Remove Tournament from Series'),
+      'description' => t('Remove tournaments from a series.'),
+  ));
+}
+
 
 /**
  * Implements hook_entity_info().
@@ -152,6 +172,29 @@ function tourney_series_get_tournaments_on_series($series) {
         $return_array[] = entity_load_single_by_eid($s['eid']);
       }
       return $return_array;
+    }
+  }
+}
+
+function get_tourney_series_relation($tourney_id, $series_id) {
+  $query = relation_query('tourney_series', $series_id);
+  $query->entityCondition('bundle', 'has_tournament');
+  $results = $query->execute();
+  if(is_array($results)) {
+    foreach($results as $relation) {
+      $r = relation_load($relation->rid);
+      $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
+      $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+      $series_arr[] = array(
+        'type' => $type,
+        'id' => $id,
+        'eid' => $type . '.' . $id,
+        'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
+      );
+      if($id == $tourney_id) {
+        relation_delete($relation->rid)
+        ;drupal_goto(drupal_get_destination());
+      }
     }
   }
 }

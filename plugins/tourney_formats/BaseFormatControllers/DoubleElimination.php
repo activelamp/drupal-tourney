@@ -99,16 +99,14 @@ class DoubleEliminationController extends SingleEliminationController {
     $round = &drupal_static('round', 0);
     
     foreach (array(1, 2) as $round_num) {
-      $this->data['rounds'][++$round] = 
-        $this->buildRound(array('id' => $round_num, 'bracket' => 'champion'));
-      
-      $this->data['matches'][++$match] = 
-        $this->buildMatch(array(
+      $this->data['rounds'][++$round] = $this->buildRound(array('id' => 1, 'bracket' => 'champion'));
+      $this->data['matches'][++$match] = $this->buildMatch(array(
           'id' => $match,
           'round' => $round_num,
           'tourneyRound' => $round,
           'roundMatch' => 1,
           'bracket' => 'champion',
+          'sibling' => $round_num == 2 ? TRUE : FALSE
       ));
     }
   }

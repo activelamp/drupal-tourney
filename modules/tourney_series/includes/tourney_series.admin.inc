@@ -29,78 +29,6 @@ function tourney_series_form($form, &$form_state, $series) {
     ),
   );
 
-  $path = array();
-  if ( !empty($series->entity_id) ) {
-    $conditions = array('source' => 'tourney/series/' . $series->entity_id);
-    $path = path_load($conditions);
-    if ( $path === FALSE ) {
-      $path = array();
-    }
-  }
-
-  $form['path'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('URL path settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => empty($path['alias']),
-    '#group' => 'additional_settings',
-    '#attributes' => array(
-      'class' => array('path-form'),
-    ),
-    '#attached' => array(
-      'js' => array(drupal_get_path('module', 'path') . '/path.js'),
-    ),
-    '#access' => user_access('create url aliases') || user_access('administer url aliases'),
-    '#weight' => 30,
-    '#tree' => TRUE,
-    '#element_validate' => array('path_form_element_validate'),
-  );
-
-  $path += array(
-    'pid' => NULL,
-    'source' => isset($series->entity_id) ? 'tourney/series/' . $series->entity_id : NULL,
-    'alias' => '',
-    'language' => isset($series->language) ? $series->language : LANGUAGE_NONE,
-  );
-
-  $form['path']['alias'] = array(
-    '#type' => 'textfield',
-    '#title' => t('URL alias'),
-    '#default_value' => $path['alias'],
-    '#maxlength' => 255,
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
-  );
-  $form['path']['pid'] = array(
-    '#type' => 'value',
-    '#value' => $path['pid'],
-  );
-  $form['path']['source'] = array(
-    '#type' => 'value',
-    '#value' => $path['source'],
-  );
-  $form['path']['language'] = array(
-    '#type' => 'value',
-    '#value' => $path['language'],
-  );
-
-  $form['options'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Publishing Options'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#group' => 'additional_settings',
-    '#weight' => 95,
-  );
-
-  $form['options']['status'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Published'),
-    '#default_value' => isset($series->status) ? $series->status : 0,
-  );
-
-  field_attach_form('tourney_series', $series, $form, $form_state);
   $form['tournaments_table'] = array(
     '#markup' => tourney_series_tournaments_table($series),
   );
@@ -114,29 +42,12 @@ function tourney_series_form($form, &$form_state, $series) {
     '#value' => 'Add',
     '#validate' => array('tourney_series_autocomplete_form_validate'),
   );
-  $form['actions'] = array('#type' => 'actions');
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#weight' => 10,
-  );
-
-  if (!empty($series->id)) {
-    $form['actions']['delete'] = array(
-      '#type' => 'submit',
-      '#value' => t('Delete'),
-      '#weight' => 40,
-      '#submit' => array('tourney_series_delete_submit'),
-    );
-  }
-
-  $form['#submit'][] = 'tourney_series_form_submit';
 
   return $form;
 }
 
 function series_name_exists($value) {
-  return db_query_range('SELECT 1 FROM {tourney_series} WHERE name = :name', 0, 1, array(':name' => $value))->fetchField();
+  return db_query_range('SELECT 1 FROM {tourney_series} WHERE title = :title', 0, 1, array(':title' => $value))->fetchField();
 }
 
 
@@ -154,7 +65,7 @@ function tourney_series_tournaments_table($series) {
   //has_tournament
   //'?destination=' . current_path()
   $add_link = l('Add a tournament to this series', 'admin/tourney-series-tournament-add/'. $series->id, array('query' => array('destination' => current_path())));
-  $header = array('Tournament Name', 'Tournament Style', 'Players', 'Winner', 'View', 'Edit', 'Delete');
+  $header = array('Tournament Name', 'Tournament Style', 'Players', 'Winner', 'View', 'Edit', 'Delete', 'Remove');
 
   $rows = array();
   if ( empty($tournaments) ) {
@@ -178,9 +89,14 @@ function tourney_series_tournaments_table($series) {
       user_access('access tourney') ? l(t('View'), $uri . '') : '',
       user_access('edit tourney') ? l(t('Edit'), $uri . '/edit', array('query' => array('destination' => current_path()))) : '',
       user_access('delete tourney') ? l(t('Delete'), $uri . '/delete', array('query' => array('destination' => current_path()))) : '',
+      user_access('edit tourney') ? l(t('Remove'), 'admin/tourney-series-tournament-remove/' . $t->id . '/' . $series->id, array('query' => array('destination' => current_path()))) : '',
     );
 
   }
 
   return $add_link . theme('table', array('header' => $header, 'rows' => $rows)) . theme('pager');
+}
+
+function tourney_series_remove_tourney($tourney_id, $series_id) {
+  $relation = get_tourney_series_relation($tourney_id, $series_id);
 }

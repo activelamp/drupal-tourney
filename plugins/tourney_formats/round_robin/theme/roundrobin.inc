@@ -32,8 +32,7 @@ function template_preprocess_tourney_roundrobin_standings(&$vars) {
     $contestants = $plugin->tournament->getContestants();
     $standings = $plugin->tournament->getStandings();
     uasort($standings, 'tourney_roundrobin_standings_sort');
-  }
-  else {
+  } else {
     // Create fake contestants.
     for ($contestant = 1; $contestant <= $slots; $contestant++) {
       $contestants[$contestant] = (object) array('name' => 'Contestant ' . $contestant);
@@ -61,11 +60,9 @@ function template_preprocess_tourney_roundrobin_standings(&$vars) {
 function tourney_roundrobin_standings_sort($a, $b) {
   if ( $a['wins'] != $b['wins'] ) {
     return $a['wins'] < $b['wins'] ? 1 : -1;
-  }
-  elseif ( $a['losses'] != $b['losses'] ) {
+  } elseif ( $a['losses'] != $b['losses'] ) {
     return $a['losses'] < $b['losses'] ? 1 : -1;
-  }
-  else {
+  } else {
     return $a['first'] < $b['first'] ? 1 : -1;
   }
 }
