@@ -20,7 +20,7 @@
 .tourney-tournament-tree .tree-node.no-tail-to-parent > .parent .connector .path{
   display:none;
 }
-.tourney-tournament-tree .bye {
+.tourney-tournament-tree .bye-hidden {
   visibility: hidden;
   display: block;
   height: 1px;
