@@ -29,12 +29,6 @@ function tourney_series_form($form, &$form_state, $series) {
     ),
   );
 
-  $form['options']['status'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Published'),
-    '#default_value' => isset($series->status) ? $series->status : 0,
-  );
-
   $form['tournaments_table'] = array(
     '#markup' => tourney_series_tournaments_table($series),
   );
@@ -48,21 +42,6 @@ function tourney_series_form($form, &$form_state, $series) {
     '#value' => 'Add',
     '#validate' => array('tourney_series_autocomplete_form_validate'),
   );
-  $form['actions'] = array('#type' => 'actions');
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#weight' => 10,
-  );
-
-  if (!empty($series->id)) {
-    $form['actions']['delete'] = array(
-      '#type' => 'submit',
-      '#value' => t('Delete'),
-      '#weight' => 40,
-      '#submit' => array('tourney_series_delete_submit'),
-    );
-  }
 
   return $form;
 }
@@ -117,6 +96,7 @@ function tourney_series_tournaments_table($series) {
 
   return $add_link . theme('table', array('header' => $header, 'rows' => $rows)) . theme('pager');
 }
+
 function tourney_series_remove_tourney($tourney_id, $series_id) {
   $relation = get_tourney_series_relation($tourney_id, $series_id);
 }
