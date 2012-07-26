@@ -16,22 +16,10 @@ function tourney_series_form($form, &$form_state, $series) {
     '#default_value' => isset($series->title) ? $series->title : '',
   );
 
-  $form['name'] = array(
-    '#type' => 'machine_name',
-    '#default_value' => isset($series->entity_name) ? $series->entity_name : '',
-    '#maxlength' => 21,
-    '#description' => t('A unique name for a series. It must only contain lowercase letters, numbers and hyphens.'),
-    '#machine_name' => array(
-      'source' => array('label'),
-      'exists' => 'series_name_exists',
-      'replace_pattern' => '[^a-z0-9-]+',
-      'replace' => '-',
-    ),
-  );
-
   $form['tournaments_table'] = array(
     '#markup' => tourney_series_tournaments_table($series),
   );
+  if(user_access('add tourney to series')) {
   $form['attach_tourneys'] = array(
     '#title' => t('Attach existing tournaments'),
     '#type' => 'textfield',
@@ -42,6 +30,7 @@ function tourney_series_form($form, &$form_state, $series) {
     '#value' => 'Add',
     '#validate' => array('tourney_series_autocomplete_form_validate'),
   );
+  }
 
   return $form;
 }
@@ -89,7 +78,7 @@ function tourney_series_tournaments_table($series) {
       user_access('access tourney') ? l(t('View'), $uri . '') : '',
       user_access('edit tourney') ? l(t('Edit'), $uri . '/edit', array('query' => array('destination' => current_path()))) : '',
       user_access('delete tourney') ? l(t('Delete'), $uri . '/delete', array('query' => array('destination' => current_path()))) : '',
-      user_access('edit tourney') ? l(t('Remove'), 'admin/tourney-series-tournament-remove/' . $t->id . '/' . $series->id, array('query' => array('destination' => current_path()))) : '',
+      user_access('remove tourney from series') ? l(t('Remove'), 'admin/tourney-series-tournament-remove/' . $t->id . '/' . $series->id, array('query' => array('destination' => current_path()))) : '',
     );
 
   }

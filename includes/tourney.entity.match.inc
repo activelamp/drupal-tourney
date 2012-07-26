@@ -571,6 +571,7 @@ class TourneyMatchEntity extends TourneyEntity {
       relation_save($relation);
     }
     $this->contestantIds = NULL;
+    return $this;
   }
 
  /**

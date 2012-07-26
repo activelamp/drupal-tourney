@@ -47,7 +47,7 @@ function tourney_series_menu() {
   );
   $items['tourney_series/autocomplete'] = array(
     'page callback' => '_tourney_series_autocomplete',
-    'access arguments' => array('tourney_access'),
+    'access arguments' => array('add tourney to series'),
     'type' => MENU_CALLBACK
   );
   $items['admin/tourney-series-tournament-remove/%/%'] = array(
@@ -69,7 +69,12 @@ function tourney_series_permission() {
     'remove tourney from series' =>  array(
       'title' => t('Remove Tournament from Series'),
       'description' => t('Remove tournaments from a series.'),
-  ));
+    ),
+    'add tourney to series' => array(
+      'title' => ('Add Tournament to Series'),
+      'description' => ('Add tournaments to a series'),
+    )
+  );
 }
 
 

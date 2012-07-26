@@ -449,11 +449,12 @@ class TourneyTournamentEntity extends TourneyEntity {
         
         if ($match->nextMatch('winner')) {
           $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-          $match->nextMatch('winner')->addContestant($winner, $slot);
+          $match->nextMatch('winner')->addContestant($winner, $slot)->save();
+
         }
         if ($match->nextMatch('loser')) {
           $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-          $match->nextMatch('loser')->addContestant($loser, $slot);
+          $match->nextMatch('loser')->addContestant($loser, $slot)->save();
         }
     }
   }

@@ -70,7 +70,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   if ($has_children) {
     foreach ($node['children'] as $id => &$child) {
       $child['child'] = $id;
-      $child['only']  = $has_bye && !$both_byes;
+      $child['only']  = !$options['show_byes'] && $has_bye && !$both_byes;
       if ($node['bracket'] == 'loser') {
         $child['child'] = count($node['children']) == 1 ? 1 : $id;
         $child['only']  = count($node['children']) == 1;
@@ -102,8 +102,10 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
     $node_classes[] = 'child-' . $node['child'];
   }
   
-  if ($is_bye) {
+  if ($is_bye && $options['show_byes']) {
     $node_classes[] = 'bye';
+  } else if($is_bye) {
+    $node_classes[] = 'bye-hidden';
   }       
   // If this branch of the tree has a bye in its first grandchild spot and not the
   // third spot, keep the height space in for the "tree node" match of the 
