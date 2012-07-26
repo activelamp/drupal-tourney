@@ -645,6 +645,24 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     $this->gameIds = NULL;
   }
+  
+  /**
+   * Resets a match so that all the games to the match are deleted, and a fresh
+   * new game is added to the match.
+   */
+  public function resetMatch() {
+    $reset_match = &drupal_static(__FUNCTION__, TRUE);
+    foreach ($this->getGameIds() as $game_id) {
+      // Unset the winners so that self::cleanGames can delete them.
+      $game = tourney_game_load($game_id);
+      if (is_object($game)) {
+        $game->winner = NULL;
+        $game->save();
+      }
+    }    
+    $this->addGame();
+    drupal_static_reset(__FUNCTION__);
+  }
 
  /**
   * Checks this match's games to determine if they've all been won

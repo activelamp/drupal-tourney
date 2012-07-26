@@ -310,7 +310,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
  */
 function tourney_tournament_validate_contestants($element, &$form_state) {
   $value = $element['#value'];
-  if ($value !== '' && (!is_numeric($value) || intval($value) != $value || $value <= 3)) {
+  if ($value !== '' && (!is_numeric($value) || intval($value) != $value || $value < 3)) {
     form_error($element, t('%name must be four or more.', array('%name' => $element['#title'])));
   }
 }

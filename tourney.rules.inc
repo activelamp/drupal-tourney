@@ -77,7 +77,8 @@ function tourney_action_get_game_count($match) {
   $winners = $match->fetchRanks(TRUE);
 
   return array(
-    'number_of_won_games' => max($winners),
+    // This should never return 0, can't divide by zero.
+    'number_of_won_games' => max($winners) > 0 ? max($winners) : 1,
   );
 }
 
@@ -90,6 +91,13 @@ function tourney_action_get_game_count($match) {
  *   The number of games won by leader divided by total games in match.
  */
 function tourney_action_game_is_won($match, $quotient) {
+  // This static variable gets set when a match is being reset. If the variable
+  // is set, then we need to skip this rules logic.
+  $resetMatch = &drupal_static('resetMatch', FALSE);
+  if ($resetMatch) {
+    return;
+  }
+  
   $plugin = $match->getTournament()->tourneyFormatPlugin;
   $message = '';
   // Create a new game if enough games have not been won yet.
