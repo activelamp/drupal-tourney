@@ -49,7 +49,7 @@ function template_preprocess_tourney_roundrobin_standings(&$vars) {
         $games_played = $wins = $losses = 0;
       }
     
-      $table['rows'][] = array($contestant->name, $games_played, $wins, $losses);
+      $table['rows'][] = array($contestant->entity_name, $games_played, $wins, $losses);
     }
   }
   
