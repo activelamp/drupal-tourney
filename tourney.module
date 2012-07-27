@@ -246,7 +246,6 @@ function tourney_admin_paths() {
     return array(
       'tourney/*/*/*' => TRUE,
       'tourney/add' => TRUE,
-      'tourney/tournament/*' => TRUE,
     );
   }
 }
