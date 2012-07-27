@@ -520,8 +520,8 @@ class TourneyMatchEntity extends TourneyEntity {
 /**
  * Cleanly removes an existing contestant from a match, deleting the relation
  *
- * @param integer $slot
- *   Contestant slot to target
+ * @param integer $entity
+ *   Contestant entity to remove.
  */
   public function removeContestant($entity) {
     // If we're locked, can't remove the contestant
@@ -532,11 +532,13 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     // Get all the contestants, and, if we haven't got any, we can't remove any!
     $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant')->execute();
-    if ( empty($relations) ) return;
-    foreach ( $relations as $relation ) {
+    if (empty($relations)) {
+      return;
+    }
+    foreach ($relations as $relation) {
       $relation = relation_load($relation->rid);
       $rcon = $relation->endpoints[LANGUAGE_NONE][1];
-      if ( $rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id )
+      if ($rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id)
         relation_delete($relation->rid);
     }
     $this->save();
@@ -662,6 +664,8 @@ class TourneyMatchEntity extends TourneyEntity {
       }
     }    
     $this->addGame();
+    $this->winner = "";
+    $this->save();
     drupal_static_reset(__FUNCTION__);
   }
 

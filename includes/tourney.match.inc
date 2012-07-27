@@ -343,18 +343,27 @@ function tourney_match_form_submit($form, &$form_state) {
   }
   
   if (array_key_exists('contestant1', $form_state['input'])) {
-    $roundinfo = $match->matchInfo['round'];
-    if ( $eid = $form_state['input']['contestant1'] ) {
+    if ($eid = $form_state['input']['contestant1']) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 1);
     }
-    if (array_key_exists('contestant2', $form_state['input']) && $eid = $form_state['input']['contestant2']) {
+    else {
+      $contestant = $match->getContestant(1);
+      $match->removeContestant($contestant);
+    }
+  }
+  if (array_key_exists('contestant2', $form_state['input'])) {
+    if ($eid = $form_state['input']['contestant2']) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
       $match->addContestant($entity, 2);
     }
-  }
+    else {
+      $contestant = $match->getContestant(2);
+      $match->removeContestant($contestant);
+    }
+  } 
 
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
   $match->getWinner();

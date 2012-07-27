@@ -6,12 +6,6 @@
  * @ingroup tourney_templates
  */
 ?>
-<?php
-if($contestant->type == 'team') {
-  $contestant->name = $contestant->title;
-  $contestant->label = $contestant->title;
-}
-?>
 <div class="contestant <?php print $classes ?>">
   <?php if ($seed): ?>
     <span class="seed"><?php print $seed ?></span>

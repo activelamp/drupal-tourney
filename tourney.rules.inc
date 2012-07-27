@@ -76,10 +76,10 @@ function tourney_action_get_game_count($match) {
   // Get the number of games each contestant has won.
   $winners = $match->fetchRanks(TRUE);
 
-  return array(
+  return !empty($winners) ? array(
     // This should never return 0, can't divide by zero.
     'number_of_won_games' => max($winners) > 0 ? max($winners) : 1,
-  );
+  ) : 1;
 }
 
 /**
