@@ -111,17 +111,18 @@ function template_preprocess_tourney_contestant(&$vars) {
   $vars['classes_array'][] = 'contestant-' . $vars['contestant']->slot;
   $vars['classes_array'][] = $vars['winner'] ? 'winner' : '';
   
-  if (!property_exists($vars['contestant'], 'name')) {
-    $vars['contestant']->name = '';
-  }
-  if (!$vars['contestant']->name ) {
-    $vars['contestant']->name = 'Team ' . $vars['contestant']->slot;
-  }
-  if (strlen($vars['contestant']->name) > $truncate) {
-    $vars['contestant']->label = substr($vars['contestant']->name, 0, $truncate) . '...';
+  if (property_exists($vars['contestant'], 'name') && $vars['contestant']->name) {
+    $vars['name'] = $vars['contestant']->name;
   }
   else {
-    $vars['contestant']->label = $vars['contestant']->name;
+    $vars['name'] = 'Team ' . $vars['contestant']->slot;
+  }
+  
+  if (strlen($vars['name']) > $truncate) {
+    $vars['label'] = substr($vars['name'], 0, $truncate) . '...';
+  }
+  else {
+    $vars['label'] = $vars['name'];
   }
   
   // Build the tourney container classes.

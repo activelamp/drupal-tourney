@@ -10,5 +10,5 @@
   <?php if ($seed): ?>
     <span class="seed"><?php print $seed ?></span>
   <?php endif;?>
-  <span title="<?php print $contestant->name; ?>"><?php print $contestant->label; ?></span>
+  <span title="<?php print $name; ?>"><?php print $label; ?></span>
 </div>
