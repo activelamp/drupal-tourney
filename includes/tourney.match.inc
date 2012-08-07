@@ -82,7 +82,6 @@ function tourney_match_form($form, &$form_state, $match) {
 
   $cid = 0;
   foreach (array(1,2) as $slot) {
-    // @todo: replace code below with a scalable contestant field code with a list of text boxes
     $contestant = $match->getContestant($slot);
     $form['contestant' . $slot] = array(
       '#title' => check_plain(t('Contestant ' . $slot)),
@@ -259,22 +258,26 @@ function _tourney_match_contestants($match) {
  * @see _tourney_match_contestant().
  */
 function _tourney_match_contestants_sanitize($match, &$options) {
+  $tournament = $match->getTournament();
+  $plugin = $tournament->tourneyFormatPlugin;
+  
   // Get all the matches in round 1 for this tournament
-  $query = relation_query('tourney_tournament', $match->getTournament()->id);
-  $query->entityCondition('bundle', 'has_match')
-        ->fieldCondition('round', 'value', 'round-1');
-  $results = $query->execute();
-
+  $tourney_matches = $plugin->data['matches'];
   $match_ids = array();
-  foreach ($results as $relation) {
-    $r = relation_load($relation->rid);
-    $match_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+  foreach ($tourney_matches as $m) {
+    if ($m['round'] == 1) {
+      $tmatch = $tournament->getMatchById($m['id']);
+      if (is_object($tmatch)) {
+        $match_ids[] = $tmatch->id;
+      }
+    }
   }
   $matches = tourney_match_load_multiple($match_ids);
-
+  
   // Unset users in the options array that are already selected
   $contestants = $match->getTournament()->getContestants();
   foreach ($match->getMatchContestants() as $eid => $contestant) {
+    // Don't want to remove contestants that are part of this match.
     unset($contestants[$eid]);
   }
   foreach ($contestants as $eid => $contestant ) {
@@ -283,7 +286,7 @@ function _tourney_match_contestants_sanitize($match, &$options) {
         unset($options[$group][$eid]);
       }
     }
-  }                                                          
+  }
 
   // special case naming occurs with different bundled node types
   $userkey = array_key_exists('user', $options) ? 'user' : ( array_key_exists('user - user', $options) ? 'user - user' : NULL );

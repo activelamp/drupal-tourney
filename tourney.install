@@ -301,36 +301,6 @@ function tourney_install() {
 
   // Define fields for the tournament has match relation.
   $field = array(
-    'field_name' => 'bracket',
-    'cardinality' => 1,
-    'type' => 'text',
-  );
-  field_create_field($field);
-
-  $field_instance = array(
-    'entity_type' => 'relation',
-    'bundle' => 'has_match',
-    'field_name' => 'bracket',
-    'label' => st('Bracket'),
-  );
-  field_create_instance($field_instance);
-
-  $field = array(
-    'field_name' => 'round',
-    'cardinality' => 1,
-    'type' => 'text',
-  );
-  field_create_field($field);
-
-  $field_instance = array(
-    'entity_type' => 'relation',
-    'bundle' => 'has_match',
-    'field_name' => 'round',
-    'label' => st('Round'),
-  );
-  field_create_instance($field_instance);
-
-  $field = array(
     'field_name' => 'slot',
     'cardinality' => 1,
     'type' => 'number_integer',
@@ -561,7 +531,6 @@ function tourney_update_7007() {
 }
 
 
-
 function tourney_update_7008() {
   db_change_field('tourney_tournament', 'title', 'label',
     array(
@@ -588,6 +557,15 @@ function tourney_update_7008() {
       'default' => '',
     ));
   return t('Tournament table updated successfully.');
+}
+
+/**
+ * Delete fields on relation entity that are no longer in use.
+ */
+function tourney_update_7009() {
+  field_delete_field('bracket');
+  field_delete_field('round');
+  return t('Fields deleted sucessfully.');
 }
 
 
