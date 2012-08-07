@@ -6,7 +6,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test Double Elimination next match positions'),
+      'name' => t('Test Double Elimination Challonge next match positions'),
       'description' => t('Tests double elimination tournaments with a varying number or contestants.'),
       'group' => t('Tourney'),
     );
@@ -16,6 +16,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
    * Set up test.
    */
   public function setUp() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
     parent::setUp(array(
       'tourney',
     ));
@@ -30,19 +31,25 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
    * @param $matches
    *   The matches data array created by a format plugin.
    */
-  protected function checkNextMatch($match, $matches) {
+  protected function checkNextMatch($match, $tournament) {
+    $this->pass('Testing Double Elimination with ' . $tournament->numContestants . ' players.');
+    $matches = $tournament->data['matches'];
+    
     foreach ($match as $mid => $info) {
-      $this->assertEqual($info['winner'], $matches[$mid]['nextMatch']['winner']['id'], 'Match ' . $mid . ' winner is going to the correct place', 'PHP');
-      $this->assertEqual($info['slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' slot is going to the correct place', 'PHP');
+      $this->assertEqual($info['winner_id'], $matches[$mid]['nextMatch']['winner']['id'], 'Match ' . $mid . ' winner is going to the correct match', 'PHP');
+      $this->assertEqual($info['winner_slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' winner is going to the correct slot', 'PHP');
+      if (array_key_exists('loser_id', $info)) {
+        $this->assertEqual($info['loser_id'], $matches[$mid]['nextMatch']['loser']['id'], 'Match ' . $mid . ' loser is going to the correct match', 'PHP');
+        $this->assertEqual($info['loser_slot'], $matches[$mid]['nextMatch']['loser']['slot'], 'Match ' . $mid . ' loser is going to the correct slot', 'PHP');
+      }
     }
   }
   
-	/**
-	 * Testing 4 contestants
-	 */
-  public function testSingleElim4() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(4);
+  /**
+   * Testing Double Elimination next match logic as it pertains to challonge.com
+   */
+  public function testDoubleEliminationLogicChallonge() {
+    $tournament = new DoubleEliminationController(4);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -81,16 +88,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
+    $this->checkNextMatch($match, $tournament);
   
-  
-  /**
-	 * Testing 5 contestants
-	 */
-  public function testSingleElim5() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(5);
+    $tournament = new DoubleEliminationController(5);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -139,16 +139,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 6 contestants
-	 */
-  public function testSingleElim6() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(7);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(7);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -207,16 +200,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 7 contestants
-	 */
-  public function testSingleElim7() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(7);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(7);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -285,16 +271,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 8 contestants
-	 */
-  public function testSingleElim8() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(8);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(8);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -373,16 +352,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 9 contestants
-	 */
-  public function testSingleElim9() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(9);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(9);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -471,16 +443,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 10 contestants
-	 */
-  public function testSingleElim10() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(10);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(10);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -579,16 +544,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 11 contestants
-	 */
-  public function testSingleElim11() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(11);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(11);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -697,16 +655,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 12 contestants
-	 */
-  public function testSingleElim12() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(12);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(12);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -825,16 +776,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 13 contestants
-	 */
-  public function testSingleElim13() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(13);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(13);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -963,16 +907,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 14 contestants
-	 */
-  public function testSingleElim14() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(14);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(14);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -1111,16 +1048,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 15 contestants
-	 */
-  public function testSingleElim15() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(15);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(15);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -1269,16 +1199,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 16 contestants
-	 */
-  public function testSingleElim16() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(16);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(16);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -1437,16 +1360,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 17 contestants
-	 */
-  public function testSingleElim17() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(17);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(17);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -1615,16 +1531,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 18 contestants
-	 */
-  public function testSingleElim18() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(18);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(18);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -1799,16 +1708,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 19 contestants
-	 */
-  public function testSingleElim19() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(19);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(19);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -1997,16 +1899,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 20 contestants
-	 */
-  public function testSingleElim20() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(20);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(20);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -2205,16 +2100,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 21 contestants
-	 */
-  public function testSingleElim21() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(21);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(21);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -2423,16 +2311,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 22 contestants
-	 */
-  public function testSingleElim22() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(22);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(22);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -2651,17 +2532,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 23 contestants
-	 */
-  public function testSingleElim23() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(23);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(23);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -2890,17 +2763,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 24 contestants
-	 */
-  public function testSingleElim24() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(24);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(24);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -3139,17 +3004,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 25 contestants
-	 */
-  public function testSingleElim25() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(25);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(25);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -3398,17 +3255,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 26 contestants
-	 */
-  public function testSingleElim26() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(26);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(26);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -3663,17 +3512,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 27 contestants
-	 */
-  public function testSingleElim27() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(27);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(27);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -3942,17 +3783,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 28 contestants
-	 */
-  public function testSingleElim28() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(28);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(28);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -4231,17 +4064,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 29 contestants
-	 */
-  public function testSingleElim29() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(29);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(29);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -4530,17 +4355,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 30 contestants
-	 */
-  public function testSingleElim30() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(30);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(30);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -4835,17 +4652,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 31 contestants
-	 */
-  public function testSingleElim31() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(31);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(31);
     $tournament->build();
     
     $match = array(
@@ -5153,17 +4962,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 32 contestants
-	 */
-  public function testSingleElim32() {
-    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SpecialDoubleElimination');
-    $tournament = new SingleEliminationController(32);
+    $this->checkNextMatch($match, $tournament);
+
+    $tournament = new DoubleEliminationController(32);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -5482,6 +5283,6 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
+    $this->checkNextMatch($match, $tournament);
   }
 }
