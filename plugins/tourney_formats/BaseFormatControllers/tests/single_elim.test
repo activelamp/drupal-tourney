@@ -28,8 +28,8 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
    * 
    * @param $match
    *   A formatted match array that has a winner and slot.
-   * @param $matches
-   *   The matches data array created by a format plugin.
+   * @param $tournament
+   *   The built tournament object.
    */
   protected function checkNextMatch($match, $tournament) {
     $this->pass('Testing Single Elimination with ' . $tournament->numContestants . ' players.');
