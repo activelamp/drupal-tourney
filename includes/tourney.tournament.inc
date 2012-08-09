@@ -653,7 +653,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
     $form['bracket_' . $round['bracket']]['round_' . $rid] = array(
       '#type' => 'textfield',
       '#title' => $round['title'],
-      '#description' => t('Enter the title for Round: %round_name in Bracket: %bracket_name here.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
+      '#description' => t('Enter the title for %round_name in the %bracket_name bracket.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
       '#size' => 40,
       '#maxlength' => 255,
       '#default_value' => property_exists($form_state['object'], $property) ? $form_state['object']->$property : $round_title,
