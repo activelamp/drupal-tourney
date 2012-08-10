@@ -1,0 +1,37 @@
+<?php
+
+class SetContestantTestCase extends TourneyWebTestCase {
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Setting Contestants'),
+      'description' => t('Tests proper validation of contestants on matches.'),
+      'group' => t('Tourney'),
+    );
+  }
+  
+  public function testMatchContestant() {
+    // Create the tournament.
+    $tournament_name = $this->createTourney('SingleEliminationController', 4);
+    
+    // Set contestants of the First Match as same user.
+    $edit = array();
+    // Match 1 Slot 1
+    $edit['contestant1'] = 'user.3';
+    // Match 1 Slot 2
+    $edit['contestant2'] = 'user.3';
+    // Save Match 1
+    $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
+    // Confirm Tourney Module can't set the same user twice.
+    $this->assertText(t('Contestant 1 and Contestant 2 cannot be the same person'));
+    
+    // Saving a match with contestants disabled should not trigger validation
+    $edit = array();
+    $edit['games'] = 1;
+    $this->drupalPost('tourney/match/3/edit', $edit, t('Save'));
+    // Confirm match was saved with no validation errors.
+    $this->assertText(t('Your match has been saved'));
+  }
+}
