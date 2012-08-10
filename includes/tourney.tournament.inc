@@ -56,6 +56,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
       'replace_pattern' => '[^a-z0-9-]+',
       'replace' => '-',
     ),
+    '#element_validate' => array('tourney_machine_name_uniquify', 'form_validate_machine_name'),
     '#weight' => -10,
   );
   
@@ -332,6 +333,40 @@ function tourney_tournament_delete_submit($form, &$form_state) {
   }
   $tourney = $form_state['tourney'];
   $form_state['redirect'] = array($tourney->getUri() . '/delete', array('query' => $destination));
+}
+
+/**
+ * Field validation for the machine name field. Check to ensure a machine name
+ * is unique and add suffix variants if necessary.
+ *
+ * This function will change the machine name to 'machine_name-0' and will
+ * increase the number suffix until it finds a unique machine name.
+ *
+ * @param $element
+ *   The machine name form element.
+ * @param $form_state
+ *   The form state from the submitted form.
+ */
+function tourney_machine_name_uniquify(&$element, &$form_state) {
+  if (!tourney_name_exists($element['#value'])) {
+    return;
+  }
+  
+  // Do not allow names longer than 238, to compensate for _match-00_game-00
+  $maxlength = '238';
+  $separator = '-';
+  $original_machine_name = $element['#value'];
+
+  $i = 0;
+  do {
+    // Append an incrementing numeric suffix until we find a unique alias.
+    $unique_suffix = $separator . $i;
+    $element['#value'] = truncate_utf8($original_machine_name, $maxlength - drupal_strlen($unique_suffix, TRUE)) . $unique_suffix;
+    $i++;
+  } while (tourney_name_exists($element['#value']));
+  
+  // Change the value in the form that was submitted to unique machine name.
+  $form_state['values']['name'] = $element['#value'];
 }
 
 /**
