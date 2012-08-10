@@ -31,7 +31,7 @@ function tourney_schema() {
       'name' => array(
         'description' => 'The machine-readable name of this tournament.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 255,
         'not null' => TRUE),
       'label' => array(
         'description' => 'The title of the tournament, always treated as non-markup plain text.',
@@ -90,7 +90,7 @@ function tourney_schema() {
       'name' => array(
         'description' => 'The machine-readable name of this match.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 255,
         'not null' => TRUE),
       'label' => array(
         'description' => 'The title of a match, always treated as non-markup plain text.',
@@ -137,13 +137,13 @@ function tourney_schema() {
       'type' => array(
         'description' => 'The bundle.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 255,
         'not null' => TRUE,
         'default' => ''),
       'name' => array(
         'description' => 'The machine-readable name of this game.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 255,
         'not null' => TRUE),
       'label' => array(
         'description' => 'The title of a game, always treated as non-markup plain text.',
@@ -568,6 +568,27 @@ function tourney_update_7009() {
   return t('Fields deleted sucessfully.');
 }
 
+/**
+ * Changes the max-length of machine name fields to be much larger.
+ */
+function tourney_update_7010() {
+  db_change_field('tourney_tournament', 'name', 'name', array(
+    'description' => 'The machine-readable name of this tournament.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE));
+  db_change_field('tourney_match', 'name', 'name', array(
+    'description' => 'The machine-readable name of this match.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE));
+  db_change_field('tourney_game', 'name', 'name', array(
+    'description' => 'The machine-readable name of this game.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE));
+  return t('Machine name fields updated successfully.');
+}
 
 /**
  * Helper functions

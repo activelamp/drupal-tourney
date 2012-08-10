@@ -37,7 +37,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#title' => t('Tournament Name'),
     '#description' => t('Enter the name of this tournament.'),
     '#size' => 40,
-    '#maxlength' => 255,
+    // Do not allow names longer than 238, to compensate for _match-00_game-00
+    '#maxlength' => 238,
     '#default_value' => isset($tourney->label) ? $tourney->label : '',
     '#weight' => -10,
     '#required' => TRUE,
@@ -46,7 +47,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['name'] = array(
     '#type' => 'machine_name',
     '#default_value' => isset($tourney->label) ? $tourney->name : '',
-    '#maxlength' => 21,
+    // Do not allow names longer than 238, to compensate for _match-00_game-00
+    '#maxlength' => 238,
     '#description' => t('A unique name for tournaments. It must only contain lowercase letters, numbers and hyphens.'),
     '#machine_name' => array(
       'source' => array('label'),
