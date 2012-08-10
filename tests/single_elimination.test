@@ -7,7 +7,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test Single Elimination Tournament'),
+      'name' => t('Single Elimination Tournament'),
       'description' => t('Steps through setting up a single elimination tournament and playing all the way through.'),
       'group' => t('Tourney'),
     );

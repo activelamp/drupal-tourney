@@ -7,7 +7,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test Double Elimination Tournament'),
+      'name' => t('Double Elimination Tournament'),
       'description' => t('Steps through setting up a double elimination tournament and playing all the way through.'),
       'group' => t('Tourney'),
     );

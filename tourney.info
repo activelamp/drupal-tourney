@@ -25,6 +25,7 @@ files[] = views/handlers/tourney_handler_field_object_property.inc
 files[] = views/handlers/tourney_handler_field_entity_link_edit.inc
 
 ; Tests
+files[] = tests/contestant.test
 files[] = tests/tourney.test
 files[] = tests/single_elimination.test
 files[] = tests/double_elimination.test
