@@ -36,11 +36,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     $matches = $tournament->data['matches'];
     
     foreach ($match as $mid => $info) {
-      $this->assertEqual($info['winner_id'], $matches[$mid]['nextMatch']['winner']['id'], 'Match ' . $mid . ' winner is going to the correct match', 'PHP');
-      //$this->assertEqual($info['winner_slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' winner is going to the correct slot', 'PHP');
+      $plugin_winner = $matches[$mid]['nextMatch']['winner']['id'];
+      $this->assertEqual($info['winner_id'], $plugin_winner, 'Match ' . $mid . ' winner is going to match ' . $info['winner_id'] . ' (Match ' . $plugin_winner .')', 'PHP');
+      //$this->assertEqual($info['winner_slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' winner is going to slot' . $info['winner_slot'], 'PHP');
       if (array_key_exists('loser_id', $info)) {
-        $this->assertEqual($info['loser_id'], $matches[$mid]['nextMatch']['loser']['id'], 'Match ' . $mid . ' loser is going to the correct match', 'PHP');
-        //$this->assertEqual($info['loser_slot'], $matches[$mid]['nextMatch']['loser']['slot'], 'Match ' . $mid . ' loser is going to the correct slot', 'PHP');
+        $plugin_loser = $matches[$mid]['nextMatch']['loser']['id'];
+        $this->assertEqual($info['loser_id'], $plugin_loser, 'Match ' . $mid . ' loser is going to match ' . $info['loser_id'] . ' (Match ' . $plugin_loser .')', 'PHP');
+        //$this->assertEqual($info['loser_slot'], $matches[$mid]['nextMatch']['loser']['slot'], 'Match ' . $mid . ' loser is going to slot' . $info['loser_slot'], 'PHP');
       }
     }
   }
@@ -141,7 +143,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     
     $this->checkNextMatch($match, $tournament);
 
-    $tournament = new DoubleEliminationController(7);
+    $tournament = new DoubleEliminationController(6);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -3713,11 +3715,11 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       46 => array(
         'winner_id' => 51,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
       ),
       47 => array(
-        'winner_id' => 52,
-        'winner_slot' => 1,
+        'winner_id' => 51,
+        'winner_slot' => 2,
       ),
       48 => array(
         'winner_id' => 52,
@@ -3889,7 +3891,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       21 => array(
         'winner_id' => 27,
         'winner_slot' => 1,
-        'loser_id' => 42,
+        'loser_id' => 40,
         'loser_slot' => 1,
       ),
       22 => array(
@@ -4116,8 +4118,8 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       10 => array(
         'winner_id' => 21,
         'winner_slot' => 2,
-        'loser_id' => 41,
-        'loser_slot' => 1,
+        'loser_id' => 44,
+        'loser_slot' => 2,
       ),
       11 => array(
         'winner_id' => 22,
@@ -4990,7 +4992,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       4 => array(
         'winner_id' => 18,
         'winner_slot' => 2,
-        'loser_id' => 45,
+        'loser_id' => 33,
         'loser_slot' => 1,
       ),
       5 => array(
