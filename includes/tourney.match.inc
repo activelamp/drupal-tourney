@@ -307,7 +307,7 @@ function tourney_match_form_validate($form, &$form_state) {
   if (!is_int($form_state['values']['games']) && $form_state['values']['games'] % 2 === 0) {
     form_set_error('games', t('The number of games must be an odd number'));
   }
-  if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] === $form_state['values']['contestant2']) {
+  if (!empty($form_state['values']['contestant1']) && !empty($form_state['values']['contestant2']) && $form_state['values']['contestant1'] === $form_state['values']['contestant2']) {
     form_set_error('contestant1', t('Contestant 1 and Contestant 2 cannot be the same person.'));
   }
   $wins = array();

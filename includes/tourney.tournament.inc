@@ -37,7 +37,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#title' => t('Tournament Name'),
     '#description' => t('Enter the name of this tournament.'),
     '#size' => 40,
-    '#maxlength' => 255,
+    // Do not allow names longer than 238, to compensate for _match-00_game-00
+    '#maxlength' => 238,
     '#default_value' => isset($tourney->label) ? $tourney->label : '',
     '#weight' => -10,
     '#required' => TRUE,
@@ -46,7 +47,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['name'] = array(
     '#type' => 'machine_name',
     '#default_value' => isset($tourney->label) ? $tourney->name : '',
-    '#maxlength' => 21,
+    // Do not allow names longer than 238, to compensate for _match-00_game-00
+    '#maxlength' => 238,
     '#description' => t('A unique name for tournaments. It must only contain lowercase letters, numbers and hyphens.'),
     '#machine_name' => array(
       'source' => array('label'),
@@ -54,6 +56,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
       'replace_pattern' => '[^a-z0-9-]+',
       'replace' => '-',
     ),
+    '#element_validate' => array('tourney_machine_name_uniquify', 'form_validate_machine_name'),
     '#weight' => -10,
   );
   
@@ -330,6 +333,40 @@ function tourney_tournament_delete_submit($form, &$form_state) {
   }
   $tourney = $form_state['tourney'];
   $form_state['redirect'] = array($tourney->getUri() . '/delete', array('query' => $destination));
+}
+
+/**
+ * Field validation for the machine name field. Check to ensure a machine name
+ * is unique and add suffix variants if necessary.
+ *
+ * This function will change the machine name to 'machine_name-0' and will
+ * increase the number suffix until it finds a unique machine name.
+ *
+ * @param $element
+ *   The machine name form element.
+ * @param $form_state
+ *   The form state from the submitted form.
+ */
+function tourney_machine_name_uniquify(&$element, &$form_state) {
+  if (!tourney_name_exists($element['#value'])) {
+    return;
+  }
+  
+  // Do not allow names longer than 238, to compensate for _match-00_game-00
+  $maxlength = '238';
+  $separator = '-';
+  $original_machine_name = $element['#value'];
+
+  $i = 0;
+  do {
+    // Append an incrementing numeric suffix until we find a unique alias.
+    $unique_suffix = $separator . $i;
+    $element['#value'] = truncate_utf8($original_machine_name, $maxlength - drupal_strlen($unique_suffix, TRUE)) . $unique_suffix;
+    $i++;
+  } while (tourney_name_exists($element['#value']));
+  
+  // Change the value in the form that was submitted to unique machine name.
+  $form_state['values']['name'] = $element['#value'];
 }
 
 /**
@@ -653,7 +690,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
     $form['bracket_' . $round['bracket']]['round_' . $rid] = array(
       '#type' => 'textfield',
       '#title' => $round['title'],
-      '#description' => t('Enter the title for Round: %round_name in Bracket: %bracket_name here.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
+      '#description' => t('Enter the title for %round_name in the %bracket_name bracket.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
       '#size' => 40,
       '#maxlength' => 255,
       '#default_value' => property_exists($form_state['object'], $property) ? $form_state['object']->$property : $round_title,

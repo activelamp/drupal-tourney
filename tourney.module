@@ -306,7 +306,7 @@ function tourney_entity_info() {
     $entity_class = ($entity_short == 'game') ? 'TourneyGameEntity' : $entity_class;
 
     $return[$entity_name] = array(
-      'label' => $entity_name,
+      'label' => ucfirst($entity_short),
       'entity class' => $entity_class,
       'controller class' => 'EntityAPIController',
       'base table' => $entity_name,

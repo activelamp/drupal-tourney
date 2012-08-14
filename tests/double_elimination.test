@@ -1,48 +1,24 @@
 <?php
-
-class DoubleElimimationTestCase extends DrupalWebTestCase {
+class DoubleElimimationTestCase extends TourneyWebTestCase {
+  protected $controller = 'DoubleEliminationController';
+  
   /**
    * Test info.
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test Double Elimination Tournament'),
+      'name' => t('Double Elimination Tournament'),
       'description' => t('Steps through setting up a double elimination tournament and playing all the way through.'),
       'group' => t('Tourney'),
     );
   }
   
   /**
-   * Set up test.
-   */
-  public function setUp() {
-    parent::setUp(array(
-      'tourney',
-    ));
-    
-    // Create and log in our privileged user.
-    $this->privileged_user = $this->drupalCreateUser(array('administer tourney', 'create tourney', 'edit tourney'));
-    $this->drupalLogin($this->privileged_user);
-    
-    // Create 20 users
-    for ($i = 1; $i <= 20; $i++) {
-      $this->drupalCreateUser(array('access content'));
-    }
-  }
-  
-  /**
    * Testing 4 contestants
    */
-  public function testSingleElim4() {
-    // Create the tournament
-    $edit = array();
-    $edit['label'] = $this->randomName(8);
-    $edit['name'] = strtolower($edit['label']);
-    $edit['players'] = 4;
-    $edit['format'] = 'DoubleEliminationController';
-    $edit['config_default_games'] = 1;
-    
-    $this->drupalPost('tourney/add', $edit, t('Save'));
+  public function testDoubleElim4() {
+    // Create the tournament.
+    $tournament_name = $this->createTourney($this->controller, 4);
     
     // Set contestants of the first match
     $edit = array();

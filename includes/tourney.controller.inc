@@ -337,8 +337,6 @@ class TourneyController implements TourneyControllerInterface {
       // Create the Tourney/Match relation and save bracket and round data to it
       $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
       $relation = relation_load($rid);
-      $relation->bracket[LANGUAGE_NONE][0]['value'] = $bracket_id;
-      $relation->round[LANGUAGE_NONE][0]['value'] = $round_num;
       relation_save($relation);
     
       // Create the Match/Game relation
