@@ -18,7 +18,8 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   // Get any plugin options
   $plugin->getPluginOptions();
   $options = $plugin->pluginOptions;
-  
+  $options += array('show_byes' => NULL);
+
   // @todo: There is probably a better way to find the path of this directory.
   // I don't like how this $plugin_dir variable is hard coded to this path,
   // need to figure out how to get the relative path of this file.
@@ -47,8 +48,8 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   $is_bye = isset($node['bye']) ? $node['bye'] : FALSE;
   $is_child = isset($node['child']);
   $is_only_child = isset($node['only']) ? $node['only'] : FALSE;
-  $has_children = isset($node['children']);
-  
+  $has_children = isset($node['children']) && $node['children'];
+
   // Check to see if the children of this match are byes or are both byes. Setting
   // a couple flags that will change if there are byes in the immediate child.
   // We need to know this so we can set the spacing properly in children matches.
@@ -79,18 +80,12 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
       if ($node['bracket'] == 'champion' && $node['round'] == 1) {
         $brackets = $plugin->data['brackets'];
         if ($id == 0) {
-          $node_classes[] = 'no-tail-to-parent';
+          $node_classes[] = 'only-child';
+          $node_classes[] = 'champion';
           $child['spacer'] = $brackets['loser']['rounds'] - $brackets['main']['rounds'];
         }
         elseif ($id == 1) {
           $child['loser-child'] = $brackets['loser']['rounds'] - $brackets['main']['rounds'];
-        }
-      }
-      $child['bye_firstlevel'] = isset($node['bye_secondlevel']) ? $node['bye_secondlevel'] : array();
-      $child['bye_secondlevel'] = &$bye_secondlevel;
-      if (isset($child['children'])) {
-        foreach ($child['children'] as $grandchild) {
-          $bye_secondlevel[] = (isset($grandchild['bye']) && $grandchild['bye']);
         }
       }
     }
@@ -104,30 +99,16 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   
   if ($is_bye && $options['show_byes']) {
     $node_classes[] = 'bye';
-  } else if($is_bye) {
+  } 
+  elseif ($is_bye) {
     $node_classes[] = 'bye-hidden';
   }       
-  // If this branch of the tree has a bye in its first grandchild spot and not the
-  // third spot, keep the height space in for the "tree node" match of the 
-  // to compensate for the spacing of the third grandchild.
-  if (isset($node['bye_firstlevel']) && $node['bye_firstlevel'] == array(TRUE, FALSE, FALSE, FALSE)) {
-    if ($is_bye) {
-      $node_classes[] = 'no-height-change';
-    }
-  }
-  else {
-    // Only childs always render on the bottom, add a class to push it to the bottom.
-    if (!$is_bye && $is_only_child) {
-      $node_classes[] = 'only-child';
-    }
-  }
-  
-  // Check for byes in the bottom bracket and make sure they render on the
-  // bottom of the match block.
-  if ($node['bracket'] == 'loser' && $node['bye_firstlevel'] == array(FALSE, TRUE)
-    && (!array_key_exists('bye', $node) || $node['bye'] == FALSE)) {
+
+  if (!$is_bye && $is_only_child) {
     $node_classes[] = 'only-child';
-    $vars['node']['child'] = 1;
+    if ( $node['bracket'] == 'loser' ) {
+      $node_classes[] = 'bottom-only-child';
+    }
   }
   
   

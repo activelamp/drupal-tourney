@@ -126,7 +126,7 @@ class DoubleEliminationController extends SingleEliminationController {
         if (!empty($this->data['matches'][$id]['feeder']) 
           && $this->data['matches'][$id]['feeder'] == TRUE) {
         
-          unset($this->data['matches'][$id]['previousMatches'][1]);
+          //unset($this->data['matches'][$id]['previousMatches'][1]);
         }
       }
     }
@@ -410,8 +410,15 @@ class DoubleEliminationController extends SingleEliminationController {
         foreach ($match['previousMatches'] as $child) {
           // If this match has both contestants as a bye mark the next match as
           // a bye too.
+          // edited to make sure that we only set the byes if both contestants 
+          // feeding in come from byes, that way it doesn't remove certain
+          // cases that aren't byes
           if (!empty($match['bye']) && $match['bye'] == TRUE && array_key_exists('bye', $this->data['matches'][$child]) && $this->data['matches'][$child]['bye'] == TRUE) {
-            $this->data['matches'][$next]['bye'] = TRUE;
+            $this_next = & $this->data['matches'][$next];
+            if ( !isset($this_next['bye_marks']) ) $this_next['bye_marks'] = 0;
+            $this_next['bye_marks'] += 1;
+            if ( $this_next['bye_marks'] == 2 ) 
+              $this_next['bye'] = TRUE;
           }
           
           // Set this match to a bye if one contestant has a bye in previous
@@ -424,12 +431,22 @@ class DoubleEliminationController extends SingleEliminationController {
           }
         }
       }
-      if ($match['bracket'] == 'loser' && $match['round'] == 2) {
-        if (array_key_exists('bye', $match) && $match['bye'] == TRUE) {
-          foreach ($match['previousMatches'] as $child) {
-            if (array_key_exists('loser', $this->data['matches'][$child]['nextMatch']) && $this->data['matches'][$child]['nextMatch']['loser']['id'] == $match['id']) {
-              $this->data['matches'][$child]['nextMatch']['loser'] = $match['nextMatch']['winner'];
-            }
+      // if ($match['bracket'] == 'loser' && $match['round'] == 2) {
+      //   if (array_key_exists('bye', $match) && $match['bye'] == TRUE) {
+      //     foreach ($match['previousMatches'] as $child) {
+      //       if (array_key_exists('loser', $this->data['matches'][$child]['nextMatch']) && $this->data['matches'][$child]['nextMatch']['loser']['id'] == $match['id']) {
+      //         $this->data['matches'][$child]['nextMatch']['loser'] = $match['nextMatch']['winner'];
+      //       }
+      //     }
+      //   }
+      // }
+    }
+    foreach ( $this->data['matches'] as &$match ) {
+      if ( $match['bracket'] == 'main' ) {
+        foreach ( $match['nextMatch'] as $direction => $id ) {
+          $id = $id['id'];
+          if ( isset($this->data['matches'][$id]['bye']) && $this->data['matches'][$id]['bye'] == TRUE ) {
+            $match['nextMatch'][$direction] = $this->data['matches'][$id]['nextMatch']['winner'];
           }
         }
       }
@@ -470,5 +487,18 @@ class DoubleEliminationController extends SingleEliminationController {
     
     // Reverse it so we work down, and make the array 1-based
     return array_combine(range(1, count($series)), array_reverse($series));
+  }
+
+
+  public function structureTreeNode($match) {
+    if ( $match['bracket'] != 'loser' ) return parent::structureTreeNode($match);
+    $node = $match;
+    if (isset($match['previousMatches'])) {
+      foreach (array_unique($match['previousMatches']) as $child) {
+        if ( $match['bracket'] !== $this->data['matches'][$child]['bracket'] ) continue;
+        $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
+      }
+    }
+    return $node;
   }
 }
