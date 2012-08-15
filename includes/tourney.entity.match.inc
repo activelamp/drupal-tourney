@@ -424,7 +424,14 @@ class TourneyMatchEntity extends TourneyEntity {
       $relation = relation_load($rid);
       relation_delete($rid);
       $game = tourney_game_load($relation->endpoints['und'][1]['entity_id']);
-      $game->delete();
+      if (is_object($game)) {
+        $game->delete();
+      }
+      else {
+        drupal_set_message(t('Could not delete game entity %id. Does not exist', array(
+         '%id' => $relation->endpoints['und'][1]['entity_id'],
+        )), 'warning');
+      }
     }
 
     parent::delete();

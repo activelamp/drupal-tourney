@@ -609,7 +609,7 @@ function tourney_entities() {
 }
 
 /**
- * What is this for?
+ * URI callback defining path for each entity defined in tourney.
  */
 function tourney_uri($entity) {
   return array(
@@ -688,6 +688,25 @@ function tourney_access($op = 'view', $group = NULL, $account = NULL) {
   }
 
   return FALSE;
+}
+
+/**
+ * Load a tourney entity by entity type and name.
+ * 
+ * @param $entity_type
+ *   The entity type to load from.
+ * @param $name
+ *   The machine name of the entity you want to load.
+ * @return
+ *   A loaded entity object.
+ */
+function tourney_entity_load_by_name($entity_type, $name) {
+  $entity_id = db_query("SELECT id FROM {" . $entity_type . "} WHERE name = :name",
+    array(':name' => $name))
+    ->fetchField();
+  
+  $function = $entity_type . '_load';
+  return $entity_id  > 0 ? $function($entity_id) : NULL;
 }
 
 /**
