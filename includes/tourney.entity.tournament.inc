@@ -104,11 +104,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   A fully loaded match object.
    */
   public function getMatchById($mid) {
-    $entity_id = db_query("SELECT id FROM {tourney_match} WHERE name = :name",
-      array(':name' => $this->name . '_match-' . $mid))
-      ->fetchField();
-
-    return $entity_id  > 0 ? tourney_match_load($entity_id) : NULL;
+    return tourney_entity_load_by_name('tourney_match', $this->name . '_match-' . $mid);
   }
 
   /**
@@ -268,11 +264,18 @@ class TourneyTournamentEntity extends TourneyEntity {
 
     // Build an array of stuff to delete.
     foreach (array_keys($matches) as $rid) {
-     // Get all the match relations and matches and delete them.
-     $relation = relation_load($rid);
-     relation_delete($rid);
-     $match = tourney_match_load($relation->endpoints['und'][1]['entity_id']);
-     $match->delete();
+      // Get all the match relations and matches and delete them.
+      $relation = relation_load($rid);
+      relation_delete($rid);
+      $match = tourney_match_load($relation->endpoints['und'][1]['entity_id']);
+      if (is_object($match)) {
+        $match->delete();
+      }
+      else {
+        drupal_set_message(t('Could not delete match entity %id. Does not exist', array(
+         '%id' => $relation->endpoints['und'][1]['entity_id'],
+        )), 'warning');
+      }
     }
 
     parent::delete();
