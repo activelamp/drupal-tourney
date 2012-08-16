@@ -30,107 +30,58 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   if (!isset($vars['node'])) {
     $vars['node'] = $plugin->structure['tree'];
   }
-  $node = $vars['node'];
+  $node = &$vars['node'];
   
-  // Set the round name
-  $vars['round_name'] = '';
-  // If the options is checked to show round names, set the variable.
-  if (array_key_exists('show_round_names', $options) && $options['show_round_names'] == TRUE) {
-    if ($node['roundMatch'] == 1) {
-      // If we have a tournament get the round names
-      $vars['round_name'] = is_object($plugin->tournament) ? 
-        $plugin->tournament
-          ->get('round_' . $node['tourneyRound'], $plugin->data['rounds'][$node['tourneyRound']]['title']) 
-          : $plugin->data['rounds'][$node['tourneyRound']]['title'];
-    }
-  }
-  
-  $is_bye = isset($node['bye']) ? $node['bye'] : FALSE;
-  $is_child = isset($node['child']);
-  $is_only_child = isset($node['only']) ? $node['only'] : FALSE;
-  $has_children = isset($node['children']) && $node['children'];
-
-  // Check to see if the children of this match are byes or are both byes. Setting
-  // a couple flags that will change if there are byes in the immediate child.
-  // We need to know this so we can set the spacing properly in children matches.
-  $has_bye = FALSE;
-  $both_byes = TRUE;
-  if ($has_children) {
-    foreach ($node['children'] as &$child) {
-      if (isset($child['bye']) && $child['bye']) {
-        $has_bye = TRUE;
+  $round_name = '';
+  if ( isset($options['show_round_names']) && $options['show_round_names'] ) {
+    if ( $node['roundMatch'] == 1 ) {
+      if ( is_object($plugin->tournament) ) {
+        $round_name = $plugin->tournament->get('round_' . $node['tourneyRound'], $plugin->data['rounds'][$node['tourneyRound']]['title']);
       }
       else {
-        $both_byes = FALSE;
-      }
-    } 
-    unset($child);
-  }
-
-  $bye_secondlevel = array();
-  if ($has_children) {
-    foreach ($node['children'] as $id => &$child) {
-      $child['child'] = $id;
-      $child['only']  = !$options['show_byes'] && $has_bye && !$both_byes;
-      if ($node['bracket'] == 'loser') {
-        $child['child'] = count($node['children']) == 1 ? 1 : $id;
-        $child['only']  = count($node['children']) == 1;
-        $child['fix-height'] = TRUE;
-      }
-      if ($node['bracket'] == 'champion' && $node['round'] == 1) {
-        $brackets = $plugin->data['brackets'];
-        if ($id == 0) {
-          $node_classes[] = 'only-child';
-          $node_classes[] = 'champion';
-          $child['spacer'] = $brackets['loser']['rounds'] - $brackets['main']['rounds'];
-        }
-        elseif ($id == 1) {
-          $child['loser-child'] = $brackets['loser']['rounds'] - $brackets['main']['rounds'];
-        }
+        $round_name = $plugin->data['rounds'][$node['tourneyRound']]['title'];
       }
     }
-    unset($child);
   }
-  $vars['node'] = $node;
-  
-  if (array_key_exists('child', $node)) {
-    $node_classes[] = 'child-' . $node['child'];
-  }
-  
-  if ($is_bye && $options['show_byes']) {
-    $node_classes[] = 'bye';
-  } 
-  elseif ($is_bye) {
-    $node_classes[] = 'bye-hidden';
-  }       
 
-  if (!$is_bye && $is_only_child) {
-    $node_classes[] = 'only-child';
-    if ( $node['bracket'] == 'loser' ) {
-      $node_classes[] = 'bottom-only-child';
-    }
-  }
-  
-  
-  if (!empty($node['loser-child'])) {
-    $node_classes[] = 'loser-child-' . $node['loser-child'];
-  }
-  
-  if (!empty($node['spacer'])) {
-    $node_classes[] = 'round-space-' . $node['spacer'];
-  }
-  $vars['node_classes'] = implode(' ', $node_classes);
-  
-  // Set the children classes
+  $node_classes = array();
   $children_classes = array();
-  if (array_key_exists('children', $node)) {
-    $children_classes[] = 'children-' . count($node['children']);
+
+  $has_children = isset($node['children']) && count($node['children']);
+  $is_child     = isset($node['child']);
+
+  $node_classes[] = 'bracket-' . $node['bracket'];
+  if ( $node['bracket'] != 'main' && $has_children && count($node['children']) == 2 ) {
+    $node_classes[] = 'feeder';
+  } 
+
+  if ( $is_child ) {
+    $node_classes[] = 'child-' . $node['child'];
+    if ( isset($node['only_child']) && $node['only_child'] ) {
+      $only_child = TRUE;
+      $node_classes[] = 'only-child';
+    }
   }
-  if ($both_byes) {
-    $children_classes[] = 'bye';
+  else {
+    $node_classes[] = 'top-node';
   }
-  $vars['children_classes'] = implode(' ', $children_classes);
   
-  $vars['has_children'] = $has_children;
-  $vars['is_child'] = $is_child;
+  if ( $has_children ) {
+    $node_classes[] = 'children-' . count($node['children']);
+    foreach ( $node['children'] as $id => &$child ) {
+      if ( count($node['children']) == 1 ) {
+        $child['child'] = 1;
+        $child['only_child'] = TRUE;
+      }
+      else {
+        $child['child'] = $id;
+      }
+    }
+  }
+
+  $vars['round_name']       = $round_name;
+  $vars['node_classes']     = implode(' ', $node_classes);
+  $vars['children_classes'] = implode(' ', $children_classes);
+  $vars['has_children']     = $has_children;
+  $vars['round_name']       = '';
 }

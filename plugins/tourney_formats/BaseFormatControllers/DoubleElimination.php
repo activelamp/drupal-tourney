@@ -37,6 +37,9 @@ class DoubleEliminationController extends SingleEliminationController {
       $vars['classes_array'][] = 'tourney-tournament-tree';
       $vars['matches'] = '';
       $node = $this->structure['tree'];
+
+      if ( !isset($this->pluginOptions['show_byes']) || $this->pluginOptions['show_byes'] == FALSE )
+        $this->removeByes($node);
       
       // New tree should start from the second to last match.
       // $match = $this->data['matches'][15];
@@ -44,6 +47,16 @@ class DoubleEliminationController extends SingleEliminationController {
       
       // Render the consolation bracket out.
       $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $node));
+    }
+  }
+
+  public function removeByes(&$node) {
+    if ( !isset($node['children']) ) return;
+    foreach ( $node['children'] as $id => $child ) {
+      if ( isset($child['bye']) && $child['bye'] == TRUE ) unset($node['children'][$id]);
+    }
+    if ( count($node['children']) ) {
+      foreach ( $node['children'] as &$child ) $this->removeByes($child);
     }
   }
   

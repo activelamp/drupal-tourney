@@ -36,11 +36,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     $matches = $tournament->data['matches'];
     
     foreach ($match as $mid => $info) {
-      $this->assertEqual($info['winner_id'], $matches[$mid]['nextMatch']['winner']['id'], 'Match ' . $mid . ' winner is going to the correct match', 'PHP');
-      //$this->assertEqual($info['winner_slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' winner is going to the correct slot', 'PHP');
+      $plugin_winner = $matches[$mid]['nextMatch']['winner']['id'];
+      $this->assertEqual($info['winner_id'], $plugin_winner, 'Match ' . $mid . ' winner is going to match ' . $info['winner_id'] . ' (Match ' . $plugin_winner .')', 'PHP');
+      //$this->assertEqual($info['winner_slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' winner is going to slot' . $info['winner_slot'], 'PHP');
       if (array_key_exists('loser_id', $info)) {
-        $this->assertEqual($info['loser_id'], $matches[$mid]['nextMatch']['loser']['id'], 'Match ' . $mid . ' loser is going to the correct match', 'PHP');
-        //$this->assertEqual($info['loser_slot'], $matches[$mid]['nextMatch']['loser']['slot'], 'Match ' . $mid . ' loser is going to the correct slot', 'PHP');
+        $plugin_loser = $matches[$mid]['nextMatch']['loser']['id'];
+        $this->assertEqual($info['loser_id'], $plugin_loser, 'Match ' . $mid . ' loser is going to match ' . $info['loser_id'] . ' (Match ' . $plugin_loser .')', 'PHP');
+        //$this->assertEqual($info['loser_slot'], $matches[$mid]['nextMatch']['loser']['slot'], 'Match ' . $mid . ' loser is going to slot' . $info['loser_slot'], 'PHP');
       }
     }
   }
@@ -152,11 +154,17 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_id' => 10,
         'loser_slot' => 2,
       ),
+      3 => array(
+        'winner_id' => 6,
+        'winner_slot' => 1,
+        'loser_id' => 9,
+        'loser_slot' => 2,
+      ),
       4 => array(
         'winner_id' => 6,
         'winner_slot' => 2,
-        'loser_id' => 11,
-        'loser_slot' => 2,
+        'loser_id' => 9,
+        'loser_slot' => 1,
       ),
       5 => array(
         'winner_id' => 7,
