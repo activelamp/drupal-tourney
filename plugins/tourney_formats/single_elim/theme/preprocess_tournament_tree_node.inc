@@ -31,7 +31,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
     $vars['node'] = $plugin->structure['tree'];
   }
   $node = &$vars['node'];
-  
+
   $round_name = '';
   if ( isset($options['show_round_names']) && $options['show_round_names'] ) {
     if ( $node['roundMatch'] == 1 ) {
@@ -46,6 +46,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
 
   $node_classes = array();
   $children_classes = array();
+  $path_classes = array();
 
   $has_children = isset($node['children']) && count($node['children']);
   $is_child     = isset($node['child']);
@@ -67,6 +68,9 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   }
   
   if ( $has_children ) {
+    // This line is to correct rendering quirks that can arise because
+    // bottom bracket matches are filled from the bottom up
+    if ( $node['bracket'] == 'loser' ) $node['children'] = array_reverse($node['children']);
     $node_classes[] = 'children-' . count($node['children']);
     foreach ( $node['children'] as $id => &$child ) {
       if ( count($node['children']) == 1 ) {
@@ -79,9 +83,22 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
     }
   }
 
+  if (is_object($plugin->tournament)) {
+    $match = $plugin->tournament->getMatchById($node['id']);
+    if ( $match->winner ) {
+      $path_classes[] = 'eid-' . str_replace('.', '-', $match->winner);
+      $contestants = array_keys($match->getMatchContestants());
+      if ( $match->winner != $contestants[0] ) {
+        $path_classes[] = 'winner-bottom';
+      }
+    }
+  }
+
+
   $vars['round_name']       = $round_name;
   $vars['node_classes']     = implode(' ', $node_classes);
   $vars['children_classes'] = implode(' ', $children_classes);
+  $vars['path_classes']     = implode(' ', $path_classes);
   $vars['has_children']     = $has_children;
   $vars['round_name']       = '';
 }

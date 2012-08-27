@@ -110,9 +110,10 @@ function template_preprocess_tourney_contestant(&$vars) {
   
   $vars['classes_array'][] = 'contestant-' . $vars['contestant']->slot;
   $vars['classes_array'][] = $vars['winner'] ? 'winner' : '';
-  
+
   if (property_exists($vars['contestant'], 'name') && $vars['contestant']->name) {
     $vars['name'] = $vars['contestant']->name;
+    $vars['classes_array'][] = 'eid-' . str_replace('.', '-', $vars['contestant']->eid);
   }
   else {
     $vars['name'] = 'Team ' . $vars['contestant']->slot;
