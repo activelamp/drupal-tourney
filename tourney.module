@@ -153,6 +153,7 @@ function tourney_testing() {
   $test = new DoubleEliminationController(19);
   //$test->setPluginOptions(array('show_byes' => TRUE));
   $output .= $test->render();
+  $output .= "<div>testing testing testing</div>";
 
   return $output;
 }

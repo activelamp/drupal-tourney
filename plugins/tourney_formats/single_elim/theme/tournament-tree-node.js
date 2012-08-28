@@ -43,6 +43,14 @@ Drupal.behaviors.tourneyFixConnectors = { attach: function(context, settings) {
   });
 } }
 
+Drupal.behaviors.tourneyFixHeight = { attach: function(context, settings) {
+  var $tree   = $('.tourney-tournament-tree', context);
+  var current = $tree.offset().top + $tree.height();
+  var $match  = $('.tree-node', $tree).last();
+  var target  = $match.offset().top + $match.height() + 50;
+  $tree.css('padding-bottom', target-current);
+} }
+
 Drupal.behaviors.tourneyHighlight = { attach: function(context, settings) {
   $('.contestant', context).hover(function() {
     var eid = '.' + $(this).attr('class').split(' ').reverse()[0];
