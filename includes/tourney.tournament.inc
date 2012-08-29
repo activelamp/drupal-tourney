@@ -324,8 +324,9 @@ function tourney_tournament_validate_contestants($element, &$form_state) {
  */
 function tourney_tournament_validate_games($element, &$form_state) {
   $value = $element['#value'];
-  if (!is_int($value) && $value % 2 === 0) {
-    form_error($element, t('%name must be an odd number.', array('%name' => $element['#title'])));
+  if (!is_int($value) && $value % 2 === 0 || intval($value) != $value || $value < 3) {
+    form_error($element, t('%name must be an odd number greater than four.', 
+      array('%name' => $element['#title'])));
   }
 }
 

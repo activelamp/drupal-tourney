@@ -70,10 +70,10 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   if ( $has_children ) {
     // This line is to correct rendering quirks that can arise because
     // bottom bracket matches are filled from the bottom up
-    if ( $node['bracket'] == 'loser' ) $node['children'] = array_reverse($node['children']);
+    if ($node['bracket'] == 'loser') $node['children'] = array_reverse($node['children']);
     $node_classes[] = 'children-' . count($node['children']);
-    foreach ( $node['children'] as $id => &$child ) {
-      if ( count($node['children']) == 1 ) {
+    foreach ($node['children'] as $id => &$child) {
+      if (count($node['children']) == 1) {
         $child['child'] = 1;
         $child['only_child'] = TRUE;
       }
@@ -85,10 +85,10 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
 
   if (is_object($plugin->tournament)) {
     $match = $plugin->tournament->getMatchById($node['id']);
-    if ( $match->winner ) {
+    if (is_object($match) && $match->winner) {
       $path_classes[] = 'eid-' . str_replace('.', '-', $match->winner);
       $contestants = array_keys($match->getMatchContestants());
-      if ( $match->winner != $contestants[0] ) {
+      if ($match->winner != $contestants[0]) {
         $path_classes[] = 'winner-bottom';
       }
     }
