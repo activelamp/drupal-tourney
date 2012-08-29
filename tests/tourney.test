@@ -38,7 +38,7 @@ class TourneyWebTestCase extends DrupalWebTestCase {
    * @return string
    *   Returns the name of the tournament that was added.
    */
-  protected function createTourney($format, $players) {
+  protected function createTourney($format, $players, $default_games = 1) {
     // Create the tournament.
     $edit = array();  
     // Set the Name of the tournament to a Random name.
@@ -52,11 +52,9 @@ class TourneyWebTestCase extends DrupalWebTestCase {
     // Set the Tournament 'Type'
     $edit['format'] = $format;
     // Set the number of games played in a single match, for all matches in tourament.
-    $edit['config_default_games'] = 1;
+    $edit['config_default_games'] = $default_games;
     // Save the match and create tournament
     $this->drupalPost('tourney/add', $edit, t('Save'));
-    // Check to see if tournament was saved by confirming text is present.
-    $this->assertRaw(t('Your tournament has been saved.'));
     
     return $tournament_name;
   }

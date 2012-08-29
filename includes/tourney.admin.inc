@@ -6,7 +6,7 @@
  */
 
 /**
- * Generates the profile type editing form.
+ * Generates the tourney type editing form.
  */
 function tourney_type_form($form, &$form_state, $tourney_type, $op = 'edit') {
   if ($op == 'clone') {
