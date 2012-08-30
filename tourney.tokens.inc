@@ -26,6 +26,10 @@ function tourney_token_info() {
       'name' => t('Match Number'),
       'description' => t('Number of this match in its tournament'),
     ),
+    'round_match_number' => array(
+      'name' => t('Round Match Number'),
+      'description' => t('Number of this match of its round in its tournament'),
+    ),
     'contestant_1' => array(
       'name' => t('Contestant 1'),
       'description' => t('Contestant in slot 1 of the match'),
@@ -56,16 +60,19 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
     foreach ( $tokens as $name => $original ) {
       switch ( $name ) {
         case 'bracket_name':
-          $replacements[$original] = $match->matchInfo['bracket']['title'];
+          $replacements[$original] = $match->matchInfo['bracket'];
           break;
         case 'round_name':
           $replacements[$original] = t('Round') . ' ' . $match->matchInfo['round'] . ' ';
           break;
         case 'round_number':
-          $replacements[$original] = $match->matchInfo['round']['id'];
+          $replacements[$original] = $match->matchInfo['tourneyRound'];
           break;
         case 'match_number':
           $replacements[$original] = $match->matchInfo['id'];
+          break;
+        case 'round_match_number':
+          $replacements[$original] = $match->matchInfo['roundMatch'];
           break;
         case 'contestant_1':
           $contestant = $match->getContestant(1);

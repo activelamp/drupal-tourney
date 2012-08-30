@@ -100,14 +100,6 @@ h2.round-title {
   color: #FFF;
 }
 
-.tourney-tournament-tree .connector.to-parent.tourney-highlight {
-  top: -2px !important;
-}
-
-.tourney-tournament-tree .connector.to-parent.tourney-highlight {
-  top: -2px !important;
-}
-
 .tourney-tournament-tree .connector.to-parent.tourney-highlight.winner-bottom {
   top: -1px !important;
 }
@@ -119,6 +111,9 @@ h2.round-title {
 .tourney-tournament-tree .connector.to-children.tourney-highlight {
   border-color: #FB4B00;
   border-width: 0 0 2px;
+}
+
+.tourney-tournament-tree .connector.to-children.child-1.tourney-highlight {
   top: -2px;
 }
 

@@ -1046,11 +1046,22 @@ function tourney_action_info() {
       'label' => t('Unpublish selected tournaments'),
       'configurable' => FALSE,
     ),
+
+    'tourney_unpdate_match_action' => array(
+      'type' => 'tourney_match',
+      'label' => t('Update selected matches'),
+      'configurable' => FALSE,
+    ),
   );
 }
 
 function tourney_unpublish_action(&$entity, $context) {
   dpm($entity);
+}
+
+function tourney_unpdate_match_action(&$entity, $context) {
+  auto_entitylabel_set_title($entity, $entity->entity_type);
+  entity_save($entity->entity_type, $entity);
 }
 
 
