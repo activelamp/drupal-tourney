@@ -219,7 +219,9 @@ class TourneyController implements TourneyControllerInterface {
    *   Array of elements that match the $vars given
    */
   public function &find($data, $vars, $first = FALSE, $specific = NULL) {
-    if (!isset($this->data[$data])) return NULL;
+    if (!isset($this->data[$data])) {
+      return NULL;
+    }
     // Added in optimization to make routine find() calls faster
     // Normally searches are incremented, so this optimization holds
     // the place of the last call and continues the search from there
@@ -258,13 +260,17 @@ class TourneyController implements TourneyControllerInterface {
       // has to loop through all the elements anyways
       if ($first && $optimize_last) {
         // Until we hit the key we left off at, keep skipping elements...
-        if ($id !== $optimize_last) continue;
+        if ($id !== $optimize_last) {
+          continue;
+        }
         // ...and then we clear the variable so we can continue on.
         $optimize_last  = NULL;
       }
       // The other end of this is if we're continuing a failed optimized
       // search to exit out of the loop once we've hit where we started from
-      if ($optimize_until && $id == $optimize_until) break;
+      if ($optimize_until && $id == $optimize_until) {
+        break;
+      }
       // Compare all our required $vars with its applicable properties
       // If that specific $vars is an array, check to see if the element's 
       // property is in the array
