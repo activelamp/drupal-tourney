@@ -202,7 +202,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     }
   }
 
-  $form['path'] = array(    
+  $form['path'] = array(
     '#type' => 'fieldset', 
     '#title' => t('URL Path Settings'), 
     '#collapsible' => TRUE, 
@@ -475,7 +475,7 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
  *   Returns an array of game objects.
  */
 function tourney_tournament_get_match_games($entity, $load_entity = TRUE, $reset = FALSE) {
-  $cache_name = 'tourney_match_games_' . $entity->id . ( $load_entity ? '_entity' : '' );
+  $cache_name = 'tourney_match_games_' . $entity->id . ($load_entity ? '_entity' : '');
   $cache = cache_get($cache_name, 'cache_tourney');
   if ($reset || !$cache || ($cache && empty($cache->data))) {
     $query = relation_query('tourney_match', $entity->id);

@@ -150,7 +150,7 @@ function tourney_menu() {
 function tourney_testing() {
   $output = '';
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $test = new DoubleEliminationController(6);
+  $test = new DoubleEliminationController(8);
   //$test->setPluginOptions(array('show_byes' => TRUE));
   $output .= $test->render();
   $output .= "<div>testing testing testing</div>";
@@ -950,14 +950,14 @@ function tourney_update_alias($entity, $op, array $options = array()) {
     return;
   }
 
-  if ( isset($entity->path['pathauto']) && empty($entity->path['pathauto']) ) {
-    if ( isset($entity->path) ) {
+  if (isset($entity->path['pathauto']) && empty($entity->path['pathauto'])) {
+    if (isset($entity->path)) {
       $path = $entity->path;
       $path['alias'] = trim($path['alias']);
-      if ( !empty($path['pid']) && empty($path['alias']) ) {
+      if (!empty($path['pid']) && empty($path['alias'])) {
         path_delete($path['pid']);
       }
-      if ( !empty($path['alias']) ) {
+      if (!empty($path['alias'])) {
         $path['source'] = 'tourney/' . $entity->type . '/' . $entity->id;
         $path['language'] = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
         path_save($path);
@@ -1004,16 +1004,16 @@ function tourney_flush_caches() {
  *   Value of the part asked for
  */
 function tourney_get_name_part($name, $part) {
-  foreach ( explode('_', $name) as $sub ) {
+  foreach (explode('_', $name) as $sub) {
     $sub = explode('-', $sub);
-    if ( $sub[0] == $part ) return $sub[1];
+    if ($sub[0] == $part) return $sub[1];
   }
 }
 
 function tourney_initialize_configuration() {
   global $_tourney_config;
 
-  if ( $cached = cache_get('configuration', 'cache_tourney') ) {
+  if ($cached = cache_get('configuration', 'cache_tourney')) {
     $config = $cached->data;
   }
   else {
@@ -1025,7 +1025,7 @@ function tourney_initialize_configuration() {
     else {
       $config = array();
       $query = db_query('SELECT id, type, value FROM {tourney}');
-      foreach ( $query->fetchAll() as $row ) {
+      foreach ($query->fetchAll() as $row) {
         $config[$row->id][$row->type] = unserialize($row->value);
       }
       cache_set('configuration', $config, 'cache_tourney');
@@ -1046,10 +1046,22 @@ function tourney_action_info() {
       'label' => t('Unpublish selected tournaments'),
       'configurable' => FALSE,
     ),
+
+    'tourney_unpdate_match_action' => array(
+      'type' => 'tourney_match',
+      'label' => t('Update selected matches'),
+      'configurable' => FALSE,
+    ),
   );
 }
 
 function tourney_unpublish_action(&$entity, $context) {
+  dpm($entity);
+}
+
+function tourney_unpdate_match_action(&$entity, $context) {
+  auto_entitylabel_set_title($entity, $entity->entity_type);
+  entity_save($entity->entity_type, $entity);
 }
 
 
@@ -1057,7 +1069,7 @@ function tourney_unpublish_action(&$entity, $context) {
 
 function entity_load_by_eid($eids) {
   $entities = array();
-  foreach ( $eids as $eid ) {
+  foreach ($eids as $eid) {
     $entities[$eid] = entity_load_single_by_eid($eid);
   }
   return $entities;
@@ -1082,7 +1094,7 @@ function tourney_entity_load($entities, $type) {
     $entity->entity_id   = $id;
     $entity->entity_name =
       property_exists($entity, 'name') ? $entity->name :
-        ( property_exists($entity, 'title') ? $entity->title :
-          ( property_exists($entity, 'label') ? $entity->label : NULL ) );
+        (property_exists($entity, 'title') ? $entity->title :
+          (property_exists($entity, 'label') ? $entity->label : NULL));
   }
 }
