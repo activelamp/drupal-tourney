@@ -53,12 +53,12 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
   $replacements = array();
   $sanitize = !empty($options['sanitize']);
 
-  if ( $type == 'tourney_match' && !empty($data['tourney_match']) ) {
+  if ($type == 'tourney_match' && !empty($data['tourney_match'])) {
     $match = $data['tourney_match'];
-    if ( !isset($match->id) ) return;
+    if (!isset($match->id)) return;
     $match->getMatchInfo();
-    foreach ( $tokens as $name => $original ) {
-      switch ( $name ) {
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
         case 'bracket_name':
           $replacements[$original] = $match->matchInfo['bracket'];
           break;
@@ -84,9 +84,10 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
           break;
       }
     }
-  } else if ( $type == 'tourney_game' && !empty($data['tourney_game']) ) {
-    foreach ( $tokens as $name => $original ) {
-      switch ( $name ) {
+  } 
+  elseif ($type == 'tourney_game' && !empty($data['tourney_game'])) {
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
         case 'game_number':
           //the game id increments by 2, for display purposes we need to subtract 1 when the id > 1
           $id = array_pop(explode('-', $data['tourney_game']->name));

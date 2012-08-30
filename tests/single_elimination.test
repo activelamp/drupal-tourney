@@ -41,7 +41,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     // Make sure the link to Tourament is present.
     $this->assertLink(t('Go to tournament !tournament', array('!tournament' => $tournament_name)));
     
-    // Play First Match, 'contestant1' ( Slot 1 or 'user.3') wins in match 1.
+    // Play First Match, 'contestant1' (Slot 1 or 'user.3') wins in match 1.
     $edit = array();
     $this->drupalPost('tourney/match/1', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
     // Check to see if winner was successfully set passing in "Players moved to next round" text.

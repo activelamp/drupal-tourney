@@ -531,7 +531,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    */
   public function set($name, $value) {
     global $_tourney_config;
-    if ( !isset($_tourney_config) ) tourney_initialize_configuration();
+    if (!isset($_tourney_config)) tourney_initialize_configuration();
 
     db_merge('tourney')
       ->key(array(
