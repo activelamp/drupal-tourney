@@ -7,7 +7,6 @@
 /**
  * Implements hook_token_info().
  */
-
 function tourney_token_info() {
   $info['tokens']['tourney_match'] = array(
     'bracket_name' => array(
@@ -38,7 +37,6 @@ function tourney_token_info() {
       'name' => t('Contestant 2'),
       'description' => t('Contestant in slot 2 of the match'),
     ),
-    
   );
   $info['tokens']['tourney_game'] = array(
     'game_number' => array(
