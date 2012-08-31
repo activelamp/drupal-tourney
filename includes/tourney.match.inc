@@ -289,9 +289,9 @@ function _tourney_match_contestants_sanitize($match, &$options) {
   }
 
   // special case naming occurs with different bundled node types
-  $userkey = array_key_exists('user', $options) ? 'user' : ( array_key_exists('user - user', $options) ? 'user - user' : NULL );
+  $userkey = array_key_exists('user', $options) ? 'user' : (array_key_exists('user - user', $options) ? 'user - user' : NULL);
   // Remove admin accounts from the contestant choices
-  if ( $userkey ) {
+  if ($userkey) {
     foreach ($options[$userkey] as $id => $user) {
       if (str_replace("user.", "", $id) <= 1) {
         unset($options[$userkey][$id]);
@@ -313,11 +313,11 @@ function tourney_match_form_validate($form, &$form_state) {
   $wins = array();
   foreach ($form_state['input'] as $id => $value) {
     if (!$value || substr($id, 0, 5) != 'game_') continue;
-    if ( !array_key_exists($value, $wins) ) $wins[$value] = 0;
+    if (!array_key_exists($value, $wins)) $wins[$value] = 0;
     $wins[$value]++;
   }
-  foreach ( $wins as $id => $count ) {
-    if ( $count - 1 > $form_state['match']->games / 2 )
+  foreach ($wins as $id => $count) {
+    if ($count - 1 > $form_state['match']->games / 2)
       form_set_error('', t('A contestant cannot win more games than neccesary to win a match'));
   }
 }
@@ -610,8 +610,8 @@ function tourney_get_match_by_name($bracket_structure, $path) {
    * match number as the iterator.
    */
   $i = 1;
-  foreach ( $next_match_structure as $match ) {
-    if ( $id == $i ) {
+  foreach ($next_match_structure as $match) {
+    if ($id == $i) {
       return $match['match'];
     }
     $i++;
@@ -634,7 +634,7 @@ function theme_tourney_match_fix($vars) {
 
   // Loop through all the games that have started.
   for ($gn = 0; $gn < $element['#games']; $gn++) {
-    $header[] = "Game " . ( $gn + 1 );
+    $header[] = "Game " . ($gn + 1);
 
     if ($gn < count($children)) {
       // Get the form element for this game number.
@@ -655,7 +655,7 @@ function theme_tourney_match_fix($vars) {
   }
 
   $header[] = "Results";
-  foreach ( $rows as $id => &$row ) {
+  foreach ($rows as $id => &$row) {
     $row[] = ' - ';
   }
 

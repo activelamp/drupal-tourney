@@ -57,7 +57,7 @@ function tourney_series_tournaments_table($series) {
   $header = array('Tournament Name', 'Tournament Style', 'Players', 'Winner', 'View', 'Edit', 'Delete', 'Remove');
 
   $rows = array();
-  if ( empty($tournaments) ) {
+  if (empty($tournaments)) {
     $message = t('There are currently no tournaments associated with this series.');
 
     $rows[] = array(

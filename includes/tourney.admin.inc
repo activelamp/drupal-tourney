@@ -105,7 +105,7 @@ function theme_tourney_admin_content($variables) {
   $header = $variables['header'];
 
   $rows = array();
-  if ( empty($tournaments) ) {
+  if (empty($tournaments)) {
     $message = t('There are currently no tournaments on your site.');
 
     $rows[] = array(
@@ -171,11 +171,11 @@ function tourney_configuration($form, &$form_state) {
   // Capture enumeration of content types.
   $entities = entity_get_info();
   $filter_entities = array('tourney_tournament', 'tourney_match', 'tourney_game', 'relation', 'rules_config', 'comment');
-  foreach ( $entities as $key => $entity ) {
-    if ( $entity['controller class'] == 'EntityAPIControllerExportable' ) 
+  foreach ($entities as $key => $entity) {
+    if ($entity['controller class'] == 'EntityAPIControllerExportable') 
       unset($entities[$key]);
   }
-  foreach ( $filter_entities as $filter ) {
+  foreach ($filter_entities as $filter) {
     unset($entities[$filter]);
   }
 

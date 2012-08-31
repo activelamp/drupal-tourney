@@ -300,7 +300,7 @@ class SingleEliminationController extends TourneyController {
       //  (2, 3)
       // New series:
       // (1, 4, 2, 3)
-      foreach ( $seeds as $seed ) {
+      foreach ($seeds as $seed) {
         $new_seeds[] = $seed;
         $new_seeds[] = ($count * 2 + 1) - $seed;
       }

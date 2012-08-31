@@ -17,30 +17,38 @@ Drupal.behaviors.tourneyFixConnectors = { attach: function(context, settings) {
     var $children = $this.children('.children').children('.tree-node');
     var $parent   = $this.children('.parent');
 
-    if ( $children.length == 0 ) return;
+    if ($children.length == 0) return;
 
     var $connectors = $('.connector .path', $children.children('.parent'));
 
     var $connectParent = $('.connector', $parent);
     var $connectBottom = $connectors.last();
     var $connectTop    = null;
-    if ( $connectors.length > 1 ) 
+    if ($connectors.length > 1) 
       $connectTop      = $connectors.first(); 
 
     var connectTarget  = $connectParent.offset().top + $connectParent.height();
     var connectOffset  = $connectBottom.offset().top - connectTarget;
 
-    if ( connectOffset <= 0 ) return;    
+    if (connectOffset <= 0) return;    
 
-    if ( connectOffset ) {
+    if (connectOffset) {
       $connectBottom.css({
         height: $connectBottom.height() + connectOffset,
         top: -connectOffset
       });
-      if ( $connectTop )
+      if ($connectTop)
         $connectTop.css('height', $connectTop.height() - connectOffset);
     }
   });
+} }
+
+Drupal.behaviors.tourneyFixHeight = { attach: function(context, settings) {
+  var $tree   = $('.tourney-tournament-tree', context);
+  var current = $tree.offset().top + $tree.height();
+  var $match  = $('.tree-node', $tree).last();
+  var target  = $match.offset().top + $match.height() + 50;
+  $tree.css('padding-bottom', target-current);
 } }
 
 Drupal.behaviors.tourneyHighlight = { attach: function(context, settings) {
@@ -50,7 +58,7 @@ Drupal.behaviors.tourneyHighlight = { attach: function(context, settings) {
     $('.contestant' + eid).closest('.match').addClass('tourney-highlight');
     $('.connector' + eid).each(function(){
       $parent = $(this).closest('.parent').closest('.children').closest('.tree-node');
-      if ( $(this).hasClass('winner-bottom') ) $('.connector.to-children', $(this).parent()).addClass('winner-bottom');
+      if ($(this).hasClass('winner-bottom')) $('.connector.to-children', $(this).parent()).addClass('winner-bottom');
       $('.connector.to-children', $parent.children('.parent')).addClass('tourney-highlight');
     });
   }, function() {
