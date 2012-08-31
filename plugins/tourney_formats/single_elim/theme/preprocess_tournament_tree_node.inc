@@ -70,7 +70,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   if ($has_children) {
     // This line is to correct rendering quirks that can arise because
     // bottom bracket matches are filled from the bottom up
-    if ($node['bracket'] == 'loser') $node['children'] = array_reverse($node['children']);
+    // if ($node['bracket'] == 'loser') $node['children'] = array_reverse($node['children']);
     $node_classes[] = 'children-' . count($node['children']);
     foreach ($node['children'] as $id => &$child) {
       if (count($node['children']) == 1) {
