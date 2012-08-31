@@ -194,12 +194,12 @@ class SingleEliminationController extends TourneyController {
    * each match.
    */
   public function populatePositions() {
-    foreach ( $this->data['matches'] as $id => &$match) {
+    foreach ($this->data['matches'] as $id => &$match) {
       $nextMatch = &$this->find('matches', array(
         'round'       => $match['round'] + 1, 
         'roundMatch'  => (int) ceil($match['roundMatch'] / 2)
       ), TRUE);
-      if ( !$nextMatch ) continue;
+      if (!$nextMatch) continue;
       $slot = $match['id'] % 2 ? 2 : 1;
       $match['nextMatch']['winner'] = array('id' => $nextMatch['id'], 'slot' => $slot);
       $nextMatch['previousMatches'][$slot] = $id;

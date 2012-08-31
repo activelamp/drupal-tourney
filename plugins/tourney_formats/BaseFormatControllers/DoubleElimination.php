@@ -134,11 +134,11 @@ class DoubleEliminationController extends SingleEliminationController {
   public function populatePositions() {
     $mainCount  = count($this->find('matches', array('bracket' => 'main')));
     $loserCount = count($this->find('matches', array('bracket' => 'loser')));
-    foreach ( $this->data['matches'] as $id => &$match ) {
-      if ( $match['id'] == count($this->data['matches']) ) continue;
+    foreach ($this->data['matches'] as $id => &$match) {
+      if ($match['id'] == count($this->data['matches'])) continue;
       $properties  = array();
       $properties['round'] = $match['round'] + 1;
-      switch ( $match['bracket'] ) {
+      switch ($match['bracket']) {
         case 'main':
           $slot = $match['id'] % 2 ? 1 : 2;
           $properties['bracket']    = 'main';
@@ -146,7 +146,7 @@ class DoubleEliminationController extends SingleEliminationController {
           break;
         case 'loser':
           $properties['bracket']  = 'loser';
-          if ( $match['round'] % 2 ) {
+          if ($match['round'] % 2) {
             $slot = 2;
             $properties['roundMatch'] = $match['roundMatch'];
           }
@@ -156,7 +156,7 @@ class DoubleEliminationController extends SingleEliminationController {
           }
           break;
         case 'champion':
-          if ( $match['round'] == 1 ) {
+          if ($match['round'] == 1) {
             $properties['bracket']  = 'champion';
             $properties['round']    = 2;
           }
@@ -165,14 +165,14 @@ class DoubleEliminationController extends SingleEliminationController {
           }
           break;
       }
-      if ( $match['id'] == $mainCount || $match['id'] == $mainCount + $loserCount ) {
+      if ($match['id'] == $mainCount || $match['id'] == $mainCount + $loserCount) {
         $slot = $match['bracket'] == 'main' ? 1 : 2;
         $properties['bracket']  = 'champion';
         $properties['round']    = 1;
       }
 
       $nextMatch = &$this->find('matches', $properties, TRUE);
-      if ( !$nextMatch ) continue;
+      if (!$nextMatch) continue;
 
       $match['nextMatch']['winner'] = array('id' => $nextMatch['id'], 'slot' => $slot);
       $nextMatch['previousMatches'][$slot] = $id;
@@ -191,14 +191,14 @@ class DoubleEliminationController extends SingleEliminationController {
    */
   public function populateLoserPositions() {
     $oddRounds = count($this->data['rounds']) % 2;
-    foreach ( $this->data['matches'] as $id => &$match ) {
-      if ( $match['bracket'] !== 'main' ) continue;
+    foreach ($this->data['matches'] as $id => &$match) {
+      if ($match['bracket'] !== 'main') continue;
       $properties = array();
       $properties['bracket'] = 'loser';
       $roundMatches = $this->data['rounds'][$match['round']]['matches'];
       $roundMatchesHalf = ceil($roundMatches / 2);
-      if ( $match['round'] == 1 ) {
-        if ( $oddRounds ) {
+      if ($match['round'] == 1) {
+        if ($oddRounds) {
           $target = ceil($match['roundMatch'] / 2);
         } 
         else {
@@ -211,7 +211,7 @@ class DoubleEliminationController extends SingleEliminationController {
       else {
         $slot = 1;
         $properties['round'] = ($match['round'] - 1) * 2;
-        if ( ( $match['round'] + $oddRounds ) % 2 ) {
+        if (($match['round'] + $oddRounds) % 2) {
           $target = ($match['roundMatch'] + $roundMatchesHalf - 1) % $roundMatches + 1;
         }
         else {
@@ -219,9 +219,9 @@ class DoubleEliminationController extends SingleEliminationController {
         }
         $properties['roundMatch'] = (int) $target;
       }
-      if ( !$properties ) continue;
+      if (!$properties) continue;
       $nextMatch = &$this->find('matches', $properties, TRUE);
-      if ( !$nextMatch ) continue;
+      if (!$nextMatch) continue;
 
       $match['nextMatch']['loser'] = array('id' => $nextMatch['id'], 'slot' => $slot);
       $nextMatch['previousMatches'][$slot] = $id;
@@ -259,8 +259,8 @@ class DoubleEliminationController extends SingleEliminationController {
     parent::populateSeedPositions();
 
     $matches = $this->find('matches', array('bracket' => 'main'));
-    foreach ( $matches as $match ) {
-      if ( isset($match['bye']) && $match['bye'] == TRUE ) {
+    foreach ($matches as $match) {
+      if (isset($match['bye']) && $match['bye'] == TRUE) {
         $this->data['matches'][$match['nextMatch']['loser']['id']]['bye'] = TRUE;
       }
     }
@@ -270,11 +270,11 @@ class DoubleEliminationController extends SingleEliminationController {
 
     // Update byes to remove themselves from their path
     $byes = $this->find('matches', array('bracket' => 'loser', 'bye' => TRUE));
-    foreach ( $byes as $match ) {
+    foreach ($byes as $match) {
       $winner = $match['nextMatch']['winner'];
-      foreach ( $match['previousMatches'] as $k => $v ) {
+      foreach ($match['previousMatches'] as $k => $v) {
         $prev = &$this->data['matches'][$v];
-        if ( isset($prev['bye']) && $prev['bye'] == TRUE ) continue; 
+        if (isset($prev['bye']) && $prev['bye'] == TRUE) continue; 
         $prev['nextMatch']['loser'] = array('id' => $winner['id'], 'slot' => $winner['slot']);
       }
     }
@@ -286,15 +286,15 @@ class DoubleEliminationController extends SingleEliminationController {
    */
   protected function populateLoserByes() {
     $matches = $this->find('matches', array('bracket' => 'loser', 'round' => 2));
-    foreach ( $matches as &$match ) {
-      if ( !isset($match['previousMatches'][2]) ) continue;
+    foreach ($matches as &$match) {
+      if (!isset($match['previousMatches'][2])) continue;
       $previousMatch = $this->data['matches'][$match['previousMatches'][2]];
       $byes = 0;
-      foreach ( $previousMatch['previousMatches'] as $id ) {
+      foreach ($previousMatch['previousMatches'] as $id) {
         $prev = $this->data['matches'][$id];
-        if ( isset($prev['bye']) && $prev['bye'] == TRUE ) $byes++;
+        if (isset($prev['bye']) && $prev['bye'] == TRUE) $byes++;
       }
-      if ( $byes == 2 ) $match['bye'] = TRUE;
+      if ($byes == 2) $match['bye'] = TRUE;
     }
   }
 
