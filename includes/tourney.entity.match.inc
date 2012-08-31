@@ -368,7 +368,9 @@ class TourneyMatchEntity extends TourneyEntity {
     // before it actually was.
     $tally = array();
     // if empty, it still needs to load games into, therefore is unfinished
-    if (empty($games)) return FALSE;
+    if (empty($games)) {
+      return FALSE;
+    }
     foreach ($games as $game) {
       // Delegate the checking to the game to see if each game is finished
       if (array_key_exists($game->winner, $tally))
