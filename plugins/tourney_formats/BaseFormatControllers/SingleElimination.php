@@ -132,7 +132,7 @@ class SingleEliminationController extends TourneyController {
     while (($slots /= 2) >= 1) {
       // Add current round information to the data array
       $this->data['rounds'][++$round] = 
-        $this->buildRound(array('id' => $round, 'bracket' => 'main'));
+        $this->buildRound(array('id' => $round, 'bracket' => 'main', 'matches' => $slots));
 
       // Add in all matches and their information for this round
       foreach (range(1, $slots) as $roundMatch) {
@@ -194,20 +194,15 @@ class SingleEliminationController extends TourneyController {
    * each match.
    */
   public function populatePositions() {
-    $top_matches = $this->slots - 1;
-    // Go through all the matches
-    $count = count($this->data['matches']);
     foreach ($this->data['matches'] as $id => &$match) {
-      // Nothing to do for the last match, continue.
-      if ($id == $top_matches || $id == $count) {
-        continue;
-      }
-      
-      $next = $this->calculateNextPosition($match, 'winner');
-      if ($next) {
-        $match['nextMatch']['winner'] = $next;
-        $this->data['matches'][$next['id']]['previousMatches'][$next['slot']] = $id;
-      }
+      $nextMatch = &$this->find('matches', array(
+        'round'       => $match['round'] + 1, 
+        'roundMatch'  => (int) ceil($match['roundMatch'] / 2)
+      ), TRUE);
+      if (!$nextMatch) continue;
+      $slot = $match['id'] % 2 ? 2 : 1;
+      $match['nextMatch']['winner'] = array('id' => $nextMatch['id'], 'slot' => $slot);
+      $nextMatch['previousMatches'][$slot] = $id;
     }
   }
 
@@ -268,9 +263,9 @@ class SingleEliminationController extends TourneyController {
     if (isset($match['previousMatches'])) {
       foreach ($match['previousMatches'] as $child) {
         // If this is a feeder match, don't build child that goes to other bracket.
-        if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
-          continue;
-        }
+        // if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
+        //   continue;
+        // }
         $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
       }
     }
@@ -329,38 +324,6 @@ class SingleEliminationController extends TourneyController {
     $this->build();
     $this->structure('tree');
     return theme('tourney_tournament_render', array('plugin' => $this));
-  }
-  
-  /**
-   * Given a match place integer, returns the next match place based on either
-   * 'winner' or 'loser' direction
-   *
-   * @param $match_info
-   *   The match info data array created by a plugin.
-   * @param $direction
-   *   Either 'winner' or 'loser'
-   * @return $place
-   *   Match placement of the desired match, otherwise NULL
-   */
-  protected function calculateNextPosition($match_info, $direction = 'winner') {
-    $matches = $this->slots - 1;
-    if (!array_key_exists('id', $match_info)) {
-      return;
-    }
-    // Losers and last match, isn't handled here.
-    if ($direction == 'loser' || $match_info['id'] == $matches) {
-      return array(
-        'id' => NULL,
-        'slot' => NULL,
-      );
-    }
-    
-    $next_id = (($matches + 1) / 2) + ceil($match_info['id'] / 2);
-    return array(
-      // Otherwise some math!
-      'id' => $next_id,
-      'slot' => $match_info['roundMatch'] % 2 ? 1 : 2,
-    );
   }
   
 }

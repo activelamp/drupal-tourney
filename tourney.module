@@ -150,9 +150,10 @@ function tourney_menu() {
 function tourney_testing() {
   $output = '';
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $test = new DoubleEliminationController(8);
-  //$test->setPluginOptions(array('show_byes' => TRUE));
+  $test = new DoubleEliminationController(4);
+  // $test->setPluginOptions(array('show_byes' => TRUE));
   $output .= $test->render();
+  // dpm($test->data);
   $output .= "<div>testing testing testing</div>";
 
   return $output;
@@ -1041,25 +1042,36 @@ function tourney_initialize_configuration() {
 
 function tourney_action_info() {
   return array(
-    'tourney_unpublish_action' => array(
-      'type' => 'tourney_tournament',
-      'label' => t('Unpublish selected tournaments'),
+    'tourney_entity_publish_action' => array(
+      'type' => 'entity',
+      'label' => t('Publish selected entities'),
+      'configurable' => FALSE,
+    ),
+    'tourney_entity_unpublish_action' => array(
+      'type' => 'entity',
+      'label' => t('Unpublish selected entities'),
       'configurable' => FALSE,
     ),
 
-    'tourney_unpdate_match_action' => array(
+    'tourney_match_update_labels_action' => array(
       'type' => 'tourney_match',
-      'label' => t('Update selected matches'),
+      'label' => t('Update Match Labels'),
       'configurable' => FALSE,
     ),
   );
 }
 
-function tourney_unpublish_action(&$entity, $context) {
-  dpm($entity);
+function tourney_entity_publish_action(&$entity, $context) {
+  $entity->status = 1;
+  entity_save($entity->entity_type, $entity);
 }
 
-function tourney_unpdate_match_action(&$entity, $context) {
+function tourney_entity_unpublish_action(&$entity, $context) {
+  $entity->status = 0;
+  entity_save($entity->entity_type, $entity);
+}
+
+function tourney_match_update_labels_action(&$entity, $context) {
   auto_entitylabel_set_title($entity, $entity->entity_type);
   entity_save($entity->entity_type, $entity);
 }

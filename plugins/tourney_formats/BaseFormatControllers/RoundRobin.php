@@ -115,8 +115,8 @@ class RoundRobinController extends TourneyController {
       foreach (range(1, $slots / 2) as $roundMatch) { 
         $this->data['matches'][++$match] = 
           $this->buildMatch(array(
-            'id' => $match,
-            'round' => $round,
+            'id' => (int) $match,
+            'round' => (int) $round,
             'roundMatch' => (int) $roundMatch,
             'bracket' => 'main',
           ));
