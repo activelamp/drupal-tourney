@@ -33,9 +33,9 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   $node = &$vars['node'];
 
   $round_name = '';
-  if ( isset($options['show_round_names']) && $options['show_round_names'] ) {
-    if ( $node['roundMatch'] == 1 ) {
-      if ( is_object($plugin->tournament) ) {
+  if (isset($options['show_round_names']) && $options['show_round_names']) {
+    if ($node['roundMatch'] == 1) {
+      if (is_object($plugin->tournament)) {
         $round_name = $plugin->tournament->get('round_' . $node['tourneyRound'], $plugin->data['rounds'][$node['tourneyRound']]['title']);
       }
       else {
@@ -52,13 +52,13 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   $is_child     = isset($node['child']);
 
   $node_classes[] = 'bracket-' . $node['bracket'];
-  if ( $node['bracket'] != 'main' && $has_children && count($node['children']) == 2 ) {
+  if ($node['bracket'] != 'main' && $has_children && count($node['children']) == 2) {
     $node_classes[] = 'feeder';
   } 
 
-  if ( $is_child ) {
+  if ($is_child) {
     $node_classes[] = 'child-' . $node['child'];
-    if ( isset($node['only_child']) && $node['only_child'] ) {
+    if (isset($node['only_child']) && $node['only_child']) {
       $only_child = TRUE;
       $node_classes[] = 'only-child';
     }
@@ -67,13 +67,13 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
     $node_classes[] = 'top-node';
   }
   
-  if ( $has_children ) {
+  if ($has_children) {
     // This line is to correct rendering quirks that can arise because
     // bottom bracket matches are filled from the bottom up
-    if ( $node['bracket'] == 'loser' ) $node['children'] = array_reverse($node['children']);
+    if ($node['bracket'] == 'loser') $node['children'] = array_reverse($node['children']);
     $node_classes[] = 'children-' . count($node['children']);
-    foreach ( $node['children'] as $id => &$child ) {
-      if ( count($node['children']) == 1 ) {
+    foreach ($node['children'] as $id => &$child) {
+      if (count($node['children']) == 1) {
         $child['child'] = 1;
         $child['only_child'] = TRUE;
       }
@@ -85,10 +85,10 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
 
   if (is_object($plugin->tournament)) {
     $match = $plugin->tournament->getMatchById($node['id']);
-    if ( $match->winner ) {
+    if ($match->winner) {
       $path_classes[] = 'eid-' . str_replace('.', '-', $match->winner);
       $contestants = array_keys($match->getMatchContestants());
-      if ( $match->winner != $contestants[0] ) {
+      if ($match->winner != $contestants[0]) {
         $path_classes[] = 'winner-bottom';
       }
     }

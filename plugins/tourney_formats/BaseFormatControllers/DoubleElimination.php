@@ -38,7 +38,7 @@ class DoubleEliminationController extends SingleEliminationController {
       $vars['matches'] = '';
       $node = $this->structure['tree'];
 
-      if ( !isset($this->pluginOptions['show_byes']) || $this->pluginOptions['show_byes'] == FALSE )
+      if (!isset($this->pluginOptions['show_byes']) || $this->pluginOptions['show_byes'] == FALSE)
         $this->removeByes($node);
       
       // New tree should start from the second to last match.
@@ -51,12 +51,12 @@ class DoubleEliminationController extends SingleEliminationController {
   }
 
   public function removeByes(&$node) {
-    if ( !isset($node['children']) ) return;
-    foreach ( $node['children'] as $id => $child ) {
-      if ( isset($child['bye']) && $child['bye'] == TRUE ) unset($node['children'][$id]);
+    if (!isset($node['children'])) return;
+    foreach ($node['children'] as $id => $child) {
+      if (isset($child['bye']) && $child['bye'] == TRUE) unset($node['children'][$id]);
     }
-    if ( count($node['children']) ) {
-      foreach ( $node['children'] as &$child ) $this->removeByes($child);
+    if (count($node['children'])) {
+      foreach ($node['children'] as &$child) $this->removeByes($child);
     }
   }
   
@@ -431,9 +431,9 @@ class DoubleEliminationController extends SingleEliminationController {
           // cases that aren't byes
           if (!empty($match['bye']) && $match['bye'] == TRUE && array_key_exists('bye', $this->data['matches'][$child]) && $this->data['matches'][$child]['bye'] == TRUE) {
             $this_next = & $this->data['matches'][$next];
-            if ( !isset($this_next['bye_marks']) ) $this_next['bye_marks'] = 0;
+            if (!isset($this_next['bye_marks'])) $this_next['bye_marks'] = 0;
             $this_next['bye_marks'] += 1;
-            if ( $this_next['bye_marks'] == 2 ) 
+            if ($this_next['bye_marks'] == 2) 
               $this_next['bye'] = TRUE;
           }
           
@@ -457,11 +457,11 @@ class DoubleEliminationController extends SingleEliminationController {
       //   }
       // }
     }
-    foreach ( $this->data['matches'] as &$match ) {
-      if ( $match['bracket'] == 'main' ) {
-        foreach ( $match['nextMatch'] as $direction => $id ) {
+    foreach ($this->data['matches'] as &$match) {
+      if ($match['bracket'] == 'main') {
+        foreach ($match['nextMatch'] as $direction => $id) {
           $id = $id['id'];
-          if ( isset($this->data['matches'][$id]['bye']) && $this->data['matches'][$id]['bye'] == TRUE ) {
+          if (isset($this->data['matches'][$id]['bye']) && $this->data['matches'][$id]['bye'] == TRUE) {
             $match['nextMatch'][$direction] = $this->data['matches'][$id]['nextMatch']['winner'];
           }
         }
@@ -507,11 +507,11 @@ class DoubleEliminationController extends SingleEliminationController {
 
 
   public function structureTreeNode($match) {
-    if ( $match['bracket'] != 'loser' ) return parent::structureTreeNode($match);
+    if ($match['bracket'] != 'loser') return parent::structureTreeNode($match);
     $node = $match;
     if (isset($match['previousMatches'])) {
       foreach (array_unique($match['previousMatches']) as $child) {
-        if ( $match['bracket'] !== $this->data['matches'][$child]['bracket'] ) continue;
+        if ($match['bracket'] !== $this->data['matches'][$child]['bracket']) continue;
         $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
       }
     }
