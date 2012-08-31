@@ -465,19 +465,26 @@ class TourneyTournamentEntity extends TourneyEntity {
   }
 
   /**
-   * Recursive function that sets players in a RoundRobin tournament in all their
-   * matches once the first round has been setup.
+   * Rules Action Callback: Recursive function that sets players in RoundRobin.
+   * 
+   * Player positions in roundrobin tournaments are based on the position they
+   * enter the tournament, not on whether or not a game is won or lost. Set
+   * players in all matches once the first round has been setup.
    *
    * @param $mid
    *   The match id from the plugin.
+   * @param $slot
+   *   The slot number to process. Defaults to processing both slots.
    */
-    public function populateRoundRobinMatches($mid) {
+    public function populateRoundRobinMatches($mid, $slot = '') {
       $match = $this->getMatchById($mid);
       if (array_key_exists('nextMatch', $match->matchInfo)) {
         foreach ($match->getMatchContestants() as $contestant) {
+          // If a slot was specified, ensure only that slot is processed.
+          if ($slot && $contestant->slot != $slot) continue;
+          
           $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
           $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];
-
 
           if ($next === NULL) continue;
 
@@ -485,7 +492,7 @@ class TourneyTournamentEntity extends TourneyEntity {
           $next_match->addContestant($contestant, $next_slot);
 
           // Recurse
-          $this->populateRoundRobinMatches($next);
+          $this->populateRoundRobinMatches($next, $next_slot);
         }
       }
 

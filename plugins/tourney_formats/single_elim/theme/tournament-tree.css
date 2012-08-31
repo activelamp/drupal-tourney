@@ -134,7 +134,7 @@ h2.round-title {
 }
 
 .tourney-tournament-tree .match .contestant.winner {
-  background: transparent;
+  background-color: #C8C8C8 !important;
 }
 /*
 .tourney-tournament-tree .match .contestant.winner span:before {
