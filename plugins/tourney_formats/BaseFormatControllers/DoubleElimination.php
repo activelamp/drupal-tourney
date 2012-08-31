@@ -159,6 +159,7 @@ class DoubleEliminationController extends SingleEliminationController {
           if ($match['round'] == 1) {
             $properties['bracket']  = 'champion';
             $properties['round']    = 2;
+            $slot = 1;
           }
           else {
             $properties = array();
@@ -226,6 +227,11 @@ class DoubleEliminationController extends SingleEliminationController {
       $match['nextMatch']['loser'] = array('id' => $nextMatch['id'], 'slot' => $slot);
       $nextMatch['previousMatches'][$slot] = $id;
     }
+    $championMatch = &$this->find('matches', array('bracket' => 'champion', 'round' => 1), TRUE);
+    $championMatch['nextMatch']['loser'] = array(
+      'id' => $championMatch['id'] + 1,
+      'slot' => 2,
+    );
   }
   
   public function render() {
