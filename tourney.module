@@ -1041,25 +1041,36 @@ function tourney_initialize_configuration() {
 
 function tourney_action_info() {
   return array(
-    'tourney_unpublish_action' => array(
+    'tourney_tournament_publish_action' => array(
+      'type' => 'tourney_tournament',
+      'label' => t('Publish selected tournaments'),
+      'configurable' => FALSE,
+    ),
+    'tourney_tournament_unpublish_action' => array(
       'type' => 'tourney_tournament',
       'label' => t('Unpublish selected tournaments'),
       'configurable' => FALSE,
     ),
 
-    'tourney_unpdate_match_action' => array(
+    'tourney_match_update_labels_action' => array(
       'type' => 'tourney_match',
-      'label' => t('Update selected matches'),
+      'label' => t('Update Match Labels'),
       'configurable' => FALSE,
     ),
   );
 }
 
-function tourney_unpublish_action(&$entity, $context) {
-  dpm($entity);
+function tourney_tournament_publish_action(&$entity, $context) {
+  $entity->status = 1;
+  entity_save($entity->entity_type, $entity);
 }
 
-function tourney_unpdate_match_action(&$entity, $context) {
+function tourney_tournament_unpublish_action(&$entity, $context) {
+  $entity->status = 0;
+  entity_save($entity->entity_type, $entity);
+}
+
+function tourney_match_update_labels_action(&$entity, $context) {
   auto_entitylabel_set_title($entity, $entity->entity_type);
   entity_save($entity->entity_type, $entity);
 }
