@@ -150,9 +150,10 @@ function tourney_menu() {
 function tourney_testing() {
   $output = '';
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $test = new DoubleEliminationController(8);
-  //$test->setPluginOptions(array('show_byes' => TRUE));
+  $test = new DoubleEliminationController(4);
+  // $test->setPluginOptions(array('show_byes' => TRUE));
   $output .= $test->render();
+  // dpm($test->data);
   $output .= "<div>testing testing testing</div>";
 
   return $output;

@@ -7,6 +7,10 @@
   border-radius: 7px;
 }
 
+.tourney-tournament .parent .match.bye {
+  opacity: 0.4;
+}
+
 .tourney-tournament .match:hover {
   background: #E8E8E8;
 }

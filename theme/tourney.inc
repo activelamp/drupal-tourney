@@ -63,7 +63,8 @@ function template_preprocess_tourney_match_render(&$vars) {
   // Get the contestant output from the contestant template
   $contestant_output = '';
   $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';
-  foreach ($contestants as $slot => $contestant) {
+  foreach (array_values($contestants) as $slot => $contestant) {
+    $slot++;
     if (!is_object($contestant)) {
       $contestant = (object) $contestant;
     }
@@ -90,6 +91,7 @@ function template_preprocess_tourney_match_render(&$vars) {
     }
   }
   
+  $vars['is_bye'] = isset($vars['match']['bye']) && $vars['match']['bye'] == TRUE;
   $vars['contestants'] = $contestant_output;
   $vars['has_children'] = isset($vars['match']['children']) && count($vars['match']['children']);
 }
