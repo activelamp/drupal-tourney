@@ -8,6 +8,7 @@ dependencies[] = entity
 dependencies[] = relation (>7.x-1.0-rc2)
 dependencies[] = rules
 dependencies[] = views
+dependencies[] = views_bulk_operations
 
 files[] = includes/tourney.admin.inc
 files[] = includes/tourney.controller.inc

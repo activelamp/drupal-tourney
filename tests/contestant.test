@@ -12,9 +12,18 @@ class SetContestantTestCase extends TourneyWebTestCase {
     );
   }
   
+  /**
+   * Test that the same contestant cannot play on the same match.
+   */
   public function testMatchContestant() {
+    // Create the tournament with even number of games.
+    $tournament_name = $this->createTourney('SingleEliminationController', 4, 2);
+    $this->assertText(t('Default Number of Games must be an odd number'));
+    
     // Create the tournament.
     $tournament_name = $this->createTourney('SingleEliminationController', 4);
+    // Check to see if tournament was saved by confirming text is present.
+    $this->assertRaw(t('Your tournament has been saved.'));
     
     // Set contestants of the First Match as same user.
     $edit = array();
