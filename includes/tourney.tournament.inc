@@ -169,6 +169,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#description' => t('Enter the default number of games for each match.'),
     '#default_value' => $tourney->get('default_games', TOURNEY_GAMES),
     '#disabled' => isset($tourney->id) ? TRUE : FALSE,
+    '#element_validate' => array('tourney_tournament_validate_games'),
   );
   
   $form['contestants'] = array(
@@ -191,7 +192,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => $tourney->get('config_truncate', TOURNEY_TRUNCATE),
   );
   
-
+  // Get the path alias for tourney.
   $path = array();
   if (!empty($tourney->entity_id)) {
     $conditions = array('source' => 'tourney/tournament/' . $tourney->entity_id);
@@ -315,6 +316,17 @@ function tourney_tournament_validate_contestants($element, &$form_state) {
   $value = $element['#value'];
   if ($value !== '' && (!is_numeric($value) || intval($value) != $value || $value < 3)) {
     form_error($element, t('%name must be four or more.', array('%name' => $element['#title'])));
+  }
+}
+
+/**
+ * Validate the number of games.
+ */
+function tourney_tournament_validate_games($element, &$form_state) {
+  $value = $element['#value'];
+  if (!is_int($value) && $value % 2 === 0) {
+    form_error($element, t('%name must be an odd number.', 
+      array('%name' => $element['#title'])));
   }
 }
 

@@ -58,7 +58,9 @@ Drupal.behaviors.tourneyHighlight = { attach: function(context, settings) {
     $('.contestant' + eid).closest('.match').addClass('tourney-highlight');
     $('.connector' + eid).each(function(){
       $parent = $(this).closest('.parent').closest('.children').closest('.tree-node');
-      if ($(this).hasClass('winner-bottom')) $('.connector.to-children', $(this).parent()).addClass('winner-bottom');
+      if ($(this).hasClass('winner-bottom')) {
+        $('.connector.to-children', $(this).parent()).addClass('winner-bottom');
+      }
       $('.connector.to-children', $parent.children('.parent')).addClass('tourney-highlight');
     });
   }, function() {

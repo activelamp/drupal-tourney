@@ -1,11 +1,11 @@
 (function($) {
-  Drupal.behaviors.highlightSingle = {
+  Drupal.behaviors.highlightRoundrobin = {
     attach: function(context, settings) {
-      $('div.contestant[class*=entity]', context).hover(function() {
+      $('div.contestant[class*=eid]', context).hover(function() {
 
         // Contestant divs declare the entity they represent with a CSS class.
         // Grab that class.
-        var highlight = $(this).attr('class').match(/\bentity-.*\b/);
+        var highlight = $(this).attr('class').match(/\beid-.*\b/);
 
         if (highlight) {
           
