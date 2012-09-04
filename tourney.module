@@ -1116,7 +1116,6 @@ function tourney_entity_load($entities, $type) {
 }
 
 function tourney_entity_property_info_alter(&$info) {
-  dpm($info);
   $properties = &$info['tourney_match']['properties'];
 
   $properties['status']['setter callback'] = 'tourney_property_set'; 
