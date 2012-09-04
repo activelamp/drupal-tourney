@@ -35,14 +35,15 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     $this->pass('Testing Double Elimination with ' . $tournament->numContestants . ' players.');
     $matches = $tournament->data['matches'];
     
+    // Print each array to Test Result log 
     foreach ($match as $mid => $info) {
       $plugin_winner = $matches[$mid]['nextMatch']['winner']['id'];
-      $this->assertEqual($info['winner_id'], $plugin_winner, 'Match ' . $mid . ' winner is going to match ' . $info['winner_id'] . ' (Correct Match: ' . $plugin_winner .')', 'PHP');
-      //$this->assertEqual($info['winner_slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' winner is going to slot' . $info['winner_slot'], 'PHP');
+      $plugin_winner_slot = $matches[$mid]['nextMatch']['winner']['slot'];
+      $this->assertEqual($info['winner_id'], $plugin_winner, "Match {$mid} winner is going to match {$plugin_winner}, slot {$plugin_winner_slot} (Correct Match: {$info['winner_id']} Slot: {$info['winner_slot']})", 'PHP');
       if (array_key_exists('loser_id', $info)) {
         $plugin_loser = $matches[$mid]['nextMatch']['loser']['id'];
-        $this->assertEqual($info['loser_id'], $plugin_loser, 'Match ' . $mid . ' loser is going to match ' . $info['loser_id'] . ' (Correct Match: ' . $plugin_loser .')', 'PHP');
-        //$this->assertEqual($info['loser_slot'], $matches[$mid]['nextMatch']['loser']['slot'], 'Match ' . $mid . ' loser is going to slot' . $info['loser_slot'], 'PHP');
+        $plugin_loser_slot = $matches[$mid]['nextMatch']['loser']['slot'];
+        $this->assertEqual($info['loser_id'], $plugin_loser, "Match {$mid} loser is going to match {$plugin_loser}, slot {$plugin_loser_slot} (Correct Match: {$info['loser_id']} Slot: {$info['loser_slot']})", 'PHP');
       }
     }
   }
@@ -51,9 +52,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
    * Testing Double Elimination next match logic as it pertains to challonge.com
    */
   public function testDoubleEliminationLogicChallonge() {
+    
+    /**
+     * 4 man Double
+     */
     $tournament = new DoubleEliminationController(4);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       1 => array(
@@ -91,7 +96,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     );
     
     $this->checkNextMatch($match, $tournament);
-  
+    // End of 4 Man Tourney
+    $this->pass("End of 4 Man Double Elimination Tournament ");
+   
+    
+    /**
+     * 5 man Double
+     */
     $tournament = new DoubleEliminationController(5);
     $tournament->build();
     
@@ -142,7 +153,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     );
     
     $this->checkNextMatch($match, $tournament);
+    // End of 5 Man Tourney
+    $this->pass("End of 5 Man Double Elimination Tournament ");
 
+
+    /**
+     * 6 man Double
+     */
     $tournament = new DoubleEliminationController(6);
     $tournament->build();
     
@@ -202,8 +219,14 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament);
+    $this->checkNextMatch($match, $tournament);   
+    // End of 6 Man Tourney
+    $this->pass("End of 6 Man Double Elimination Tournament ");
 
+
+    /**
+     * 7 man Double
+     */
     $tournament = new DoubleEliminationController(7);
     $tournament->build();
     
@@ -274,7 +297,14 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     );
     
     $this->checkNextMatch($match, $tournament);
+    
+    // End of 7 Man Tourney
+    $this->pass("End of 7 Man Double Elimination Tournament ");
 
+
+    /**
+     * 8 man Double
+     */
     $tournament = new DoubleEliminationController(8);
     $tournament->build();
     
@@ -355,7 +385,14 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     );
     
     $this->checkNextMatch($match, $tournament);
+    
+    // End of 8 Man Tourney
+    $this->pass("End of 8 Man Double Elimination Tournament ");
 
+
+    /**
+     * 9 man Double
+     */
     $tournament = new DoubleEliminationController(9);
     $tournament->build();
     
@@ -444,9 +481,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 9 Man Tourney
+    $this->pass("End of 9 Man Double Elimination Tournament ");
+
+
+    /**
+     * 10 man Double
+     */
     $tournament = new DoubleEliminationController(10);
     $tournament->build();
     
@@ -545,9 +589,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 10 Man Tourney
+    $this->pass("End of 10 Man Double Elimination Tournament ");
+
+
+    /**
+     * 11 man Double
+     */
     $tournament = new DoubleEliminationController(11);
     $tournament->build();
     
@@ -656,9 +707,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 11 Man Tourney
+    $this->pass("End of 11 Man Double Elimination Tournament ");
+
+
+    /**
+     * 12 man Double
+     */
     $tournament = new DoubleEliminationController(12);
     $tournament->build();
     
@@ -777,9 +835,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 12 Man Tourney
+    $this->pass("End of 12 Man Double Elimination Tournament ");
+
+
+    /**
+     * 13 man Double
+     */
     $tournament = new DoubleEliminationController(13);
     $tournament->build();
     
@@ -908,9 +973,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 13 Man Tourney
+    $this->pass("End of 13 Man Double Elimination Tournament ");
+
+
+    /**
+     * 14 man Double
+     */
     $tournament = new DoubleEliminationController(14);
     $tournament->build();
     
@@ -1049,9 +1121,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 14 Man Tourney
+    $this->pass("End of 14 Man Double Elimination Tournament ");
+
+
+    /**
+     * 15 man Double
+     */
     $tournament = new DoubleEliminationController(15);
     $tournament->build();
     
@@ -1200,9 +1279,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 15 Man Tourney
+    $this->pass("End of 15 Man Double Elimination Tournament ");
+
+
+    /**
+     * 16 man Double
+     */
     $tournament = new DoubleEliminationController(16);
     $tournament->build();
     
@@ -1361,9 +1447,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 16 Man Tourney
+    $this->pass("End of 16 Man Double Elimination Tournament ");
+    
+
+    /**
+     * 17 man Double
+     */
     $tournament = new DoubleEliminationController(17);
     $tournament->build();
     
@@ -1532,9 +1625,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 17 Man Tourney
+    $this->pass("End of 17 Man Double Elimination Tournament ");
+
+
+    /**
+     * 18 man Double
+     */
     $tournament = new DoubleEliminationController(18);
     $tournament->build();
     
@@ -1709,9 +1809,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 18 Man Tourney
+    $this->pass("End of 18 Man Double Elimination Tournament ");
+    
+    
+    /**
+     * 19 man Double
+     */
     $tournament = new DoubleEliminationController(19);
     $tournament->build();
     
@@ -1902,7 +2009,14 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     );
     
     $this->checkNextMatch($match, $tournament);
+    
+    // End of 19 Man Tourney
+    $this->pass("End of 19 Man Double Elimination Tournament ");
 
+
+    /**
+     * 20 man Double
+     */
     $tournament = new DoubleEliminationController(20);
     $tournament->build();
     
@@ -2101,9 +2215,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 20 Man Tourney
+    $this->pass("End of 20 Man Double Elimination Tournament ");
+
+
+    /**
+     * 21 man Double
+     */
     $tournament = new DoubleEliminationController(21);
     $tournament->build();
     
@@ -2312,9 +2433,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 21 Man Tourney
+    $this->pass("End of 21 Man Double Elimination Tournament ");
+    
+
+    /**
+     * 22 man Double
+     */
     $tournament = new DoubleEliminationController(22);
     $tournament->build();
     
@@ -2533,9 +2661,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 22 Man Tourney
+    $this->pass("End of 22 Man Double Elimination Tournament ");
+
+
+    /**
+     * 23 man Double
+     */
     $tournament = new DoubleEliminationController(23);
     $tournament->build();
     
@@ -2764,9 +2899,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 23 Man Tourney
+    $this->pass("End of 23 Man Double Elimination Tournament ");
+
+
+    /**
+     * 24 man Double
+     */
     $tournament = new DoubleEliminationController(24);
     $tournament->build();
     
@@ -3005,9 +3147,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 24 Man Tourney
+    $this->pass("End of 24 Man Double Elimination Tournament ");
+
+
+    /**
+     * 25 man Double
+     */
     $tournament = new DoubleEliminationController(25);
     $tournament->build();
     
@@ -3256,9 +3405,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 25 Man Tourney
+    $this->pass("End of 25 Man Double Elimination Tournament ");
+
+
+    /**
+     * 26 man Double
+     */
     $tournament = new DoubleEliminationController(26);
     $tournament->build();
     
@@ -3513,9 +3669,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 26 Man Tourney
+    $this->pass("End of 26 Man Double Elimination Tournament ");
+    
+
+    /**
+     * 27 man Double
+     */
     $tournament = new DoubleEliminationController(27);
     $tournament->build();
     
@@ -3784,9 +3947,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 27 Man Tourney
+    $this->pass("End of 27 Man Double Elimination Tournament ");
+    
+    
+    /**
+     * 28 man Double
+     */
     $tournament = new DoubleEliminationController(28);
     $tournament->build();
     
@@ -4065,9 +4235,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 28 Man Tourney
+    $this->pass("End of 28 Man Double Elimination Tournament ");
+    
+    
+    /**
+     * 29 man Double
+     */
     $tournament = new DoubleEliminationController(29);
     $tournament->build();
     
@@ -4356,9 +4533,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 29 Man Tourney
+    $this->pass("End of 29 Man Double Elimination Tournament ");
+    
+    
+    /**
+     * 30 man Double
+     */
     $tournament = new DoubleEliminationController(30);
     $tournament->build();
     
@@ -4653,9 +4837,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 30 Man Tourney
+    $this->pass("End of 30 Man Double Elimination Tournament ");
+    
+
+    /**
+     * 31 man Double
+     */
     $tournament = new DoubleEliminationController(31);
     $tournament->build();
     
@@ -4963,9 +5154,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament);
 
+    $this->checkNextMatch($match, $tournament);
+    
+    // End of 31 Man Tourney
+    $this->pass("End of 31 Man Double Elimination Tournament ");
+
+
+    /**
+     * 32 man Double
+     */
     $tournament = new DoubleEliminationController(32);
     $tournament->build();
     
@@ -5284,7 +5482,10 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 1,
       ),
     );
-    
+
     $this->checkNextMatch($match, $tournament);
+    
+    // End of 32 Man Tourney
+    $this->pass("End of 32 Man Double Elimination Tournament ");
   }
 }
