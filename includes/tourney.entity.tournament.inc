@@ -203,7 +203,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     if (!empty($matches)) {
       foreach ($matches as $match) {
         // Delegate the checking to the match to see if each match is finished
-        if (!$match->isFinished()) {
+        if ($match->status == 1 && !$match->isFinished()) {
           return FALSE;
         }
       }
@@ -410,9 +410,6 @@ class TourneyTournamentEntity extends TourneyEntity {
       return FALSE;
     }
     $round = $match->matchInfo['round'];
-    if (!$this->get('show_byes') && $round == 2) {
-       $match->findSeedInfo();
-    }
 
     // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
     if ($round == 1 && $match->matchInfo['bracket'] === 'main') {
@@ -443,24 +440,29 @@ class TourneyTournamentEntity extends TourneyEntity {
     $match->cleanGames();
     $this->determineWinner();
 
+
     if (!$this->get('no_automation', FALSE) && $this->format != 'RoundRobinController') {
-        if (!$match->isFinished()) {
-          return;
-        }
-        // clear winner and loser so we can get a fresh winner, just in case
-        $match->clearWinner();
-        $winner = $match->getWinnerEntity();
-        $loser = $match->getLoserEntity();
+      if (!$match->isFinished()) {
+        return;
+      }
+      // clear winner and loser so we can get a fresh winner, just in case
+      $match->clearWinner();
+      $winner = $match->getWinnerEntity();
+      $loser = $match->getLoserEntity();
+      // this code here lets the champion round rule fire before setting winners
+      // on the tiebreaker, in case the tiebreaker in unnecessary
+      $match->save();
 
-        if ($match->nextMatch('winner')) {
-          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-          $match->nextMatch('winner')->addContestant($winner, $slot)->save();
-
-        }
-        if ($match->nextMatch('loser')) {
-          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-          $match->nextMatch('loser')->addContestant($loser, $slot)->save();
-        }
+      $winnerMatch = $match->nextMatch('winner');
+      if ($winnerMatch && $winnerMatch->status == 1) {
+        $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+        $winnerMatch->addContestant($winner, $slot)->save();
+      }
+      $loserMatch = $match->nextMatch('loser');
+      if ($loserMatch && $loserMatch->status == 1) {
+        $slot = $match->matchInfo['nextMatch']['loser']['slot'];
+        $loserMatch->addContestant($loser, $slot)->save();
+      }
     }
   }
 
