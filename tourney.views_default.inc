@@ -547,6 +547,13 @@ function tourney_views_default_views() {
         'url' => '',
       ),
     ),
+    'action::tourney_entity_publish_action' => array(
+      'selected' => 1,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
     'action::system_goto_action' => array(
       'selected' => 0,
       'use_queue' => 0,
@@ -561,7 +568,7 @@ function tourney_views_default_views() {
       'override_label' => 0,
       'label' => '',
     ),
-    'action::tourney_unpublish_action' => array(
+    'action::tourney_entity_unpublish_action' => array(
       'selected' => 1,
       'use_queue' => 0,
       'skip_confirmation' => 0,
@@ -578,6 +585,29 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['id']['id'] = 'id';
   $handler->display->display_options['fields']['id']['table'] = 'tourney_tournament';
   $handler->display->display_options['fields']['id']['field'] = 'id';
+  /* Field: Tournament: Status */
+  $handler->display->display_options['fields']['status']['id'] = 'status';
+  $handler->display->display_options['fields']['status']['table'] = 'tourney_tournament';
+  $handler->display->display_options['fields']['status']['field'] = 'status';
+  $handler->display->display_options['fields']['status']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['status']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['status']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['status']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['status']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['status']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['status']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['status']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['status']['format_plural'] = 0;
   /* Field: Tournament: Label */
   $handler->display->display_options['fields']['label']['id'] = 'label';
   $handler->display->display_options['fields']['label']['table'] = 'tourney_tournament';
@@ -812,6 +842,13 @@ function tourney_views_default_views() {
         'url' => '',
       ),
     ),
+    'action::tourney_entity_publish_action' => array(
+      'selected' => 1,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
     'action::system_goto_action' => array(
       'selected' => 0,
       'use_queue' => 0,
@@ -826,7 +863,14 @@ function tourney_views_default_views() {
       'override_label' => 0,
       'label' => '',
     ),
-    'action::tourney_unpdate_match_action' => array(
+    'action::tourney_entity_unpublish_action' => array(
+      'selected' => 1,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+    'action::tourney_match_update_labels_action' => array(
       'selected' => 1,
       'use_queue' => 0,
       'skip_confirmation' => 0,
@@ -867,6 +911,30 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['id_1']['empty_zero'] = 0;
   $handler->display->display_options['fields']['id_1']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['id_1']['format_plural'] = 0;
+  /* Field: Match: Status */
+  $handler->display->display_options['fields']['status']['id'] = 'status';
+  $handler->display->display_options['fields']['status']['table'] = 'tourney_match';
+  $handler->display->display_options['fields']['status']['field'] = 'status';
+  $handler->display->display_options['fields']['status']['relationship'] = 'relation_has_match_tourney_match';
+  $handler->display->display_options['fields']['status']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['status']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['status']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['status']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['status']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['status']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['status']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['status']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['status']['format_plural'] = 0;
   /* Field: Match: Label */
   $handler->display->display_options['fields']['label']['id'] = 'label';
   $handler->display->display_options['fields']['label']['table'] = 'tourney_match';
@@ -1000,6 +1068,103 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['views_bulk_operations_1']['table'] = 'tourney_game';
   $handler->display->display_options['fields']['views_bulk_operations_1']['field'] = 'views_bulk_operations';
   $handler->display->display_options['fields']['views_bulk_operations_1']['relationship'] = 'relation_has_game_tourney_game';
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo']['entity_load_capacity'] = '10';
+  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo']['operations'] = array(
+    'action::views_bulk_operations_delete_item' => array(
+      'selected' => 0,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+    'action::system_message_action' => array(
+      'selected' => 0,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+    'action::views_bulk_operations_script_action' => array(
+      'selected' => 0,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+    'action::views_bulk_operations_modify_action' => array(
+      'selected' => 0,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+      'settings' => array(
+        'show_all_tokens' => 1,
+        'display_values' => array(
+          '_all_' => '_all_',
+        ),
+      ),
+    ),
+    'action::views_bulk_operations_argument_selector_action' => array(
+      'selected' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+      'settings' => array(
+        'url' => '',
+      ),
+    ),
+    'action::tourney_entity_publish_action' => array(
+      'selected' => 1,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+    'action::system_goto_action' => array(
+      'selected' => 0,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+    'action::system_send_email_action' => array(
+      'selected' => 0,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+    'action::tourney_entity_unpublish_action' => array(
+      'selected' => 1,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
+  );
+  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo']['enable_select_all_pages'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo']['display_type'] = '0';
+  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo']['display_result'] = 1;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo']['merge_single_action'] = 0;
+  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo']['force_single'] = 0;
   /* Field: Tournament: Tournament ID */
   $handler->display->display_options['fields']['id']['id'] = 'id';
   $handler->display->display_options['fields']['id']['table'] = 'tourney_tournament';
@@ -1052,6 +1217,30 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['id_1']['empty_zero'] = 0;
   $handler->display->display_options['fields']['id_1']['hide_alter_empty'] = 1;
   $handler->display->display_options['fields']['id_1']['format_plural'] = 0;
+  /* Field: Game: Status */
+  $handler->display->display_options['fields']['status']['id'] = 'status';
+  $handler->display->display_options['fields']['status']['table'] = 'tourney_game';
+  $handler->display->display_options['fields']['status']['field'] = 'status';
+  $handler->display->display_options['fields']['status']['relationship'] = 'relation_has_game_tourney_game';
+  $handler->display->display_options['fields']['status']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['trim_whitespace'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['status']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['status']['alter']['more_link'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['status']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['status']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['status']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['status']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['status']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['status']['hide_alter_empty'] = 1;
+  $handler->display->display_options['fields']['status']['format_plural'] = 0;
   /* Field: Game: Label */
   $handler->display->display_options['fields']['label']['id'] = 'label';
   $handler->display->display_options['fields']['label']['table'] = 'tourney_game';

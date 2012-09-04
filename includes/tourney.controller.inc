@@ -276,7 +276,7 @@ class TourneyController implements TourneyControllerInterface {
       // property is in the array
       // If the element fails at any of the checks, skip over it
       foreach ($vars as $key => $value) {
-        if ($element[$key] !== $value) {
+        if (!isset($element[$key]) || $element[$key] !== $value) {
           if (!$is_array[$key] || !in_array($element[$key], $value)) 
             continue 2;
         }
@@ -291,19 +291,21 @@ class TourneyController implements TourneyControllerInterface {
       if ($first === TRUE) {
         // Set the optimizing static so we know where to start from next time
         $optimize_last = $id;
+        $optimize_until = NULL;
         return $elements[0];
       }
     } 
     // We're out of the loop, clear the static in case it went through all of 
     // the keys without stopping at one
-    $optimize_last = NULL;
+    $optimize_last  = NULL;
+    $optimize_until = NULL;
     // If we have no elements and we were using optimiziation...
     if (!$elements && $optimize_using) {
       // ...set the end key to what we started from
       $optimize_until = $optimize_using;
       $optimize_using = NULL;
       // and search again for
-      $elements = $this->find($data, $vars, $first, $specific);
+      $elements = &$this->find($data, $vars, $first, $specific);
     } 
     return $elements;
   }

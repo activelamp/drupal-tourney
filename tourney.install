@@ -87,6 +87,11 @@ function tourney_schema() {
         'length' => 32,
         'not null' => TRUE,
         'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
       'name' => array(
         'description' => 'The machine-readable name of this match.',
         'type' => 'varchar',
@@ -140,6 +145,11 @@ function tourney_schema() {
         'length' => 255,
         'not null' => TRUE,
         'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
       'name' => array(
         'description' => 'The machine-readable name of this game.',
         'type' => 'varchar',
@@ -588,6 +598,24 @@ function tourney_update_7010() {
     'length' => 255,
     'not null' => TRUE));
   return t('Machine name fields updated successfully.');
+}
+
+function tourney_update_7011() {
+  db_add_field('tourney_match', 'status', 
+    array(
+    'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+  db_add_field('tourney_game', 'status', 
+    array(
+    'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+  return t('Tournament content updated successfully.');
 }
 
 /**
