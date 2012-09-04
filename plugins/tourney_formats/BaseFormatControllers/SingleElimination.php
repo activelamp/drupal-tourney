@@ -200,7 +200,7 @@ class SingleEliminationController extends TourneyController {
         'roundMatch'  => (int) ceil($match['roundMatch'] / 2)
       ), TRUE);
       if (!$nextMatch) continue;
-      $slot = $match['id'] % 2 ? 2 : 1;
+      $slot = $match['id'] % 2 ? 1 : 2;
       $match['nextMatch']['winner'] = array('id' => $nextMatch['id'], 'slot' => $slot);
       $nextMatch['previousMatches'][$slot] = $id;
     }
