@@ -100,11 +100,13 @@ class TourneyTournamentEntity extends TourneyEntity {
    *
    * @param $mid
    *   The match number to get
+   * @param $reset
+   *   Reset the static entity cache.
    * @return
    *   A fully loaded match object.
    */
-  public function getMatchById($mid) {
-    return tourney_entity_load_by_name('tourney_match', $this->name . '_match-' . $mid);
+  public function getMatchById($mid, $reset = FALSE) {
+    return tourney_entity_load_by_name('tourney_match', $this->name . '_match-' . $mid, $reset);
   }
 
   /**
@@ -203,7 +205,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     if (!empty($matches)) {
       foreach ($matches as $match) {
         // Delegate the checking to the match to see if each match is finished
-        if (!$match->isFinished()) {
+        if ($match->status == 1 && !$match->isFinished()) {
           return FALSE;
         }
       }
@@ -217,20 +219,30 @@ class TourneyTournamentEntity extends TourneyEntity {
    */
   public function determineWinner() {
     if ($this->isFinished()) {
-      $ranks = $this->fetchRanks();
-      $standings = $this->getStandings();
+      // With roundrobin, the player with the most wins, wins.
+      if ($this->format == 'RoundRobinController') {
+        $standings = $this->getStandings();
+        // todo : remove quick hack, implement custom uasort callback.
+        foreach ($standings as $key => $standing) {
+          $winners[$key] = $standing['wins'];
+        }
+        arsort($winners);
 
-      // todo : remove quick hack, implement custom uasort callback.
-      foreach ($standings as $key => $standing) {
-        $winners[$key] = $standing['wins'];
+        $keys = array_keys($winners);
+        $this->winner = $keys[0];
       }
-      arsort($winners);
-
-      $keys = array_keys($winners);
-      $this->winner = $keys[0];
+      else {
+        // Otherwise, whoever won the last match wins.
+        if ($last_match = $this->lastMatch()) {
+          $this->winner = $last_match->winner;
+        }
+      }
+      
+      // Save
       $this->save();
     }
     else {
+      // In the case that not all matches are finished, reset the winner.
       if ($this->winner) {
         $this->winner = NULL;
         $this->save();
@@ -238,6 +250,23 @@ class TourneyTournamentEntity extends TourneyEntity {
     }
 
     return $this;
+  }
+  
+  /**
+   * Get the last published match in the tournament.
+   * 
+   * @return $entity
+   *   Returns the full loaded last match of the tournament.
+   */
+  public function lastMatch() {
+    $matches = array_reverse($this->tourneyFormatPlugin->data['matches']);
+    foreach ($matches as $match) {
+      $entity = $this->getMatchById($match['id'], TRUE);
+      if ($entity->status) {
+        return $entity;
+      }
+    }
+    return NULL;
   }
 
   /**
@@ -345,7 +374,13 @@ class TourneyTournamentEntity extends TourneyEntity {
  * Pull all matches in and returns a list of all the tallies of wins/losses
  *
  * @return array $standings
- *   Keyed array with wins and losses
+ *   Keyed array with eid as the key and array of data as the value
+ *   $standings['eid'] = array(
+ *     'wins'   => 0,
+ *     'losses' => 0,
+ *     'total'  => 0,
+ *     'first'  => 0, // First is used for the rare case of ties, just to see who won first
+ *   )
  */
   public function getStandings() {
     $matches = $this->getMatchIds();
@@ -410,9 +445,6 @@ class TourneyTournamentEntity extends TourneyEntity {
       return FALSE;
     }
     $round = $match->matchInfo['round'];
-    if (!$this->get('show_byes') && $round == 2) {
-       $match->findSeedInfo();
-    }
 
     // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
     if ($round == 1 && $match->matchInfo['bracket'] === 'main') {
@@ -441,27 +473,32 @@ class TourneyTournamentEntity extends TourneyEntity {
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
     $match->cleanGames();
-    $this->determineWinner();
-
+    
     if (!$this->get('no_automation', FALSE) && $this->format != 'RoundRobinController') {
-        if (!$match->isFinished()) {
-          return;
-        }
-        // clear winner and loser so we can get a fresh winner, just in case
-        $match->clearWinner();
-        $winner = $match->getWinnerEntity();
-        $loser = $match->getLoserEntity();
+      if (!$match->isFinished()) {
+        return;
+      }
+      // clear winner and loser so we can get a fresh winner, just in case
+      $match->clearWinner();
+      $winner = $match->getWinnerEntity();
+      $loser = $match->getLoserEntity();
+      // this code here lets the champion round rule fire before setting winners
+      // on the tiebreaker, in case the tiebreaker in unnecessary
+      $match->save();
 
-        if ($match->nextMatch('winner')) {
-          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-          $match->nextMatch('winner')->addContestant($winner, $slot)->save();
-
-        }
-        if ($match->nextMatch('loser')) {
-          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-          $match->nextMatch('loser')->addContestant($loser, $slot)->save();
-        }
+      $winnerMatch = $match->nextMatch('winner');
+      if ($winnerMatch && $winnerMatch->status == 1) {
+        $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+        $winnerMatch->addContestant($winner, $slot)->save();
+      }
+      $loserMatch = $match->nextMatch('loser');
+      if ($loserMatch && $loserMatch->status == 1) {
+        $slot = $match->matchInfo['nextMatch']['loser']['slot'];
+        $loserMatch->addContestant($loser, $slot)->save();
+      }
     }
+    
+    $this->determineWinner();
   }
 
   /**

@@ -151,6 +151,7 @@ function tourney_testing() {
   $output = '';
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
   $test = new DoubleEliminationController(4);
+  $wrapper = entity_metadata_wrapper('tourney_match');
   // $test->setPluginOptions(array('show_byes' => TRUE));
   $output .= $test->render();
   // dpm($test->data);
@@ -699,13 +700,13 @@ function tourney_access($op = 'view', $group = NULL, $account = NULL) {
  * @return
  *   A loaded entity object.
  */
-function tourney_entity_load_by_name($entity_type, $name) {
+function tourney_entity_load_by_name($entity_type, $name, $reset = FALSE) {
   $entity_id = db_query("SELECT id FROM {" . $entity_type . "} WHERE name = :name",
     array(':name' => $name))
     ->fetchField();
   
   $function = $entity_type . '_load';
-  return $entity_id  > 0 ? $function($entity_id) : NULL;
+  return $entity_id  > 0 ? $function($entity_id, NULL, $reset) : NULL;
 }
 
 /**
@@ -1072,7 +1073,10 @@ function tourney_entity_unpublish_action(&$entity, $context) {
 }
 
 function tourney_match_update_labels_action(&$entity, $context) {
-  auto_entitylabel_set_title($entity, $entity->entity_type);
+  $function = 'auto_entitylabel_set_title';
+  if (function_exists($function)) {
+    $function($entity, $entity->entity_type);
+  }
   entity_save($entity->entity_type, $entity);
 }
 
@@ -1109,4 +1113,70 @@ function tourney_entity_load($entities, $type) {
         (property_exists($entity, 'title') ? $entity->title :
           (property_exists($entity, 'label') ? $entity->label : NULL));
   }
+}
+
+function tourney_entity_property_info_alter(&$info) {
+  $properties = &$info['tourney_match']['properties'];
+
+  $properties['status']['setter callback'] = 'tourney_property_set'; 
+
+  $properties['matchinfo_id'] = array(
+    'label'           => t("Match ID"),
+    'description'     => t("Number of match in the tournament"),
+    'type'            => 'integer',
+    'getter callback' => 'tourney_property_get',
+  );
+  $properties['matchinfo_bracket'] = array(
+    'label'           => t("Bracket"),
+    'description'     => t("Name of bracket match is in"),
+    'type'            => 'text',
+    'getter callback' => 'tourney_property_get',
+  );
+  $properties['matchinfo_round'] = array(
+    'label'           => t("Round"),
+    'description'     => t("Round in bracket match is in"),
+    'type'            => 'integer',
+    'getter callback' => 'tourney_property_get',
+  );
+  $properties['matchinfo_tourneyRound'] = array(
+    'label'           => t("Tourney Round"),
+    'description'     => t("Round in tournament match is in"),
+    'type'            => 'integer',
+    'getter callback' => 'tourney_property_get',
+  );
+  $properties['matchinfo_bye'] = array(
+    'label'           => t("Bye"),
+    'description'     => t("Boolean whether match is a bye"),
+    'type'            => 'boolean',
+    'getter callback' => 'tourney_property_get',
+  );
+  $properties['contestant_1'] = array(
+    'label'           => t("First contestant"),
+    'description'     => t("First contestant eid"),
+    'type'            => 'text',
+    'getter callback' => 'tourney_property_get',
+  );
+  $properties['contestant_2'] = array(
+    'label'           => t("Second contestant"),
+    'description'     => t("Second contestant eid"),
+    'type'            => 'text',
+    'getter callback' => 'tourney_property_get',
+  );
+}
+
+function tourney_property_get($data, $options, $name, $type, $info) {
+  if (substr($name, 0, 10) == 'matchinfo_') {
+    $name = substr($name, 10);
+    return $data->matchInfo[$name];
+  }
+  elseif (substr($name, 0, 11) == 'contestant_') {
+    $contestants = $data->getContestantIds();
+    $id = substr($name, 11)-1;
+    if ( !isset($contestants[$id]) ) return NULL;
+    return $contestants[$id]['eid'];
+  }
+}
+
+function tourney_property_set(&$data, $name, $value, $langcode, $type, $info) {
+  $data->$name = $value;
 }
