@@ -100,7 +100,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *
    * @param $mid
    *   The match number to get
-   * @param $mid
+   * @param $reset
    *   Reset the static entity cache.
    * @return
    *   A fully loaded match object.

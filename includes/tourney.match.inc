@@ -11,8 +11,6 @@
  * Show the tournament page.
  */
 function tourney_match_page_view($match) {
-
-  $wrapper = entity_metadata_wrapper('tourney_match', $match);
   return $match->view('full', NULL, TRUE);
 }
 
