@@ -6,7 +6,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test Double Elimination Challonge next match positions'),
+      'name' => t('Test Double Elimination next match positions - Challonge'),
       'description' => t('Tests double elimination tournaments with a varying number or contestants.'),
       'group' => t('Tourney'),
     );
@@ -32,7 +32,6 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
    *   The built tournament object.
    */
   protected function checkNextMatch($match, $tournament) {
-    $this->pass('Testing Double Elimination with ' . $tournament->numContestants . ' players.');
     $matches = $tournament->data['matches'];
     
     // Print each array to Test Result log 
@@ -95,6 +94,8 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 4 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
     // End of 4 Man Tourney
     $this->pass("End of 4 Man Double Elimination Tournament ");
@@ -152,6 +153,8 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 5 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
     // End of 5 Man Tourney
     $this->pass("End of 5 Man Double Elimination Tournament ");
@@ -219,7 +222,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament);   
+    // Beginning of Tournament
+    $this->pass("The Start of the 6 Man Double Elimination Tournament ");
+    $this->checkNextMatch($match, $tournament);
     // End of 6 Man Tourney
     $this->pass("End of 6 Man Double Elimination Tournament ");
 
@@ -296,8 +301,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 7 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 7 Man Tourney
     $this->pass("End of 7 Man Double Elimination Tournament ");
 
@@ -384,8 +390,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 8 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 8 Man Tourney
     $this->pass("End of 8 Man Double Elimination Tournament ");
 
@@ -482,8 +489,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 9 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 9 Man Tourney
     $this->pass("End of 9 Man Double Elimination Tournament ");
 
@@ -590,8 +598,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 10 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 10 Man Tourney
     $this->pass("End of 10 Man Double Elimination Tournament ");
 
@@ -708,8 +717,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 11 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 11 Man Tourney
     $this->pass("End of 11 Man Double Elimination Tournament ");
 
@@ -836,8 +846,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 12 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 12 Man Tourney
     $this->pass("End of 12 Man Double Elimination Tournament ");
 
@@ -974,8 +985,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 13 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 13 Man Tourney
     $this->pass("End of 13 Man Double Elimination Tournament ");
 
@@ -1122,8 +1134,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 14 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 14 Man Tourney
     $this->pass("End of 14 Man Double Elimination Tournament ");
 
@@ -1280,8 +1293,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 15 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 15 Man Tourney
     $this->pass("End of 15 Man Double Elimination Tournament ");
 
@@ -1448,8 +1462,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 16 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 16 Man Tourney
     $this->pass("End of 16 Man Double Elimination Tournament ");
     
@@ -1626,9 +1641,10 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 17 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
-    // End of 17 Man Tourney
+    // End of 4 Man Tourney
     $this->pass("End of 17 Man Double Elimination Tournament ");
 
 
@@ -1810,8 +1826,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 18 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 18 Man Tourney
     $this->pass("End of 18 Man Double Elimination Tournament ");
     
@@ -2008,8 +2025,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 19 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 19 Man Tourney
     $this->pass("End of 19 Man Double Elimination Tournament ");
 
@@ -2216,8 +2234,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 20 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 20 Man Tourney
     $this->pass("End of 20 Man Double Elimination Tournament ");
 
@@ -2434,8 +2453,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 21 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 21 Man Tourney
     $this->pass("End of 21 Man Double Elimination Tournament ");
     
@@ -2662,8 +2682,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 22 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 22 Man Tourney
     $this->pass("End of 22 Man Double Elimination Tournament ");
 
@@ -2900,8 +2921,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 23 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 23 Man Tourney
     $this->pass("End of 23 Man Double Elimination Tournament ");
 
@@ -3148,8 +3170,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 24 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 24 Man Tourney
     $this->pass("End of 24 Man Double Elimination Tournament ");
 
@@ -3406,8 +3429,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 25 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 25 Man Tourney
     $this->pass("End of 25 Man Double Elimination Tournament ");
 
@@ -3670,8 +3694,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 26 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 26 Man Tourney
     $this->pass("End of 26 Man Double Elimination Tournament ");
     
@@ -3948,8 +3973,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 27 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 27 Man Tourney
     $this->pass("End of 27 Man Double Elimination Tournament ");
     
@@ -4236,8 +4262,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 28 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 28 Man Tourney
     $this->pass("End of 28 Man Double Elimination Tournament ");
     
@@ -4534,8 +4561,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 29 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 29 Man Tourney
     $this->pass("End of 29 Man Double Elimination Tournament ");
     
@@ -4838,8 +4866,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 30 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 30 Man Tourney
     $this->pass("End of 30 Man Double Elimination Tournament ");
     
@@ -5155,8 +5184,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 31 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 31 Man Tourney
     $this->pass("End of 31 Man Double Elimination Tournament ");
 
@@ -5483,8 +5513,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
 
+    // Beginning of Tournament
+    $this->pass("The Start of the 32 Man Double Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-    
     // End of 32 Man Tourney
     $this->pass("End of 32 Man Double Elimination Tournament ");
   }
