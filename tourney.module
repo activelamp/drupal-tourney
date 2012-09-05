@@ -700,13 +700,13 @@ function tourney_access($op = 'view', $group = NULL, $account = NULL) {
  * @return
  *   A loaded entity object.
  */
-function tourney_entity_load_by_name($entity_type, $name) {
+function tourney_entity_load_by_name($entity_type, $name, $reset = FALSE) {
   $entity_id = db_query("SELECT id FROM {" . $entity_type . "} WHERE name = :name",
     array(':name' => $name))
     ->fetchField();
   
   $function = $entity_type . '_load';
-  return $entity_id  > 0 ? $function($entity_id) : NULL;
+  return $entity_id  > 0 ? $function($entity_id, NULL, $reset) : NULL;
 }
 
 /**
