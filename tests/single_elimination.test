@@ -261,7 +261,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     $edit = array();
     $this->drupalGet('tourney/tournament/1');
     // Check to see if the winner is printed on the page.
-    $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
+    $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
     // End of 6 Man Tourney
     $this->pass("End of 6 Man Single Elimination Tournament ");
   }
@@ -499,9 +499,9 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
   /**
    * Testing 9 contestants
    */
-  public function testSingleElim8() {
+  public function testSingleElim9() {
     // Create the tournament.
-    $this->createTourney($this->controller, 8);
+    $this->createTourney($this->controller, 9);
     
     $edit = array();
     // Match 1 Slot 1
