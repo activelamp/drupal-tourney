@@ -947,35 +947,23 @@ function tourney_views_api() {
  *   An optional array of additional options.
  */
 function tourney_update_alias($entity, $op, array $options = array()) {
-  // Skip processing if the user has disabled pathauto for the node.
-  if (!module_exists('pathauto')) {
-    return;
-  }
+  if (!isset($entity->path)) return;
+  $path = $entity->path;
 
-  if (isset($entity->path['pathauto']) && empty($entity->path['pathauto'])) {
-    if (isset($entity->path)) {
-      $path = $entity->path;
-      $path['alias'] = trim($path['alias']);
-      if (!empty($path['pid']) && empty($path['alias'])) {
-        path_delete($path['pid']);
-      }
-      if (!empty($path['alias'])) {
-        $path['source'] = 'tourney/' . $entity->type . '/' . $entity->id;
-        $path['language'] = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
-        path_save($path);
-      }
+  if (!module_exists('pathauto') || !$path['pathauto']) {
+    $path['alias'] = trim($path['alias']);
+    if (!empty($path['pid']) && empty($path['alias'])) {
+      path_delete($path['pid']);
+    }
+    if (!empty($path['alias'])) {
+      $path['source'] = 'tourney/' . $entity->type . '/' . $entity->id;
+      $path['language'] = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+      path_save($path);
     }
     return;
   }
 
-  /*
-  $options += array(
-    'language' => isset($node->language) ? $node->language : LANGUAGE_NONE,
-  );
-  */
-
   // Skip processing if the node has no pattern.
-  //if (!pathauto_pattern_load_by_entity($entity->_entity_type, $entity->_entity_type, $options['language'])) {
   if (!pathauto_pattern_load_by_entity($entity->entity_type, $entity->type)) {
     // Remove the alias if a pattern is no longer given.
     $uri = tourney_uri($entity);
@@ -985,7 +973,6 @@ function tourney_update_alias($entity, $op, array $options = array()) {
 
   module_load_include('inc', 'pathauto');
   $uri = entity_uri($entity->entity_type, $entity);
-  //pathauto_create_alias($entity_type, $op, $uri['path'], array($entity_type => $entity), $entity_type, $options['language']);
   return pathauto_create_alias($entity->entity_type, $op, $uri['path'], array($entity->entity_type => $entity), $entity->type);
 }
 /**
@@ -1179,4 +1166,68 @@ function tourney_property_get($data, $options, $name, $type, $info) {
 
 function tourney_property_set(&$data, $name, $value, $langcode, $type, $info) {
   $data->$name = $value;
+}
+
+function tourney_create_path_field($entity) {
+  if (!module_exists('path')) return;
+
+  $path = array();
+  if (!empty($entity->entity_id)) {
+    $conditions = array('source' => 'tourney/' . $entity->type . '/' . $entity->entity_id);
+    $path = path_load($conditions);
+    if ($path === FALSE) {
+      $path = array();
+    }
+  }
+
+  $form = array();
+
+  $form['path'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('URL Path Settings'), 
+    '#collapsible' => TRUE, 
+    '#collapsed' => empty($path['alias']), 
+    '#group' => 'additional_settings', 
+    '#attributes' => array(
+      'class' => array('path-form'),
+    ), 
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'path') . '/path.js'),
+    ), 
+    '#access' => user_access('create url aliases') || user_access('administer url aliases'), 
+    '#weight' => 30, 
+    '#tree' => TRUE, 
+    '#element_validate' => array('path_form_element_validate'),
+  );
+
+  $path += array(
+    'pid' => NULL, 
+    'source' => isset($entity->entity_id) ? 'tourney/' . $entity->type . '/' . $entity->entity_id : NULL, 
+    'alias' => '', 
+    'language' => isset($entity->language) ? $match->language : LANGUAGE_NONE,
+  );
+
+  $form['path']['alias'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('URL alias'), 
+    '#default_value' => $path['alias'], 
+    '#maxlength' => 255, 
+    '#collapsible' => TRUE, 
+    '#collapsed' => TRUE, 
+    '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
+  );
+  $form['path']['pid'] = array(
+    '#type' => 'value',
+    '#value' => $path['pid'],
+  );
+  $form['path']['source'] = array(
+    '#type' => 'value',
+    '#value' => $path['source'],
+  );
+  $form['path']['language'] = array(
+    '#type' => 'value',
+    '#value' => $path['language'],
+  );
+
+  return $form['path'];
 }
