@@ -12,7 +12,8 @@
   border-radius: 7px;
 }
 
-.tourney-tournament .parent .match.bye {
+.tourney-tournament .parent .match.bye,
+.tourney-tournament .parent .match.not-necessary {
   opacity: 0.4;
 }
 
