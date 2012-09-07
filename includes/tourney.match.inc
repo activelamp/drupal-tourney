@@ -74,7 +74,6 @@ function tourney_match_form($form, &$form_state, $match) {
   
   $canset = $match->getTournament()->canSetContestants($match->getMID());
   $contestants = $match->getMatchContestants();
-  
   // Fill the $contestants array with two values if there isn't already two.
   while (count($contestants) < 2) {
     $contestants[] = NULL;
@@ -83,12 +82,13 @@ function tourney_match_form($form, &$form_state, $match) {
   $cid = 0;
   foreach (array(1,2) as $slot) {
     $contestant = $match->getContestant($slot);
+    $eid = is_object($contestant) ? $contestant->eid : null;
     $form['contestant' . $slot] = array(
       '#title' => check_plain(t('Contestant ' . $slot)),
-      '#default_value' => is_object($contestant) ? $contestant->eid : '',
+      '#default_value' => $eid,
       '#disabled' => !($slot & $canset),
       '#required' => !($slot & $canset) || (is_object($contestant) && $contestant->eid) ? FALSE : TRUE,
-    ) + _tourney_match_contestant($match);
+    ) + _tourney_match_contestant($match, $eid);
   }
   //}
 
@@ -162,16 +162,18 @@ function tourney_match_form($form, &$form_state, $match) {
  *
  * @param $match
  *   The match object for the match being edited
+ * @param $this_eid
+ *   Optional eid of a contestant to prevent it from being sanitized
  * @return array
  *   Returns a form element to be used in a form.
  *
  * @see tourney_match_form().
  * @see _tourney_match_contestants().
  */
-function _tourney_match_contestant($match) {
+function _tourney_match_contestant($match, $this_eid = null) {
   return array(
     '#type' => 'select',
-    '#options' => _tourney_match_contestants($match),
+    '#options' => _tourney_match_contestants($match, $this_eid),
     '#default_value' => '',
     '#required' => TRUE,
   );
@@ -182,6 +184,8 @@ function _tourney_match_contestant($match) {
  *
  * @param $match
  *   The match object for the match being edited.
+ * @param $this_eid
+ *   Optional eid of a contestant to prevent it from being sanitized
  * @return array
  *   Returns an $options array of contestants that have not been added to a
  *   tournament yet.
@@ -189,7 +193,7 @@ function _tourney_match_contestant($match) {
  * @see _tourney_match_contestant().
  * @see _tourney_match_contestants_sanitize().
  */
-function _tourney_match_contestants($match) {
+function _tourney_match_contestants($match, $this_eid = null) {
   $query = db_select('relation_bundles', 'rb');
   $query->fields('rb', array('entity_type', 'bundle'))
     ->distinct()
@@ -237,9 +241,8 @@ function _tourney_match_contestants($match) {
   }
   // Do not sanitize the list for "No Automation"
   if (!$match->getTournament()->get('no_automation', FALSE)) {
-    _tourney_match_contestants_sanitize($match, $options);
+    _tourney_match_contestants_sanitize($match, $this_eid, $options);
   }
-  
   return $options;
 }
 
@@ -252,12 +255,14 @@ function _tourney_match_contestants($match) {
  *
  * @param $match
  *   The match object the select options will display on.
+ * @param $this_eid
+ *   Optional eid of a contestant to prevent it from being sanitized
  * @param $options
  *   The options array for the select form element.
  *
  * @see _tourney_match_contestant().
  */
-function _tourney_match_contestants_sanitize($match, &$options) {
+function _tourney_match_contestants_sanitize($match, $this_eid, &$options) {
   $tournament = $match->getTournament();
   $plugin = $tournament->tourneyFormatPlugin;
   
@@ -273,12 +278,16 @@ function _tourney_match_contestants_sanitize($match, &$options) {
     }
   }
   $matches = tourney_match_load_multiple($match_ids);
-  
+
   // Unset users in the options array that are already selected
   $contestants = $match->getTournament()->getContestants();
-  foreach ($match->getMatchContestants() as $eid => $contestant) {
+  unset($contestants[$this_eid]);
+  foreach ($match->getContestantIds() as $contestant) {
     // Don't want to remove contestants that are part of this match.
-    unset($contestants[$eid]);
+    if (isset($match->matchInfo['seeds']) && $match->matchInfo['seeds']) {
+      if ( !isset($match->matchInfo['seeds'][$contestant['slot']]) ) continue;
+    }
+    unset($contestants[$contestant['eid']]);
   }
   foreach ($contestants as $eid => $contestant ) {
     foreach (array_keys($options) as $group) {

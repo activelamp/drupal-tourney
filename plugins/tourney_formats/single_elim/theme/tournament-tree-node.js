@@ -53,7 +53,7 @@ Drupal.behaviors.tourneyFixHeight = { attach: function(context, settings) {
 
 Drupal.behaviors.tourneyHighlight = { attach: function(context, settings) {
   $('.contestant', context).hover(function() {
-    var eid = '.' + $(this).attr('class').split(' ').reverse()[0];
+    var eid = '.' + $(this).attr('class').match(/(eid-[^ "']+)/)[0];
     $(eid).addClass('tourney-highlight');
     $('.contestant' + eid).closest('.match').addClass('tourney-highlight');
     $('.connector' + eid).each(function(){
