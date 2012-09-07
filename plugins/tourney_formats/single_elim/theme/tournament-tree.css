@@ -95,6 +95,11 @@ h2.round-title {
   top: -1px;
 }
 
+.tourney-tournament-tree .tree-node .match.tourney-highlight {
+  background: #E0E0E0;
+  color: #000;
+}
+
 .tourney-tournament-tree .tree-node .match .contestant.tourney-highlight {
   background: #FB4B00;
   color: #FFF;
