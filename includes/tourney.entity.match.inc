@@ -566,7 +566,7 @@ class TourneyMatchEntity extends TourneyEntity {
     /* This logic allows contestants that are already on the match to be moved
     without potentially being affected when the copy is removed */
     $current_eids = array();
-    foreach ( $this->getContestantIds() as $contestant ) {
+    foreach ($this->getContestantIds() as $contestant) {
       $current_eids[$contestant['eid']] = $contestant['slot'];
     }
     if ( isset($current_eids[$entity->eid]) ) {
