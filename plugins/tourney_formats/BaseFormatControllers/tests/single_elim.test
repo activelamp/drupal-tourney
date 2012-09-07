@@ -6,7 +6,7 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test Single Elimination next match positions'),
+      'name' => t('Test Single Elimination next match positions - Challonge'),
       'description' => t('Tests single elimination tournaments with a varying number or contestants.'),
       'group' => t('Tourney'),
     );
@@ -32,7 +32,6 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
    *   The built tournament object.
    */
   protected function checkNextMatch($match, $tournament) {
-    $this->pass('Testing Single Elimination with ' . $tournament->numContestants . ' players.');
     $matches = $tournament->data['matches'];
     
     foreach ($match as $mid => $info) {
@@ -45,6 +44,10 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
 	 * Testing Double Elimination next match logic.
 	 */
   public function testSingleEliminationLogic() {
+    
+    /**
+     * 4 man Single
+     */
     $tournament = new SingleEliminationController(4);
     $tournament->build();
     
@@ -60,8 +63,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 4 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-  
+    // End of 4 Man Tourney
+    $this->pass("End of 4 Man Single Elimination Tournament ");
+    
+    /**
+     * 5 man Single
+     */
     $tournament = new SingleEliminationController(5);
     $tournament->build();
     
@@ -81,8 +91,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 5 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 5 Man Tourney
+    $this->pass("End of 5 Man Single Elimination Tournament ");
 
+    /**
+     * 6 man Single
+     */
     $tournament = new SingleEliminationController(6);
     $tournament->build();
     
@@ -106,8 +123,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 6 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
-  
+    // End of 6 Man Tourney
+    $this->pass("End of 6 Man Single Elimination Tournament ");
+    
+    /**
+     * 7 man Single
+     */
     $tournament = new SingleEliminationController(7);
     $tournament->build();
     
@@ -135,8 +159,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 7 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 7 Man Tourney
+    $this->pass("End of 7 Man Single Elimination Tournament ");
 
+    /**
+     * 8 man Single
+     */
     $tournament = new SingleEliminationController(8);
     $tournament->build();
     
@@ -168,8 +199,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 8 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 8 Man Tourney
+    $this->pass("End of 8 Man Single Elimination Tournament ");
 
+    /**
+     * 9 man Single
+     */
     $tournament = new SingleEliminationController(9);
     $tournament->build();
     
@@ -205,8 +243,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 9 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
- 
+    // End of 9 Man Tourney
+    $this->pass("End of 9 Man Single Elimination Tournament ");
+    
+    /**
+     * 10 man Single
+     */
     $tournament = new SingleEliminationController(10);
     $tournament->build();
     
@@ -246,8 +291,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 10 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 10 Man Tourney
+    $this->pass("End of 10 Man Single Elimination Tournament ");
 
+    /**
+     * 11 man Single
+     */
     $tournament = new SingleEliminationController(11);
     $tournament->build();
     
@@ -291,8 +343,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 11 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 11 Man Tourney
+    $this->pass("End of 11 Man Single Elimination Tournament ");
 
+    /**
+     * 12 man Single
+     */
     $tournament = new SingleEliminationController(12);
     $tournament->build();
     
@@ -340,8 +399,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 12 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 12 Man Tourney
+    $this->pass("End of 12 Man Single Elimination Tournament ");
 
+    /**
+     * 13 man Single
+     */
     $tournament = new SingleEliminationController(13);
     $tournament->build();
     
@@ -393,8 +459,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 13 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 13 Man Tourney
+    $this->pass("End of 13 Man Single Elimination Tournament ");
 
+    /**
+     * 14 man Single
+     */
     $tournament = new SingleEliminationController(14);
     $tournament->build();
   
@@ -450,8 +523,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 14 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 14 Man Tourney
+    $this->pass("End of 14 Man Single Elimination Tournament ");
 
+    /**
+     * 15 man Single
+     */
     $tournament = new SingleEliminationController(15);
     $tournament->build();
     
@@ -511,8 +591,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 15 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 15 Man Tourney
+    $this->pass("End of 15 Man Single Elimination Tournament ");
 
+    /**
+     * 16 man Single
+     */
     $tournament = new SingleEliminationController(16);
     $tournament->build();
     
@@ -576,8 +663,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 16 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 16 Man Tourney
+    $this->pass("End of 16 Man Single Elimination Tournament ");
 
+    /**
+     * 17 man Single
+     */
     $tournament = new SingleEliminationController(17);
     $tournament->build();
     
@@ -645,8 +739,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 17 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 17 Man Tourney
+    $this->pass("End of 17 Man Single Elimination Tournament ");
 
+    /**
+     * 18 man Single
+     */
     $tournament = new SingleEliminationController(18);
     $tournament->build();
     
@@ -718,8 +819,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 18 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 4 Man Tourney
+    $this->pass("End of 18 Man Single Elimination Tournament ");
 
+    /**
+     * 19 man Single
+     */
     $tournament = new SingleEliminationController(19);
     $tournament->build();
     
@@ -795,8 +903,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 19 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 19 Man Tourney
+    $this->pass("End of 19 Man Single Elimination Tournament ");
 
+    /**
+     * 20 man Single
+     */
     $tournament = new SingleEliminationController(20);
     $tournament->build();
     
@@ -876,8 +991,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 20 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 20 Man Tourney
+    $this->pass("End of 20 Man Single Elimination Tournament ");
 
+    /**
+     * 21 man Single
+     */
     $tournament = new SingleEliminationController(21);
     $tournament->build();
     
@@ -961,8 +1083,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 21 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 21 Man Tourney
+    $this->pass("End of 21 Man Single Elimination Tournament ");
 
+    /**
+     * 22 man Single
+     */
     $tournament = new SingleEliminationController(22);
     $tournament->build();
     
@@ -1050,8 +1179,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 22 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 22 Man Tourney
+    $this->pass("End of 22 Man Single Elimination Tournament ");
 
+    /**
+     * 23 man Single
+     */
     $tournament = new SingleEliminationController(23);
     $tournament->build();
     
@@ -1143,8 +1279,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 23 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 23 Man Tourney
+    $this->pass("End of 23 Man Single Elimination Tournament ");
 
+    /**
+     * 24 man Single
+     */
     $tournament = new SingleEliminationController(24);
     $tournament->build();
     
@@ -1240,8 +1383,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 24 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 24 Man Tourney
+    $this->pass("End of 24 Man Single Elimination Tournament ");
 
+    /**
+     * 25 man Single
+     */
     $tournament = new SingleEliminationController(25);
     $tournament->build();
     
@@ -1341,8 +1491,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 25 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 25 Man Tourney
+    $this->pass("End of 25 Man Single Elimination Tournament ");
 
+    /**
+     * 26 man Single
+     */
     $tournament = new SingleEliminationController(26);
     $tournament->build();
     
@@ -1446,8 +1603,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 26 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 26 Man Tourney
+    $this->pass("End of 26 Man Single Elimination Tournament ");
 
+    /**
+     * 27 man Single
+     */
     $tournament = new SingleEliminationController(27);
     $tournament->build();
     
@@ -1555,8 +1719,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 27 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 27 Man Tourney
+    $this->pass("End of 27 Man Single Elimination Tournament ");
 
+    /**
+     * 28 man Single
+     */
     $tournament = new SingleEliminationController(28);
     $tournament->build();
     
@@ -1668,8 +1839,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 28 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 28 Man Tourney
+    $this->pass("End of 28 Man Single Elimination Tournament ");
 
+    /**
+     * 29 man Single
+     */
     $tournament = new SingleEliminationController(29);
     $tournament->build();
     
@@ -1785,8 +1963,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 29 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 29 Man Tourney
+    $this->pass("End of 29 Man Single Elimination Tournament ");
 
+    /**
+     * 30 man Single
+     */
     $tournament = new SingleEliminationController(30);
     $tournament->build();
     
@@ -1906,8 +2091,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 30 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 30 Man Tourney
+    $this->pass("End of 30 Man Single Elimination Tournament ");
 
+    /**
+     * 31 man Single
+     */
     $tournament = new SingleEliminationController(31);
     $tournament->build();
     
@@ -2030,8 +2222,15 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 31 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 31 Man Tourney
+    $this->pass("End of 31 Man Single Elimination Tournament ");
 
+    /**
+     * 32 man Single
+     */
     $tournament = new SingleEliminationController(32);
     $tournament->build();
     
@@ -2159,6 +2358,10 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
+    // Beginning of Tournament
+    $this->pass("The Start of the 32 Man Single Elimination Tournament ");
     $this->checkNextMatch($match, $tournament);
+    // End of 32 Man Tourney
+    $this->pass("End of 32 Man Single Elimination Tournament ");
   }
 }
