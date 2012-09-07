@@ -38,11 +38,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     foreach ($match as $mid => $info) {
       $plugin_winner = $matches[$mid]['nextMatch']['winner']['id'];
       $plugin_winner_slot = $matches[$mid]['nextMatch']['winner']['slot'];
-      $this->assertEqual($info['winner_id'], $plugin_winner, "Match {$mid} winner is going to match {$plugin_winner}, slot {$plugin_winner_slot} (Correct Match: {$info['winner_id']} Slot: {$info['winner_slot']})", 'PHP');
+      $this->assertEqual($info['winner_id'], $plugin_winner, "Match {$mid} winner is going to match {$plugin_winner} (Correct Match: {$info['winner_id']})", 'PHP');
+      $this->assertEqual($info['winner_slot'], $plugin_winner_slot, "Match  $mid   winner is going to slot {$plugin_winner_slot} (Correct Slot: {$info['winner_slot']})", 'PHP');
       if (array_key_exists('loser_id', $info)) {
         $plugin_loser = $matches[$mid]['nextMatch']['loser']['id'];
         $plugin_loser_slot = $matches[$mid]['nextMatch']['loser']['slot'];
-        $this->assertEqual($info['loser_id'], $plugin_loser, "Match {$mid} loser is going to match {$plugin_loser}, slot {$plugin_loser_slot} (Correct Match: {$info['loser_id']} Slot: {$info['loser_slot']})", 'PHP');
+        $this->assertEqual($info['loser_id'], $plugin_loser, "Match {$mid} loser is going to match {$plugin_loser} (Correct Match: {$info['loser_id']})", 'PHP');
+        $this->assertEqual($info['loser_slot'], $plugin_loser_slot, "Match  $mid  loser is going to slot {$plugin_loser_slot} (Correct Slot: {$info['loser_slot']})", 'PHP');
       }
     }
   }
@@ -178,7 +180,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'winner_id' => 6,
         'winner_slot' => 2,
         'loser_id' => 11,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
       5 => array(
         'winner_id' => 7,
@@ -1287,9 +1289,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       30 => array(
         'winner_id' => 31,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 31,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -1456,9 +1458,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       30 => array(
         'winner_id' => 31,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 31,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -1527,7 +1529,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       24 => array(
         'winner_id' => 28,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 49,
         'loser_slot' => 2,
       ),
@@ -1539,7 +1541,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 1,
       ),
@@ -1635,9 +1637,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -1712,7 +1714,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       24 => array(
         'winner_id' => 28,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 49,
         'loser_slot' => 2,
       ),
@@ -1724,7 +1726,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 1,
       ),
@@ -1760,6 +1762,10 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       40 => array(
         'winner_id' => 48,
+        'winner_slot' => 2,
+      ),
+      44 => array(
+        'winner_id' => 50,
         'winner_slot' => 2,
       ),
       48 => array(
@@ -1820,9 +1826,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -1903,7 +1909,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       24 => array(
         'winner_id' => 28,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 49,
         'loser_slot' => 2,
       ),
@@ -1915,7 +1921,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 1,
       ),
@@ -2019,9 +2025,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
     
@@ -2108,7 +2114,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       24 => array(
         'winner_id' => 28,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 49,
         'loser_slot' => 1,
       ),
@@ -2120,7 +2126,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 2,
       ),
@@ -2228,9 +2234,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -2323,7 +2329,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       24 => array(
         'winner_id' => 28,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 43,
         'loser_slot' => 1,
       ),
@@ -2335,7 +2341,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 1,
       ),
@@ -2447,9 +2453,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -2548,7 +2554,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       24 => array(
         'winner_id' => 28,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 43,
         'loser_slot' => 1,
       ),
@@ -2560,7 +2566,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 1,
       ),
@@ -2676,9 +2682,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -2795,7 +2801,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 1,
       ),
@@ -2915,9 +2921,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -3164,9 +3170,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -3283,7 +3289,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       24 => array(
         'winner_id' => 28,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 43,
         'loser_slot' => 1,
       ),
@@ -3295,7 +3301,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 1,
       ),
@@ -3423,9 +3429,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -3688,9 +3694,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -3967,9 +3973,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -4094,7 +4100,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'winner_id' => 27,
         'winner_slot' => 2,
         'loser_id' => 41,
-        'loser_slot' => 2,
+        'loser_slot' => 1,
       ),
       23 => array(
         'winner_id' => 28,
@@ -4192,7 +4198,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       46 => array(
         'winner_id' => 51,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
       ),
       47 => array(
         'winner_id' => 51,
@@ -4256,9 +4262,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -4345,7 +4351,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       15 => array(
         'winner_id' => 24,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 39,
         'loser_slot' => 2,
       ),
@@ -4555,9 +4561,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -4716,7 +4722,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       26 => array(
         'winner_id' => 29,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 53,
         'loser_slot' => 1,
       ),
@@ -4800,6 +4806,10 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       46 => array(
         'winner_id' => 51,
+        'winner_slot' => 1,
+      ),
+      47 => array(
+        'winner_id' => 51,
         'winner_slot' => 2,
       ),
       48 => array(
@@ -4860,9 +4870,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -4956,7 +4966,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'winner_id' => 23,
         'winner_slot' => 2,
         'loser_id' => 38,
-        'loser_slot' => 2,
+        'loser_slot' => 1,
       ),
       15 => array(
         'winner_id' => 24,
@@ -5178,9 +5188,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
@@ -5285,7 +5295,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       15 => array(
         'winner_id' => 24,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 39,
         'loser_slot' => 2,
       ),
@@ -5339,7 +5349,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       24 => array(
         'winner_id' => 28,
-        'winner_slot' => 1,
+        'winner_slot' => 2,
         'loser_id' => 43,
         'loser_slot' => 1,
       ),
@@ -5507,9 +5517,9 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       ),
       62 => array(
         'winner_id' => 63,
-        'winner_slot' => 2,
+        'winner_slot' => 1,
         'loser_id' => 63,
-        'loser_slot' => 1,
+        'loser_slot' => 2,
       ),
     );
 
