@@ -11,7 +11,7 @@ $letters = array('',
   'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ',
   );
 ?>
-<div class="match <?php if (isset($match['bye']) && $match['bye']) print 'bye'; ?>">
+<div class="match <?php print $match_classes; ?>">
   <?php if ($has_children): ?>
     <div class="connector to-children <?php print $children_classes; ?>"></div>
   <?php endif; ?>

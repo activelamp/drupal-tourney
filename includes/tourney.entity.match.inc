@@ -107,6 +107,7 @@ class TourneyMatchEntity extends TourneyEntity {
 
     foreach ($results as $relation) {
       $r = relation_load($relation->rid);
+      if ( !$r ) return array();
       $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
       $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
       $contestants[] = array(

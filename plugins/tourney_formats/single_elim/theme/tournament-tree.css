@@ -133,22 +133,12 @@ h2.round-title {
   border-color: #FB4B00;
 }
 
-.tourney-tournament-tree .match .contestant.winner {
-  background-color: #C8C8C8;
-}
 /*
 .tourney-tournament-tree .match .contestant.winner span:before {
   content: '♔ ';
 }*/
 
-.tourney-tournament-tree .match-link {
-  color: #333;
-  text-decoration: none;
-}
 
-.tourney-tournament-tree .match:hover {
-  box-shadow: 0px 0px 10px 2px #CCC;
-}
 
 div.clear {
   clear: both;
