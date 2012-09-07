@@ -552,11 +552,6 @@ class TourneyMatchEntity extends TourneyEntity {
         relation_delete($relation->rid);
     }
     $this->save();
-    // Until there's a better way for addressing specific contestant names, using this:
-    // Pull in the relation so we can delete it, then apply changes to the match object
-    //relation_delete(array_pop($relations)->rid);
-    //unset($this->contestantIds[$relation_type]);
-    //$this->save();
   }
 
   /**
@@ -568,7 +563,16 @@ class TourneyMatchEntity extends TourneyEntity {
    *   Any type of entity to fill the target slot with
    */
   public function addContestant($entity, $slot = NULL) {
-    //@todo logic to remove existing conflicting contestant(s)
+    /* This logic allows contestants that are already on the match to be moved
+    without potentially being affected when the copy is removed */
+    $current_eids = array();
+    foreach ( $this->getContestantIds() as $contestant ) {
+      $current_eids[$contestant['eid']] = $contestant['slot'];
+    }
+    if ( isset($current_eids[$entity->eid]) ) {
+      $this->removeContestant($this->getContestant($current_eids[$entity->eid]));
+    }
+    /* */
     if ($slot && $this->getContestant($slot)) {
       $this->removeContestant($this->getContestant($slot));
     }

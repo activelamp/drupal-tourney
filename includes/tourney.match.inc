@@ -353,7 +353,6 @@ function tourney_match_form_submit($form, &$form_state) {
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
   }
-  
   if (array_key_exists('contestant1', $form_state['input'])) {
     if ($eid = $form_state['input']['contestant1']) {
       @list($type, $id) = explode('.', $eid);
@@ -376,7 +375,7 @@ function tourney_match_form_submit($form, &$form_state) {
       $match->removeContestant($contestant);
     }
   } 
-
+  
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
   $match->getWinner();
   foreach ($form_state['input'] as $id => $value) {

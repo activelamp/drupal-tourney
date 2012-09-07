@@ -178,7 +178,6 @@ class DoubleEliminationController extends SingleEliminationController {
       $match['nextMatch']['winner'] = array('id' => $nextMatch['id'], 'slot' => $slot);
       $nextMatch['previousMatches'][$slot] = $id;
       unset($nextMatch);
-      // dpm($match['id'] . ' goes to ' . $match['nextMatch']['winner']['id'] . ', slot ' . $slot);
     }
     // Populates the loser positions.
     $this->populateLoserPositions();
