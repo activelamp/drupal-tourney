@@ -69,5 +69,40 @@ function tourney_default_rules_configuration() {
 
   $configs['rules_tourney_bye_is_created'] = $rule;
 
+  $rule = rules_import('{ "rules_tourney_champion_match_is_won" : {
+      "LABEL" : "Tourney Champion Match Is Won",
+      "PLUGIN" : "reaction rule",
+      "REQUIRES" : [ "rules", "tourney" ],
+      "ON" : [ "tourney_match_update" ],
+      "IF" : [
+        { "text_matches" : { "text" : [ "tourney-match:matchinfo-bracket" ], "match" : "champion" } },
+        { "text_matches" : { "text" : [ "tourney-match:matchinfo-round" ], "match" : "1" } },
+        { "data_is" : {
+            "data" : [ "tourney-match:winner" ],
+            "value" : [ "tourney-match:contestant-1" ]
+          }
+        }
+      ],
+      "DO" : [
+        { "variable_add" : {
+            "USING" : {
+              "type" : "integer",
+              "value" : { "select" : "tourney-match:id", "num_offset" : { "value" : "1" } }
+            },
+            "PROVIDE" : { "variable_added" : { "next_match_id" : "Next Match ID" } }
+          }
+        },
+        { "entity_fetch" : {
+            "USING" : { "type" : "tourney_match", "id" : [ "next-match-id" ] },
+            "PROVIDE" : { "entity_fetched" : { "next_match" : "Next Match" } }
+          }
+        },
+        { "data_set" : { "data" : [ "next-match:status" ], "value" : "0" } },
+        { "drupal_message" : { "message" : "Match [tourney-match:id] was won, and [tourney-match:contestant_1] remains undefeated. Unpublishing match [match:id]." } }
+      ]
+    }
+  }');
+  $configs[$rule->name] = $rule;
+
   return $configs;
 }
