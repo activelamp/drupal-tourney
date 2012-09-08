@@ -428,14 +428,18 @@ function tourney_tournament_form_submit($form, &$form_state) {
 /**
  * Show the tournament page.
  */
-function tourney_tournament_page_view($tourney) {
-  return $tourney->view('full', NULL, TRUE);
+function tourney_tournament_page_view($tourney, $view_mode = 'full') {
+  $entity_info = entity_get_info('tourney_tournament');
+  $mode = array_key_exists($view_mode, $entity_info['view modes']) 
+    ? $view_mode : 'full';
+    
+  return $tourney->view($mode, NULL, TRUE);
 }
 
 /**
  * Implements hook_ENTITY_view().
  */
-function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode = 'en') {
+function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') {
   $info = TourneyController::getPluginInfo($entity->format);
   
   $entity->content['#attached']['css'] = array(
@@ -454,15 +458,25 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
    '#suffix' => '</div>',
    '#markup' => $entity->players,
   );
-  $entity->content['tourney_winner'] = array(
-   '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-   '#suffix' => '</div>',
-   '#markup' => $entity->winner,
+  if ($entity->winner) {
+    $entity->content['tourney_winner'] = array(
+     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+     '#suffix' => '</div>',
+     '#markup' => $entity->winner,
+    );
+  }
+  // Matches for this tournament displayed as a tree
+  $entity->content['bracket'] = array(
+    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->render('tree'),
   );
-  // Add the matches for this tournament
-  $entity->content['matches'] = array(
-    '#prefix' => '<h2>Matches in this tournament</h2>',
-    '#markup' => $entity->render(),
+  
+  // Matches for this tournament displayed as a list
+  $entity->content['list'] = array(
+    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->render('list'),
   );
 }
 
