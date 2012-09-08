@@ -10,6 +10,7 @@ dependencies[] = rules
 dependencies[] = views
 dependencies[] = views_bulk_operations
 dependencies[] = number
+dependencies[] = path
 
 files[] = includes/tourney.admin.inc
 files[] = includes/tourney.controller.inc

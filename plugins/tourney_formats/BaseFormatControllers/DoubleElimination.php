@@ -233,10 +233,6 @@ class DoubleEliminationController extends SingleEliminationController {
     );
   }
   
-  public function render() {
-    return parent::render();
-  }
-  
   /**
    * Look at each match in the data array and count how many matches are in the
    * given round passed in.

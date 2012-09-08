@@ -344,6 +344,9 @@ function tourney_install() {
     'weight' => 0,
   ));
   $type->save();
+  
+  // Set extra field defaults.
+  _tourney_set_extra_fields_defaults();
 }
 
 /**
@@ -600,6 +603,9 @@ function tourney_update_7010() {
   return t('Machine name fields updated successfully.');
 }
 
+/**
+ * Adding status field for match and game entities.
+ */
 function tourney_update_7011() {
   db_add_field('tourney_match', 'status', 
     array(
@@ -619,8 +625,46 @@ function tourney_update_7011() {
 }
 
 /**
+ * Setting default settings for new view modes added.
+ */
+function tourney_update_7012() {
+  _tourney_set_extra_fields_defaults();
+}
+
+/**
  * Helper functions
  */
+
+/**
+ * Set the defaults for the extra_fields().
+ */
+function _tourney_set_extra_fields_defaults() {
+  $settings = array(
+    'extra_fields' => array(
+      'display' => array(
+        // Each extra field
+        'bracket' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'bracket' => array('visible' => TRUE, 'weight' => 10),
+          'list' => array('visible' => FALSE, 'weight' => 10),
+          'teaser' => array('visible' => FALSE, 'weight' => 10),
+        ),
+        'list' => array(
+          // View modes
+          'list' => array('visible' => TRUE, 'weight' => 10),
+          'default' => array('visible' => FALSE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 11),
+          'bracket' => array('visible' => FALSE, 'weight' => 10),
+          'teaser' => array('visible' => FALSE, 'weight' => 10),
+        ),
+      ),
+    ),
+  );
+
+  field_bundle_settings('tourney_tournament', 'tournament', $settings);
+}
 
 /**
  * Update machine name field

@@ -74,10 +74,6 @@ function tourney_match_form($form, &$form_state, $match) {
   
   $canset = $match->getTournament()->canSetContestants($match->getMID());
   $contestants = $match->getMatchContestants();
-  // Fill the $contestants array with two values if there isn't already two.
-  while (count($contestants) < 2) {
-    $contestants[] = NULL;
-  }
 
   $cid = 0;
   foreach (array(1,2) as $slot) {
@@ -151,6 +147,29 @@ function tourney_match_form($form, &$form_state, $match) {
     '#type' => 'submit',
     '#value' => t('Save'),
     '#weight' => 40,
+  );
+
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#weight' => 99,
+  );
+
+  $form['path'] = tourney_create_path_field($match);
+
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 95,
+  );
+
+  $form['options']['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($match->status) ? $match->status : 0,
   );
 
   $form['#submit'][] = 'tourney_match_form_submit';
@@ -462,6 +481,23 @@ function tourney_game_form($form, &$form_state, $game) {
     '#default_value' => isset($game->winner) ? $game->winner : -1,
   );
 
+  $form['path'] = tourney_create_path_field($game);
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 95,
+  );
+
+  $form['options']['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($game->status) ? $game->status : 0,
+  );
+
   field_attach_form('tourney_game', $game, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
@@ -500,11 +536,6 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   );
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
-  );
-  $entity->content['label'] = array(
-    '#prefix' => '<div class="label">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->label,
   );
   $entity->content['tournament'] = array(
     '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
