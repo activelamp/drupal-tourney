@@ -537,11 +537,6 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
   );
-  $entity->content['label'] = array(
-    '#prefix' => '<div class="label">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->label,
-  );
   $entity->content['tournament'] = array(
     '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
     '#suffix' => '</div>',

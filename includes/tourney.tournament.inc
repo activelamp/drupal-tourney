@@ -191,8 +191,65 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#maxlength' => 255,
     '#default_value' => $tourney->get('config_truncate', TOURNEY_TRUNCATE),
   );
+  
+  // Get the path alias for tourney.
+  $path = array();
+  if (!empty($tourney->entity_id)) {
+    $conditions = array('source' => 'tourney/tournament/' . $tourney->entity_id);
+    $path = path_load($conditions);
+    if ($path === FALSE) {
+      $path = array();
+    }
+  }
 
-  $form['path'] = tourney_create_path_field($tourney);
+  if (module_exists('path')) {
+    $form['path'] = array(
+      '#type' => 'fieldset', 
+      '#title' => t('URL Path Settings'), 
+      '#collapsible' => TRUE, 
+      '#collapsed' => empty($path['alias']), 
+      '#group' => 'additional_settings', 
+      '#attributes' => array(
+        'class' => array('path-form'),
+      ), 
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'path') . '/path.js'),
+      ), 
+      '#access' => user_access('create url aliases') || user_access('administer url aliases'), 
+      '#weight' => 30, 
+      '#tree' => TRUE, 
+      '#element_validate' => array('path_form_element_validate'),
+    );
+
+    $path += array(
+      'pid' => NULL, 
+      'source' => isset($tourney->entity_id) ? 'tourney/tournament/' . $tourney->entity_id : NULL, 
+      'alias' => '', 
+      'language' => isset($tourney->language) ? $tourney->language : LANGUAGE_NONE,
+    );
+
+    $form['path']['alias'] = array(
+      '#type' => 'textfield', 
+      '#title' => t('URL alias'), 
+      '#default_value' => $path['alias'], 
+      '#maxlength' => 255, 
+      '#collapsible' => TRUE, 
+      '#collapsed' => TRUE, 
+      '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
+    );
+    $form['path']['pid'] = array(
+      '#type' => 'value',
+      '#value' => $path['pid'],
+    );
+    $form['path']['source'] = array(
+      '#type' => 'value',
+      '#value' => $path['source'],
+    );
+    $form['path']['language'] = array(
+      '#type' => 'value',
+      '#value' => $path['language'],
+    );
+  }
 
   $form['options'] = array(
     '#type' => 'fieldset',
@@ -313,7 +370,6 @@ function tourney_machine_name_uniquify(&$element, &$form_state) {
   $maxlength = '238';
   $separator = '-';
   $original_machine_name = $element['#value'];
-  if ( $original_machine_name == $element['#default_value'] ) return;
 
   $i = 0;
   do {
@@ -372,14 +428,18 @@ function tourney_tournament_form_submit($form, &$form_state) {
 /**
  * Show the tournament page.
  */
-function tourney_tournament_page_view($tourney) {
-  return $tourney->view('full', NULL, TRUE);
+function tourney_tournament_page_view($tourney, $view_mode = 'full') {
+  $entity_info = entity_get_info('tourney_tournament');
+  $mode = array_key_exists($view_mode, $entity_info['view modes']) 
+    ? $view_mode : 'full';
+    
+  return $tourney->view($mode, NULL, TRUE);
 }
 
 /**
  * Implements hook_ENTITY_view().
  */
-function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode = 'en') {
+function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') {
   $info = TourneyController::getPluginInfo($entity->format);
   
   $entity->content['#attached']['css'] = array(
@@ -398,15 +458,25 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
    '#suffix' => '</div>',
    '#markup' => $entity->players,
   );
-  $entity->content['tourney_winner'] = array(
-   '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-   '#suffix' => '</div>',
-   '#markup' => $entity->winner,
+  if ($entity->winner) {
+    $entity->content['tourney_winner'] = array(
+     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+     '#suffix' => '</div>',
+     '#markup' => $entity->winner,
+    );
+  }
+  // Matches for this tournament displayed as a tree
+  $entity->content['bracket'] = array(
+    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->render('tree'),
   );
-  // Add the matches for this tournament
-  $entity->content['matches'] = array(
-    '#prefix' => '<h2>Matches in this tournament</h2>',
-    '#markup' => $entity->render(),
+  
+  // Matches for this tournament displayed as a list
+  $entity->content['list'] = array(
+    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->render('list'),
   );
 }
 

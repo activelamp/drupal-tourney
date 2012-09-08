@@ -319,10 +319,10 @@ class SingleEliminationController extends TourneyController {
     $this->data['seeds'] = $positions;
   }
 
-  public function render() {
+  public function render($style = 'tree') {
     // Build our data structure
     $this->build();
-    $this->structure('tree');
+    $this->structure($style);
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
   
