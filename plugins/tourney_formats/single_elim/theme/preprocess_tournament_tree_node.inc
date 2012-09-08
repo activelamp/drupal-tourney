@@ -45,7 +45,6 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   }
 
   $node_classes = array();
-  $children_classes = array();
   $path_classes = array();
 
   $has_children = isset($node['children']) && count($node['children']);
@@ -98,7 +97,6 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
 
   $vars['round_name']       = $round_name;
   $vars['node_classes']     = implode(' ', $node_classes);
-  $vars['children_classes'] = implode(' ', $children_classes);
   $vars['path_classes']     = implode(' ', $path_classes);
   $vars['has_children']     = $has_children;
   $vars['round_name']       = '';

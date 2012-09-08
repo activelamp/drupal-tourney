@@ -150,7 +150,7 @@ function tourney_menu() {
 function tourney_testing() {
   $output = '';
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $test = new DoubleEliminationController(4);
+  $test = new DoubleEliminationController(5);
   $wrapper = entity_metadata_wrapper('tourney_match');
   // $test->setPluginOptions(array('show_byes' => TRUE));
   $output .= $test->render();

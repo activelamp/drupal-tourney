@@ -1,0 +1,20 @@
+<?php
+
+class TourneyUnpublishingTestCase extends TourneyWebTestCase {
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Unpublishing Tourney Entities'),
+      'description' => t('Tests unpublishing of tourney entities and anonymous user access.'),
+      'group' => t('Tourney'),
+    );
+  }
+  
+  /**
+   * Test that the same contestant cannot play on the same match.
+   */
+  public function testMatchContestant() {
+  }
+}
