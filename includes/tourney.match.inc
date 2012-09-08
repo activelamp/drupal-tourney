@@ -498,6 +498,11 @@ function tourney_game_form($form, &$form_state, $game) {
     '#default_value' => isset($game->status) ? $game->status : 0,
   );
 
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#weight' => 99,
+  );
+
   field_attach_form('tourney_game', $game, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');

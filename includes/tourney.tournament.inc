@@ -365,11 +365,12 @@ function tourney_machine_name_uniquify(&$element, &$form_state) {
   if (!tourney_name_exists($element['#value'])) {
     return;
   }
-  
   // Do not allow names longer than 238, to compensate for _match-00_game-00
   $maxlength = '238';
   $separator = '-';
   $original_machine_name = $element['#value'];
+
+  if ($original_machine_name == $form_state['values']['name']) return;
 
   $i = 0;
   do {

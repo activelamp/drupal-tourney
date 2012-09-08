@@ -16,5 +16,60 @@ class TourneyUnpublishingTestCase extends TourneyWebTestCase {
    * Test that the same contestant cannot play on the same match.
    */
   public function testMatchContestant() {
+    //CREATE ANONYMOUS USER
+    $this->anonymous_user = $this->drupalCreateUser(array('access content', 'access tourney'));
+
+    //CREATE TOURNAMENT
+    $this->createTourney('SingleEliminationController', 4, 1);
+    $this->assertText(t('Your tournament has been saved.'));
+
+    //SAVE MATCH
+    $edit = array();
+    $edit['contestant1'] = 'user.2';
+    $edit['contestant2'] = 'user.3';
+    $edit['status'] = FALSE;
+    $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
+    $this->assertText(t('Your match has been saved.'));
+
+    //PLAY GAME
+    $edit = array();
+    $edit['contestant'] = 'user.2';
+    $this->drupalPost('tourney/match/1', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
+    $this->assertText(t('Players moved to next round'));
+
+    //SAVE GAME
+    $edit = array();
+    $edit['status'] = FALSE;
+    $this->drupalPost('tourney/game/1/edit', $edit, t('Save'));
+    $this->assertText(t('Your game has been saved.'));
+
+    //ASSERT NO ANONYMOUS ACCESS
+    $this->drupalLogin($this->anonymous_user);
+    $this->drupalGet('tourney/tournament/1');
+    $this->assertText(t('Access denied'));
+    $this->drupalGet('tourney/match/1');
+    $this->assertText(t('Access denied'));
+    $this->drupalGet('tourney/game/1');
+    $this->assertText(t('Access denied'));
+    
+    //PUBLISH ENTITIES
+    $this->drupalLogin($this->privileged_user);
+    $edit = array();
+    $edit['status'] = TRUE;
+    $this->drupalPost('tourney/tournament/1/edit', $edit, t('Save'));
+    $this->assertText(t('Your tournament has been saved.'));
+    $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
+    $this->assertText(t('Your match has been saved.'));
+    $this->drupalPost('tourney/game/1/edit', $edit, t('Save'));
+    $this->assertText(t('Your game has been saved.'));
+    
+    //ASSERT ANONYMOUS ACCESS
+    $this->drupalLogin($this->anonymous_user);
+    $this->drupalGet('tourney/tournament/1');
+    $this->assertNoText(t('Access denied'));
+    $this->drupalGet('tourney/match/1');
+    $this->assertNoText(t('Access denied'));
+    $this->drupalGet('tourney/game/1');
+    $this->assertNoText(t('Access denied'));
   }
 }

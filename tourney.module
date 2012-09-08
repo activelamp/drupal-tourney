@@ -1227,3 +1227,67 @@ function tourney_property_get($data, $options, $name, $type, $info) {
 function tourney_property_set(&$data, $name, $value, $langcode, $type, $info) {
   $data->$name = $value;
 }
+
+function tourney_create_path_field($entity) {
+  if (!module_exists('path')) return;
+
+  $path = array();
+  if (!empty($entity->entity_id)) {
+    $conditions = array('source' => 'tourney/' . $entity->type . '/' . $entity->entity_id);
+    $path = path_load($conditions);
+    if ($path === FALSE) {
+      $path = array();
+    }
+  }
+
+  $form = array();
+
+  $form['path'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('URL Path Settings'), 
+    '#collapsible' => TRUE, 
+    '#collapsed' => empty($path['alias']), 
+    '#group' => 'additional_settings', 
+    '#attributes' => array(
+      'class' => array('path-form'),
+    ), 
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'path') . '/path.js'),
+    ), 
+    '#access' => user_access('create url aliases') || user_access('administer url aliases'), 
+    '#weight' => 30, 
+    '#tree' => TRUE, 
+    '#element_validate' => array('path_form_element_validate'),
+  );
+
+  $path += array(
+    'pid' => NULL, 
+    'source' => isset($entity->entity_id) ? 'tourney/' . $entity->type . '/' . $entity->entity_id : NULL, 
+    'alias' => '', 
+    'language' => isset($entity->language) ? $match->language : LANGUAGE_NONE,
+  );
+
+  $form['path']['alias'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('URL alias'), 
+    '#default_value' => $path['alias'], 
+    '#maxlength' => 255, 
+    '#collapsible' => TRUE, 
+    '#collapsed' => TRUE, 
+    '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
+  );
+  $form['path']['pid'] = array(
+    '#type' => 'value',
+    '#value' => $path['pid'],
+  );
+  $form['path']['source'] = array(
+    '#type' => 'value',
+    '#value' => $path['source'],
+  );
+  $form['path']['language'] = array(
+    '#type' => 'value',
+    '#value' => $path['language'],
+  );
+
+  return $form['path'];
+}
