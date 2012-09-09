@@ -140,8 +140,6 @@ function tourney_match_form($form, &$form_state, $match) {
     }
   }
 
-  field_attach_form('tourney_match', $match, $form, $form_state);
-
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
@@ -155,7 +153,6 @@ function tourney_match_form($form, &$form_state, $match) {
   );
 
   $form['path'] = tourney_create_path_field($match);
-
 
   $form['options'] = array(
     '#type' => 'fieldset',
@@ -171,6 +168,8 @@ function tourney_match_form($form, &$form_state, $match) {
     '#title' => t('Published'),
     '#default_value' => isset($match->status) ? $match->status : 0,
   );
+
+  field_attach_form('tourney_match', $match, $form, $form_state);
 
   $form['#submit'][] = 'tourney_match_form_submit';
   return $form;
@@ -503,8 +502,6 @@ function tourney_game_form($form, &$form_state, $game) {
     '#weight' => 99,
   );
 
-  field_attach_form('tourney_game', $game, $form, $form_state);
-
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
@@ -512,9 +509,9 @@ function tourney_game_form($form, &$form_state, $game) {
     '#weight' => 40,
   );
 
+  field_attach_form('tourney_game', $game, $form, $form_state);
+
   $form['#submit'][] = 'tourney_game_form_submit';
-
-
   return $form;
 }
 
@@ -528,6 +525,7 @@ function tourney_game_form_submit($form, &$form_state) {
   $game->label = $form_state['input']['label'];
   entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
   tourney_game_save($game);
+  drupal_set_message(url($game->getUri()));
 
   $form_state['redirect'] = $game->getUri();
 }

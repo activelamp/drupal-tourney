@@ -192,103 +192,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => $tourney->get('config_truncate', TOURNEY_TRUNCATE),
   );
   
-  // Get the path alias for tourney.
-  $path = array();
-  if (!empty($tourney->entity_id)) {
-    $conditions = array('source' => 'tourney/tournament/' . $tourney->entity_id);
-    $path = path_load($conditions);
-    if ($path === FALSE) {
-      $path = array();
-    }
-  }
+  $form['path'] = tourney_create_path_field($tourney);
 
-  if (module_exists('path')) {
-    $form['path'] = array(
-      '#type' => 'fieldset', 
-      '#title' => t('URL Path Settings'), 
-      '#collapsible' => TRUE, 
-      '#collapsed' => empty($path['alias']), 
-      '#group' => 'additional_settings', 
-      '#attributes' => array(
-        'class' => array('path-form'),
-      ), 
-      '#attached' => array(
-        'js' => array(drupal_get_path('module', 'path') . '/path.js'),
-      ), 
-      '#access' => user_access('create url aliases') || user_access('administer url aliases'), 
-      '#weight' => 30, 
-      '#tree' => TRUE, 
-      '#element_validate' => array('path_form_element_validate'),
-    );
-
-    $path += array(
-      'pid' => NULL, 
-      'source' => isset($tourney->entity_id) ? 'tourney/tournament/' . $tourney->entity_id : NULL, 
-      'alias' => '', 
-      'language' => isset($tourney->language) ? $tourney->language : LANGUAGE_NONE,
-    );
-
-    $form['path']['alias'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('URL alias'), 
-      '#default_value' => $path['alias'], 
-      '#maxlength' => 255, 
-      '#collapsible' => TRUE, 
-      '#collapsed' => TRUE, 
-      '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
-    );
-    $form['path']['pid'] = array(
-      '#type' => 'value',
-      '#value' => $path['pid'],
-    );
-    $form['path']['source'] = array(
-      '#type' => 'value',
-      '#value' => $path['source'],
-    );
-    $form['path']['language'] = array(
-      '#type' => 'value',
-      '#value' => $path['language'],
-    );
-  }
-
-  $form['options'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Publishing Options'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#group' => 'additional_settings',
-    '#weight' => 95,
-  );
-
-  $form['options']['status'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Published'),
-    '#default_value' => isset($tourney->status) ? $tourney->status : 0,
-  );
-  
-  $form['debug'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Debug'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#group' => 'additional_settings',  
-    '#access' => user_access('administer tourney'),
-    '#weight' => 100,
-  );
-  
-  $form['debug']['config_show_next_match_path'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Show next match identifier in match block'),
-    '#default_value' => $tourney->get('show_next_match_path', -1),
-  );
-  
-  $form['debug']['config_show_previous_match_path'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Show previous match identifier in match block'),
-    '#default_value' => $tourney->get('show_previous_match_path', -1),
-  );
-
-  field_attach_form('tourney_tournament', $tourney, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -306,8 +211,9 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     );
   }
 
-  $form['#submit'][] = 'tourney_tournament_form_submit';
+  field_attach_form('tourney_tournament', $tourney, $form, $form_state);
 
+  $form['#submit'][] = 'tourney_tournament_form_submit';
   return $form;
 }
 

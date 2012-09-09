@@ -466,7 +466,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       // Both slots can be set
       $return = 0x3;
     }
-    elseif (array_key_exists('seeds', $match->matchInfo)) {
+    elseif ($match->matchInfo && array_key_exists('seeds', $match->matchInfo)) {
       foreach (array(1,2) as $slot) {
         if (array_key_exists($slot, $match->matchInfo['seeds'])) {
           $return += $slot;
