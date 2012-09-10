@@ -322,7 +322,12 @@ class TourneyController implements TourneyControllerInterface {
    */
   public function saveMatches() {
     $matches = $this->data['matches'];
-    
+    $create_alias = FALSE;
+    if (module_exists('pathauto')) {
+      module_load_include('inc', 'pathauto');
+      $create_alias = TRUE;
+    }
+
     foreach ($matches as $mid => $match) {
       // Set $id to the round number
       $bracket_id = '';
@@ -341,6 +346,11 @@ class TourneyController implements TourneyControllerInterface {
       );
       $new_match = new TourneyMatchEntity($values);
       $new_match->save();
+      if ($create_alias && pathauto_pattern_load_by_entity($new_match->entity_type, $new_match->type)) {
+        $uri = entity_uri($new_match->entity_type, $new_match);
+        pathauto_create_alias('tourney', 'insert', $uri['path'], array($new_match->entity_type => $new_match), $new_match->type);
+      }
+
     
       // Create the Tourney/Match relation and save bracket and round data to it
       $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
@@ -353,6 +363,10 @@ class TourneyController implements TourneyControllerInterface {
           'name' => $new_match->name . '_game-1',
         ));
         $game->save();
+        if ($create_alias && pathauto_pattern_load_by_entity($game->entity_type, $game->type)) {
+          $uri = entity_uri($game->entity_type, $game);
+          pathauto_create_alias('tourney', 'insert', $uri['path'], array($game->entity_type => $game), $game->type);
+        }
         tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
       }
     }

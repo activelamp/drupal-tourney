@@ -1,0 +1,64 @@
+<?php
+
+class TourneyPathsTestCase extends TourneyWebTestCase {
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Tourney Entity Paths'),
+      'description' => t('Tests setting of paths and pathauto on tourney entities.'),
+      'group' => t('Tourney'),
+    );
+  }
+  
+  /**
+   * Test that the same contestant cannot play on the same match.
+   */
+  public function testMatchContestant() {
+    module_enable(array('pathauto'));
+    $this->resetAll(); 
+    
+    //CREATE ADMINSTRATION USER
+    $this->paths_user = $this->drupalCreateUser(array('administer tourney', 'create tourney', 'edit tourney', 'administer pathauto', 'administer url aliases', 'create url aliases'));
+    $this->drupalLogin($this->paths_user);
+
+    //SET PATTERNS
+    $edit = array();
+    $edit['pathauto_tourney_tournament_pattern'] = 'test_tournament/[tourney_tournament:id]';
+    $edit['pathauto_tourney_match_pattern'] = 'test_match/[tourney_match:id]';
+    $edit['pathauto_tourney_game_pattern'] = 'test_game/[tourney_game:id]';
+    $this->drupalPost('admin/config/search/path/patterns', $edit, t('Save configuration'));
+    $this->assertText(t('The configuration options have been saved.'));
+
+    //CREATE TOURNAMENT, ASSERT TOURNAMENT URL
+    $this->createTourney('SingleEliminationController', 4, 3);
+    $this->assertText(t('Your tournament has been saved.'));
+    $this->assertURL('test_tournament/1');
+    $edit = array();
+    $edit['path[pathauto]'] = FALSE;
+    $edit['path[alias]'] = 'tournamentone';
+    $this->drupalPost('tourney/tournament/1/edit', $edit, t('Save'));
+    $this->assertURL('tournamentone');
+
+    //ASSERT MATCH
+    $this->drupalGet('test_match/1');
+    $this->assertNoText('Page not found');
+    $edit = array();
+    $edit['contestant1'] = 'user.2';
+    $edit['contestant2'] = 'user.3';
+    $edit['path[pathauto]'] = FALSE;
+    $edit['path[alias]'] = 'matchone';
+    $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
+    $this->assertURL('matchone');
+    
+    //ASSERT GAME
+    $this->drupalGet('test_game/1');
+    $this->assertNoText('Page not found');
+    $edit = array();
+    $edit['path[pathauto]'] = FALSE;
+    $edit['path[alias]'] = 'gameone';
+    $this->drupalPost('tourney/game/1/edit', $edit, t('Save'));
+    $this->assertURL('gameone');
+  }
+}

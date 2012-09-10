@@ -419,9 +419,24 @@ class TourneyTournamentEntity extends TourneyEntity {
 
   /**
    * Renders the bracket of the tournament.
+   * 
+   * If the rendering is not dependent on the drupal entity system pass the
+   * actual rendering logic to the plugin, otherwise specify the style in the
+   * switch statement before default is reached, and return your own output.
+   * 
+   * @param $style
+   *   The style to render the tournament. Possible values are: tree or list.
+   *   Defaults to tree.
+   * 
+   * @see tourney_tourney_tournament_view().
    */
-  public function render() {
-    return $this->tourneyFormatPlugin->render();
+  public function render($style) {
+    switch($style) {
+      // Specify the render output that is dependent on entities here.
+      case 'list' : return views_embed_view('tourney_matches_list');
+      // Pass everything else to the plugin to render.
+      default : return $this->tourneyFormatPlugin->render($style);
+    }
   }
 
   /**
@@ -451,7 +466,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       // Both slots can be set
       $return = 0x3;
     }
-    elseif (array_key_exists('seeds', $match->matchInfo)) {
+    elseif ($match->matchInfo && array_key_exists('seeds', $match->matchInfo)) {
       foreach (array(1,2) as $slot) {
         if (array_key_exists($slot, $match->matchInfo['seeds'])) {
           $return += $slot;

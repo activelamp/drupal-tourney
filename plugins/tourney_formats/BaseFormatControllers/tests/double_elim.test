@@ -2066,7 +2066,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'winner_id' => 29,
         'winner_slot' => 2,
         'loser_id' => 53,
-        'loser_slot' => 2,
+        'loser_slot' => 1,
       ),
       27 => array(
         'winner_id' => 30,
