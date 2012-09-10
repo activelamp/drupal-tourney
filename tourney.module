@@ -1020,6 +1020,10 @@ function tourney_get_name_part($name, $part) {
   }
 }
 
+/**
+ * Initializes a global tourney config object with contents of tourney config
+ * from the db.
+ */
 function tourney_initialize_configuration() {
   global $_tourney_config;
 
@@ -1047,8 +1051,9 @@ function tourney_initialize_configuration() {
   return $config;
 }
 
-
-
+/**
+ * Implements hook_action_info().
+ */
 function tourney_action_info() {
   return array(
     'tourney_entity_publish_action' => array(
@@ -1070,16 +1075,25 @@ function tourney_action_info() {
   );
 }
 
+/**
+ * VBO action: Publish entity.
+ */
 function tourney_entity_publish_action(&$entity, $context) {
   $entity->status = 1;
   entity_save($entity->entity_type, $entity);
 }
 
+/**
+ * VBO action: Unpublish entity.
+ */
 function tourney_entity_unpublish_action(&$entity, $context) {
   $entity->status = 0;
   entity_save($entity->entity_type, $entity);
 }
 
+/**
+ * VBO action: Update labels.
+ */
 function tourney_match_update_labels_action(&$entity, $context) {
   $function = 'auto_entitylabel_set_title';
   if (function_exists($function)) {
@@ -1123,6 +1137,9 @@ function tourney_entity_load($entities, $type) {
   }
 }
 
+/**
+ * Implements hook_entity_property_info_alter().
+ */
 function tourney_entity_property_info_alter(&$info) {
   $properties = &$info['tourney_match']['properties'];
 
@@ -1189,6 +1206,12 @@ function tourney_property_set(&$data, $name, $value, $langcode, $type, $info) {
   $data->$name = $value;
 }
 
+/**
+ * Creates the path fieldset for the tournament add form if path module is on.
+ * 
+ * @param $entity
+ *   The entity, if any, being edited on tournament edit page.
+ */
 function tourney_create_path_field($entity) {
   if (!module_exists('path')) return;
 
