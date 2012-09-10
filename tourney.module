@@ -137,27 +137,8 @@ function tourney_menu() {
     'access arguments' => array('create tourney'),
     'file' => 'includes/tourney.tournament.inc',
   );
-  $items['tourney/testing'] = array(
-    'title' => 'TESTING',
-    'page callback' => 'tourney_testing',
-    'access arguments' => array('administer tourney'),
-  );
   
-
   return $items;
-}
-
-function tourney_testing() {
-  $output = '';
-  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $test = new DoubleEliminationController(5);
-  $wrapper = entity_metadata_wrapper('tourney_match');
-  // $test->setPluginOptions(array('show_byes' => TRUE));
-  $output .= $test->render();
-  // dpm($test->data);
-  $output .= "<div>testing testing testing</div>";
-
-  return $output;
 }
 
 /**
