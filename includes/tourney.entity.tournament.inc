@@ -323,7 +323,12 @@ class TourneyTournamentEntity extends TourneyEntity {
     if ($new) {
       $controller = TourneyController::loadPlugin($this);
       $controller->build();
-      $controller->saveMatches();
+      
+      // saveMatches isn't part of the plugin interface. We need to make sure
+      // sure the method exists before calling.
+      if (method_exists($controller, 'saveMatches')) {
+        $controller->saveMatches();
+      }
 
       // Update the tournament with the number of matches created
       $this->matches_created = count($this->getMatchIds());
