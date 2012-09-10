@@ -233,10 +233,6 @@ class DoubleEliminationController extends SingleEliminationController {
     );
   }
   
-  public function render() {
-    return parent::render();
-  }
-  
   /**
    * Look at each match in the data array and count how many matches are in the
    * given round passed in.
@@ -283,8 +279,27 @@ class DoubleEliminationController extends SingleEliminationController {
         $prev['nextMatch']['loser'] = array('id' => $winner['id'], 'slot' => $winner['slot']);
       }
     }
+
+    $this->adjustLoserByes();
   }
   
+
+  public function adjustLoserByes() {
+    $matches = &$this->find('matches', array('bracket' => 'loser', 'round' => 3));
+    foreach ($matches as &$match) {
+      $byes = 0;
+      foreach ($match['previousMatches'] as $id) {
+        if ($this->data['matches'][$id]['bye'] == TRUE) $byes++;
+      }
+      if ($byes !== 1) continue;
+      $previousLoser  = &$this->data['matches'][$match['previousMatches'][1]];
+      $previousBye    = &$this->data['matches'][$match['previousMatches'][2]];
+      $previousWinner = &$this->data['matches'][$previousBye['previousMatches'][1]];
+      $previousWinner['nextMatch']['loser']['slot'] = 1;
+      $previousLoser['nextMatch']['winner']['slot'] = 2;
+    } 
+  }
+
   /**
    * Goes through all the matches in the first round of the loser bracket and
    * marks matches as byes in the data array of the match.
@@ -299,6 +314,7 @@ class DoubleEliminationController extends SingleEliminationController {
         $prev = $this->data['matches'][$id];
         if (isset($prev['bye']) && $prev['bye'] == TRUE) $byes++;
       }
+      $match['bye'] = FALSE;
       if ($byes == 2) $match['bye'] = TRUE;
     }
   }

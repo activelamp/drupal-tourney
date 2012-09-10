@@ -97,7 +97,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   $vars['match_classes_array'] = array();
   if ($vars['complete']) $vars['match_classes_array'][] = 'complete';
   if ($vars['is_bye']) $vars['match_classes_array'][] = 'bye';
-  if (is_object($match) && $match->status == 0) $vars['match_classes_array'][] = 'not-necessary';
+  if (isset($match) && is_object($match) && $match->status == 0) $vars['match_classes_array'][] = 'not-necessary';
   $vars['match_classes'] = implode(' ', $vars['match_classes_array']);
 
   $vars['contestants'] = $contestant_output;

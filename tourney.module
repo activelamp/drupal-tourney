@@ -150,7 +150,7 @@ function tourney_menu() {
 function tourney_testing() {
   $output = '';
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $test = new DoubleEliminationController(4);
+  $test = new DoubleEliminationController(5);
   $wrapper = entity_metadata_wrapper('tourney_match');
   // $test->setPluginOptions(array('show_byes' => TRUE));
   $output .= $test->render();
@@ -328,6 +328,17 @@ function tourney_entity_info() {
       'bundle keys' => array(
         'bundle' => 'name',
       ),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full Content'),
+          'custom settings' => TRUE,
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'custom settings' => TRUE,
+        ),
+      ),
+      
       'access callback' => 'tourney_access',
       'module' => 'tourney',
     );
@@ -378,6 +389,37 @@ function tourney_entity_info() {
 }
 
 /**
+ * Implements hook_entity_info_alter().
+ * 
+ * Setup view modes for the entities we created.
+ */
+function tourney_entity_info_alter(&$entity_info) {
+  $entity_info['tourney_tournament']['view modes'] += array(
+    'bracket' => array(
+      'label' => t('Bracket'),
+      'custom settings' => TRUE,
+    ),
+    'list' => array(
+      'label' => t('Match List'),
+      'custom settings' => TRUE,
+    ),
+  );
+  
+  $entity_info['tourney_match']['view modes'] += array(
+    'match_block' => array(
+      'label' => t('Match Block'),
+      'custom settings' => TRUE,
+    ),
+    'list' => array(
+      'label' => t('Game List'),
+      'custom settings' => TRUE,
+    ),
+  );
+}
+
+
+
+/**
  * Access callback for the entity API.
  */
 function tourney_type_access($op, $type = NULL, $account = NULL) {
@@ -403,45 +445,55 @@ function tourney_field_extra_fields() {
   $extra['tourney_tournament']['tournament'] = array(
     'form' => array(
       'format' => array(
-        'label' => t('Tournament Format'),
-        'description' => t('The format of the tournament'),
+        'label' => t('Format'),
+        'description' => t('The format of the tournament.'),
         'weight' => 0,
       ),
       'winner' => array(
-        'label' => t('Tournament Winner'),
-        'description' => t('The winner of the tournament'),
+        'label' => t('Winner'),
+        'description' => t('The winner of the tournament.'),
         'weight' => 0,
       ),
       'players' => array(
-        'label' => t('Tournament Players'),
-        'description' => t('The number of players in the tournament'),
+        'label' => t('Players'),
+        'description' => t('The number of players in the tournament.'),
         'weight' => 0,
       ),
-      'matches' => array(
-        'label' => t('Tournament Matches'),
-        'description' => t('A rendered bracket of matches in tournament'),
+      'bracket' => array(
+        'label' => t('Bracket of matches'),
+        'description' => t('Rendered matches in a tournament bracket.'),
+        'weight' => 1,
+      ),
+      'list' => array(
+        'label' => t('List of matches'),
+        'description' => t('Rendered matches in a tournament list.'),
         'weight' => 1,
       ),
     ),
     'display' => array(
       'tourney_format' => array(
-        'label' => t('Tournament Format'),
-        'description' => t('The format of the tournament'),
+        'label' => t('Format'),
+        'description' => t('The format of the tournament.'),
         'weight' => 0,
       ),
       'tourney_winner' => array(
-        'label' => t('Tournament Winner'),
-        'description' => t('The winner of the tournament'),
+        'label' => t('Winner'),
+        'description' => t('The winner of the tournament.'),
         'weight' => 0,
       ),
       'tourney_players' => array(
-        'label' => t('Tournament Players'),
-        'description' => t('The number of players in the tournament'),
+        'label' => t('Players'),
+        'description' => t('The number of players in the tournament.'),
         'weight' => 0,
       ),
-      'matches' => array(
-        'label' => t('Tournament Matches'),
-        'description' => t('A rendered bracket of matches in tournament'),
+      'bracket' => array(
+        'label' => t('Bracket of matches'),
+        'description' => t('Rendered matches in a tournament bracket.'),
+        'weight' => 1,
+      ),
+      'list' => array(
+        'label' => t('List of matches'),
+        'description' => t('Rendered matches in a tournament list.'),
         'weight' => 1,
       ),
     ),
@@ -469,12 +521,7 @@ function tourney_field_extra_fields() {
       'tournament' => array(
         'label' => t('Tournament Link'),
         'description' => t('A link to the tournament this match is in'),
-        'weight' => -10,
-      ),
-      'label' => array(
-        'label' => t('Title'),
-        'description' => t('The title of the match'),
-        'weight' => -1,
+        'weight' => -5,
       ),
       'match_winner' => array(
         'label' => t('Match Winner'),
@@ -492,7 +539,7 @@ function tourney_field_extra_fields() {
         'weight' => 2,
       ),
       'match_table' => array(
-        'label' => t('Match Table'),
+        'label' => t('Games Grid with Win button'),
         'description' => t('Rendered display of games in the match'),
         'weight' => 0,
       ),
@@ -947,46 +994,26 @@ function tourney_views_api() {
  *   An optional array of additional options.
  */
 function tourney_update_alias($entity, $op, array $options = array()) {
-  // Skip processing if the user has disabled pathauto for the node.
-  if (!module_exists('pathauto')) {
-    return;
+  if (!isset($entity->path)) return;
+
+  $path = $entity->path;
+  $path['alias'] = trim($path['alias']);
+
+  $has_pattern = module_exists('pathauto') ? pathauto_pattern_load_by_entity($entity->entity_type, $entity->type) : FALSE;
+
+  if ($has_pattern && isset($entity->path['pathauto']) && $path['pathauto']) {
+    module_load_include('inc', 'pathauto');
+    $uri = entity_uri($entity->entity_type, $entity);
+    return pathauto_create_alias($entity->entity_type, $op, $uri['path'], array($entity->entity_type => $entity), $entity->type);
   }
-
-  if (isset($entity->path['pathauto']) && empty($entity->path['pathauto'])) {
-    if (isset($entity->path)) {
-      $path = $entity->path;
-      $path['alias'] = trim($path['alias']);
-      if (!empty($path['pid']) && empty($path['alias'])) {
-        path_delete($path['pid']);
-      }
-      if (!empty($path['alias'])) {
-        $path['source'] = 'tourney/' . $entity->type . '/' . $entity->id;
-        $path['language'] = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
-        path_save($path);
-      }
-    }
-    return;
+  if (!empty($path['pid']) && empty($path['alias'])) {
+    path_delete($path['pid']);
   }
-
-  /*
-  $options += array(
-    'language' => isset($node->language) ? $node->language : LANGUAGE_NONE,
-  );
-  */
-
-  // Skip processing if the node has no pattern.
-  //if (!pathauto_pattern_load_by_entity($entity->_entity_type, $entity->_entity_type, $options['language'])) {
-  if (!pathauto_pattern_load_by_entity($entity->entity_type, $entity->type)) {
-    // Remove the alias if a pattern is no longer given.
-    $uri = tourney_uri($entity);
-    pathauto_entity_path_delete_all($entity->type, $entity, $uri);
-    return;
+  if (!empty($path['alias'])) {
+    $path['source'] = 'tourney/' . $entity->type . '/' . $entity->id;
+    $path['language'] = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+    path_save($path);
   }
-
-  module_load_include('inc', 'pathauto');
-  $uri = entity_uri($entity->entity_type, $entity);
-  //pathauto_create_alias($entity_type, $op, $uri['path'], array($entity_type => $entity), $entity_type, $options['language']);
-  return pathauto_create_alias($entity->entity_type, $op, $uri['path'], array($entity->entity_type => $entity), $entity->type);
 }
 /**
  * Implements hook_flush_caches().
@@ -1179,4 +1206,68 @@ function tourney_property_get($data, $options, $name, $type, $info) {
 
 function tourney_property_set(&$data, $name, $value, $langcode, $type, $info) {
   $data->$name = $value;
+}
+
+function tourney_create_path_field($entity) {
+  if (!module_exists('path')) return;
+
+  $path = array();
+  if (!empty($entity->entity_id)) {
+    $conditions = array('source' => 'tourney/' . $entity->type . '/' . $entity->entity_id);
+    $path = path_load($conditions);
+    if ($path === FALSE) {
+      $path = array();
+    }
+  }
+
+  $form = array();
+
+  $form['path'] = array(
+    '#type' => 'fieldset', 
+    '#title' => t('URL Path Settings'), 
+    '#collapsible' => TRUE, 
+    '#collapsed' => empty($path['alias']), 
+    '#group' => 'additional_settings', 
+    '#attributes' => array(
+      'class' => array('path-form'),
+    ), 
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'path') . '/path.js'),
+    ), 
+    '#access' => user_access('create url aliases') || user_access('administer url aliases'), 
+    '#weight' => 30, 
+    '#tree' => TRUE, 
+    '#element_validate' => array('path_form_element_validate'),
+  );
+
+  $path += array(
+    'pid' => NULL, 
+    'source' => isset($entity->entity_id) ? 'tourney/' . $entity->type . '/' . $entity->entity_id : NULL, 
+    'alias' => '', 
+    'language' => isset($entity->language) ? $match->language : LANGUAGE_NONE,
+  );
+
+  $form['path']['alias'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('URL alias'), 
+    '#default_value' => $path['alias'], 
+    '#maxlength' => 255, 
+    '#collapsible' => TRUE, 
+    '#collapsed' => TRUE, 
+    '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
+  );
+  $form['path']['pid'] = array(
+    '#type' => 'value',
+    '#value' => $path['pid'],
+  );
+  $form['path']['source'] = array(
+    '#type' => 'value',
+    '#value' => $path['source'],
+  );
+  $form['path']['language'] = array(
+    '#type' => 'value',
+    '#value' => $path['language'],
+  );
+
+  return $form['path'];
 }
