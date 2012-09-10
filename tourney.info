@@ -10,6 +10,7 @@ dependencies[] = rules
 dependencies[] = views
 dependencies[] = views_bulk_operations
 dependencies[] = number
+dependencies[] = path
 
 files[] = includes/tourney.admin.inc
 files[] = includes/tourney.controller.inc
@@ -32,5 +33,7 @@ files[] = tests/tourney.test
 files[] = tests/single_elimination.test
 files[] = tests/double_elimination.test
 files[] = tests/round_robin.test
+files[] = tests/unpublishing.test
+files[] = tests/paths.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/single_elim.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/double_elim.test

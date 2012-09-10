@@ -12,7 +12,7 @@
 
 <div class="tree-node <?php print $node_classes; ?>">
   <?php if ($has_children && count($node['children'])): ?>
-    <div class="children <?php print $children_classes; ?>">
+    <div class="children">
       <?php foreach ($node['children'] as $id => $child): ?>
         <?php print theme('tourney_tournament_tree_node', array('node' => $child, 'plugin' => $plugin)); ?>
       <?php endforeach; ?>
@@ -22,7 +22,7 @@
     <?php if ($round_name): ?>
       <h2 class="round-title"><?php print $round_name; ?></h2>
     <?php endif; ?>
-    <?php print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin, 'children_classes' => $children_classes)); ?>
+    <?php print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin)); ?>
     <div class="connector to-parent <?php print $node_classes; ?> <?php print $path_classes; ?>">
       <div class="path"></div>
     </div>

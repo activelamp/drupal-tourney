@@ -30,7 +30,7 @@ Drupal.behaviors.tourneyFixConnectors = { attach: function(context, settings) {
     var connectTarget  = $connectParent.offset().top + $connectParent.height();
     var connectOffset  = $connectBottom.offset().top - connectTarget;
 
-    if (connectOffset <= 0) return;    
+    if (connectOffset <= 1) return;    
 
     if (connectOffset) {
       $connectBottom.css({
