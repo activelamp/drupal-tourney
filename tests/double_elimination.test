@@ -123,8 +123,8 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Match 7
       // Only Checking to see if winner of previous match is being passed into this match correctly 
       $this->drupalGet('tourney/match/7');
-      $this->assertRaw(t('<tr class="odd"><td>user.3</td>'));
-      $this->assertRaw(t('<tr class="even"><td>user.5</td>'));     
+      $this->assertRaw(t('<tr class="odd"><td>user.5</td>'));
+      $this->assertRaw(t('<tr class="even"><td>user.3</td>'));     
 
       // Checking 4 man Tourney Winner is displaying on the Tournament page (Tournament 1)
       $edit = array();
@@ -132,7 +132,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 4 Man Tourney
-      $this->pass("End of 4 Man Single Elimination Tournament ");
+      $this->pass("End of 4 Man Double Elimination Tournament ");
     }
 
     /**
