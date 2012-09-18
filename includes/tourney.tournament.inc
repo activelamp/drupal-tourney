@@ -193,8 +193,44 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   );
   
   $form['path'] = tourney_create_path_field($tourney);
+  
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 95,
+  );
 
-
+  $form['options']['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($tourney->status) ? $tourney->status : 0,
+  );
+  
+  $form['debug'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Debug'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',  
+    '#access' => user_access('administer tourney'),
+    '#weight' => 100,
+  );
+  
+  $form['debug']['config_show_next_match_path'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show next match identifier in match block'),
+    '#default_value' => $tourney->get('show_next_match_path', -1),
+  );
+  
+  $form['debug']['config_show_previous_match_path'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show previous match identifier in match block'),
+    '#default_value' => $tourney->get('show_previous_match_path', -1),
+  );
+  
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',

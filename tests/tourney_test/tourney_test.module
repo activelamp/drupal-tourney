@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * All debug code for the module should be put in this module and out of the
+ * tourney module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function tourney_test_menu() {
+  $items['tourney/testing'] = array(
+    'title' => 'TESTING',
+    'page callback' => 'tourney_testing',
+    'access arguments' => array('administer tourney'),
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback: Testing code.
+ */
+function tourney_testing() {
+  $output = '';
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
+  $test = new DoubleEliminationController(5);
+  $wrapper = entity_metadata_wrapper('tourney_match');
+  // $test->setPluginOptions(array('show_byes' => TRUE));
+  $output .= $test->render();
+  // dpm($test->data);
+  $output .= "<div>testing testing testing</div>";
+
+  return $output;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function tourney_test_theme_registry_alter(&$theme_registry) {
+  $path = drupal_get_path('module', 'tourney_test') . '/theme';
+  $theme_registry['tourney_match_render']['path'] = $path;
+}
+
+
