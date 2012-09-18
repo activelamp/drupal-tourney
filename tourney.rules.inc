@@ -111,6 +111,7 @@ function tourney_action_game_is_won($match, $quotient) {
         $match->getTournament()->save();
         $match->nextMatch()->status = 1;
         $match->nextMatch()->removeContestant($match->getWinnerEntity());
+        $match->nextMatch()->save();
       }
       if ($match->nextMatch('loser')) {
         $match->nextMatch('loser')->removeContestant($match->getLoserEntity());
