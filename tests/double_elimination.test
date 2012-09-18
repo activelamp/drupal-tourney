@@ -21,6 +21,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Create the tournament.
       $tournament_name = $this->createTourney($this->controller, 4);
 
+	  // Upper Bracket
       // Set contestants of the First Match as same user.
       $edit = array();
       // Match 1 Slot 1
@@ -75,6 +76,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner users of previous matches are being passed into this game correctly
       $this->assertRaw('<tr class="odd"><td>user.3</td>');
       $this->assertRaw('<tr class="even"><td>user.5</td>');
+
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
@@ -105,6 +107,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw(t('user.5'));
       
+	  // Tourament Championship Matches
       // Match 6
       // Check to see if winner of previous match is being passed into this match correctly 
       $this->drupalGet('tourney/match/6');
@@ -121,8 +124,8 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Only Checking to see if winner of previous match is being passed into this match correctly 
       $this->drupalGet('tourney/match/7');
       $this->assertRaw(t('<tr class="odd"><td>user.3</td>'));
-      $this->assertRaw(t('<tr class="even"><td>user.5</td>'));
-      
+      $this->assertRaw(t('<tr class="even"><td>user.5</td>'));     
+
       // Checking 4 man Tourney Winner is displaying on the Tournament page (Tournament 1)
       $edit = array();
       $this->drupalGet('tourney/tournament/1');
@@ -135,7 +138,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
     /**
      * Testing 5 contestants
      */
-    public function testSingleElim5() {
+    public function testDoubleElim5() {
       // Create the tournament.
       $this->createTourney($this->controller, 5);
 
@@ -213,13 +216,13 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
       // End of 5 Man Tourney
-      $this->pass("End of 5 Man Single Elimination Tournament ");
+      $this->pass("End of 5 Man Double Elimination Tournament ");
     }
 
     /**
      * Testing 6 contestants
      */
-    public function testSingleElim6() {
+    public function testDoubleElim6() {
       // Create the tournament.
       $this->createTourney($this->controller, 6);
 
@@ -309,13 +312,13 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
       // End of 6 Man Tourney
-      $this->pass("End of 6 Man Single Elimination Tournament ");
+      $this->pass("End of 6 Man Double Elimination Tournament ");
     }
 
     /**
      * Testing 7 contestants
      */
-    public function testSingleElim7() {
+    public function testDoubleElim7() {
       // Create the tournament.
       $this->createTourney($this->controller, 7);
 
@@ -417,13 +420,13 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 7 Man Tourney
-      $this->pass("End of 7 Man Single Elimination Tournament ");
+      $this->pass("End of 7 Man Double Elimination Tournament ");
     }
 
     /**
      * Testing 8 contestants
      */
-    public function testSingleElim8() {
+    public function testDoubleElim8() {
       // Create the tournament.
       $this->createTourney($this->controller, 8);
 
@@ -539,13 +542,13 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 8 Man Tourney
-      $this->pass("End of 8 Man Single Elimination Tournament ");
+      $this->pass("End of 8 Man Double Elimination Tournament ");
     }
 
     /**
      * Testing 9 contestants
      */
-    public function testSingleElim9() {
+    public function testDoubleElim9() {
       // Create the tournament.
       $this->createTourney($this->controller, 9);
 
@@ -676,13 +679,13 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 9 Man Tourney
-      $this->pass("End of 9 Man Single Elimination Tournament ");
+      $this->pass("End of 9 Man Double Elimination Tournament ");
     }
 
     /**
      * Testing 16 contestants
      */
-    public function testSingleElim16() {
+    public function testDoubleElim16() {
       // Create the tournament.
       $this->createTourney($this->controller, 16);
 
@@ -913,13 +916,13 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 16 Man Tourney
-      $this->pass("End of 16 Man Single Elimination Tournament ");
+      $this->pass("End of 16 Man Double Elimination Tournament ");
     }
 
     /**
      * Testing 32 contestants
      */
-    public function testSingleElim32() {
+    public function testDoubleElim32() {
       // Create the tournament.
       $this->createTourney($this->controller, 32);
 
@@ -1382,6 +1385,6 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 32 Man Tourney
-      $this->pass("End of 32 Man Single Elimination Tournament ");
+      $this->pass("End of 32 Man Double Elimination Tournament ");
     }
   }
