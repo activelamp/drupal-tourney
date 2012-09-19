@@ -22,15 +22,15 @@ function tourney_test_menu() {
 /**
  * Page callback: Testing code.
  */
-function tourney_testing() {
+function tourney_testing() {  
   $output = '';
-  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  $test = new DoubleEliminationController(5);
-  $wrapper = entity_metadata_wrapper('tourney_match');
-  // $test->setPluginOptions(array('show_byes' => TRUE));
-  $output .= $test->render();
-  // dpm($test->data);
-  $output .= "<div>testing testing testing</div>";
+  // module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
+  // $test = new DoubleEliminationController(5);
+  // $wrapper = entity_metadata_wrapper('tourney_match');
+  // // $test->setPluginOptions(array('show_byes' => TRUE));
+  // $output .= $test->render();
+  // // dpm($test->data);
+  // $output .= "<div>testing testing testing</div>";
 
   return $output;
 }
