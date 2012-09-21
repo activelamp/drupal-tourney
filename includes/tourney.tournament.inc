@@ -409,18 +409,24 @@ function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') 
     );
   }
   // Matches for this tournament displayed as a tree
-  $entity->content['bracket'] = array(
-    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->render('tree'),
-  );
+  $tree = $entity->render('tree');
+  if ( $tree ) {
+    $entity->content['bracket'] = array(
+      '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $tree,
+    );
+  }
   
   // Matches for this tournament displayed as a list
-  $entity->content['list'] = array(
-    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->render('list'),
-  );
+  $list = $entity->render('list');
+  if ( $list ) {
+    $entity->content['list'] = array(
+      '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $list,
+    );  
+  }
 }
 
 /**
