@@ -337,7 +337,7 @@ function tourney_entity_info() {
           'path' => 'admin/structure/tourney/' . $entity_short . '/manage/%' . $entity_name . '_type',
           'real path' => 'admin/structure/tourney/' . $entity_short . '/manage/' . $type,
           'bundle argument' => 5,
-          'access arguments' => array('access content'),
+          'access arguments' => array('administer tourney'),
         ),
       );
     }
