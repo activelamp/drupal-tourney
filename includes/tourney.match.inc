@@ -121,7 +121,7 @@ function tourney_match_form($form, &$form_state, $match) {
       '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
     );
   }
-  elseif (count($match->getGameIds()) > 1) {
+  else {
     $form['fix_games'] = array(
       '#theme' => 'tourney_match_fix',
       '#games' => $match->games,
@@ -700,6 +700,7 @@ function theme_tourney_match_fix($vars) {
   foreach ($rows as $id => &$row) {
     $row[] = ' - ';
   }
+  if ( !$rows ) return null;
 
   return theme('table', array(
     'attributes' => array('id' => 'game-list'),
