@@ -22,7 +22,11 @@
     <?php if ($round_name): ?>
       <h2 class="round-title"><?php print $round_name; ?></h2>
     <?php endif; ?>
-    <?php print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin)); ?>
+    <?php 
+      $match_entity = entity_view('tourney_match', array($match->id => $match), 'match_block'); 
+      print drupal_render($match_entity);
+    ?>
+    <?php //print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin)); ?>
     <div class="connector to-parent <?php print $node_classes; ?> <?php print $path_classes; ?>">
       <div class="path"></div>
     </div>

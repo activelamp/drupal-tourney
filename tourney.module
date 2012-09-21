@@ -337,7 +337,7 @@ function tourney_entity_info() {
           'path' => 'admin/structure/tourney/' . $entity_short . '/manage/%' . $entity_name . '_type',
           'real path' => 'admin/structure/tourney/' . $entity_short . '/manage/' . $type,
           'bundle argument' => 5,
-          'access arguments' => array('access content'),
+          'access arguments' => array('administer tourney'),
         ),
       );
     }
@@ -874,6 +874,119 @@ function tourney_entity_delete($entity, $type) {
     $uri = tourney_uri($entity);
     pathauto_entity_path_delete_all($type, $entity, $uri);
   }
+}
+
+/**
+ * Implements hook_ENTITY_view().
+ */
+function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') {
+  $info = TourneyController::getPluginInfo($entity->format);
+  
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
+  );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+  );
+  $entity->content['tourney_format'] = array(
+   '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
+   '#suffix' => '</div>',
+   '#markup' => $info['title'],
+  );
+  $entity->content['tourney_players'] = array(
+   '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
+   '#suffix' => '</div>',
+   '#markup' => $entity->players,
+  );
+  if ($entity->winner) {
+    $entity->content['tourney_winner'] = array(
+     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+     '#suffix' => '</div>',
+     '#markup' => $entity->winner,
+    );
+  }
+  // Matches for this tournament displayed as a tree
+  $tree = $entity->render('tree');
+  if ( $tree ) {
+    $entity->content['bracket'] = array(
+      '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $tree,
+    );
+  }
+  
+  // Matches for this tournament displayed as a list
+  $list = $entity->render('list');
+  if ( $list ) {
+    $entity->content['list'] = array(
+      '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $list,
+    );  
+  }
+}
+
+/**
+ * Implements hook_ENTITY_view().
+ */
+function tourney_tourney_match_view($entity, $view_mode, $langcode = 'en') {
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
+  );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+  );
+  $entity->content['tournament'] = array(
+    '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#theme' => 'link',
+    '#text' => 'Go to tournament ' . $entity->getTournament()->label,
+    '#path' => $entity->getTournament()->getUri(),
+    '#options' => array('attributes' => array(), 'html' => FALSE),
+  );
+  $entity->content['match_winner'] = array(
+    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->getWinner(),
+  );
+  $i = 1;
+  foreach ($entity->getMatchContestants() as $eid => $contestant) {
+    $entity->content['match_contestant' . $i] = array(
+      '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $contestant->entity_name,
+    );
+    $i++;
+  }
+  
+  if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
+    $entity->content['match_table'] = array(
+      '#theme' => 'tourney_render_match',
+      '#match' => $entity,
+    );
+  }
+}
+
+/**
+ * Implements hook_ENTITY_view().
+ */
+function tourney_tourney_game_view($entity, $view_mode, $langcode = 'en') {
+  $entity->content['title'] = array(
+    '#prefix' => '<div class="title">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->label,
+  );
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
+  );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+  );
+  $entity->content['match_winner'] = array(
+    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->winner,
+  );
 }
 
 /**
