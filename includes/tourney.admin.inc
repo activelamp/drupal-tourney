@@ -172,7 +172,7 @@ function tourney_configuration($form, &$form_state) {
   $entities = entity_get_info();
   $filter_entities = array('tourney_tournament', 'tourney_match', 'tourney_game', 'relation', 'rules_config', 'comment');
   foreach ($entities as $key => $entity) {
-    if ($entity['controller class'] == 'EntityAPIControllerExportable') 
+    if ($entity['controller class'] == 'EntityAPIControllerExportable')
       unset($entities[$key]);
   }
   foreach ($filter_entities as $filter) {
@@ -195,7 +195,7 @@ function tourney_configuration($form, &$form_state) {
     '#title' => t('Turn debug mode on'),
     '#default_value' => variable_get('tourney_debug', FALSE),
   );
-  
+
   $form['tourney_games'] = array(
     '#type' => 'textfield',
     '#title' => t('Games'),
@@ -205,20 +205,20 @@ function tourney_configuration($form, &$form_state) {
     '#maxlength' => 2,
     '#required' => TRUE,
   );
-  
+
   $form['value'] = array(
     '#prefix' => '<div>',
     '#suffix' => '</div>',
     '#markup' => t('Delete entities with any broken relations'),
   );
-  
+
   $form['tourney_delete_orphaned_entities'] = array(
     '#type' => 'submit',
     '#value' => t('Delete Orphaned Entities'),
     '#submit' => array('tourney_delete_orphaned_entities'),
   );
-  
-  
+
+
   $form['tourney'] = array(
     '#prefix' => "<div>" . t('Select the entity bundles that can compete.') . "</div>",
     '#type' => 'vertical_tabs',
@@ -274,7 +274,7 @@ function tourney_configuration_form_submit($form, &$form_state) {
     // Save settings to variables table
     variable_set('tourney_games_all', $form_state['values']['tourney_games']);
     variable_set('tourney_debug', $form_state['values']['tourney_debug']);
-    
+
     // Set the relations.
     tourney_relation_type_untarget($relation_types);
     foreach ($entities as $key => $entity) {
@@ -321,30 +321,30 @@ function tourney_configuration_defaults_submit($form, &$form_state) {
 
 /**
  * Goes through all the tournament entities and ensures data sanity.
- * 
+ *
  * - Query for all game entities that do not have a "has_game" relation and
  *   delete game entity.
- * 
+ *
  * - Query for all match entities that do not have a "has_match" relation and
  *   delete match entity.
- * 
+ *
  * - Query for all tournament entities that do not have a "has_match" relation
  *   and delete tournament entity.
- * 
+ *
  * - Query for relations that only have one endpoint that exists, and delete the
  *   relation.
- * 
+ *
  */
 function tourney_delete_orphaned_entities($form, &$form_state) {
   // Clear the relations out of the cache table.
   cache_clear_all('relation:', 'cache', TRUE);
-  
+
   $batch = array(
     'title' => 'Deleting orphaned entities.',
     'finished' => 'tourney_delete_orphaned_finished',
     'file' => drupal_get_path('module', 'tourney') . '/includes/tourney.admin.inc',
   );
-  
+
   // Delete games
   tourney_delete_orphaned_op('tourney_game', 'tourney_match', 'has_game', $batch);
   // Delete matches
@@ -352,7 +352,7 @@ function tourney_delete_orphaned_entities($form, &$form_state) {
   tourney_delete_orphaned_op('tourney_match', 'tourney_tournament', 'has_match', $batch);
   // Delete tournaments
   tourney_delete_orphaned_op('tourney_tournament', 'tourney_match', 'has_match', $batch);
-  
+
   batch_set($batch);
 }
 
@@ -362,14 +362,14 @@ function tourney_delete_orphaned_entities($form, &$form_state) {
 function tourney_delete_orphaned_op($entity_name, $rel_entity_name, $rel_type, &$batch) {
   $ids = db_query('SELECT id FROM {' . $entity_name . '}')->fetchCol();
   foreach ($ids as $id) {
-    $batch['operations'][] = array('tourney_delete_orphaned_tourney_entity', 
+    $batch['operations'][] = array('tourney_delete_orphaned_tourney_entity',
       array($entity_name, $rel_entity_name, $rel_type, $id));
   }
 }
 
 /**
  * Find all matches and run them through relation checks.
- * 
+ *
  * @param $entity_name
  *   The entity name that is being operated on.
  * @param $rel_entity_name
@@ -384,9 +384,9 @@ function tourney_delete_orphaned_op($entity_name, $rel_entity_name, $rel_type, &
 function tourney_delete_orphaned_tourney_entity($entity_name, $rel_entity_name, $rel_type, $id, &$context) {
   $function = $entity_name . '_load';
   $entity = $function($id);
-  
+
   $related_entity = relation_get_related_entity($entity_name, $id, $rel_type);
-  
+
   if (is_object($entity) && !is_object($related_entity)) {
     $entity->delete();
     $context['message'] = t('Deleted %gid', array(

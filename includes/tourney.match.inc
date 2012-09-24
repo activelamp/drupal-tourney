@@ -71,7 +71,7 @@ function tourney_match_form($form, &$form_state, $match) {
 
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
-  
+
   $canset = $match->getTournament()->canSetContestants($match->getMID());
   $contestants = $match->getMatchContestants();
 
@@ -283,7 +283,7 @@ function _tourney_match_contestants($match, $this_eid = null) {
 function _tourney_match_contestants_sanitize($match, $this_eid, &$options) {
   $tournament = $match->getTournament();
   $plugin = $tournament->tourneyFormatPlugin;
-  
+
   // Get all the matches in round 1 for this tournament
   $tourney_matches = $plugin->data['matches'];
   $match_ids = array();
@@ -354,20 +354,20 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
-  
+
   // Check to see if the contestants on this match are different than who is
   // currently associated with the match. If they are different, we need to
   // reset the match.
   $contestant_ids = array_keys($match->getMatchContestants());
-  if (!empty($contestant_ids) 
+  if (!empty($contestant_ids)
     && (!in_array($form_state['values']['contestant1'], $contestant_ids)
       || !in_array($form_state['values']['contestant2'], $contestant_ids))) {
-    
+
     $match->resetMatch();
     $match_reset = TRUE;
     drupal_set_message('The games in this match have been reset');
   }
-  
+
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
   }
@@ -392,8 +392,8 @@ function tourney_match_form_submit($form, &$form_state) {
       $contestant = $match->getContestant(2);
       $match->removeContestant($contestant);
     }
-  } 
-  
+  }
+
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
   $match->getWinner();
   foreach ($form_state['input'] as $id => $value) {
@@ -562,7 +562,7 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
     );
     $i++;
   }
-  
+
   if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
     $entity->content['match_table'] = array(
       '#theme' => 'tourney_render_match',

@@ -20,7 +20,7 @@ class TourneyGameEntity extends TourneyEntity {
    */
   public function __construct($values = array(), $entityType = 'tourney_game') {
     parent::__construct($values, $entityType);
-    
+
     if (property_exists($this, 'id') && $this->id) {
       $this->tournamentId = $this->getTournamentId();
       $this->matchId = $this->getMatchId();
@@ -44,7 +44,7 @@ class TourneyGameEntity extends TourneyEntity {
       $query = relation_query('tourney_game', $this->id);
       $query->entityCondition('bundle', 'has_game');
       $results = $query->execute();
-      
+
       if (!empty($results)) {
         $relation = array_pop($results);
         $r = relation_load($relation->rid);
@@ -68,7 +68,7 @@ class TourneyGameEntity extends TourneyEntity {
       $query = relation_query('tourney_match', $this->getMatchId());
       $query->entityCondition('bundle', 'has_match');
       $results = $query->execute();
-      
+
       if (!empty($results)) {
         $relation = array_pop($results);
         $r = relation_load($relation->rid);
@@ -99,7 +99,7 @@ class TourneyGameEntity extends TourneyEntity {
 
     return $finished;
   }
-  
+
   /**
    * Lazy load a tournament object this match belongs to.
    */
@@ -109,7 +109,7 @@ class TourneyGameEntity extends TourneyEntity {
     }
     return $this->gameMatch;
   }
-  
+
   /**
    * Retrieve property. (Lazy load contestant objects).
    *
@@ -126,7 +126,7 @@ class TourneyGameEntity extends TourneyEntity {
    *   (optional) Associated key index, or simple integer offset index.
    *
    * @return array|object $contestant
-   *   If the $key paramater is NULL then an array of all contestants keyed 
+   *   If the $key paramater is NULL then an array of all contestants keyed
    *   by ["$obj_type.$obj_id"]. If $key parameter is string then only the
    *   element [$key] of all contestants is returned. If $key parameter is an
    *   integer then only the element at offset [$key] is returned.
@@ -166,7 +166,7 @@ class TourneyGameEntity extends TourneyEntity {
     parent::save();
     cache_clear_all('tourney_winner_count_' . $this->getMatchId(), 'cache_tourney');
   }
-  
+
   /**
    * Get the path to a tourney url without needing a tourney object loaded.
    */
@@ -179,7 +179,7 @@ class TourneyGameEntity extends TourneyEntity {
    */
   public function getUri() {
     return TourneyGameEntity::path($this->id);
-  }   
+  }
 
   public function delete() {
     parent::delete();

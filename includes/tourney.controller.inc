@@ -10,55 +10,55 @@ define('MAXIMUM_ROUNDS', 5);
 
 /**
  * Tournament plugins are responsible for four things:
- * 
+ *
  *   1. Define the structure data of a tournament.
  *   2. Define the match data in a tournament
  *   3. Provide data (and logic) of what the next and previous match is for both
  *      winners and losers of a match.
  *   4. How to render the tournament.
- * 
+ *
  * Beyond the four items listed above it is up to the system implementing the
  * plugin to decide what to do with the data the plugin provides.
- * 
+ *
  * Plugins should extend TourneyController to integrate with the Drupal entity
  * system that saves matches and the first game of each match. TourneyController
  * is the gateway between the plugin (the data and logic of tournament) and the
  * Drupal entity system.
- * 
+ *
  * The key component to every plugin is how the plugin builds its data array.
  * TourneyController provides helper methods to create arrays that hold important
- * data that is present in every tournament. Every tournament has some concept 
+ * data that is present in every tournament. Every tournament has some concept
  * of a bracket, round, match, and game. Plugin build() methods are encouraged
  * to use the build methods in TourneyController for these arrays:
- * 
+ *
  * @code
  * TourneyController::buildBracket($data);
  * TourneyController::buildRound($data);
  * TourneyController::buildMatch($data);
  * TourneyController::buildGame($data);
  * @endcode
- * 
+ *
  * The most important data structure your plugin should implement in build() is
  * TourneyController::buildMatch(). It is from this array that matches are saved
  * to the Drupal entity system using TourneyController::saveMatches().
- * 
+ *
  * Plugins can render on their own with no knowledge of a tournament entity. If
  * a plugin was instantiated with a tournament entity, then information from the
  * tournament will be preprocessed into the plugin render, and links to matches,
  * and contestant names will appear.
- * 
+ *
  * However, plugins should not be dependent on a tournament object being present.
  * As an example, the following code will instantiate a new plugin with
  * eight contestants, set a plugin option for a third place match, and then
  * render the tournament.
- * 
+ *
  * @code
  * $tournament = new SingleEliminationController(8);
  * $tournament->setPluginOptions(array('third_place' => TRUE));
  *
  * $tournament->render();
  * @endcode
- * 
+ *
  * This code will create all the matches in a data array, and render a tournament
  * bracket. If the plugin where loaded with a valid TourneyTournamentEntity, it
  * will render the same bracket with information from the tournament in the
@@ -71,19 +71,19 @@ class TourneyController implements TourneyControllerInterface {
   public $tournament;
   public $pluginOptions = array();
   public $moveWinners = TRUE;
-  
+
   /**
    * Constructor
    */
   public function __construct() {
     $this->pluginInfo = self::getPluginInfo(get_class($this));
   }
-  
+
   /**
    * Default theme implementations for every tournament format. We could have
    * defined these hooks directly in hook_theme(), but doing it this shows an
    * example of one might declare their own implementations in a plugin.
-   * 
+   *
    * @see hook_theme().
    */
   public static function theme($existing, $type, $theme, $path) {
@@ -107,7 +107,7 @@ class TourneyController implements TourneyControllerInterface {
       ),
     );
   }
-  
+
   /**
    * Reset static variables anytime data array is built.
    */
@@ -115,18 +115,18 @@ class TourneyController implements TourneyControllerInterface {
     drupal_static_reset('match');
     drupal_static_reset('round');
   }
-  
+
   /**
    * Methods that must be defined in plugin subclass.
-   * 
-   * @todo: Should these be abstract? Do we want to provide a default 
+   *
+   * @todo: Should these be abstract? Do we want to provide a default
    *   implemenations?
    */
   public function populatePositions() {}
   public function populateSeedPositions() {}
   public function preprocess($template, &$vars) {}
   public function render() {}
-     
+
   /**
    * Bracket data generator
    *
@@ -206,7 +206,7 @@ class TourneyController implements TourneyControllerInterface {
    * @param array $vars
    *   Keyed array of values on the elements to filter
    *   If one of the variables is an array, it will compare the testing
-   *     element's value against each of the array's 
+   *     element's value against each of the array's
    *
    * @param boolean $first
    *   If TRUE, will return the first matched element
@@ -254,7 +254,7 @@ class TourneyController implements TourneyControllerInterface {
     $is_array = array();
     foreach ($vars as $key => $value)
       $is_array[$key] = is_array($value);
-    // Loop through all elements of the requested data array 
+    // Loop through all elements of the requested data array
     foreach ($this->data[$data] as $id => &$element) {
       // We can only really optimize $first queries, since anything other
       // has to loop through all the elements anyways
@@ -272,12 +272,12 @@ class TourneyController implements TourneyControllerInterface {
         break;
       }
       // Compare all our required $vars with its applicable properties
-      // If that specific $vars is an array, check to see if the element's 
+      // If that specific $vars is an array, check to see if the element's
       // property is in the array
       // If the element fails at any of the checks, skip over it
       foreach ($vars as $key => $value) {
         if (!isset($element[$key]) || $element[$key] !== $value) {
-          if (!$is_array[$key] || !in_array($element[$key], $value)) 
+          if (!$is_array[$key] || !in_array($element[$key], $value))
             continue 2;
         }
       }
@@ -285,7 +285,7 @@ class TourneyController implements TourneyControllerInterface {
       // otherwise take the entire element
       if ($specific !== NULL)
         $elements[] = $data_is_array ? $element[$specific] : $element->$specific;
-      else 
+      else
         $elements[] = &$element;
       // When $first, don't go any further once the first element has been set
       if ($first === TRUE) {
@@ -294,8 +294,8 @@ class TourneyController implements TourneyControllerInterface {
         $optimize_until = NULL;
         return $elements[0];
       }
-    } 
-    // We're out of the loop, clear the static in case it went through all of 
+    }
+    // We're out of the loop, clear the static in case it went through all of
     // the keys without stopping at one
     $optimize_last  = NULL;
     $optimize_until = NULL;
@@ -306,14 +306,14 @@ class TourneyController implements TourneyControllerInterface {
       $optimize_using = NULL;
       // and search again for
       $elements = &$this->find($data, $vars, $first, $specific);
-    } 
+    }
     return $elements;
   }
-  
+
   /**
-   * Default method for saving matches. Plugins can override this and define 
+   * Default method for saving matches. Plugins can override this and define
    * their own way to save matches. We're going to save matches as entities.
-   * 
+   *
    * Iterates through the data array generated by plugin and creates new matches,
    * along with their initial games and appropriate relations.
    *
@@ -332,7 +332,7 @@ class TourneyController implements TourneyControllerInterface {
       // Set $id to the round number
       $bracket_id = '';
       $round_num = '';
-    
+
       // Set the games to zero for byes.
       if (array_key_exists('bye', $match) && $match['bye'] === TRUE) {
         continue;
@@ -351,10 +351,10 @@ class TourneyController implements TourneyControllerInterface {
         pathauto_create_alias('tourney', 'insert', $uri['path'], array($new_match->entity_type => $new_match), $new_match->type);
       }
 
-    
+
       // Create the Tourney/Match relation and save bracket and round data to it
       $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
-    
+
       // Create the Match/Game relation
       if ($games > 0) {
         $game = new TourneyGameEntity(array(
@@ -371,24 +371,24 @@ class TourneyController implements TourneyControllerInterface {
       }
     }
   }
-  
+
   /**
    * Retrieve a match by machine name if we have a tournament.
-   * 
+   *
    * @param $mid
    *   The match number to get
    * @return
-   *   A full loaded match object. 
+   *   A full loaded match object.
    */
   public function getMatchById($mid) {
     if (is_object($this->tournament)) {
       return $this->tournament->getMatchById($mid);
     }
   }
-  
+
   /**
    * Get a match uri for linking on a match block.
-   * 
+   *
    * @param $mid
    *   The match number to get
    * @return
@@ -397,10 +397,10 @@ class TourneyController implements TourneyControllerInterface {
   public function getMatchURI($mid) {
     return $this->tournament->getMatchURI($mid);
   }
-  
+
   /**
    * Check to see if contestants can be set on match.
-   * 
+   *
    * @param $mid
    *   The match number to check
    * @return
@@ -409,10 +409,10 @@ class TourneyController implements TourneyControllerInterface {
   public function canSetContestants($mid) {
     return $this->tournament->canSetContestants($mid);
   }
-  
+
   /**
    * Set the plugin options for this tourney format.
-   * 
+   *
    * @param $values
    *   Takes a key value pair to populate plugin options.
    */
@@ -421,22 +421,22 @@ class TourneyController implements TourneyControllerInterface {
       $this->pluginOptions[$key] = $value;
     }
   }
-  
+
   /**
    * Get the plugin options for this tourney format.
    */
   public function getPluginOptions() {
     // Get plugin options from a tournament
-    $this->tourneyPluginOptions = is_object($this->tournament) 
+    $this->tourneyPluginOptions = is_object($this->tournament)
       ? $this->tournament->get("**ALL**") : array();
-    
+
     // Allow tournament plugin options to override code options.
     return $this->pluginOptions = array_merge($this->pluginOptions, $this->tourneyPluginOptions);
   }
-  
+
   /**
    * Get the machine name of the plugin.
-   * 
+   *
    * @param $controller_name
    *   The name of the controller to find plugin information for.
    */
@@ -448,13 +448,13 @@ class TourneyController implements TourneyControllerInterface {
       }
     }
   }
-  
+
   /**
    * Plugin loader for the chosen tournament style.
    */
   public static function loadPlugin($tournament) {
     $tourneyFormatPlugin = $tournament->format;
-    
+
     if (!class_exists($tourneyFormatPlugin)) {
       trigger_error(check_plain(t('Unable to load plugin. Class not found.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
     }
@@ -467,10 +467,10 @@ class TourneyController implements TourneyControllerInterface {
       trigger_error(check_plain(t('Unable to load plugin. Class does not implement TourneyControllerInterface.', array('!tourneyFormatPlugin' => $tourneyFormatPlugin))), E_USER_ERROR);
     }
   }
-  
+
   /**
    * Get match info for a match that is passed in from plugin data.
-   * 
+   *
    * @param $mid
    *   Match plugin id
    * @param array
@@ -487,7 +487,7 @@ class TourneyController implements TourneyControllerInterface {
 
 /**
  * Default interface for tourney format controllers.
- * 
+ *
  * @todo: Update this interface with all methods that the tourney module expects
  *   to call on the plugin for.
  */
@@ -495,31 +495,31 @@ interface TourneyControllerInterface {
   /**
    * Plugin build() methods are encouraged to use the build methods in
    * TourneyController for these arrays:
-   * 
+   *
    * @code
    * TourneyController::buildBracket($data);
    * TourneyController::buildRound($data);
    * TourneyController::buildMatch($data);
    * TourneyController::buildGame($data);
    * @endcode
-   * 
+   *
    * The most important data structure your plugin should implement in build() is
    * TourneyController::buildMatch(). It is from this array that matches are saved
    * to the Drupal entity system using TourneyController::saveMatches()
    */
   public function build();
-  
+
   /**
    * Populate next/previous match pathing on the matches data array for each match.
    */
   public function populatePositions();
-  
+
   /**
    * Calculate and fill seed data into matches. Also marks matches as byes if
    * the match is a bye.
    */
   public function populateSeedPositions();
-  
+
   /**
    * Render the tournament
    */

@@ -57,7 +57,7 @@ function tourney_roundrobin_standings_sort($a, $b) {
   }
   else if ($a['losses'] != $b['losses']) {
     return $a['losses'] < $b['losses'] ? 1 : -1;
-  } 
+  }
   else {
     return $a['first'] < $b['first'] ? 1 : -1;
   }

@@ -85,7 +85,7 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
           break;
       }
     }
-  } 
+  }
   elseif ($type == 'tourney_game' && !empty($data['tourney_game'])) {
     foreach ($tokens as $name => $original) {
       switch ($name) {
