@@ -83,10 +83,8 @@ function tourney_match_form($form, &$form_state, $match) {
       '#title' => check_plain(t('Contestant ' . $slot)),
       '#default_value' => $eid,
       '#disabled' => !($slot & $canset),
-      '#required' => !($slot & $canset) || (is_object($contestant) && $contestant->eid) ? FALSE : TRUE,
     ) + _tourney_match_contestant($match, $eid);
   }
-  //}
 
   $form['games'] = array(
     '#type' => 'textfield',
@@ -192,8 +190,6 @@ function _tourney_match_contestant($match, $this_eid = null) {
   return array(
     '#type' => 'select',
     '#options' => _tourney_match_contestants($match, $this_eid),
-    '#default_value' => '',
-    '#required' => TRUE,
   );
 }
 /**
