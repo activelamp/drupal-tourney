@@ -12,18 +12,18 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   // Set the bundle name
   $tourney->type = 'tournament';
   $form_state['tourney'] = $tourney;
-  
+
   // Load the modal library and add the modal javascript.
   ctools_include('modal');
   ctools_modal_add_js();
-  
+
   // Use the entity id as the configure form id, or generate random string.
   $random_id = !empty($form_state['input']) ? $form_state['input']['rounds_form_id'] : user_password(32);
   $form['rounds_form_id'] = array(
     '#type' => 'hidden',
     '#value' => !empty($tourney->id) ? $tourney->id : $random_id,
   );
-  
+
   // Used as the base url for ctools modal popup.
   $form['configure_round_names_url'] = array(
     '#type' => 'hidden',
@@ -31,7 +31,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#value' => url('tourney/nojs/rounds/configure/' . $form['rounds_form_id']['#value']),
     '#weight' => -100,
   );
-  
+
   $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Tournament Name'),
@@ -43,7 +43,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => -10,
     '#required' => TRUE,
   );
-  
+
   $form['name'] = array(
     '#type' => 'machine_name',
     '#default_value' => isset($tourney->label) ? $tourney->name : '',
@@ -59,8 +59,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#element_validate' => array('tourney_machine_name_uniquify', 'form_validate_machine_name'),
     '#weight' => -10,
   );
-  
-  
+
+
   $form['format'] = array(
     '#type' => 'select',
     '#title' => t('Tournament style'),
@@ -70,8 +70,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => isset($tourney->format) ? $tourney->format : -1,
     '#attributes' => array('class' => array('edit-configure-round-names-url')),
     '#weight' => -8,
-  );     
-  
+  );
+
   // Get options form from plugin if one exists.
   tourney_get_plugin_options($tourney, $form, $form_state);
 
@@ -109,7 +109,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#description' => t('Show matches where the contestant advances automatically due to an uneven number of players.'),
     '#default_value' => $tourney->get('show_byes', FALSE),
   );
-  
+
   $form['tourney']['config_no_automation'] = array(
     '#type' => 'checkbox',
     '#title' => t('Do not move contestants automatically'),
@@ -123,7 +123,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#description' => t('Show round names above each round.'),
     '#default_value' => $tourney->get('show_round_names', FALSE),
   );
-  
+
   $form['tourney']['configure_round_names'] = array(
     '#type' => 'button',
     '#value' => t('Configure round names'),
@@ -134,7 +134,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
       ),
     ),
   );
-  
+
   $form['bundles'] = array(
     '#type' => 'fieldset',
     '#title' => 'Tournament Bundles',
@@ -152,7 +152,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => $tourney->get('match_bundle', 'match'),
     '#disabled' => isset($tourney->id) ? TRUE : FALSE,
   );
-  
+
   $form['bundles']['config_game_bundle'] = array(
     '#type' => 'select',
     '#title' => t('Game Bundle'),
@@ -161,7 +161,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => $tourney->get('game_bundle', 'game'),
     '#disabled' => isset($tourney->id) ? TRUE : FALSE,
   );
-  
+
   $form['bundles']['config_default_games'] = array(
     '#type' => 'textfield',
     '#title' => t('Default Number of Games'),
@@ -171,18 +171,18 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#disabled' => isset($tourney->id) ? TRUE : FALSE,
     '#element_validate' => array('tourney_tournament_validate_games'),
   );
-  
+
   $form['contestants'] = array(
     '#type' => 'fieldset',
     '#title' => t('Contestant Settings'),
     '#description' => t('Settings pertaining to contestants.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#group' => 'additional_settings',  
+    '#group' => 'additional_settings',
     '#access' => user_access('administer tourney'),
     '#weight' => 20,
   );
-  
+
   $form['contestants']['config_truncate'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of characters to truncate contestant names to.'),
@@ -191,9 +191,9 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#maxlength' => 255,
     '#default_value' => $tourney->get('config_truncate', TOURNEY_TRUNCATE),
   );
-  
+
   $form['path'] = tourney_create_path_field($tourney);
-  
+
   $form['options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Publishing Options'),
@@ -208,29 +208,29 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#title' => t('Published'),
     '#default_value' => isset($tourney->status) ? $tourney->status : 0,
   );
-  
+
   $form['debug'] = array(
     '#type' => 'fieldset',
     '#title' => t('Debug'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#group' => 'additional_settings',  
+    '#group' => 'additional_settings',
     '#access' => user_access('administer tourney'),
     '#weight' => 100,
   );
-  
+
   $form['debug']['config_show_next_match_path'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show next match identifier in match block'),
     '#default_value' => $tourney->get('show_next_match_path', -1),
   );
-  
+
   $form['debug']['config_show_previous_match_path'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show previous match identifier in match block'),
     '#default_value' => $tourney->get('show_previous_match_path', -1),
   );
-  
+
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
@@ -269,7 +269,7 @@ function tourney_tournament_validate_contestants($element, &$form_state) {
 function tourney_tournament_validate_games($element, &$form_state) {
   $value = $element['#value'];
   if (!is_int($value) && $value % 2 === 0) {
-    form_error($element, t('%name must be an odd number.', 
+    form_error($element, t('%name must be an odd number.',
       array('%name' => $element['#title'])));
   }
 }
@@ -321,7 +321,7 @@ function tourney_machine_name_uniquify(&$element, &$form_state) {
     $element['#value'] = truncate_utf8($original_machine_name, $maxlength - drupal_strlen($unique_suffix, TRUE)) . $unique_suffix;
     $i++;
   } while (tourney_name_exists($element['#value']));
-  
+
   // Change the value in the form that was submitted to unique machine name.
   $form_state['values']['name'] = $element['#value'];
 }
@@ -331,7 +331,7 @@ function tourney_machine_name_uniquify(&$element, &$form_state) {
  */
 function tourney_tournament_form_submit($form, &$form_state) {
   $tourney = $form_state['tourney'];
-  
+
   // Save settings to a config array, for use before config is actually saved
   // to the tourney table.
   $tourney->config = array();
@@ -342,28 +342,28 @@ function tourney_tournament_form_submit($form, &$form_state) {
     $tourney->config[substr($key, 7)] = $value;
   }
   tourney_set_plugin_options($tourney, $form_state, TRUE);
-  
+
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
   tourney_tournament_save($tourney);
-  
+
   // Any fields preceded with "config_" should be saved as configuration.
   foreach ($form_state['values'] as $key => $value) {
     if (substr($key, 0, 7) != 'config_') {
       continue;
     }
-    $tourney->set(substr($key, 7), $value); 
+    $tourney->set(substr($key, 7), $value);
   }
-  
+
   // Save plugin options
   tourney_set_plugin_options($tourney, $form_state);
-  
+
   // Clear the ctools object cache
   if ($tourney->config['show_round_names']) {
     $object = tourney_configure_rounds_cache_get($form_state['values']['rounds_form_id']);
     tourney_configure_rounds_cache_set($tourney->id, $object);
     tourney_configure_rounds_cache_clear($form_state['values']['rounds_form_id']);
   }
-  
+
   drupal_set_message(t('Your tournament has been saved.'));
   $form_state['redirect'] = $tourney->getUri();
 }
@@ -373,9 +373,9 @@ function tourney_tournament_form_submit($form, &$form_state) {
  */
 function tourney_tournament_page_view($tourney, $view_mode = 'full') {
   $entity_info = entity_get_info('tourney_tournament');
-  $mode = array_key_exists($view_mode, $entity_info['view modes']) 
+  $mode = array_key_exists($view_mode, $entity_info['view modes'])
     ? $view_mode : 'full';
-    
+
   return $tourney->view($mode, NULL, TRUE);
 }
 
@@ -460,7 +460,7 @@ function tourney_get_type_options($reset = FALSE) {
     return $options;
   }
 
-  $plugins = tourney_get_types();       
+  $plugins = tourney_get_types();
   uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
     $options[$info['controller']] = $info['title'];
@@ -472,7 +472,7 @@ function tourney_get_type_options($reset = FALSE) {
  * Load all the plugin option forms if one is available.  These forms are hidden
  * via the Drupal #states system, and only shown in the UI if the tournament
  * style for the controller is selected.
- * 
+ *
  * @todo Think about having these options load with ajax. It may get unwieldy if
  *   we have a ton of Tournament styles.
  */
@@ -481,20 +481,20 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
     '#type' => 'container',
     '#tree' => TRUE,
   );
-  
+
   $plugins = tourney_get_types();
-  uasort($plugins, 'ctools_plugin_sort');  
+  uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
     $controller = ctools_plugin_get_class($info, 'controller');
     if (class_exists($controller) && method_exists($controller, 'optionsForm')) {
       $plugin = new $controller(0, $tourney);
       $options_form = $plugin->optionsForm($form_state);
-      
+
       // If no options are defined move on.
       if (empty($options_form)) {
         continue;
       }
-      
+
       $form['plugin_options'][$controller] = array(
         '#type' => 'fieldset',
         '#title' => t('!title Settings', array('!title' => $info['title'])),
@@ -513,7 +513,7 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
 
 /**
  * Save any options the plugin has set
- * 
+ *
  * @param $tourney
  *   The tourney object to save settings for.
  * @param $form_state
@@ -531,7 +531,7 @@ function tourney_set_plugin_options(&$tourney, &$form_state, $to_cache = FALSE) 
       }
     }
   }
-  
+
   if (!empty($form_state['values']['plugin_options'])) {
     foreach ($form_state['values']['plugin_options'] as $name => $values) {
       if ($to_cache == TRUE) {
@@ -552,16 +552,16 @@ function tourney_configure_rounds($js = FALSE, $object_id, $slots, $controller) 
     'slots' => $slots,
     'object_id' => $object_id,
   );
-  
+
   if ($js) {
     ctools_include('ajax');
     ctools_include('modal');
     $output = ctools_modal_form_wrapper('tourney_configure_rounds_form', $form_state);
-    
+
     if ($form_state['executed'] && $js) {
       $commands = array();
       $commands[] = ctools_modal_command_dismiss();
-      
+
       print ajax_render($commands);
       exit;
     }
@@ -580,18 +580,18 @@ function tourney_configure_rounds_form($form, &$form_state) {
     $form_state['slots'] = $form_state['build_info']['args'][0]['slots'];
     $form_state['object_id'] = $form_state['build_info']['args'][0]['object_id'];
   }
-  
+
   // Instantiate a tournament so we can look at the data array.
   $plugin = new $form_state['controller']($form_state['slots']);
   $plugin->build();
-  
+
   $form_state['object'] = tourney_configure_rounds_cache_get($form_state['object_id']);
-  
+
   $form['num_rounds'] = array(
     '#type' => 'value',
     '#value' => count($plugin->data['rounds']),
   );
-  
+
   foreach ($plugin->data['rounds'] as $rid => $round) {
     // Set the bracket fieldset
     if (!array_key_exists('bracket_' . $round['bracket'], $form)) {
@@ -603,7 +603,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
         '#access' => user_access('administer tourney'),
       );
     }
-    
+
     // If the object_id is numeric, we have a tournament id.
     if (is_numeric($form_state['object_id'])) {
       $tourney = tourney_tournament_load($form_state['object_id']);
@@ -612,7 +612,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
     else {
       $round_title = $round['title'];
     }
-    
+
     $property = 'round_' . $rid;
     $form['bracket_' . $round['bracket']]['round_' . $rid] = array(
       '#type' => 'textfield',
@@ -623,12 +623,12 @@ function tourney_configure_rounds_form($form, &$form_state) {
       '#default_value' => property_exists($form_state['object'], $property) ? $form_state['object']->$property : $round_title,
     );
   }
-  
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Set Round Names'),
   );
-  
+
   return $form;
 }
 
@@ -637,7 +637,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
  */
 function tourney_configure_rounds_form_submit(&$form, &$form_state) {
   $form_state['object']->num_rounds = $form_state['values']['num_rounds'];
-  
+
   for($i = 1; $i <= $form_state['object']->num_rounds; $i++) {
     $property = 'round_' . $i;
     $form_state['object']->$property = $form_state['values']['round_' . $i];
