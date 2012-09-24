@@ -6,7 +6,7 @@
  */
 
 /**
- *
+ * Round Robin preprocessor.
  */
 function template_preprocess_tourney_roundrobin(&$vars) {
   $plugin = &$vars['plugin'];
@@ -17,7 +17,7 @@ function template_preprocess_tourney_roundrobin(&$vars) {
 }
 
 /**
- *
+ * Round Robin standings table preprocessor.
  */
 function template_preprocess_tourney_roundrobin_standings(&$vars) {
   $plugin = $vars['plugin'];
@@ -50,7 +50,11 @@ function template_preprocess_tourney_roundrobin_standings(&$vars) {
   $vars['standings'] = theme('table', $table);
 }
 
-
+/**
+ * Round Robin standings custom sorter by wins > losses > played first.
+ *
+ * @todo: Need to make this overribale in a better way.
+ */
 function tourney_roundrobin_standings_sort($a, $b) {
   if ($a['wins'] != $b['wins']) {
     return $a['wins'] < $b['wins'] ? 1 : -1;
