@@ -71,7 +71,7 @@ function tourney_match_form($form, &$form_state, $match) {
 
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
-  
+
   $canset = $match->getTournament()->canSetContestants($match->getMID());
   $contestants = $match->getMatchContestants();
 
@@ -83,10 +83,8 @@ function tourney_match_form($form, &$form_state, $match) {
       '#title' => check_plain(t('Contestant ' . $slot)),
       '#default_value' => $eid,
       '#disabled' => !($slot & $canset),
-      '#required' => !($slot & $canset) || (is_object($contestant) && $contestant->eid) ? FALSE : TRUE,
     ) + _tourney_match_contestant($match, $eid);
   }
-  //}
 
   $form['games'] = array(
     '#type' => 'textfield',
@@ -192,8 +190,6 @@ function _tourney_match_contestant($match, $this_eid = null) {
   return array(
     '#type' => 'select',
     '#options' => _tourney_match_contestants($match, $this_eid),
-    '#default_value' => '',
-    '#required' => TRUE,
   );
 }
 /**
@@ -283,7 +279,7 @@ function _tourney_match_contestants($match, $this_eid = null) {
 function _tourney_match_contestants_sanitize($match, $this_eid, &$options) {
   $tournament = $match->getTournament();
   $plugin = $tournament->tourneyFormatPlugin;
-  
+
   // Get all the matches in round 1 for this tournament
   $tourney_matches = $plugin->data['matches'];
   $match_ids = array();
@@ -354,7 +350,7 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
-  
+
   // Check to see if the contestants on this match are different than who is
   // currently associated with the match. If they are different, we need to
   // reset the match.
@@ -367,7 +363,7 @@ function tourney_match_form_submit($form, &$form_state) {
     $match_reset = TRUE;
     drupal_set_message('The games in this match have been reset');
   }
-  
+
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
   }
@@ -392,8 +388,8 @@ function tourney_match_form_submit($form, &$form_state) {
       $contestant = $match->getContestant(2);
       $match->removeContestant($contestant);
     }
-  } 
-  
+  }
+
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
   $match->getWinner();
   foreach ($form_state['input'] as $id => $value) {
@@ -530,69 +526,6 @@ function tourney_game_form_submit($form, &$form_state) {
   $form_state['redirect'] = $game->getUri();
 }
 
-/**
- * Implements hook_ENTITY_view().
- */
-function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en') {
-  $entity->content['#attached']['css'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
-  );
-  $entity->content['#attached']['js'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
-  );
-  $entity->content['tournament'] = array(
-    '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#theme' => 'link',
-    '#text' => 'Go to tournament ' . $entity->getTournament()->label,
-    '#path' => $entity->getTournament()->getUri(),
-    '#options' => array('attributes' => array(), 'html' => FALSE),
-  );
-  $entity->content['match_winner'] = array(
-    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->getWinner(),
-  );
-  $i = 1;
-  foreach ($entity->getMatchContestants() as $eid => $contestant) {
-    $entity->content['match_contestant' . $i] = array(
-      '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="field-content">',
-      '#suffix' => '</div>',
-      '#markup' => $contestant->entity_name,
-    );
-    $i++;
-  }
-  
-  if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
-    $entity->content['match_table'] = array(
-      '#theme' => 'tourney_render_match',
-      '#match' => $entity,
-    );
-  }
-}
-
-/**
- * Implements hook_ENTITY_view().
- */
-function tourney_tourney_game_view($entity, $type, $view_mode, $langcode = 'en') {
-  $entity->content['title'] = array(
-    '#prefix' => '<div class="title">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->label,
-  );
-  $entity->content['#attached']['css'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
-  );
-  $entity->content['#attached']['js'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
-  );
-  $entity->content['match_winner'] = array(
-    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->winner,
-  );
-}
-
 function tourney_match_get_parents($mid, $depth) {
   $ids = array($mid);
 
@@ -700,7 +633,7 @@ function theme_tourney_match_fix($vars) {
   foreach ($rows as $id => &$row) {
     $row[] = ' - ';
   }
-  if ( !$rows ) return null;
+  if (!$rows) return null;
 
   return theme('table', array(
     'attributes' => array('id' => 'game-list'),

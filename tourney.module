@@ -137,7 +137,7 @@ function tourney_menu() {
     'access arguments' => array('create tourney'),
     'file' => 'includes/tourney.tournament.inc',
   );
-  
+
   return $items;
 }
 
@@ -319,7 +319,7 @@ function tourney_entity_info() {
           'custom settings' => TRUE,
         ),
       ),
-      
+
       'access callback' => 'tourney_access',
       'module' => 'tourney',
     );
@@ -371,7 +371,7 @@ function tourney_entity_info() {
 
 /**
  * Implements hook_entity_info_alter().
- * 
+ *
  * Setup view modes for the entities we created.
  */
 function tourney_entity_info_alter(&$entity_info) {
@@ -385,7 +385,7 @@ function tourney_entity_info_alter(&$entity_info) {
       'custom settings' => TRUE,
     ),
   );
-  
+
   $entity_info['tourney_match']['view modes'] += array(
     'match_block' => array(
       'label' => t('Match Block'),
@@ -720,7 +720,7 @@ function tourney_access($op = 'view', $group = NULL, $account = NULL) {
 
 /**
  * Load a tourney entity by entity type and name.
- * 
+ *
  * @param $entity_type
  *   The entity type to load from.
  * @param $name
@@ -732,7 +732,7 @@ function tourney_entity_load_by_name($entity_type, $name, $reset = FALSE) {
   $entity_id = db_query("SELECT id FROM {" . $entity_type . "} WHERE name = :name",
     array(':name' => $name))
     ->fetchField();
-  
+
   $function = $entity_type . '_load';
   return $entity_id  > 0 ? $function($entity_id, NULL, $reset) : NULL;
 }
@@ -874,6 +874,119 @@ function tourney_entity_delete($entity, $type) {
     $uri = tourney_uri($entity);
     pathauto_entity_path_delete_all($type, $entity, $uri);
   }
+}
+
+/**
+ * Implements hook_ENTITY_view().
+ */
+function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') {
+  $info = TourneyController::getPluginInfo($entity->format);
+  
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
+  );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+  );
+  $entity->content['tourney_format'] = array(
+   '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
+   '#suffix' => '</div>',
+   '#markup' => $info['title'],
+  );
+  $entity->content['tourney_players'] = array(
+   '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
+   '#suffix' => '</div>',
+   '#markup' => $entity->players,
+  );
+  if ($entity->winner) {
+    $entity->content['tourney_winner'] = array(
+     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+     '#suffix' => '</div>',
+     '#markup' => $entity->winner,
+    );
+  }
+  // Matches for this tournament displayed as a tree
+  $tree = $entity->render('tree');
+  if ( $tree ) {
+    $entity->content['bracket'] = array(
+      '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $tree,
+    );
+  }
+  
+  // Matches for this tournament displayed as a list
+  $list = $entity->render('list');
+  if ( $list ) {
+    $entity->content['list'] = array(
+      '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $list,
+    );  
+  }
+}
+
+/**
+ * Implements hook_ENTITY_view().
+ */
+function tourney_tourney_match_view($entity, $view_mode, $langcode = 'en') {
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
+  );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+  );
+  $entity->content['tournament'] = array(
+    '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#theme' => 'link',
+    '#text' => 'Go to tournament ' . $entity->getTournament()->label,
+    '#path' => $entity->getTournament()->getUri(),
+    '#options' => array('attributes' => array(), 'html' => FALSE),
+  );
+  $entity->content['match_winner'] = array(
+    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->getWinner(),
+  );
+  $i = 1;
+  foreach ($entity->getMatchContestants() as $eid => $contestant) {
+    $entity->content['match_contestant' . $i] = array(
+      '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $contestant->entity_name,
+    );
+    $i++;
+  }
+  
+  if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
+    $entity->content['match_table'] = array(
+      '#theme' => 'tourney_render_match',
+      '#match' => $entity,
+    );
+  }
+}
+
+/**
+ * Implements hook_ENTITY_view().
+ */
+function tourney_tourney_game_view($entity, $view_mode, $langcode = 'en') {
+  $entity->content['title'] = array(
+    '#prefix' => '<div class="title">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->label,
+  );
+  $entity->content['#attached']['css'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
+  );
+  $entity->content['#attached']['js'] = array(
+    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
+  );
+  $entity->content['match_winner'] = array(
+    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->winner,
+  );
 }
 
 /**
@@ -1143,7 +1256,7 @@ function tourney_entity_load($entities, $type) {
 function tourney_entity_property_info_alter(&$info) {
   $properties = &$info['tourney_match']['properties'];
 
-  $properties['status']['setter callback'] = 'tourney_property_set'; 
+  $properties['status']['setter callback'] = 'tourney_property_set';
 
   $properties['matchinfo_id'] = array(
     'label'           => t("Match ID"),
@@ -1208,7 +1321,7 @@ function tourney_property_set(&$data, $name, $value, $langcode, $type, $info) {
 
 /**
  * Creates the path fieldset for the tournament add form if path module is on.
- * 
+ *
  * @param $entity
  *   The entity, if any, being edited on tournament edit page.
  */
@@ -1227,37 +1340,37 @@ function tourney_create_path_field($entity) {
   $form = array();
 
   $form['path'] = array(
-    '#type' => 'fieldset', 
-    '#title' => t('URL Path Settings'), 
-    '#collapsible' => TRUE, 
-    '#collapsed' => empty($path['alias']), 
-    '#group' => 'additional_settings', 
+    '#type' => 'fieldset',
+    '#title' => t('URL Path Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => empty($path['alias']),
+    '#group' => 'additional_settings',
     '#attributes' => array(
       'class' => array('path-form'),
-    ), 
+    ),
     '#attached' => array(
       'js' => array(drupal_get_path('module', 'path') . '/path.js'),
-    ), 
-    '#access' => user_access('create url aliases') || user_access('administer url aliases'), 
-    '#weight' => 30, 
-    '#tree' => TRUE, 
+    ),
+    '#access' => user_access('create url aliases') || user_access('administer url aliases'),
+    '#weight' => 30,
+    '#tree' => TRUE,
     '#element_validate' => array('path_form_element_validate'),
   );
 
   $path += array(
-    'pid' => NULL, 
-    'source' => isset($entity->entity_id) ? 'tourney/' . $entity->type . '/' . $entity->entity_id : NULL, 
-    'alias' => '', 
+    'pid' => NULL,
+    'source' => isset($entity->entity_id) ? 'tourney/' . $entity->type . '/' . $entity->entity_id : NULL,
+    'alias' => '',
     'language' => isset($entity->language) ? $match->language : LANGUAGE_NONE,
   );
 
   $form['path']['alias'] = array(
-    '#type' => 'textfield', 
-    '#title' => t('URL alias'), 
-    '#default_value' => $path['alias'], 
-    '#maxlength' => 255, 
-    '#collapsible' => TRUE, 
-    '#collapsed' => TRUE, 
+    '#type' => 'textfield',
+    '#title' => t('URL alias'),
+    '#default_value' => $path['alias'],
+    '#maxlength' => 255,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
     '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
   );
   $form['path']['pid'] = array(

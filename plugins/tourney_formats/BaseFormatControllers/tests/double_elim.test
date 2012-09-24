@@ -6,12 +6,12 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test Double Elimination next match positions - Challonge'),
+      'name' => t('Test Double Elimination next match positions'),
       'description' => t('Tests double elimination tournaments with a varying number or contestants.'),
       'group' => t('Tourney'),
     );
   }
-  
+
   /**
    * Set up test.
    */
@@ -21,11 +21,11 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
       'tourney',
     ));
   }
-  
+
   /**
    * Loops through all the matches defined in the test and checks values against
    * the plugin.
-   * 
+   *
    * @param $match
    *   A formatted match array that has a winner and slot.
    * @param $tournament
@@ -34,8 +34,8 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
   protected function checkNextMatch($match, $tournament) {
     $this->pass('Testing Double Elimination with ' . $tournament->numContestants . ' players.');
     $matches = $tournament->data['matches'];
-    
-    // Print each array to Test Result log 
+
+    // Print each array to Test Result log
     foreach ($match as $mid => $info) {
       $plugin_winner = $matches[$mid]['nextMatch']['winner']['id'];
       $plugin_winner_slot = $matches[$mid]['nextMatch']['winner']['slot'];
@@ -50,12 +50,12 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     }
     $this->pass('Ending Double Elimination with ' . $tournament->numContestants . ' players.');
   }
-  
+
   /**
-   * Testing Double Elimination next match logic as it pertains to challonge.com
+   * Testing Double Elimination next match logic
    */
-  public function testDoubleEliminationLogicChallonge() {
-    
+  public function testDoubleEliminationLogic() {
+
     /**
      * 4 man Double
      */
@@ -97,16 +97,16 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
+
     $this->checkNextMatch($match, $tournament);
-   
-    
+
+
     /**
      * 5 man Double
      */
     $tournament = new DoubleEliminationController(5);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -152,7 +152,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
+
     $this->checkNextMatch($match, $tournament);
 
 
@@ -161,7 +161,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(6);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -226,7 +226,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(7);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -292,7 +292,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
         'loser_slot' => 2,
       ),
     );
-    
+
     $this->checkNextMatch($match, $tournament);
 
 
@@ -301,7 +301,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(8);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       1 => array(
@@ -385,7 +385,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(9);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -480,7 +480,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(10);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -585,7 +585,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(11);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -700,7 +700,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(12);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -826,7 +826,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(13);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -961,7 +961,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(14);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -1106,7 +1106,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(15);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -1261,7 +1261,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(16);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       1 => array(
@@ -1426,7 +1426,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(17);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -1601,7 +1601,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(18);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -1779,14 +1779,14 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     );
 
     $this->checkNextMatch($match, $tournament);
- 
-    
+
+
     /**
      * 19 man Double
      */
     $tournament = new DoubleEliminationController(19);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -1981,7 +1981,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(20);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -2186,7 +2186,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(21);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -2395,13 +2395,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
 
     $this->checkNextMatch($match, $tournament);
 
-    
+
     /**
      * 22 man Double
      */
     $tournament = new DoubleEliminationController(22);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -2626,7 +2626,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(23);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -2861,7 +2861,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(24);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -3106,7 +3106,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(25);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -3361,7 +3361,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(26);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -3622,7 +3622,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(27);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -3891,13 +3891,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
 
     $this->checkNextMatch($match, $tournament);
 
-    
+
     /**
      * 28 man Double
      */
     $tournament = new DoubleEliminationController(28);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -4175,14 +4175,14 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     );
 
     $this->checkNextMatch($match, $tournament);
-    
-    
+
+
     /**
      * 29 man Double
      */
     $tournament = new DoubleEliminationController(29);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -4470,14 +4470,14 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
     );
 
     $this->checkNextMatch($match, $tournament);
-    
-    
+
+
     /**
      * 30 man Double
      */
     $tournament = new DoubleEliminationController(30);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       2 => array(
@@ -4776,13 +4776,13 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
 
     $this->checkNextMatch($match, $tournament);
 
-    
+
     /**
      * 31 man Double
      */
     $tournament = new DoubleEliminationController(31);
     $tournament->build();
-    
+
     $match = array(
       2 => array(
         'winner_id' => 17,
@@ -5096,7 +5096,7 @@ class DoubleEliminationNextMatchTestCase extends DrupalWebTestCase {
      */
     $tournament = new DoubleEliminationController(32);
     $tournament->build();
-    
+
     // Set the paths we are expecting the plugin to return.
     $match = array(
       1 => array(
