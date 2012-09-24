@@ -146,14 +146,14 @@ class TourneyMatchEntity extends TourneyEntity {
     if (is_null($this->matchInfo) && is_object($this->getTournament())) {
       // Extract just the match id from the machine name.
       $mid = $this->getMID();
-      
+
       // Get the plugin data for the match id passed in.
-      $tournament = $this->getTournament(); 
+      $tournament = $this->getTournament();
       $this->matchInfo = $tournament->tourneyFormatPlugin->getMatchInfo($mid);
     }
     return $this->matchInfo;
   }
-  
+
   /**
    * Extract just the match id from the machine name of the entity.
    */
@@ -234,7 +234,7 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Load contestants on match entity object.
-   * 
+   *
    * @todo: Not used anywhere in tourney. Pull this out once it is no longer a
    *   dependency on LoL.
    */
@@ -320,7 +320,7 @@ class TourneyMatchEntity extends TourneyEntity {
         if (!$game->getWinner()) continue;
         $winners[$game->getWinner()]++;
       }
-      
+
       asort($winners);
       cache_set('tourney_winner_count_' . $this->id, $winners, 'tourney_cache');
       return $winners;
@@ -362,7 +362,7 @@ class TourneyMatchEntity extends TourneyEntity {
         return TRUE;
       }
     }
-    
+
     $games = tourney_game_load_multiple($this->getGameIds());
     // Had to implement a tally count to double-check for a winner. For some
     // reason, the second match of a match group was saying it was finished
@@ -548,8 +548,9 @@ class TourneyMatchEntity extends TourneyEntity {
     foreach ($relations as $relation) {
       $relation = relation_load($relation->rid);
       $rcon = $relation->endpoints[LANGUAGE_NONE][1];
-      if ($rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id)
+      if ($rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id) {
         relation_delete($relation->rid);
+      }
     }
     $this->save();
   }
@@ -599,7 +600,7 @@ class TourneyMatchEntity extends TourneyEntity {
   *   Match entity of the desired match, otherwise NULL
   */
   public function nextMatch($direction = 'winner') {
-    if (array_key_exists('nextMatch', $this->matchInfo) 
+    if (array_key_exists('nextMatch', $this->matchInfo)
       && array_key_exists($direction, $this->matchInfo['nextMatch'])) {
       $next_plugin_id = $this->matchInfo['nextMatch'][$direction]['id'];
       return $this->getTournament()->getMatchById($next_plugin_id);
@@ -642,7 +643,7 @@ class TourneyMatchEntity extends TourneyEntity {
       if ($game->getWinner()) {
         break;
       }
-      
+
       // @todo: find a way to just load in a single relation based on two
       // related entities. This code just runs through all the related games to
       // the match to find the specific relation for the game to delete, and
@@ -662,7 +663,7 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     $this->gameIds = NULL;
   }
-  
+
   /**
    * Resets a match so that all the games to the match are deleted, and a fresh
    * new game is added to the match.
@@ -676,7 +677,7 @@ class TourneyMatchEntity extends TourneyEntity {
         $game->winner = NULL;
         $game->save();
       }
-    }    
+    }
     $this->addGame();
     $this->winner = "";
     $this->save();

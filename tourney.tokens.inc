@@ -37,6 +37,7 @@ function tourney_token_info() {
       'name' => t('Contestant 2'),
       'description' => t('Contestant in slot 2 of the match'),
     ),
+
   );
   $info['tokens']['tourney_game'] = array(
     'game_number' => array(
@@ -61,7 +62,9 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
           $replacements[$original] = $match->matchInfo['bracket'];
           break;
         case 'round_name':
-          $replacements[$original] = t('Round') . ' ' . $match->matchInfo['round'] . ' ';
+          //$replacements[$original] = t('Round') . ' ' . $match->matchInfo['round'];
+          $tournament = $match->getTournament();
+          $replacements[$original] = is_object($tournament) ? $tournament->get('round_' . $match->matchInfo['tourneyRound'], t('Round') . ' ' . $match->matchInfo['round']) : '';
           break;
         case 'round_number':
           $replacements[$original] = $match->matchInfo['tourneyRound'];
@@ -82,7 +85,7 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
           break;
       }
     }
-  } 
+  }
   elseif ($type == 'tourney_game' && !empty($data['tourney_game'])) {
     foreach ($tokens as $name => $original) {
       switch ($name) {

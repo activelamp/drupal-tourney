@@ -1,8 +1,13 @@
 <?php
 
-  /**
-   * Implements hook_menu().
-   */
+/**
+ * @file
+ * Provides entities to create a tournament series.
+ */
+
+/**
+ * Implements hook_menu().
+ */
 function tourney_series_menu() {
   $items = array();
   $items['tourney-series/add'] = array(
@@ -197,8 +202,8 @@ function get_tourney_series_relation($tourney_id, $series_id) {
         'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
       );
       if($id == $tourney_id) {
-        relation_delete($relation->rid)
-        ;drupal_goto(drupal_get_destination());
+        relation_delete($relation->rid);
+        drupal_goto(drupal_get_destination());
       }
     }
   }
