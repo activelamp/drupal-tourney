@@ -6,7 +6,7 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Test Single Elimination next match positions'),
+      'name' => t('Test Single Elimination next match positions - Challonge'),
       'description' => t('Tests single elimination tournaments with a varying number or contestants.'),
       'group' => t('Tourney'),
     );
@@ -28,20 +28,28 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
    * 
    * @param $match
    *   A formatted match array that has a winner and slot.
-   * @param $matches
-   *   The matches data array created by a format plugin.
+   * @param $tournament
+   *   The built tournament object.
    */
-  protected function checkNextMatch($match, $matches) {
+  protected function checkNextMatch($match, $tournament) {
+    $this->pass('Testing Single Elimination with ' . $tournament->numContestants . ' players.');
+    $matches = $tournament->data['matches'];
+    
     foreach ($match as $mid => $info) {
-      $this->assertEqual($info['winner'], $matches[$mid]['nextMatch']['winner']['id'], 'Match ' . $mid . ' winner is going to the correct place', 'PHP');
-      $this->assertEqual($info['slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' slot is going to the correct place', 'PHP');
+      $this->assertEqual($info['winner'], $matches[$mid]['nextMatch']['winner']['id'], 'Match ' . $mid . ' winner is going to the correct match', 'PHP');
+      $this->assertEqual($info['slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' winner is going to the correct slot', 'PHP');
     }
+    $this->pass('End of Single Elimination with ' . $tournament->numContestants . ' players.');
   }
   
 	/**
-	 * Testing 4 contestants
+	 * Testing Double Elimination next match logic.
 	 */
-  public function testSingleElim4() {
+  public function testSingleEliminationLogic() {
+    
+    /**
+     * 4 man Single
+     */
     $tournament = new SingleEliminationController(4);
     $tournament->build();
     
@@ -57,14 +65,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 5 contestants
-	 */
-  public function testSingleElim5() {
+    $this->checkNextMatch($match, $tournament);
+    
+    
+    /**
+     * 5 man Single
+     */
     $tournament = new SingleEliminationController(5);
     $tournament->build();
     
@@ -84,15 +90,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 6 contestants
-	 */
-  public function testSingleElim6() {
-    $tournament = new SingleEliminationController(7);
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 6 man Single
+     */
+    $tournament = new SingleEliminationController(6);
     $tournament->build();
     
     // Set the paths we are expecting the plugin to return.
@@ -114,15 +118,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
+
+    $this->checkNextMatch($match, $tournament);
+
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 7 contestants
-	 */
-  public function testSingleElim7() {
+    /**
+     * 7 man Single
+     */
     $tournament = new SingleEliminationController(7);
     $tournament->build();
     
@@ -150,14 +152,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 8 contestants
-	 */
-  public function testSingleElim8() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 8 man Single
+     */
     $tournament = new SingleEliminationController(8);
     $tournament->build();
     
@@ -188,15 +188,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 9 contestants
-	 */
-  public function testSingleElim9() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 9 man Single
+     */
     $tournament = new SingleEliminationController(9);
     $tournament->build();
     
@@ -232,14 +230,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 10 contestants
-	 */
-  public function testSingleElim10() {
+    $this->checkNextMatch($match, $tournament);
+    
+    
+    /**
+     * 10 man Single
+     */
     $tournament = new SingleEliminationController(10);
     $tournament->build();
     
@@ -279,14 +275,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 11 contestants
-	 */
-  public function testSingleElim11() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 11 man Single
+     */
     $tournament = new SingleEliminationController(11);
     $tournament->build();
     
@@ -330,14 +324,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 12 contestants
-	 */
-  public function testSingleElim12() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 12 man Single
+     */
     $tournament = new SingleEliminationController(12);
     $tournament->build();
     
@@ -385,14 +378,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 13 contestants
-	 */
-  public function testSingleElim13() {
+    $this->checkNextMatch($match, $tournament);
+    
+
+    /**
+     * 13 man Single
+     */
     $tournament = new SingleEliminationController(13);
     $tournament->build();
     
@@ -444,14 +435,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 14 contestants
-	 */
-  public function testSingleElim14() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 14 man Single
+     */
     $tournament = new SingleEliminationController(14);
     $tournament->build();
   
@@ -506,15 +495,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 15 contestants
-	 */
-  public function testSingleElim15() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 15 man Single
+     */
     $tournament = new SingleEliminationController(15);
     $tournament->build();
     
@@ -574,14 +561,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 16 contestants
-	 */
-  public function testSingleElim16() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 16 man Single
+     */
     $tournament = new SingleEliminationController(16);
     $tournament->build();
     
@@ -645,14 +630,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 17 contestants
-	 */
-  public function testSingleElim17() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 17 man Single
+     */
     $tournament = new SingleEliminationController(17);
     $tournament->build();
     
@@ -720,14 +703,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 18 contestants
-	 */
-  public function testSingleElim18() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 18 man Single
+     */
     $tournament = new SingleEliminationController(18);
     $tournament->build();
     
@@ -799,14 +780,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 19 contestants
-	 */
-  public function testSingleElim19() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 19 man Single
+     */
     $tournament = new SingleEliminationController(19);
     $tournament->build();
     
@@ -882,14 +861,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 20 contestants
-	 */
-  public function testSingleElim20() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 20 man Single
+     */
     $tournament = new SingleEliminationController(20);
     $tournament->build();
     
@@ -969,14 +946,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 21 contestants
-	 */
-  public function testSingleElim21() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 21 man Single
+     */
     $tournament = new SingleEliminationController(21);
     $tournament->build();
     
@@ -1059,15 +1034,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  /**
-	 * Testing 22 contestants
-	 */
-  public function testSingleElim22() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 22 man Single
+     */
     $tournament = new SingleEliminationController(22);
     $tournament->build();
     
@@ -1155,15 +1128,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 23 contestants
-	 */
-  public function testSingleElim23() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 23 man Single
+     */
     $tournament = new SingleEliminationController(23);
     $tournament->build();
     
@@ -1254,16 +1224,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 24 contestants
-	 */
-  public function testSingleElim24() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 24 man Single
+     */
     $tournament = new SingleEliminationController(24);
     $tournament->build();
     
@@ -1359,15 +1326,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 25 contestants
-	 */
-  public function testSingleElim25() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 25 man Single
+     */
     $tournament = new SingleEliminationController(25);
     $tournament->build();
     
@@ -1466,16 +1430,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 26 contestants
-	 */
-  public function testSingleElim26() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 26 man Single
+     */
     $tournament = new SingleEliminationController(26);
     $tournament->build();
     
@@ -1579,15 +1540,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 27 contestants
-	 */
-  public function testSingleElim27() {
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 27 man Single
+     */
     $tournament = new SingleEliminationController(27);
     $tournament->build();
     
@@ -1694,16 +1652,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 28 contestants
-	 */
-  public function testSingleElim28() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 28 man Single
+     */
     $tournament = new SingleEliminationController(28);
     $tournament->build();
     
@@ -1815,15 +1770,12 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 29 contestants
-	 */
-  public function testSingleElim29() {
+    $this->checkNextMatch($match, $tournament);
+    
+
+    /**
+     * 29 man Single
+     */
     $tournament = new SingleEliminationController(29);
     $tournament->build();
     
@@ -1938,16 +1890,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 30 contestants
-	 */
-  public function testSingleElim30() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 30 man Single
+     */
     $tournament = new SingleEliminationController(30);
     $tournament->build();
     
@@ -2066,14 +2015,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  /**
-	 * Testing 31 contestants
-	 */
-  public function testSingleElim31() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 31 man Single
+     */
     $tournament = new SingleEliminationController(31);
     $tournament->build();
     
@@ -2195,16 +2143,13 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
         'slot' => 2,
       ),
     );
-    
-    $this->checkNextMatch($match, $tournament->data['matches']);
-  }
-  
-  
-  
-  /**
-	 * Testing 32 contestants
-	 */
-  public function testSingleElim32() {
+
+    $this->checkNextMatch($match, $tournament);
+
+
+    /**
+     * 32 man Single
+     */
     $tournament = new SingleEliminationController(32);
     $tournament->build();
     
@@ -2332,6 +2277,7 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
       ),
     );
     
-    $this->checkNextMatch($match, $tournament->data['matches']);
+    $this->checkNextMatch($match, $tournament);
+
   }
 }

@@ -49,7 +49,7 @@ function tourney_games_to_table($games) {
   $rows   = array();
   
   foreach ($games as $gn => $game) {
-    $header[] = "Game " . ($gn + 1); //. ( $game ? " | " . $game->id : "" );
+    $header[] = "Game " . ($gn + 1); //. ($game ? " | " . $game->id : "");
     
     // A game does not yet exist for this match.
     if ($game == NULL || !method_exists($game, 'getContestants') || count($game->getContestants()) < 1) {
@@ -86,7 +86,7 @@ function tourney_games_to_table($games) {
   $header[] = "Results";
   foreach ($rows as $k => $v) {
     $points = array_key_exists('W', $tally = array_count_values($v)) ? $tally['W'] : 0;
-    $rows[$k][] = ( $points > count($games) / 2 ) ? 'Winner' : '-';
+    $rows[$k][] = ($points > count($games) / 2) ? 'Winner' : '-';
   }
   return theme('table', array(
     'attributes' => array('id' => 'game-list'),

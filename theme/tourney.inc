@@ -63,7 +63,8 @@ function template_preprocess_tourney_match_render(&$vars) {
   // Get the contestant output from the contestant template
   $contestant_output = '';
   $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';
-  foreach ($contestants as $slot => $contestant) {
+  foreach (array_values($contestants) as $slot => $contestant) {
+    $slot++;
     if (!is_object($contestant)) {
       $contestant = (object) $contestant;
     }
@@ -89,9 +90,18 @@ function template_preprocess_tourney_match_render(&$vars) {
       ));
     }
   }
-  
+
+  $vars['complete'] = isset($match) && $match->winner !== '';
+  $vars['is_bye'] = isset($vars['match']['bye']) && $vars['match']['bye'] == TRUE;
+
+  $vars['match_classes_array'] = array();
+  if ($vars['complete']) $vars['match_classes_array'][] = 'complete';
+  if ($vars['is_bye']) $vars['match_classes_array'][] = 'bye';
+  if (isset($match) && is_object($match) && $match->status == 0) $vars['match_classes_array'][] = 'not-necessary';
+  $vars['match_classes'] = implode(' ', $vars['match_classes_array']);
+
   $vars['contestants'] = $contestant_output;
-  $vars['has_children'] = isset($vars['match']['children']);
+  $vars['has_children'] = isset($vars['match']['children']) && count($vars['match']['children']);
 }
 
 /**
@@ -109,10 +119,11 @@ function template_preprocess_tourney_contestant(&$vars) {
   $plugin->preprocess('tourney-contestant', $vars);
   
   $vars['classes_array'][] = 'contestant-' . $vars['contestant']->slot;
-  $vars['classes_array'][] = $vars['winner'] ? 'winner' : '';
-  
+  $vars['classes_array'][] = $vars['winner'] ? 'winner' : 'loser';
+
   if (property_exists($vars['contestant'], 'name') && $vars['contestant']->name) {
     $vars['name'] = $vars['contestant']->name;
+    $vars['classes_array'][] = 'eid-' . str_replace('.', '-', $vars['contestant']->eid);
   }
   else {
     $vars['name'] = 'Team ' . $vars['contestant']->slot;

@@ -107,6 +107,9 @@ function tourney_action_game_is_won($match, $quotient) {
     // the necessary contestants
     if ($match->getWinner()) {
       if ($match->nextMatch()) {
+        $match->getTournament()->winner = '';
+        $match->getTournament()->save();
+        $match->nextMatch()->status = 1;
         $match->nextMatch()->removeContestant($match->getWinnerEntity());
       }
       if ($match->nextMatch('loser')) {

@@ -219,7 +219,9 @@ class TourneyController implements TourneyControllerInterface {
    *   Array of elements that match the $vars given
    */
   public function &find($data, $vars, $first = FALSE, $specific = NULL) {
-    if ( !isset($this->data[$data]) ) return NULL;
+    if (!isset($this->data[$data])) {
+      return NULL;
+    }
     // Added in optimization to make routine find() calls faster
     // Normally searches are incremented, so this optimization holds
     // the place of the last call and continues the search from there
@@ -240,7 +242,7 @@ class TourneyController implements TourneyControllerInterface {
            $optimize_using = $optimize_last;
     static $optimize_array = array();
 
-    if ( $optimize_data !== $data ) {
+    if ($optimize_data !== $data) {
       $optimize_last  = NULL;
       $optimize_until = NULL;
       $optimize_using = NULL;
@@ -250,54 +252,60 @@ class TourneyController implements TourneyControllerInterface {
     $elements = array();
     // is_array is expensive, set up an array to store this information
     $is_array = array();
-    foreach ( $vars as $key => $value )
+    foreach ($vars as $key => $value)
       $is_array[$key] = is_array($value);
     // Loop through all elements of the requested data array 
-    foreach ( $this->data[$data] as $id => &$element ) {
+    foreach ($this->data[$data] as $id => &$element) {
       // We can only really optimize $first queries, since anything other
       // has to loop through all the elements anyways
-      if ( $first && $optimize_last ) {
+      if ($first && $optimize_last) {
         // Until we hit the key we left off at, keep skipping elements...
-        if ( $id !== $optimize_last ) continue;
+        if ($id !== $optimize_last) {
+          continue;
+        }
         // ...and then we clear the variable so we can continue on.
         $optimize_last  = NULL;
       }
       // The other end of this is if we're continuing a failed optimized
       // search to exit out of the loop once we've hit where we started from
-      if ( $optimize_until && $id == $optimize_until ) break;
+      if ($optimize_until && $id == $optimize_until) {
+        break;
+      }
       // Compare all our required $vars with its applicable properties
       // If that specific $vars is an array, check to see if the element's 
       // property is in the array
       // If the element fails at any of the checks, skip over it
-      foreach ( $vars as $key => $value ) {
-        if ( $element[$key] !== $value ) {
-          if ( !$is_array[$key] || !in_array($element[$key], $value) ) 
+      foreach ($vars as $key => $value) {
+        if (!isset($element[$key]) || $element[$key] !== $value) {
+          if (!$is_array[$key] || !in_array($element[$key], $value)) 
             continue 2;
         }
       }
       // If we've supplied a 'specific' argument, only take that value,
       // otherwise take the entire element
-      if ( $specific !== NULL )
+      if ($specific !== NULL)
         $elements[] = $data_is_array ? $element[$specific] : $element->$specific;
       else 
         $elements[] = &$element;
       // When $first, don't go any further once the first element has been set
-      if ( $first === TRUE ) {
+      if ($first === TRUE) {
         // Set the optimizing static so we know where to start from next time
         $optimize_last = $id;
+        $optimize_until = NULL;
         return $elements[0];
       }
     } 
     // We're out of the loop, clear the static in case it went through all of 
     // the keys without stopping at one
-    $optimize_last = NULL;
+    $optimize_last  = NULL;
+    $optimize_until = NULL;
     // If we have no elements and we were using optimiziation...
-    if ( !$elements && $optimize_using ) {
+    if (!$elements && $optimize_using) {
       // ...set the end key to what we started from
       $optimize_until = $optimize_using;
       $optimize_using = NULL;
       // and search again for
-      $elements = $this->find($data, $vars, $first, $specific);
+      $elements = &$this->find($data, $vars, $first, $specific);
     } 
     return $elements;
   }
@@ -314,7 +322,12 @@ class TourneyController implements TourneyControllerInterface {
    */
   public function saveMatches() {
     $matches = $this->data['matches'];
-    
+    $create_alias = FALSE;
+    if (module_exists('pathauto')) {
+      module_load_include('inc', 'pathauto');
+      $create_alias = TRUE;
+    }
+
     foreach ($matches as $mid => $match) {
       // Set $id to the round number
       $bracket_id = '';
@@ -333,13 +346,14 @@ class TourneyController implements TourneyControllerInterface {
       );
       $new_match = new TourneyMatchEntity($values);
       $new_match->save();
+      if ($create_alias && pathauto_pattern_load_by_entity($new_match->entity_type, $new_match->type)) {
+        $uri = entity_uri($new_match->entity_type, $new_match);
+        pathauto_create_alias('tourney', 'insert', $uri['path'], array($new_match->entity_type => $new_match), $new_match->type);
+      }
+
     
       // Create the Tourney/Match relation and save bracket and round data to it
       $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
-      $relation = relation_load($rid);
-      $relation->bracket[LANGUAGE_NONE][0]['value'] = $bracket_id;
-      $relation->round[LANGUAGE_NONE][0]['value'] = $round_num;
-      relation_save($relation);
     
       // Create the Match/Game relation
       if ($games > 0) {
@@ -349,6 +363,10 @@ class TourneyController implements TourneyControllerInterface {
           'name' => $new_match->name . '_game-1',
         ));
         $game->save();
+        if ($create_alias && pathauto_pattern_load_by_entity($game->entity_type, $game->type)) {
+          $uri = entity_uri($game->entity_type, $game);
+          pathauto_create_alias('tourney', 'insert', $uri['path'], array($game->entity_type => $game), $game->type);
+        }
         tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
       }
     }

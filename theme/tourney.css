@@ -1,3 +1,8 @@
+.tourney-tournament {
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
 .tourney-tournament .match {
   width: 120px;
 }
@@ -5,6 +10,11 @@
 .tourney-tournament .match {
   background: #E0E0E0;
   border-radius: 7px;
+}
+
+.tourney-tournament .parent .match.bye,
+.tourney-tournament .parent .match.not-necessary {
+  opacity: 0.4;
 }
 
 .tourney-tournament .match:hover {
@@ -289,6 +299,21 @@
   width: 87%;
 }
 
-.contestant.winner {
-  background: #F1F178;
+
+.tourney-tournament .match .contestant.winner {
+  background-color: #C8C8C8;
+}
+
+.tourney-tournament .match .contestant.tourney-highlight {
+  background: #FB4B00;
+  color: #FFF;
+}
+
+.tourney-tournament .match:hover {
+  box-shadow: 0px 0px 10px 2px #CCC;
+}
+
+.tourney-tournament .match-link {
+  color: #333;
+  text-decoration: none;
 }

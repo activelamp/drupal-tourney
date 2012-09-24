@@ -6,9 +6,9 @@
  * @ingroup tourney_templates
  */
 ?>
-<div class="match">
+<div class="match <?php print $match_classes; ?>">
   <?php if ($has_children): ?>
-    <div class="connector to-children <?php print $children_classes; ?>"></div>
+    <div class="connector to-children"></div>
   <?php endif; ?>
   <?php print $contestants; ?>
 </div>

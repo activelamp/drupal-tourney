@@ -6,7 +6,7 @@
  */
 
 /**
- * Generates the profile type editing form.
+ * Generates the tourney type editing form.
  */
 function tourney_type_form($form, &$form_state, $tourney_type, $op = 'edit') {
   if ($op == 'clone') {
@@ -105,7 +105,7 @@ function theme_tourney_admin_content($variables) {
   $header = $variables['header'];
 
   $rows = array();
-  if ( empty($tournaments) ) {
+  if (empty($tournaments)) {
     $message = t('There are currently no tournaments on your site.');
 
     $rows[] = array(
@@ -171,11 +171,11 @@ function tourney_configuration($form, &$form_state) {
   // Capture enumeration of content types.
   $entities = entity_get_info();
   $filter_entities = array('tourney_tournament', 'tourney_match', 'tourney_game', 'relation', 'rules_config', 'comment');
-  foreach ( $entities as $key => $entity ) {
-    if ( $entity['controller class'] == 'EntityAPIControllerExportable' ) 
+  foreach ($entities as $key => $entity) {
+    if ($entity['controller class'] == 'EntityAPIControllerExportable') 
       unset($entities[$key]);
   }
-  foreach ( $filter_entities as $filter ) {
+  foreach ($filter_entities as $filter) {
     unset($entities[$filter]);
   }
 
@@ -206,13 +206,25 @@ function tourney_configuration($form, &$form_state) {
     '#required' => TRUE,
   );
   
+  $form['value'] = array(
+    '#prefix' => '<div>',
+    '#suffix' => '</div>',
+    '#markup' => t('Delete entities with any broken relations'),
+  );
+  
+  $form['tourney_delete_orphaned_entities'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete Orphaned Entities'),
+    '#submit' => array('tourney_delete_orphaned_entities'),
+  );
+  
+  
   $form['tourney'] = array(
-    '#prefix' => t('Select the entity bundles that can compete.'),
+    '#prefix' => "<div>" . t('Select the entity bundles that can compete.') . "</div>",
     '#type' => 'vertical_tabs',
-  );
-  $form['tourney']['#attached']['css'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.css',
-  );
+    '#attached' => array('css' => array(
+      drupal_get_path('module', 'tourney') . '/theme/tourney.css'),
+  ));
 
   foreach ($entities as $key => $entity) {
     $form['tourney'][$key] = array(
@@ -305,6 +317,97 @@ function tourney_configuration_defaults_submit($form, &$form_state) {
   }
 
   return $form;
+}
+
+/**
+ * Goes through all the tournament entities and ensures data sanity.
+ * 
+ * - Query for all game entities that do not have a "has_game" relation and
+ *   delete game entity.
+ * 
+ * - Query for all match entities that do not have a "has_match" relation and
+ *   delete match entity.
+ * 
+ * - Query for all tournament entities that do not have a "has_match" relation
+ *   and delete tournament entity.
+ * 
+ * - Query for relations that only have one endpoint that exists, and delete the
+ *   relation.
+ * 
+ */
+function tourney_delete_orphaned_entities($form, &$form_state) {
+  // Clear the relations out of the cache table.
+  cache_clear_all('relation:', 'cache', TRUE);
+  
+  $batch = array(
+    'title' => 'Deleting orphaned entities.',
+    'finished' => 'tourney_delete_orphaned_finished',
+    'file' => drupal_get_path('module', 'tourney') . '/includes/tourney.admin.inc',
+  );
+  
+  // Delete games
+  tourney_delete_orphaned_op('tourney_game', 'tourney_match', 'has_game', $batch);
+  // Delete matches
+  tourney_delete_orphaned_op('tourney_match', 'tourney_game', 'has_game', $batch);
+  tourney_delete_orphaned_op('tourney_match', 'tourney_tournament', 'has_match', $batch);
+  // Delete tournaments
+  tourney_delete_orphaned_op('tourney_tournament', 'tourney_match', 'has_match', $batch);
+  
+  batch_set($batch);
+}
+
+/**
+ * Helper function to find all tourney entities, and create operations for them.
+ */
+function tourney_delete_orphaned_op($entity_name, $rel_entity_name, $rel_type, &$batch) {
+  $ids = db_query('SELECT id FROM {' . $entity_name . '}')->fetchCol();
+  foreach ($ids as $id) {
+    $batch['operations'][] = array('tourney_delete_orphaned_tourney_entity', 
+      array($entity_name, $rel_entity_name, $rel_type, $id));
+  }
+}
+
+/**
+ * Find all matches and run them through relation checks.
+ * 
+ * @param $entity_name
+ *   The entity name that is being operated on.
+ * @param $rel_entity_name
+ *   The related entity name to the entity being operated on.
+ * @param $rel_type
+ *   The relation type to check the relation on.
+ * @param $id
+ *   The entity id for the entity being operated on.
+ * @param $context
+ *   The context variable that is passed around by Batch API.
+ */
+function tourney_delete_orphaned_tourney_entity($entity_name, $rel_entity_name, $rel_type, $id, &$context) {
+  $function = $entity_name . '_load';
+  $entity = $function($id);
+  
+  $related_entity = relation_get_related_entity($entity_name, $id, $rel_type);
+  
+  if (is_object($entity) && !is_object($related_entity)) {
+    $entity->delete();
+    $context['message'] = t('Deleted %gid', array(
+      '%gid' => $entity_name . ' ' . $entity->id));
+  }
+  $context['results'][] = 'Deleted orphaned entities';
+}
+
+/**
+ * Batch 'finished' callback used by both batch 1 and batch 2.
+ */
+function tourney_delete_orphaned_finished($success, $results, $operations) {
+  if ($success) {
+    drupal_set_message(t('Orphaned entities have been deleted.'));
+  }
+  else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    drupal_set_message(t('An error occurred while processing @operation with arguments : @args', array('@operation' => $error_operation[0], '@args' => print_r($error_operation[0], TRUE))));
+  }
 }
 
 /**

@@ -31,7 +31,7 @@ function tourney_schema() {
       'name' => array(
         'description' => 'The machine-readable name of this tournament.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 255,
         'not null' => TRUE),
       'label' => array(
         'description' => 'The title of the tournament, always treated as non-markup plain text.',
@@ -87,10 +87,15 @@ function tourney_schema() {
         'length' => 32,
         'not null' => TRUE,
         'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
       'name' => array(
         'description' => 'The machine-readable name of this match.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 255,
         'not null' => TRUE),
       'label' => array(
         'description' => 'The title of a match, always treated as non-markup plain text.',
@@ -137,13 +142,18 @@ function tourney_schema() {
       'type' => array(
         'description' => 'The bundle.',
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 255,
         'not null' => TRUE,
         'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
       'name' => array(
         'description' => 'The machine-readable name of this game.',
         'type' => 'varchar',
-        'length' => 128,
+        'length' => 255,
         'not null' => TRUE),
       'label' => array(
         'description' => 'The title of a game, always treated as non-markup plain text.',
@@ -334,6 +344,9 @@ function tourney_install() {
     'weight' => 0,
   ));
   $type->save();
+  
+  // Set extra field defaults.
+  _tourney_set_extra_fields_defaults();
 }
 
 /**
@@ -568,10 +581,90 @@ function tourney_update_7009() {
   return t('Fields deleted sucessfully.');
 }
 
+/**
+ * Changes the max-length of machine name fields to be much larger.
+ */
+function tourney_update_7010() {
+  db_change_field('tourney_tournament', 'name', 'name', array(
+    'description' => 'The machine-readable name of this tournament.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE));
+  db_change_field('tourney_match', 'name', 'name', array(
+    'description' => 'The machine-readable name of this match.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE));
+  db_change_field('tourney_game', 'name', 'name', array(
+    'description' => 'The machine-readable name of this game.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE));
+  return t('Machine name fields updated successfully.');
+}
+
+/**
+ * Adding status field for match and game entities.
+ */
+function tourney_update_7011() {
+  db_add_field('tourney_match', 'status', 
+    array(
+    'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+  db_add_field('tourney_game', 'status', 
+    array(
+    'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+  return t('Tournament content updated successfully.');
+}
+
+/**
+ * Setting default settings for new view modes added.
+ */
+function tourney_update_7012() {
+  _tourney_set_extra_fields_defaults();
+}
 
 /**
  * Helper functions
  */
+
+/**
+ * Set the defaults for the extra_fields().
+ */
+function _tourney_set_extra_fields_defaults() {
+  $settings = array(
+    'extra_fields' => array(
+      'display' => array(
+        // Each extra field
+        'bracket' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'bracket' => array('visible' => TRUE, 'weight' => 10),
+          'list' => array('visible' => FALSE, 'weight' => 10),
+          'teaser' => array('visible' => FALSE, 'weight' => 10),
+        ),
+        'list' => array(
+          // View modes
+          'list' => array('visible' => TRUE, 'weight' => 10),
+          'default' => array('visible' => FALSE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 11),
+          'bracket' => array('visible' => FALSE, 'weight' => 10),
+          'teaser' => array('visible' => FALSE, 'weight' => 10),
+        ),
+      ),
+    ),
+  );
+
+  field_bundle_settings('tourney_tournament', 'tournament', $settings);
+}
 
 /**
  * Update machine name field

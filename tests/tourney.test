@@ -1,0 +1,61 @@
+<?php
+
+class TourneyWebTestCase extends DrupalWebTestCase {
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'tourney',
+    ));
+  
+    // Create and log in our privileged user.
+    // This is our UID 2 created for making roles.
+    $this->privileged_user = $this->drupalCreateUser(array('administer tourney', 'create tourney', 'edit tourney'));
+    $this->drupalLogin($this->privileged_user);
+  
+    // Create 35 users, starting with UID 3
+    for ($i = 1; $i <= 35; $i++) {
+      //Allow users to access content  
+      $user=  $this->drupalCreateUser(array('access content'));
+      //Creating a message for simpletest results to display names being changed to a defined one. 
+      // $this->verbose("Renaming {$user->name} to user.{$user->uid}");
+      //Assigning Username to "user" plus userid, so test can target pre-defined usernames. 
+      $user->name = 'user.' . $user->uid;
+      //Saving user
+      user_save($user);
+    }
+  }
+  
+  /**
+   * Fill out the tournament add form and save.
+   * 
+   * @param $format
+   *   The format option to select on the tourney/add form.
+   * @param $players
+   *   The number of players to play in the tournament.
+   * @return string
+   *   Returns the name of the tournament that was added.
+   */
+  protected function createTourney($format, $players, $default_games = 1) {
+    // Create the tournament.
+    $edit = array();  
+    // Set the Name of the tournament to a Random name.
+    $tournament_name = $this->randomName(8);
+    // Set the name of the $tourament_name to the Label(Display Name) Field.
+    $edit['label'] = $tournament_name;
+    // Set machine name of the tournament
+    $edit['name'] = strtolower($edit['label']);
+    // Set the number of Contestants in this tournament
+    $edit['players'] = $players;
+    // Set the Tournament 'Type'
+    $edit['format'] = $format;
+    // Set the number of games played in a single match, for all matches in tourament.
+    $edit['config_default_games'] = $default_games;
+    // Save the match and create tournament
+    $this->drupalPost('tourney/add', $edit, t('Save'));
+    
+    return $tournament_name;
+  }
+}

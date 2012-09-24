@@ -95,8 +95,8 @@ class TourneyMatchEntity extends TourneyEntity {
    *   An empty array will be returned if no contestants are found.
    */
   public static function fetchContestantIds($match_id = NULL) {
-    if ( $match_id == NULL ) {
-      if ( !isset($this) ) return NULL;
+    if ($match_id == NULL) {
+      if (!isset($this)) return NULL;
       $match_id = $this->id;
     }
     $contestants = array();
@@ -107,6 +107,7 @@ class TourneyMatchEntity extends TourneyEntity {
 
     foreach ($results as $relation) {
       $r = relation_load($relation->rid);
+      if ( !$r ) return array();
       $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
       $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
       $contestants[] = array(
@@ -265,10 +266,10 @@ class TourneyMatchEntity extends TourneyEntity {
   }
 
   public function getLoser() {
-    if ( is_null($this->matchLoser) ) {
-      if ( !$this->getWinner() ) return NULL;
-      foreach ( $this->getContestantIds() as $contestant ) {
-        if ( $contestant['eid'] !== $this->getWinner() )
+    if (is_null($this->matchLoser)) {
+      if (!$this->getWinner()) return NULL;
+      foreach ($this->getContestantIds() as $contestant) {
+        if ($contestant['eid'] !== $this->getWinner())
           $this->matchLoser = $contestant['eid'];
       }
     }
@@ -286,7 +287,7 @@ class TourneyMatchEntity extends TourneyEntity {
   }
 
   public function getLoserEntity() {
-    if ( !$this->getLoser() ) {
+    if (!$this->getLoser()) {
       return NULL;
     }
     return entity_load_single_by_eid($this->getLoser());
@@ -368,10 +369,12 @@ class TourneyMatchEntity extends TourneyEntity {
     // before it actually was.
     $tally = array();
     // if empty, it still needs to load games into, therefore is unfinished
-    if ( empty($games) ) return FALSE;
+    if (empty($games)) {
+      return FALSE;
+    }
     foreach ($games as $game) {
       // Delegate the checking to the game to see if each game is finished
-      if ( array_key_exists($game->winner, $tally) )
+      if (array_key_exists($game->winner, $tally))
         $tally[$game->winner]++;
       else
         $tally[$game->winner] = 1;
@@ -381,7 +384,7 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     asort($tally);
     $top = array_pop($tally);
-    if ( $top < $this->games / 2 ) return FALSE;
+    if ($top < $this->games / 2) return FALSE;
     return TRUE;
   }
 
@@ -396,7 +399,7 @@ class TourneyMatchEntity extends TourneyEntity {
       $keys = array_keys($ranks);
       $this->matchWinner = array_pop($keys);
       // @todo: Why are we using matchWinner instead of winner?
-      if ( $this->winner !== $this->matchWinner ) {
+      if ($this->winner !== $this->matchWinner) {
         $this->winner = $this->matchWinner;
         $this->save();
       }
@@ -424,7 +427,14 @@ class TourneyMatchEntity extends TourneyEntity {
       $relation = relation_load($rid);
       relation_delete($rid);
       $game = tourney_game_load($relation->endpoints['und'][1]['entity_id']);
-      $game->delete();
+      if (is_object($game)) {
+        $game->delete();
+      }
+      else {
+        drupal_set_message(t('Could not delete game entity %id. Does not exist', array(
+         '%id' => $relation->endpoints['und'][1]['entity_id'],
+        )), 'warning');
+      }
     }
 
     parent::delete();
@@ -435,7 +445,7 @@ class TourneyMatchEntity extends TourneyEntity {
   public function save() {
     parent::save();
     // Set the tournament winner if this was the last match.
-    if ( $this->getTournament() ) {
+    if ($this->getTournament()) {
       cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
     }
   }
@@ -542,11 +552,6 @@ class TourneyMatchEntity extends TourneyEntity {
         relation_delete($relation->rid);
     }
     $this->save();
-    // Until there's a better way for addressing specific contestant names, using this:
-    // Pull in the relation so we can delete it, then apply changes to the match object
-    //relation_delete(array_pop($relations)->rid);
-    //unset($this->contestantIds[$relation_type]);
-    //$this->save();
   }
 
   /**
@@ -558,7 +563,16 @@ class TourneyMatchEntity extends TourneyEntity {
    *   Any type of entity to fill the target slot with
    */
   public function addContestant($entity, $slot = NULL) {
-    //@todo logic to remove existing conflicting contestant(s)
+    /* This logic allows contestants that are already on the match to be moved
+    without potentially being affected when the copy is removed */
+    $current_eids = array();
+    foreach ($this->getContestantIds() as $contestant) {
+      $current_eids[$contestant['eid']] = $contestant['slot'];
+    }
+    if ( isset($current_eids[$entity->eid]) ) {
+      $this->removeContestant($this->getContestant($current_eids[$entity->eid]));
+    }
+    /* */
     if ($slot && $this->getContestant($slot)) {
       $this->removeContestant($this->getContestant($slot));
     }
@@ -636,10 +650,10 @@ class TourneyMatchEntity extends TourneyEntity {
       $relations = relation_query('tourney_match', $this->id)
         ->entityCondition('bundle', 'has_game')->execute();
 
-      foreach ( array_reverse($relations) as $relation ) {
+      foreach (array_reverse($relations) as $relation) {
         $relation = relation_load($relation->rid);
         $relation_game = tourney_game_load($relation->endpoints['und'][1]['entity_id']);
-        if ( $relation_game->id == $game_id ) {
+        if ($relation_game->id == $game_id) {
           $relation_game->delete();
           relation_delete($relation->rid);
           break;
@@ -683,28 +697,5 @@ class TourneyMatchEntity extends TourneyEntity {
       }
     }
     return TRUE;
-  }
-
-  public function findSeedInfo($slot = NULL) {
-    // @todo: previousMatches() doesn't work in the bottom bracket yet
-    if ($this->matchInfo['bracket']['id'] != 'main') {
-      return;
-    }
-    // If this tournament doesn't have any byes, bail out.
-    if ($this->hasByes || !is_int(log($this->getTournament()->players, 2))) {
-      $this->hasByes = TRUE;
-      $matches = $this->previousMatches();
-
-      if (!is_null($slot) && array_key_exists('bye', $matches[$slot]->matchInfo)) {
-        $this->matchInfo['seed_position'][$slot] = $matches[$slot]->matchInfo['seed_position'][0];
-        return;
-      }
-
-      foreach ($matches as $slot => $info) {
-        if (array_key_exists('bye', $info->matchInfo)) {
-          $this->matchInfo['seed_position'][$slot] = $info->matchInfo['seed_position'][0];
-        }
-      }
-    }
   }
 }

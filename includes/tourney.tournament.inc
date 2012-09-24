@@ -37,7 +37,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#title' => t('Tournament Name'),
     '#description' => t('Enter the name of this tournament.'),
     '#size' => 40,
-    '#maxlength' => 255,
+    // Do not allow names longer than 238, to compensate for _match-00_game-00
+    '#maxlength' => 238,
     '#default_value' => isset($tourney->label) ? $tourney->label : '',
     '#weight' => -10,
     '#required' => TRUE,
@@ -46,7 +47,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['name'] = array(
     '#type' => 'machine_name',
     '#default_value' => isset($tourney->label) ? $tourney->name : '',
-    '#maxlength' => 21,
+    // Do not allow names longer than 238, to compensate for _match-00_game-00
+    '#maxlength' => 238,
     '#description' => t('A unique name for tournaments. It must only contain lowercase letters, numbers and hyphens.'),
     '#machine_name' => array(
       'source' => array('label'),
@@ -54,6 +56,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
       'replace_pattern' => '[^a-z0-9-]+',
       'replace' => '-',
     ),
+    '#element_validate' => array('tourney_machine_name_uniquify', 'form_validate_machine_name'),
     '#weight' => -10,
   );
   
@@ -166,6 +169,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#description' => t('Enter the default number of games for each match.'),
     '#default_value' => $tourney->get('default_games', TOURNEY_GAMES),
     '#disabled' => isset($tourney->id) ? TRUE : FALSE,
+    '#element_validate' => array('tourney_tournament_validate_games'),
   );
   
   $form['contestants'] = array(
@@ -188,63 +192,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#default_value' => $tourney->get('config_truncate', TOURNEY_TRUNCATE),
   );
   
-
-  $path = array();
-  if ( !empty($tourney->entity_id) ) {
-    $conditions = array('source' => 'tourney/tournament/' . $tourney->entity_id);
-    $path = path_load($conditions);
-    if ( $path === FALSE ) {
-      $path = array();
-    }
-  }
-
-  $form['path'] = array(    
-    '#type' => 'fieldset', 
-    '#title' => t('URL Path Settings'), 
-    '#collapsible' => TRUE, 
-    '#collapsed' => empty($path['alias']), 
-    '#group' => 'additional_settings', 
-    '#attributes' => array(
-      'class' => array('path-form'),
-    ), 
-    '#attached' => array(
-      'js' => array(drupal_get_path('module', 'path') . '/path.js'),
-    ), 
-    '#access' => user_access('create url aliases') || user_access('administer url aliases'), 
-    '#weight' => 30, 
-    '#tree' => TRUE, 
-    '#element_validate' => array('path_form_element_validate'),
-  );
-
-  $path += array(
-    'pid' => NULL, 
-    'source' => isset($tourney->entity_id) ? 'tourney/tournament/' . $tourney->entity_id : NULL, 
-    'alias' => '', 
-    'language' => isset($tourney->language) ? $tourney->language : LANGUAGE_NONE,
-  );
-
-  $form['path']['alias'] = array(
-    '#type' => 'textfield', 
-    '#title' => t('URL alias'), 
-    '#default_value' => $path['alias'], 
-    '#maxlength' => 255, 
-    '#collapsible' => TRUE, 
-    '#collapsed' => TRUE, 
-    '#description' => t('Optionally specify an alternative URL by which this content can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
-  );
-  $form['path']['pid'] = array(
-    '#type' => 'value',
-    '#value' => $path['pid'],
-  );
-  $form['path']['source'] = array(
-    '#type' => 'value',
-    '#value' => $path['source'],
-  );
-  $form['path']['language'] = array(
-    '#type' => 'value',
-    '#value' => $path['language'],
-  );
-
+  $form['path'] = tourney_create_path_field($tourney);
+  
   $form['options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Publishing Options'),
@@ -281,9 +230,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#title' => t('Show previous match identifier in match block'),
     '#default_value' => $tourney->get('show_previous_match_path', -1),
   );
-
-  field_attach_form('tourney_tournament', $tourney, $form, $form_state);
-
+  
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
@@ -300,8 +247,9 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     );
   }
 
-  $form['#submit'][] = 'tourney_tournament_form_submit';
+  field_attach_form('tourney_tournament', $tourney, $form, $form_state);
 
+  $form['#submit'][] = 'tourney_tournament_form_submit';
   return $form;
 }
 
@@ -312,6 +260,17 @@ function tourney_tournament_validate_contestants($element, &$form_state) {
   $value = $element['#value'];
   if ($value !== '' && (!is_numeric($value) || intval($value) != $value || $value < 3)) {
     form_error($element, t('%name must be four or more.', array('%name' => $element['#title'])));
+  }
+}
+
+/**
+ * Validate the number of games.
+ */
+function tourney_tournament_validate_games($element, &$form_state) {
+  $value = $element['#value'];
+  if (!is_int($value) && $value % 2 === 0) {
+    form_error($element, t('%name must be an odd number.', 
+      array('%name' => $element['#title'])));
   }
 }
 
@@ -330,6 +289,41 @@ function tourney_tournament_delete_submit($form, &$form_state) {
   }
   $tourney = $form_state['tourney'];
   $form_state['redirect'] = array($tourney->getUri() . '/delete', array('query' => $destination));
+}
+
+/**
+ * Field validation for the machine name field. Check to ensure a machine name
+ * is unique and add suffix variants if necessary.
+ *
+ * This function will change the machine name to 'machine_name-0' and will
+ * increase the number suffix until it finds a unique machine name.
+ *
+ * @param $element
+ *   The machine name form element.
+ * @param $form_state
+ *   The form state from the submitted form.
+ */
+function tourney_machine_name_uniquify(&$element, &$form_state) {
+  if (!tourney_name_exists($element['#value'])) {
+    return;
+  }
+  // Do not allow names longer than 238, to compensate for _match-00_game-00
+  $maxlength = '238';
+  $separator = '-';
+  $original_machine_name = $element['#value'];
+
+  if ($original_machine_name == $form_state['values']['name']) return;
+
+  $i = 0;
+  do {
+    // Append an incrementing numeric suffix until we find a unique alias.
+    $unique_suffix = $separator . $i;
+    $element['#value'] = truncate_utf8($original_machine_name, $maxlength - drupal_strlen($unique_suffix, TRUE)) . $unique_suffix;
+    $i++;
+  } while (tourney_name_exists($element['#value']));
+  
+  // Change the value in the form that was submitted to unique machine name.
+  $form_state['values']['name'] = $element['#value'];
 }
 
 /**
@@ -377,14 +371,18 @@ function tourney_tournament_form_submit($form, &$form_state) {
 /**
  * Show the tournament page.
  */
-function tourney_tournament_page_view($tourney) {
-  return $tourney->view('full', NULL, TRUE);
+function tourney_tournament_page_view($tourney, $view_mode = 'full') {
+  $entity_info = entity_get_info('tourney_tournament');
+  $mode = array_key_exists($view_mode, $entity_info['view modes']) 
+    ? $view_mode : 'full';
+    
+  return $tourney->view($mode, NULL, TRUE);
 }
 
 /**
  * Implements hook_ENTITY_view().
  */
-function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode = 'en') {
+function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') {
   $info = TourneyController::getPluginInfo($entity->format);
   
   $entity->content['#attached']['css'] = array(
@@ -403,15 +401,25 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
    '#suffix' => '</div>',
    '#markup' => $entity->players,
   );
-  $entity->content['tourney_winner'] = array(
-   '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-   '#suffix' => '</div>',
-   '#markup' => $entity->winner,
+  if ($entity->winner) {
+    $entity->content['tourney_winner'] = array(
+     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+     '#suffix' => '</div>',
+     '#markup' => $entity->winner,
+    );
+  }
+  // Matches for this tournament displayed as a tree
+  $entity->content['bracket'] = array(
+    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->render('tree'),
   );
-  // Add the matches for this tournament
-  $entity->content['matches'] = array(
-    '#prefix' => '<h2>Matches in this tournament</h2>',
-    '#markup' => $entity->render(),
+  
+  // Matches for this tournament displayed as a list
+  $entity->content['list'] = array(
+    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->render('list'),
   );
 }
 
@@ -426,7 +434,7 @@ function tourney_tourney_tournament_view($entity, $type, $view_mode, $langcode =
  *   Returns an array of game objects.
  */
 function tourney_tournament_get_match_games($entity, $load_entity = TRUE, $reset = FALSE) {
-  $cache_name = 'tourney_match_games_' . $entity->id . ( $load_entity ? '_entity' : '' );
+  $cache_name = 'tourney_match_games_' . $entity->id . ($load_entity ? '_entity' : '');
   $cache = cache_get($cache_name, 'cache_tourney');
   if ($reset || !$cache || ($cache && empty($cache->data))) {
     $query = relation_query('tourney_match', $entity->id);
@@ -653,7 +661,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
     $form['bracket_' . $round['bracket']]['round_' . $rid] = array(
       '#type' => 'textfield',
       '#title' => $round['title'],
-      '#description' => t('Enter the title for Round: %round_name in Bracket: %bracket_name here.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
+      '#description' => t('Enter the title for %round_name in the %bracket_name bracket.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
       '#size' => 40,
       '#maxlength' => 255,
       '#default_value' => property_exists($form_state['object'], $property) ? $form_state['object']->$property : $round_title,

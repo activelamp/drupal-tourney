@@ -74,21 +74,17 @@ function tourney_match_form($form, &$form_state, $match) {
   
   $canset = $match->getTournament()->canSetContestants($match->getMID());
   $contestants = $match->getMatchContestants();
-  
-  // Fill the $contestants array with two values if there isn't already two.
-  while (count($contestants) < 2) {
-    $contestants[] = NULL;
-  }
 
   $cid = 0;
   foreach (array(1,2) as $slot) {
     $contestant = $match->getContestant($slot);
+    $eid = is_object($contestant) ? $contestant->eid : null;
     $form['contestant' . $slot] = array(
       '#title' => check_plain(t('Contestant ' . $slot)),
-      '#default_value' => is_object($contestant) ? $contestant->eid : '',
+      '#default_value' => $eid,
       '#disabled' => !($slot & $canset),
       '#required' => !($slot & $canset) || (is_object($contestant) && $contestant->eid) ? FALSE : TRUE,
-    ) + _tourney_match_contestant($match);
+    ) + _tourney_match_contestant($match, $eid);
   }
   //}
 
@@ -144,14 +140,36 @@ function tourney_match_form($form, &$form_state, $match) {
     }
   }
 
-  field_attach_form('tourney_match', $match, $form, $form_state);
-
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
     '#weight' => 40,
   );
+
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#weight' => 99,
+  );
+
+  $form['path'] = tourney_create_path_field($match);
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 95,
+  );
+
+  $form['options']['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($match->status) ? $match->status : 0,
+  );
+
+  field_attach_form('tourney_match', $match, $form, $form_state);
 
   $form['#submit'][] = 'tourney_match_form_submit';
   return $form;
@@ -162,16 +180,18 @@ function tourney_match_form($form, &$form_state, $match) {
  *
  * @param $match
  *   The match object for the match being edited
+ * @param $this_eid
+ *   Optional eid of a contestant to prevent it from being sanitized
  * @return array
  *   Returns a form element to be used in a form.
  *
  * @see tourney_match_form().
  * @see _tourney_match_contestants().
  */
-function _tourney_match_contestant($match) {
+function _tourney_match_contestant($match, $this_eid = null) {
   return array(
     '#type' => 'select',
-    '#options' => _tourney_match_contestants($match),
+    '#options' => _tourney_match_contestants($match, $this_eid),
     '#default_value' => '',
     '#required' => TRUE,
   );
@@ -182,6 +202,8 @@ function _tourney_match_contestant($match) {
  *
  * @param $match
  *   The match object for the match being edited.
+ * @param $this_eid
+ *   Optional eid of a contestant to prevent it from being sanitized
  * @return array
  *   Returns an $options array of contestants that have not been added to a
  *   tournament yet.
@@ -189,7 +211,7 @@ function _tourney_match_contestant($match) {
  * @see _tourney_match_contestant().
  * @see _tourney_match_contestants_sanitize().
  */
-function _tourney_match_contestants($match) {
+function _tourney_match_contestants($match, $this_eid = null) {
   $query = db_select('relation_bundles', 'rb');
   $query->fields('rb', array('entity_type', 'bundle'))
     ->distinct()
@@ -237,9 +259,8 @@ function _tourney_match_contestants($match) {
   }
   // Do not sanitize the list for "No Automation"
   if (!$match->getTournament()->get('no_automation', FALSE)) {
-    _tourney_match_contestants_sanitize($match, $options);
+    _tourney_match_contestants_sanitize($match, $this_eid, $options);
   }
-  
   return $options;
 }
 
@@ -252,12 +273,14 @@ function _tourney_match_contestants($match) {
  *
  * @param $match
  *   The match object the select options will display on.
+ * @param $this_eid
+ *   Optional eid of a contestant to prevent it from being sanitized
  * @param $options
  *   The options array for the select form element.
  *
  * @see _tourney_match_contestant().
  */
-function _tourney_match_contestants_sanitize($match, &$options) {
+function _tourney_match_contestants_sanitize($match, $this_eid, &$options) {
   $tournament = $match->getTournament();
   $plugin = $tournament->tourneyFormatPlugin;
   
@@ -273,12 +296,16 @@ function _tourney_match_contestants_sanitize($match, &$options) {
     }
   }
   $matches = tourney_match_load_multiple($match_ids);
-  
+
   // Unset users in the options array that are already selected
   $contestants = $match->getTournament()->getContestants();
-  foreach ($match->getMatchContestants() as $eid => $contestant) {
+  unset($contestants[$this_eid]);
+  foreach ($match->getContestantIds() as $contestant) {
     // Don't want to remove contestants that are part of this match.
-    unset($contestants[$eid]);
+    if (isset($match->matchInfo['seeds']) && $match->matchInfo['seeds']) {
+      if ( !isset($match->matchInfo['seeds'][$contestant['slot']]) ) continue;
+    }
+    unset($contestants[$contestant['eid']]);
   }
   foreach ($contestants as $eid => $contestant ) {
     foreach (array_keys($options) as $group) {
@@ -289,9 +316,9 @@ function _tourney_match_contestants_sanitize($match, &$options) {
   }
 
   // special case naming occurs with different bundled node types
-  $userkey = array_key_exists('user', $options) ? 'user' : ( array_key_exists('user - user', $options) ? 'user - user' : NULL );
+  $userkey = array_key_exists('user', $options) ? 'user' : (array_key_exists('user - user', $options) ? 'user - user' : NULL);
   // Remove admin accounts from the contestant choices
-  if ( $userkey ) {
+  if ($userkey) {
     foreach ($options[$userkey] as $id => $user) {
       if (str_replace("user.", "", $id) <= 1) {
         unset($options[$userkey][$id]);
@@ -307,17 +334,17 @@ function tourney_match_form_validate($form, &$form_state) {
   if (!is_int($form_state['values']['games']) && $form_state['values']['games'] % 2 === 0) {
     form_set_error('games', t('The number of games must be an odd number'));
   }
-  if (isset($form_state['values']['contestant1']) && isset($form_state['values']['contestant2']) && $form_state['values']['contestant1'] === $form_state['values']['contestant2']) {
+  if (!empty($form_state['values']['contestant1']) && !empty($form_state['values']['contestant2']) && $form_state['values']['contestant1'] === $form_state['values']['contestant2']) {
     form_set_error('contestant1', t('Contestant 1 and Contestant 2 cannot be the same person.'));
   }
   $wins = array();
   foreach ($form_state['input'] as $id => $value) {
     if (!$value || substr($id, 0, 5) != 'game_') continue;
-    if ( !array_key_exists($value, $wins) ) $wins[$value] = 0;
+    if (!array_key_exists($value, $wins)) $wins[$value] = 0;
     $wins[$value]++;
   }
-  foreach ( $wins as $id => $count ) {
-    if ( $count - 1 > $form_state['match']->games / 2 )
+  foreach ($wins as $id => $count) {
+    if ($count - 1 > $form_state['match']->games / 2)
       form_set_error('', t('A contestant cannot win more games than neccesary to win a match'));
   }
 }
@@ -344,7 +371,6 @@ function tourney_match_form_submit($form, &$form_state) {
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
   }
-  
   if (array_key_exists('contestant1', $form_state['input'])) {
     if ($eid = $form_state['input']['contestant1']) {
       @list($type, $id) = explode('.', $eid);
@@ -367,7 +393,7 @@ function tourney_match_form_submit($form, &$form_state) {
       $match->removeContestant($contestant);
     }
   } 
-
+  
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
   $match->getWinner();
   foreach ($form_state['input'] as $id => $value) {
@@ -454,7 +480,27 @@ function tourney_game_form($form, &$form_state, $game) {
     '#default_value' => isset($game->winner) ? $game->winner : -1,
   );
 
-  field_attach_form('tourney_game', $game, $form, $form_state);
+  $form['path'] = tourney_create_path_field($game);
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 95,
+  );
+
+  $form['options']['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($game->status) ? $game->status : 0,
+  );
+
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#weight' => 99,
+  );
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -463,9 +509,9 @@ function tourney_game_form($form, &$form_state, $game) {
     '#weight' => 40,
   );
 
+  field_attach_form('tourney_game', $game, $form, $form_state);
+
   $form['#submit'][] = 'tourney_game_form_submit';
-
-
   return $form;
 }
 
@@ -479,6 +525,7 @@ function tourney_game_form_submit($form, &$form_state) {
   $game->label = $form_state['input']['label'];
   entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
   tourney_game_save($game);
+  drupal_set_message(url($game->getUri()));
 
   $form_state['redirect'] = $game->getUri();
 }
@@ -492,11 +539,6 @@ function tourney_tourney_match_view($entity, $type, $view_mode, $langcode = 'en'
   );
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
-  );
-  $entity->content['label'] = array(
-    '#prefix' => '<div class="label">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->label,
   );
   $entity->content['tournament'] = array(
     '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
@@ -610,8 +652,8 @@ function tourney_get_match_by_name($bracket_structure, $path) {
    * match number as the iterator.
    */
   $i = 1;
-  foreach ( $next_match_structure as $match ) {
-    if ( $id == $i ) {
+  foreach ($next_match_structure as $match) {
+    if ($id == $i) {
       return $match['match'];
     }
     $i++;
@@ -634,7 +676,7 @@ function theme_tourney_match_fix($vars) {
 
   // Loop through all the games that have started.
   for ($gn = 0; $gn < $element['#games']; $gn++) {
-    $header[] = "Game " . ( $gn + 1 );
+    $header[] = "Game " . ($gn + 1);
 
     if ($gn < count($children)) {
       // Get the form element for this game number.
@@ -655,7 +697,7 @@ function theme_tourney_match_fix($vars) {
   }
 
   $header[] = "Results";
-  foreach ( $rows as $id => &$row ) {
+  foreach ($rows as $id => &$row) {
     $row[] = ' - ';
   }
 

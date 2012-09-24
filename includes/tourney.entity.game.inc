@@ -45,7 +45,7 @@ class TourneyGameEntity extends TourneyEntity {
       $query->entityCondition('bundle', 'has_game');
       $results = $query->execute();
       
-      if ( !empty($results) ) {
+      if (!empty($results)) {
         $relation = array_pop($results);
         $r = relation_load($relation->rid);
         $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
