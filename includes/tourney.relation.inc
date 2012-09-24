@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Relation related functions.

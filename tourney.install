@@ -344,7 +344,7 @@ function tourney_install() {
     'weight' => 0,
   ));
   $type->save();
-  
+
   // Set extra field defaults.
   _tourney_set_extra_fields_defaults();
 }
@@ -522,7 +522,7 @@ function tourney_update_7005() {
 }
 
 function tourney_update_7006() {
-  db_add_field('tourney_tournament', 'status', 
+  db_add_field('tourney_tournament', 'status',
     array(
     'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
     'type' => 'int',
@@ -607,14 +607,14 @@ function tourney_update_7010() {
  * Adding status field for match and game entities.
  */
 function tourney_update_7011() {
-  db_add_field('tourney_match', 'status', 
+  db_add_field('tourney_match', 'status',
     array(
     'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
     'type' => 'int',
     'not null' => TRUE,
     'default' => 1,
   ));
-  db_add_field('tourney_game', 'status', 
+  db_add_field('tourney_game', 'status',
     array(
     'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
     'type' => 'int',

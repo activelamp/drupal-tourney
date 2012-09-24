@@ -17,12 +17,12 @@ class SingleEliminationController extends TourneyController {
    */
   public function __construct($numContestants, $tournament = NULL) {
     parent::__construct();
-    // Set our contestants, and then calculate the slots necessary to fit them 
-    $this->numContestants = $numContestants;  
+    // Set our contestants, and then calculate the slots necessary to fit them
+    $this->numContestants = $numContestants;
     $this->slots = pow(2, ceil(log($this->numContestants, 2)));
     $this->tournament = $tournament;
   }
-  
+
   /**
    * Options for this plugin.
    */
@@ -30,19 +30,19 @@ class SingleEliminationController extends TourneyController {
     $this->getPluginOptions();
     $options = $this->pluginOptions;
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
-    
+
     $form['third_place'] = array(
       '#type' => 'checkbox',
       '#title' => t('Generate a third place match'),
       '#description' => t('By checking this option, a Consolation bracket will be created with one match to determine third place.'),
-      '#default_value' => array_key_exists('third_place', $plugin_options) 
+      '#default_value' => array_key_exists('third_place', $plugin_options)
         ? $plugin_options['third_place'] : -1,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
     );
-    
+
     return $form;
   }
-  
+
   /**
    * Theme implementations specific to this plugin.
    */
@@ -56,10 +56,10 @@ class SingleEliminationController extends TourneyController {
       ),
     );
   }
-  
+
   /**
    * Preprocess variables for the template passed in.
-   * 
+   *
    * @param $template
    *   The name of the template that is being preprocessed.
    * @param $vars
@@ -70,16 +70,16 @@ class SingleEliminationController extends TourneyController {
       $vars['classes_array'][] = 'tourney-tournament-tree';
       $vars['matches'] = '';
       $node = $this->structure['tree'];
-      
+
       // Set the matches variable.
       if (!empty($this->pluginOptions) && $this->pluginOptions[get_class($this)]['third_place']) {
         // Don't try to render the children of a third place match.
         unset($node['children']);
-        
+
         // New tree should start from the second to last match.
         $match = $this->data['matches'][$node['id'] - 1];
-        $last_node = $this->structureTreeNode($match); 
-        
+        $last_node = $this->structureTreeNode($match);
+
         // Render the bracket out without the consolation bracket.
         $vars['matches'] .= theme('tourney_tournament_tree_node', array('plugin' => $this, 'node' => $last_node));
       }
@@ -89,16 +89,16 @@ class SingleEliminationController extends TourneyController {
 
   /**
    * This builds the data array for the plugin. The most important data structure
-   * your plugin should implement in build() is the matches array. It is from 
-   * this array that matches are saved to the Drupal entity system using 
+   * your plugin should implement in build() is the matches array. It is from
+   * this array that matches are saved to the Drupal entity system using
    * TourneyController::saveMatches().
    */
   public function build() {
     parent::build();
     $this->buildBrackets();
     $this->buildMatches();
-    $this->buildGames();    
-    
+    $this->buildGames();
+
     // Check to see if we need to create a consolation bracket and matches.
     $this->getPluginOptions();
     $options = $this->pluginOptions;
@@ -107,36 +107,36 @@ class SingleEliminationController extends TourneyController {
       // Add the third place match to the data.
       $this->buildThirdPlace();
     }
-    
-    $this->data['contestants'] = array();     
-    
+
+    $this->data['contestants'] = array();
+
     // Calculate and set the match pathing
     $this->populatePositions();
     // Set in the seed positions
     $this->populateSeedPositions();
   }
-  
+
   public function buildBrackets() {
     $this->data['brackets']['main'] = $this->buildBracket(array(
       'id' => 'main',
       'rounds' => log($this->slots, 2),
     ));
   }
-  
+
   public function buildMatches() {
     $slots = $this->slots;
     $match = &drupal_static('match', 0);
     $round = &drupal_static('round', 0);
-    
+
     // Calculate and iterate through rounds and their matches based on slots
     while (($slots /= 2) >= 1) {
       // Add current round information to the data array
-      $this->data['rounds'][++$round] = 
+      $this->data['rounds'][++$round] =
         $this->buildRound(array('id' => $round, 'bracket' => 'main', 'matches' => $slots));
 
       // Add in all matches and their information for this round
       foreach (range(1, $slots) as $roundMatch) {
-        $this->data['matches'][++$match] = 
+        $this->data['matches'][++$match] =
           $this->buildMatch(array(
             'id' => $match,
             'round' => $round,
@@ -147,41 +147,41 @@ class SingleEliminationController extends TourneyController {
       }
     }
   }
-  
+
   public function buildGames() {
     foreach ($this->data['matches'] as $id => &$match) {
       $this->data['games'][$id] = $this->buildGame(array(
         'id' => $id,
         'match' => $id,
-        'game' => 1, 
+        'game' => 1,
       ));
       $this->data['matches'][$id]['games'][] = $id;
     }
   }
-  
+
   public function buildThirdPlace() {
     $match = &drupal_static('match', 0);
-    
+
     $this->data['brackets']['consolation'] = $this->buildBracket(array('id' => 'consolation'));
-    
+
     $this->data['matches'][++$match] = $this->buildMatch(array(
       'id' => $match,
       'round' => 1,
       'roundMatch' => 1,
       'bracket' => 'consolation',
     ));
-    
+
     // Populate positions for third place match.
     $this->populatePositionsThirdPlace();
   }
-  
+
   /**
    * Find and populate next/previous match for third place.
    */
   public function populatePositionsThirdPlace() {
     $count = count($this->data['matches']);
     $this->data['matches'][$count]['previousMatches'] = array($count - 3, $count - 2);
-    
+
     // Set the next match for losers.
     foreach ($this->data['matches'][$count]['previousMatches'] as $mid) {
       $this->data['matches'][$mid]['nextMatch']['loser']['id'] = $count;
@@ -196,7 +196,7 @@ class SingleEliminationController extends TourneyController {
   public function populatePositions() {
     foreach ($this->data['matches'] as $id => &$match) {
       $nextMatch = &$this->find('matches', array(
-        'round'       => $match['round'] + 1, 
+        'round'       => $match['round'] + 1,
         'roundMatch'  => (int) ceil($match['roundMatch'] / 2)
       ), TRUE);
       if (!$nextMatch) continue;
@@ -325,5 +325,5 @@ class SingleEliminationController extends TourneyController {
     $this->structure($style);
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
-  
+
 }

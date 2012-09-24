@@ -11,24 +11,24 @@
 
 class RoundRobinController extends TourneyController {
   public $moveWinners = FALSE;
-  
+
   /**
    * Constructor
    */
   public function __construct($numContestants, $tournament = NULL) {
     parent::__construct();
-    // Set our contestants, and then calculate the slots necessary to fit them 
-    $this->numContestants = $numContestants;  
+    // Set our contestants, and then calculate the slots necessary to fit them
+    $this->numContestants = $numContestants;
     $this->slots = $numContestants % 2 ? $numContestants + 1 : $numContestants;
     $this->tournament = $tournament;
-    
+
     // Flag used in rules to not fire off matchIsWon logic.
     $this->moveWinners = FALSE;
   }
-  
+
   /**
    * Preprocess variables for the template passed in.
-   * 
+   *
    * @param $template
    *   The name of the template that is being preprocessed.
    * @param $vars
@@ -51,7 +51,7 @@ class RoundRobinController extends TourneyController {
       }
     }
   }
-  
+
   /**
    * Theme implementations to register with tourney module.
    *
@@ -73,27 +73,27 @@ class RoundRobinController extends TourneyController {
       ),
     );
   }
-  
+
   /**
    * This builds the data array for the plugin. The most important data structure
-   * your plugin should implement in build() is the matches array. It is from 
-   * this array that matches are saved to the Drupal entity system using 
+   * your plugin should implement in build() is the matches array. It is from
+   * this array that matches are saved to the Drupal entity system using
    * TourneyController::saveMatches().
    */
   public function build() {
     parent::build();
     $this->buildBrackets();
     $this->buildMatches();
-    $this->buildGames();    
-    
-    $this->data['contestants'] = array();     
-    
+    $this->buildGames();
+
+    $this->data['contestants'] = array();
+
     // Calculate and set the match pathing
     $this->populatePositions();
     // Set in the seed positions
     $this->populateSeedPositions();
   }
-  
+
   public function buildBrackets() {
     $this->data['brackets']['main'] = $this->buildBracket(array(
       'id' => 'main',
@@ -108,12 +108,12 @@ class RoundRobinController extends TourneyController {
     // Calculate and iterate through rounds and their matches based on slots
     for ($round = 1; $round < $slots; $round++) {
       // Add current round information to the data array
-      $this->data['rounds'][$round] = 
+      $this->data['rounds'][$round] =
         $this->buildRound(array('id' => $round, 'bracket' => 'main'));
 
       // Add in all matches and their information for this round
-      foreach (range(1, $slots / 2) as $roundMatch) { 
-        $this->data['matches'][++$match] = 
+      foreach (range(1, $slots / 2) as $roundMatch) {
+        $this->data['matches'][++$match] =
           $this->buildMatch(array(
             'id' => (int) $match,
             'round' => (int) $round,
@@ -129,12 +129,12 @@ class RoundRobinController extends TourneyController {
      $this->data['games'][$id] = $this->buildGame(array(
        'id' => $id,
        'match' => $id,
-       'game' => 1, 
+       'game' => 1,
      ));
      $this->data['matches'][$id]['games'][] = $id;
     }
   }
-  
+
   /**
    * Find and populate next/previous match pathing on the matches data array for
    * each match.
@@ -154,10 +154,10 @@ class RoundRobinController extends TourneyController {
       }
     }
   }
-  
+
   /**
    * Figures out what seed position is playing in every match of the tournament.
-   * 
+   *
    * Creates a keyed array with the key being match number and slots array as
    * the value, and the seed position as the values of that array.
    */
@@ -165,7 +165,7 @@ class RoundRobinController extends TourneyController {
     static $matches = array();
     $mid = 1;
     $slots = $this->slots;
-    
+
     if (empty($matches)) {
       $matches = array();
       foreach (range(1, $slots - 1) as $round) {
@@ -173,14 +173,14 @@ class RoundRobinController extends TourneyController {
         $list = array_merge(array(1), array_slice(array_merge($list, $list), $slots-$round, $slots-1));
         foreach (range(1, $slots / 2) as $match) {
           $match = array($list[$match-1], $list[$slots-$match]);
-          
+
           // Slot positions need to flip every other round.
           $match = ($round % 2) ? $match : array_reverse($match);
-          
+
           // Make the array 1-based
           array_unshift($match, NULL);
           unset($match[0]);
-          
+
           $matches[$mid++] = $match;
         }
       }
@@ -204,7 +204,7 @@ class RoundRobinController extends TourneyController {
       }
     }
   }
-  
+
   /**
    * Generate a structure based on data
    */
@@ -219,10 +219,10 @@ class RoundRobinController extends TourneyController {
       $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
     }
     $this->structure = $structure;
-    
+
     return $this->structure;
   }
-  
+
   /**
    * Given a match info array, returns both the target match and slot.
    *
@@ -236,7 +236,7 @@ class RoundRobinController extends TourneyController {
   function calculateNextPosition($match_info, $slot) {
     $seeds = $this->data['seeds'];
     $place = $match_info['id'];
-    
+
     // Get the current contestant slot number
     $id = $seeds[$place][$slot];
     foreach ($seeds as $mid => $slots) {
@@ -251,7 +251,7 @@ class RoundRobinController extends TourneyController {
     }
     return NULL;
   }
-  
+
   public function render() {
     // Build our data structure
     $this->build();
