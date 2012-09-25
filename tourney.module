@@ -524,6 +524,11 @@ function tourney_field_extra_fields() {
         'description' => t('Rendered display of games in the match'),
         'weight' => 0,
       ),
+      'match_block' => array(
+        'label' => t('Matchblock Element with Contestants'),
+        'description' => t('Rendered Matchblock'),
+        'weight' => 0,
+      ),
     ),
   );
 
@@ -965,6 +970,13 @@ function tourney_tourney_match_view($entity, $view_mode, $langcode = 'en') {
       '#match' => $entity,
     );
   }
+
+  $entity->content['match_block'] = array(
+    '#theme' => 'tourney_match_render',
+    '#match' => $entity,
+    '#plugin' => $entity->getTournament()->tourneyFormatPlugin,
+    '#test' => 'test',
+  );
 }
 
 /**

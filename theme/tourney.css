@@ -3,6 +3,10 @@
   overflow-y: hidden;
 }
 
+.tourney-tournament-tree .entity-tourney-match {
+  width: 120px;
+}
+
 .tourney-tournament .match {
   width: 120px;
 }

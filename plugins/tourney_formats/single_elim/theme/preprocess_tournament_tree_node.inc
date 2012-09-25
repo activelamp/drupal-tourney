@@ -84,6 +84,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
 
   if (is_object($plugin->tournament)) {
     $match = $plugin->tournament->getMatchById($node['id']);
+    $match->matchInfo = $node;
     $vars['match'] = $match;
     if (is_object($match) && $match->winner) {
       $path_classes[] = 'eid-' . str_replace('.', '-', $match->winner);
@@ -93,7 +94,6 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
       }
     }
   }
-
 
   $vars['round_name']       = $round_name;
   $vars['node_classes']     = implode(' ', $node_classes);

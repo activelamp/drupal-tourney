@@ -96,7 +96,7 @@ class TourneyController implements TourneyControllerInterface {
         'file' => 'tourney.inc',
       ),
       'tourney_match_render' => array(
-        'variables' => array('match'),
+        'variables' => array('match' => NULL, 'plugin' => NULL),
         'path' => $module_path . '/theme',
         'template' => 'tourney-match-render',
       ),
