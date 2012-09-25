@@ -31,7 +31,7 @@ function tourney_default_rules_configuration() {
          'match:select' => 'tourney-game:relation-has-game-tourney-match-reverse:0',
          'quotient:select' => 'games-quotient',
        ))
-       ->action('drupal_message', array('message:select' => 'action-message'));;
+       ->action('drupal_message', array('message:select' => 'action-message'));
 
   $configs['rules_tourney_game_is_won'] = $rule;
   
@@ -44,12 +44,15 @@ function tourney_default_rules_configuration() {
          'value' => 'RoundRobinController'
        ))
        ->condition('data_is_empty', array(
-          'data:select' => 'tourney-match:relation-has-game-tourney-game:0:winner',
-        ))
-       ->action('tourney_action_set_all_matches', array(
-         'match:select' => 'tourney-match'
+         'data:select' => 'tourney-match:relation-has-game-tourney-game:0:winner',
        ))
-       ->action('drupal_message', array('message:select' => 'action-message'));;
+       ->condition('tourney_condition_match_has_contestants', array(
+         'match:select' => 'tourney-match',
+       ))
+       ->action('tourney_action_set_all_matches', array(
+         'match:select' => 'tourney-match',
+       ))
+       ->action('drupal_message', array('message:select' => 'action-message'));
 
   $configs['rules_tourney_set_all_matches'] = $rule;
 
@@ -65,10 +68,38 @@ function tourney_default_rules_configuration() {
          'match:select' => 'tourney-match',
          'quotient' => '1',
        ))
-       ->action('drupal_message', array('message:select' => 'action-message'));;
+       ->action('drupal_message', array('message:select' => 'action-message'));
 
   $configs['rules_tourney_bye_is_created'] = $rule;
-
+  
+  // $rule = rules_reaction_rule();
+  // $rule->label = 'Tourney Champion Match Is Won2';
+  // $rule->active = TRUE;
+  // $rule->event('tourney_match_update')
+  //      ->condition('text_matches', array(
+  //        'text:select' => 'tourney-match:matchinfo-bracket', 
+  //        'match' => 'champion',
+  //      ))
+  //      ->condition('text_matches', array(
+  //        'text:select' => 'tourney-match:matchinfo-round', 
+  //        'match' => '1',
+  //      ))
+  //      ->condition('data_is', array(
+  //        'data:select' => 'tourney-match:winner', 
+  //        'value:select' => 'tourney-match:contestant-1',
+  //      ))
+  //      ->action('variable_add', array(
+  //        'type' => 'integer',
+  //        'value:select' => 'tourney-match:id',
+  //        'value:settings:num_offset:value' => '1',
+  //        'result:label' => 'Next Match ID',
+  //        'result:var' => 'next_match_id',
+  //      ));
+  //
+  // $configs['rules_tourney_champion_match2'] = $rule;
+  
+  // Using rules_import below to import default rule. Rules docs aren't very good
+  // in terms of writting this using rules_reaction_rule().
   $rule = rules_import('{ "rules_tourney_champion_match_is_won" : {
       "LABEL" : "Tourney Champion Match Is Won",
       "PLUGIN" : "reaction rule",

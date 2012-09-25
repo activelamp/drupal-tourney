@@ -548,7 +548,7 @@ class TourneyMatchEntity extends TourneyEntity {
     foreach ($relations as $relation) {
       $relation = relation_load($relation->rid);
       $rcon = $relation->endpoints[LANGUAGE_NONE][1];
-      if ($rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id) {
+      if (is_object($entity) && $rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id) {
         relation_delete($relation->rid);
       }
     }
