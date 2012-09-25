@@ -2756,7 +2756,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner of previous match is being passed into this match correctly 
       $this->drupalGet('tourney/match/60');
       $this->assertRaw(t('<tr class="odd"><td>user.4</td>'));
-      $this->assertRaw(t('<tr class="even"><td>user.33</td>'));
+      $this->assertRaw(t('<tr class="even"><td>user.29</td>'));
 
       // Play Sixtieth Match
       $edit = array();
@@ -2764,7 +2764,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.33'));
+      $this->assertRaw(t('user.29'));
 
       // Match 61
       // Check to see if winner of previous match is being passed into this match correctly 
