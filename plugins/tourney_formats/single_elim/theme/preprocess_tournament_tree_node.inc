@@ -3,7 +3,7 @@
 /*
  * @file
  * Preprocess tree nodes
- */
+ */  
 
 /**
  * Preprocess each tree node in the bracket.  Take note that the use of $node in
@@ -14,7 +14,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   drupal_add_js(drupal_get_path('module', 'tourney') . '/plugins/tourney_formats/single_elim/theme/tournament-tree-node.js');
   // Set the tree node classes
   $node_classes = array();
-
+  
   // Get any plugin options
   $plugin->getPluginOptions();
   $options = $plugin->pluginOptions;
@@ -25,7 +25,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   // need to figure out how to get the relative path of this file.
   $plugin_dir = drupal_get_path('module', 'tourney') . '/plugins/tourney_formats/single_elim';
   drupal_add_css($plugin_dir . '/theme/tournament-tree.css');
-
+  
   // Use the very top of the tree if a child tree node is not passed in.
   if (!isset($vars['node'])) {
     $vars['node'] = $plugin->structure['tree'];
@@ -53,7 +53,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   $node_classes[] = 'bracket-' . $node['bracket'];
   if ($node['bracket'] != 'main' && $has_children && count($node['children']) == 2) {
     $node_classes[] = 'feeder';
-  }
+  } 
 
   if ($is_child) {
     $node_classes[] = 'child-' . $node['child'];
@@ -65,7 +65,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   else {
     $node_classes[] = 'top-node';
   }
-
+  
   if ($has_children) {
     // This line is to correct rendering quirks that can arise because
     // bottom bracket matches are filled from the bottom up
@@ -84,7 +84,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
 
   if (is_object($plugin->tournament)) {
     $match = $plugin->tournament->getMatchById($node['id']);
-
+    $vars['match'] = $match;
     if (is_object($match) && $match->winner) {
       $path_classes[] = 'eid-' . str_replace('.', '-', $match->winner);
       $contestants = array_keys($match->getMatchContestants());
@@ -93,6 +93,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
       }
     }
   }
+
 
   $vars['round_name']       = $round_name;
   $vars['node_classes']     = implode(' ', $node_classes);

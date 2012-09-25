@@ -70,6 +70,41 @@ function tourney_rules_action_info() {
 }
 
 /**
+ * Implements hook_rules_condition_info().
+ */
+function tourney_rules_condition_info() {
+  return array(
+    'tourney_condition_match_has_contestants' => array(
+      'label' => t('All match contestants are set.'),
+      'group' => t('Tourney Rules'),
+      'parameter' => array(
+        'match' => array(
+          'type' => 'tourney_match',
+          'label' => t('The match to check for contestants on.'),
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Rules condition: Check to see if match has both contestants set.
+ * 
+ * @param $match
+ *   The match object being saved, passed in from Rules.
+ */
+function tourney_condition_match_has_contestants($match) {
+  $return = FALSE;
+  $contestants = $match->getMatchContestants();
+  $count = count($contestants);
+  
+  if (($count == 2) || ($match->matchInfo['bye'] == TRUE && $count > 0)) {
+    $return = TRUE;
+  }
+  return $return;
+}
+
+/**
  * Action function to get the number of won games.
  */
 function tourney_action_get_game_count($match) {
@@ -111,6 +146,7 @@ function tourney_action_game_is_won($match, $quotient) {
         $match->getTournament()->save();
         $match->nextMatch()->status = 1;
         $match->nextMatch()->removeContestant($match->getWinnerEntity());
+        $match->nextMatch()->save();
       }
       if ($match->nextMatch('loser')) {
         $match->nextMatch('loser')->removeContestant($match->getLoserEntity());
@@ -148,7 +184,7 @@ function tourney_action_game_is_won($match, $quotient) {
  */
 function tourney_action_set_all_matches($match) {
   $match->getTournament()->populateRoundRobinMatches($match->matchInfo['id']);
-  $message = 'Players added to all rounds';
+  $message = t('Players added to all rounds');
   
   return array(
     'action_message' => $message,

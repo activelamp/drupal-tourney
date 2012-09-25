@@ -380,50 +380,6 @@ function tourney_tournament_page_view($tourney, $view_mode = 'full') {
 }
 
 /**
- * Implements hook_ENTITY_view().
- */
-function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') {
-  $info = TourneyController::getPluginInfo($entity->format);
-
-  $entity->content['#attached']['css'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.css'
-  );
-  $entity->content['#attached']['js'] = array(
-    drupal_get_path('module', 'tourney') . '/theme/tourney.js'
-  );
-  $entity->content['tourney_format'] = array(
-   '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
-   '#suffix' => '</div>',
-   '#markup' => $info['title'],
-  );
-  $entity->content['tourney_players'] = array(
-   '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
-   '#suffix' => '</div>',
-   '#markup' => $entity->players,
-  );
-  if ($entity->winner) {
-    $entity->content['tourney_winner'] = array(
-     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-     '#suffix' => '</div>',
-     '#markup' => $entity->winner,
-    );
-  }
-  // Matches for this tournament displayed as a tree
-  $entity->content['bracket'] = array(
-    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->render('tree'),
-  );
-
-  // Matches for this tournament displayed as a list
-  $entity->content['list'] = array(
-    '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->render('list'),
-  );
-}
-
-/**
  * Find all the games for a given match
  *
  * @param $entity

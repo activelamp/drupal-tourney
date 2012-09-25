@@ -1,7 +1,7 @@
 <?php
 /**
  * @file tourney-tournament-tree-node.tpl.php
- *
+ * 
  * Creates the table based layout of each match and its children.  This template
  * is recursive and will create each match and it's children mark-up in the
  * children div of each iteration.
@@ -9,6 +9,7 @@
  * @ingroup tourney_templates
  */
 ?>
+
 <div class="tree-node <?php print $node_classes; ?>">
   <?php if ($has_children && count($node['children'])): ?>
     <div class="children">
@@ -21,6 +22,10 @@
     <?php if ($round_name): ?>
       <h2 class="round-title"><?php print $round_name; ?></h2>
     <?php endif; ?>
+    <?php 
+      // $match_entity = entity_view('tourney_match', array($match->id => $match), 'match_block'); 
+      // print drupal_render($match_entity);
+    ?>
     <?php print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin)); ?>
     <div class="connector to-parent <?php print $node_classes; ?> <?php print $path_classes; ?>">
       <div class="path"></div>
