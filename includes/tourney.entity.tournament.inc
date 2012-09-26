@@ -38,6 +38,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       // Add a url to the object
       $this->uri = $this->getUri();
     }
+    $this->name_original = $this->name;
   }
 
   /**
@@ -333,6 +334,19 @@ class TourneyTournamentEntity extends TourneyEntity {
       // Update the tournament with the number of matches created
       $this->matches_created = count($this->getMatchIds());
       drupal_write_record('tourney_tournament', $this, 'id');
+    }
+    else {
+      if ($this->name_original !== $this->name) {
+        $mquery = relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
+        $matches = $mquery->execute();
+        foreach (array_keys($matches) as $rid) {
+          $relation = relation_load($rid);
+          $match = tourney_match_load($relation->endpoints['und'][1]['entity_id']);
+          if (!$match) continue;
+          $match->name = $this->name . substr($match->name, strpos($match->name, '_'));
+          $match->save();
+        }
+      }
     }
   }
 
