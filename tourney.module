@@ -971,12 +971,13 @@ function tourney_tourney_match_view($entity, $view_mode, $langcode = 'en') {
     );
   }
 
-  $entity->content['match_block'] = array(
-    '#theme' => 'tourney_match_render',
-    '#match' => $entity,
-    '#plugin' => $entity->getTournament()->tourneyFormatPlugin,
-    '#test' => 'test',
-  );
+  if ($view_mode == 'match_block') {
+    $entity->content['match_block'] = array(
+      '#theme' => 'tourney_match_render',
+      '#match' => $entity,
+      '#plugin' => $entity->getTournament()->tourneyFormatPlugin,
+    );
+  }
 }
 
 /**

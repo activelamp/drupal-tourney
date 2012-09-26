@@ -27,7 +27,6 @@ function template_preprocess_tourney_tournament_render(&$vars) {
  *   TourneyController::preprocess()
  */
 function template_preprocess_tourney_match_render(&$vars) {
-
   $plugin = &$vars['plugin'];
 
   $match = $vars['match'];

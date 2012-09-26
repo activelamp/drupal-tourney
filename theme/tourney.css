@@ -7,6 +7,10 @@
   width: 120px;
 }
 
+.tourney-tournament-tree .entity-tourney-match .content {
+  margin: 0;
+}
+
 .tourney-tournament .match {
   width: 120px;
 }

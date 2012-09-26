@@ -23,7 +23,7 @@
       <h2 class="round-title"><?php print $round_name; ?></h2>
     <?php endif; ?>
     <?php 
-      print drupal_render($match->view('match_block'));
+      print drupal_render($match->view('match_block', null, TRUE));
     ?>
     <?php //print theme('tourney_match_render', array('match' => $node, 'plugin' => $plugin)); ?>
     <div class="connector to-parent <?php print $node_classes; ?> <?php print $path_classes; ?>">
