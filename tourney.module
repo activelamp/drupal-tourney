@@ -380,7 +380,7 @@ function tourney_entity_info_alter(&$entity_info) {
       'label' => t('Bracket'),
       'custom settings' => TRUE,
     ),
-    'list' => array(
+    'match_list' => array(
       'label' => t('Match List'),
       'custom settings' => TRUE,
     ),
@@ -391,7 +391,7 @@ function tourney_entity_info_alter(&$entity_info) {
       'label' => t('Match Block'),
       'custom settings' => TRUE,
     ),
-    'list' => array(
+    'game_list' => array(
       'label' => t('Game List'),
       'custom settings' => TRUE,
     ),
@@ -445,7 +445,7 @@ function tourney_field_extra_fields() {
         'description' => t('Rendered matches in a tournament bracket.'),
         'weight' => 1,
       ),
-      'list' => array(
+      'match_list' => array(
         'label' => t('List of matches'),
         'description' => t('Rendered matches in a tournament list.'),
         'weight' => 1,
@@ -472,7 +472,7 @@ function tourney_field_extra_fields() {
         'description' => t('Rendered matches in a tournament bracket.'),
         'weight' => 1,
       ),
-      'list' => array(
+      'match_list' => array(
         'label' => t('List of matches'),
         'description' => t('Rendered matches in a tournament list.'),
         'weight' => 1,
@@ -522,6 +522,11 @@ function tourney_field_extra_fields() {
       'match_table' => array(
         'label' => t('Games Grid with Win button'),
         'description' => t('Rendered display of games in the match'),
+        'weight' => 0,
+      ),
+      'match_block' => array(
+        'label' => t('Matchblock Element with Contestants'),
+        'description' => t('Rendered Matchblock'),
         'weight' => 0,
       ),
     ),
@@ -963,6 +968,14 @@ function tourney_tourney_match_view($entity, $view_mode, $langcode = 'en') {
     $entity->content['match_table'] = array(
       '#theme' => 'tourney_render_match',
       '#match' => $entity,
+    );
+  }
+
+  if ($view_mode == 'match_block') {
+    $entity->content['match_block'] = array(
+      '#theme' => 'tourney_match_render',
+      '#match' => $entity,
+      '#plugin' => $entity->getTournament()->tourneyFormatPlugin,
     );
   }
 }

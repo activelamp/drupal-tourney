@@ -109,6 +109,10 @@ h2.round-title {
   top: -1px !important;
 }
 
+.tourney-tournament-tree .connector.to-parent.tourney-highlight.winner-bottom.only-child {
+  top: 50% !important;
+}
+
 .tourney-tournament-tree .connector.tourney-highlight .path {
   border-color: #FB4B00;
 }

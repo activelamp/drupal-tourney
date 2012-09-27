@@ -27,17 +27,25 @@ function template_preprocess_tourney_tournament_render(&$vars) {
  *   TourneyController::preprocess()
  */
 function template_preprocess_tourney_match_render(&$vars) {
-  $mid = $vars['match']['id'];
   $plugin = &$vars['plugin'];
+
+  $match = $vars['match'];
+  $matchInfo = $match;
+  if (!is_object($match)) {
+    if (is_object($plugin->tournament)) {
+      $match = $plugin->tournament->getMatchById($match['id']);
+    }
+  }
+  if (is_object($match)) {
+    $matchInfo = $match->matchInfo;
+  }
+
   $editable = FALSE;
-  
+
   // Let the plugin preprocess variables
   $plugin->preprocess('tourney-match-render', $vars);
   
   // If we have a tournament object, load the match from tournament.
-  if (is_object($plugin->tournament)) {
-    $match = $plugin->tournament->getMatchById($mid);
-  }
   
   // Get the contestants for the match, if match object exists.
   $contestants = !empty($match) && is_object($match) ? $match->getMatchContestants() : array();
@@ -62,7 +70,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   
   // Get the contestant output from the contestant template
   $contestant_output = '';
-  $seeds = isset($vars['match']['seeds']) ? $vars['match']['seeds'] : '';
+  $seeds = isset($matchInfo['seeds']) ? $matchInfo['seeds'] : '';
   foreach (array_values($contestants) as $slot => $contestant) {
     $slot++;
     if (!is_object($contestant)) {
@@ -80,9 +88,9 @@ function template_preprocess_tourney_match_render(&$vars) {
   // If we have a tournament object, get the match url from the plugin.
   $tournament = $plugin->tournament;
   if (is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
-    $match_uri = $plugin->getMatchURI($mid);
+    $match_uri = $plugin->getMatchURI($matchInfo['id']);
     if ($match_uri) {
-      $editable = $editable == TRUE && $plugin->canSetContestants($mid);
+      $editable = $editable == TRUE && $plugin->canSetContestants($matchInfo['id']);
       $contestant_output = l($contestant_output, $match_uri . ($editable ? "/edit" : ''), array(
         'html' => TRUE,
         'attributes' => array('class' => 'match-link'),
@@ -92,7 +100,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   }
 
   $vars['complete'] = isset($match) && $match->winner !== '';
-  $vars['is_bye'] = isset($vars['match']['bye']) && $vars['match']['bye'] == TRUE;
+  $vars['is_bye'] = isset($matchInfo['bye']) && $matchInfo['bye'] == TRUE;
 
   $vars['match_classes_array'] = array();
   if ($vars['complete']) $vars['match_classes_array'][] = 'complete';
@@ -101,7 +109,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   $vars['match_classes'] = implode(' ', $vars['match_classes_array']);
 
   $vars['contestants'] = $contestant_output;
-  $vars['has_children'] = isset($vars['match']['children']) && count($vars['match']['children']);
+  $vars['has_children'] = isset($matchInfo['children']) && count($matchInfo['children']);
 }
 
 /**

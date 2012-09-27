@@ -648,12 +648,12 @@ function _tourney_set_extra_fields_defaults() {
           'default' => array('visible' => TRUE, 'weight' => 10),
           'full' => array('visible' => TRUE, 'weight' => 10),
           'bracket' => array('visible' => TRUE, 'weight' => 10),
-          'list' => array('visible' => FALSE, 'weight' => 10),
+          'match_list' => array('visible' => FALSE, 'weight' => 10),
           'teaser' => array('visible' => FALSE, 'weight' => 10),
         ),
-        'list' => array(
+        'match_list' => array(
           // View modes
-          'list' => array('visible' => TRUE, 'weight' => 10),
+          'match_list' => array('visible' => TRUE, 'weight' => 10),
           'default' => array('visible' => FALSE, 'weight' => 10),
           'full' => array('visible' => TRUE, 'weight' => 11),
           'bracket' => array('visible' => FALSE, 'weight' => 10),
@@ -664,6 +664,65 @@ function _tourney_set_extra_fields_defaults() {
   );
 
   field_bundle_settings('tourney_tournament', 'tournament', $settings);
+
+  $settings = array(
+    'extra_fields' => array(
+      'display' => array(
+        // Each extra field
+        'tournament' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'teaser' => array('visible' => TRUE, 'weight' => 10),
+          'match_block' => array('visible' => FALSE, 'weight' => 10),
+          'game_list' => array('visible' => TRUE, 'weight' => 10),
+        ),
+        'match_winner' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'teaser' => array('visible' => TRUE, 'weight' => 10),
+          'match_block' => array('visible' => FALSE, 'weight' => 10),
+          'game_list' => array('visible' => TRUE, 'weight' => 10),
+        ),
+        'match_table' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'teaser' => array('visible' => TRUE, 'weight' => 10),
+          'match_block' => array('visible' => FALSE, 'weight' => 10),
+          'game_list' => array('visible' => TRUE, 'weight' => 10),
+        ),
+        'match_block' => array(
+          // View modes
+          'default' => array('visible' => FALSE, 'weight' => 10),
+          'full' => array('visible' => FALSE, 'weight' => 10),
+          'teaser' => array('visible' => TRUE, 'weight' => 10),
+          'match_block' => array('visible' => TRUE, 'weight' => 10),
+          'game_list' => array('visible' => FALSE, 'weight' => 10),
+        ),
+        'match_contestant1' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'teaser' => array('visible' => TRUE, 'weight' => 10),
+          'match_block' => array('visible' => FALSE, 'weight' => 10),
+          'game_list' => array('visible' => FALSE, 'weight' => 10),
+        ),
+        'match_contestant2' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'teaser' => array('visible' => TRUE, 'weight' => 10),
+          'match_block' => array('visible' => FALSE, 'weight' => 10),
+          'game_list' => array('visible' => FALSE, 'weight' => 10),
+        ),
+        
+      ),
+    ),
+  );
+
+  field_bundle_settings('tourney_match', 'match', $settings);
 }
 
 /**
