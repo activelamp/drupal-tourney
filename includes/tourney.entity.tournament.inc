@@ -37,8 +37,9 @@ class TourneyTournamentEntity extends TourneyEntity {
 
       // Add a url to the object
       $this->uri = $this->getUri();
+      
+      $this->name_original = $this->name;
     }
-    $this->name_original = $this->name;
   }
 
   /**

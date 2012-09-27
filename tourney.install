@@ -701,11 +701,28 @@ function _tourney_set_extra_fields_defaults() {
           'match_block' => array('visible' => TRUE, 'weight' => 10),
           'game_list' => array('visible' => FALSE, 'weight' => 10),
         ),
+        'match_contestant1' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'teaser' => array('visible' => TRUE, 'weight' => 10),
+          'match_block' => array('visible' => FALSE, 'weight' => 10),
+          'game_list' => array('visible' => FALSE, 'weight' => 10),
+        ),
+        'match_contestant2' => array(
+          // View modes
+          'default' => array('visible' => TRUE, 'weight' => 10),
+          'full' => array('visible' => TRUE, 'weight' => 10),
+          'teaser' => array('visible' => TRUE, 'weight' => 10),
+          'match_block' => array('visible' => FALSE, 'weight' => 10),
+          'game_list' => array('visible' => FALSE, 'weight' => 10),
+        ),
+        
       ),
     ),
   );
 
-  field_bundle_settings('tourney_tournament', 'match', $settings);
+  field_bundle_settings('tourney_match', 'match', $settings);
 }
 
 /**
