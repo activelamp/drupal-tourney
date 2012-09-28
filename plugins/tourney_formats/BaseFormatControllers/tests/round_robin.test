@@ -1,0 +1,43 @@
+<?php
+
+class RoundRobinNextMatchTestCase extends DrupalWebTestCase {
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Test Round Robin next match positions'),
+      'description' => t('Tests double elimination tournaments with a varying number or contestants.'),
+      'group' => t('Tourney'),
+    );
+  }
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RoundRobin');
+    parent::setUp(array(
+      'tourney',
+    ));
+  }
+
+  /**
+   * Loops through all the matches defined in the test and checks values against
+   * the plugin.
+   *
+   * @param $match
+   *   A formatted match array that has a winner and slot.
+   * @param $tournament
+   *   The built tournament object.
+   */
+  protected function checkNextMatch($match, $tournament) {
+    $this->pass('Testing Round Robin with ' . $tournament->numContestants . ' players.');
+    $matches = $tournament->data['matches'];
+
+    foreach ($match as $mid => $info) {
+      $this->assertEqual($info['winner'], $matches[$mid]['nextMatch']['winner']['id'], 'Match ' . $mid . ' winner is going to the correct match', 'PHP');
+      $this->assertEqual($info['slot'], $matches[$mid]['nextMatch']['winner']['slot'], 'Match ' . $mid . ' winner is going to the correct slot', 'PHP');
+    }
+    $this->pass('End of Round Robin with ' . $tournament->numContestants . ' players.');
+  }

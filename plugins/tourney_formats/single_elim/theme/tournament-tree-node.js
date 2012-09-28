@@ -63,6 +63,11 @@ Drupal.behaviors.tourneyHighlight = { attach: function(context, settings) {
       }
       $('.connector.to-children', $parent.children('.parent')).addClass('tourney-highlight');
     });
+    $notnecessary = $('.match.not-necessary');
+    if ($notnecessary) {
+      $('.connector', $notnecessary).removeClass('tourney-highlight');
+      $('.top-node > .children > .tree-node > .parent > .connector').removeClass('tourney-highlight');
+    }
   }, function() {
     $('.tourney-highlight').removeClass('tourney-highlight');
   });
