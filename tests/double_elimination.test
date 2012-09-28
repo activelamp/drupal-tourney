@@ -49,9 +49,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
-      // Set contestants of the Second Match.
+      // Match 2
       $edit = array();
       // Match 2 Slot 1
       $edit['contestant1'] = 'user.4';
@@ -68,7 +68,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
       // Play Third Match
       $edit = array();
@@ -79,7 +79,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       
       // Loser Bracket
       // Match 4
@@ -94,7 +94,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
       // Match 5
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -108,7 +108,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
       
 	  // Tourament Championship Matches
       // Match 6
@@ -129,7 +129,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Set Game 2 Winner
       $this->drupalPost('tourney/match/6', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
    
 
       // Checking 4 man Tourney Winner is displaying on the Tournament page 
@@ -198,9 +198,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.7'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.7</div>');
 
-      // Set contestants of the Second Match.
+      // Match 2
       $edit = array();
       // Check to see if winner of previous match is being passed into this match correctly to Match 2 Slot 2
       $this->drupalGet('tourney/match/2');
@@ -220,7 +220,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 3
       $edit = array();
@@ -239,7 +239,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
       // Match 4
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -251,7 +251,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalPost('tourney/match/4', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Lower Bracket
       // Match 5
@@ -266,7 +266,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
       // Match 6
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -280,7 +280,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
 	  // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
       // Match 7
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -294,7 +294,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
 	  // Tourament Championship Matches
       // Match 8
@@ -315,7 +315,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Set Game 2 Winner
       $this->drupalPost('tourney/match/8', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Checking 5 man Tourney Winner is displaying on the Tournament page
       $edit = array();
@@ -346,7 +346,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalPost('tourney/match/9', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
 	  // Checking 5 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
@@ -382,9 +382,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
-      // Set contestants of the Second Match.
+      // Match 2
       $edit = array();
       // Match 2 Slot 1
       $edit['contestant1'] = 'user.5';
@@ -399,9 +399,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
-      // Set contestants of the Third Match.
+      // Match 3
       $edit = array();
       // Match 3 Slot 1
       $edit['contestant1'] = 'user.3';
@@ -415,9 +415,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check slot 2 winner, same winner as the winner from tourney/match/1
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
-      // Set contestants of the Fourth Match.
+      // Match 4
       $edit = array();
       // Match 4 Slot 1
       $edit['contestant1'] = 'user.4';
@@ -431,7 +431,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page. Should be winner of match 2.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
       // Match 5
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -445,7 +445,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
  	  // Lower Bracket
       // Match 6
@@ -460,7 +460,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 7
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -474,7 +474,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
       // Match 8
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -488,7 +488,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
       // Match 9
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -502,7 +502,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
   	  // Championship Bracket
       // Match 10
@@ -523,7 +523,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Set Game 2 Winner
       $this->drupalPost('tourney/match/10', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Checking 6 man Tourney Winner is displaying on the Tournament page
       $edit = array();
@@ -554,7 +554,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalPost('tourney/match/11', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
 	  // Checking 6 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
@@ -590,9 +590,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.7'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.7</div>');
 
-      // Set contestants of the Second Match.
+      // Match 2
       $edit = array();
       // Match 2 Slot 1
       $edit['contestant1'] = 'user.4';
@@ -607,9 +607,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
-      // Set contestants of the Third Match.
+      // Match 3
       $edit = array();
       // Match 3 Slot 1
       $edit['contestant1'] = 'user.5';
@@ -624,9 +624,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
-      // Set contestants of the Fourth Match.
+      // Match 4
       $edit = array();
       // Match 4 Slot 1
       $edit['contestant1'] = 'user.3';
@@ -640,7 +640,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check slot 2 winner, same winner as the winner from tourney/match/1
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 5
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -654,7 +654,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
       // Match 6
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -668,7 +668,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Lower Bracket
       // Match 7
@@ -683,7 +683,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
       // Match 8
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -697,7 +697,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 9
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -711,7 +711,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
       // Match 10
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -725,7 +725,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
       // Match 11
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -739,7 +739,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 	
 	  // Championship Matches
       // Match 12
@@ -760,7 +760,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Set Game 2 Winner
       $this->drupalPost('tourney/match/12', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Checking 7 man Tourney Winner is displaying on the Tournament page
       $edit = array();
@@ -791,7 +791,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalPost('tourney/match/13', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
 	  // Checking 7 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
@@ -827,9 +827,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
-      // Set contestants of the Second Match.
+      // Match 2
       $edit = array();
       // Match 2 Slot 1
       $edit['contestant1'] = 'user.6';
@@ -844,9 +844,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.7'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.7</div>');
 
-      // Set contestants of the Third Match.
+      // Match 3
       $edit = array();
       // Match 3 Slot 1
       $edit['contestant1'] = 'user.4';
@@ -861,9 +861,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
-      // Set contestants of the Fourth Match.
+      // Match 4
       $edit = array();
       // Match 4 Slot 1
       $edit['contestant1'] = 'user.5';
@@ -878,7 +878,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
       // Match 5
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -892,7 +892,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 6
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -906,7 +906,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
 
       // Match 7
@@ -921,7 +921,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
 	  // Lower Bracket
       // Match 8
@@ -936,7 +936,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.10'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.10</div>');
 
       // Match 9
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -950,7 +950,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
       // Match 10
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -964,7 +964,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 11
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -978,7 +978,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
       // Match 12
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -992,7 +992,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
       // Match 13
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1006,7 +1006,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
 	  // Championship Bracket
       // Match 14
@@ -1027,7 +1027,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Set Game 2 Winner
       $this->drupalPost('tourney/match/14', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Checking 8 man Tourney Winner is displaying on the Tournament page
       $edit = array();
@@ -1058,7 +1058,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalPost('tourney/match/15', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
 	  // Checking 7 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
@@ -1094,7 +1094,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.11'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.11</div>');
 
       // Set contestants of the Second Match.
       $edit = array();
@@ -1110,7 +1110,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Set contestants of the Third Match.
       $edit = array();
@@ -1127,7 +1127,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.7'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.7</div>');
 
       // Set contestants of the Fourth Match.
       $edit = array();
@@ -1144,7 +1144,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Set contestants of the Fifth Match.
       $edit = array();
@@ -1161,7 +1161,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
       // Match 6
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1175,7 +1175,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 7
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1189,7 +1189,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
       // Match 8
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1203,7 +1203,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
 	  // Lower Bracket
       // Match 9
@@ -1218,7 +1218,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.10'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.10</div>');
 
       // Match 10
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1232,7 +1232,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
       // Match 11
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1246,7 +1246,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.10'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.10</div>');
 
       // Match 12
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1260,7 +1260,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 13
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1274,7 +1274,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.10'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.10</div>');
 
       // Match 14
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1288,7 +1288,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.10'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.10</div>');
 
       // Match 15
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1302,7 +1302,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.10'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.10</div>');
 
 	  // Championship Bracket
       // Match 16
@@ -1323,7 +1323,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Set Game 2 Winner
       $this->drupalPost('tourney/match/16', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Checking 9 man Tourney Winner is displaying on the Tournament page
       $edit = array();
@@ -1354,7 +1354,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalPost('tourney/match/17', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.10'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.10</div>');
 
 	  // Checking 7 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
@@ -1390,7 +1390,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Set contestants of the Second Match.
       $edit = array();
@@ -1407,7 +1407,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.11'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.11</div>');
 
       // Set contestants of the Third Match.
       $edit = array();
@@ -1424,7 +1424,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
       // Set contestants of the Fourth Match.
       $edit = array();
@@ -1441,7 +1441,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.14'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.14</div>');
 
       // Set contestants of the Fifth Match.
       $edit = array();
@@ -1458,7 +1458,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Set contestants of the Sixth Match.
       $edit = array();
@@ -1475,7 +1475,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.12'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.12</div>');
 
       // Set contestants of the Seventh Match.
       $edit = array();
@@ -1492,7 +1492,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
       // Set contestants of the Eighth Match.
       $edit = array();
@@ -1509,7 +1509,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.13'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.13</div>');
 
       // Match 9
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1523,7 +1523,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 10
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1537,7 +1537,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.14'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.14</div>');
 
       // Match 11
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1551,7 +1551,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 12
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1565,7 +1565,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.13'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.13</div>');
 
       // Match 13
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1579,7 +1579,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 14
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1593,7 +1593,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.13'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.13</div>');
 
       // Match 15
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1607,7 +1607,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
 	  // Lower Bracket
       // Match 16
@@ -1622,7 +1622,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.17'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.17</div>');
 
       // Match 17
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1636,7 +1636,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.16'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.16</div>');
 
       // Match 18
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1650,7 +1650,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.18'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.18</div>');
 
       // Match 19
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1664,7 +1664,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.15'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.15</div>');
 
       // Match 20
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1678,7 +1678,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.11'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.11</div>');
 
       // Match 21
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1692,7 +1692,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.16'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.16</div>');
 
       // Match 22
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1706,7 +1706,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.12'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.12</div>');
 
       // Match 23
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1720,7 +1720,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.15'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.15</div>');
 
       // Match 24
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1734,7 +1734,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.11'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.11</div>');
 
       // Match 25
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1748,7 +1748,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.12'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.12</div>');
 
       // Match 26
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1762,7 +1762,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 27
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1776,7 +1776,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.12'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.12</div>');
 
       // Match 28
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1790,7 +1790,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.12'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.12</div>');
 
       // Match 29
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -1804,7 +1804,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.12'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.12</div>');
 
 	  // Championship Bracket
       // Match 30
@@ -1825,7 +1825,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Set Game 2 Winner
       $this->drupalPost('tourney/match/30', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Checking 16 man Tourney Winner is displaying on the Tournament page
       $edit = array();
@@ -1856,7 +1856,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalPost('tourney/match/31', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.12'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.12</div>');
 
 	  // Checking 7 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
@@ -1892,7 +1892,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Set contestants of the Second Match.
       $edit = array();
@@ -1909,7 +1909,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.19'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.19</div>');
 
       // Set contestants of the Third Match.
       $edit = array();
@@ -1926,7 +1926,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.10'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.10</div>');
 
       // Set contestants of the Fourth Match.
       $edit = array();
@@ -1943,7 +1943,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.26'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.26</div>');
 
       // Set contestants of the Fifth Match.
       $edit = array();
@@ -1960,7 +1960,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
       // Set contestants of the Sixth Match.
       $edit = array();
@@ -1977,7 +1977,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.22'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.22</div>');
 
       // Set contestants of the Seventh Match.
       $edit = array();
@@ -1994,7 +1994,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.7'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.7</div>');
 
       // Set contestants of the Eighth Match.
       $edit = array();
@@ -2011,7 +2011,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.23'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.23</div>');
 
       // Set contestants of the Ninth Match.
       $edit = array();
@@ -2028,7 +2028,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Set contestants of the Tenth Match.
       $edit = array();
@@ -2045,7 +2045,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.20'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.20</div>');
 
       // Set contestants of the Eleventh Match.
       $edit = array();
@@ -2062,7 +2062,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.9'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.9</div>');
 
       // Set contestants of the Twelfth Match.
       $edit = array();
@@ -2079,7 +2079,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.25'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.25</div>');
 
       // Set contestants of the Thriteenth Match.
       $edit = array();
@@ -2096,7 +2096,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
       // Set contestants of the Fourteenth Match.
       $edit = array();
@@ -2113,7 +2113,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.21'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.21</div>');
 
       // Set contestants of the Fifteenth Match.
       $edit = array();
@@ -2130,7 +2130,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.8'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
 
       // Set contestants of the Sixteenth Match.
       $edit = array();
@@ -2147,7 +2147,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.24'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.24</div>');
 
       // Match 17
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2161,7 +2161,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 18
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2175,7 +2175,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.26'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.26</div>');
 
       // Match 19
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2189,7 +2189,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.6'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
 
       // Match 20
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2203,7 +2203,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.23'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.23</div>');
 
       // Match 21
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2217,7 +2217,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 22
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2231,7 +2231,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.25'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.25</div>');
 
       // Match 23
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2245,7 +2245,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.5'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
 
       // Match 24
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2259,7 +2259,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.24'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.24</div>');
 
       // Match 25
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2273,7 +2273,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 26
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2287,7 +2287,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.23'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.23</div>');
 
       // Match 27
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2301,7 +2301,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 28
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2315,7 +2315,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.24'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.24</div>');
 
       // Match 29
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2329,7 +2329,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Match 30
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2343,7 +2343,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.24'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.24</div>');
 
       // Match 31
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2357,7 +2357,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
 	  // Lower Bracket
       // Match 32
@@ -2372,7 +2372,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.34'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.34</div>');
 
       // Match 33
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2386,7 +2386,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.27'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.27</div>');
 
       // Match 34
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2400,7 +2400,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.31'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.31</div>');
 
       // Match 35
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2414,7 +2414,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.30'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.30</div>');
 
       // Match 36
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2428,7 +2428,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.33'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.33</div>');
 
       // Match 37
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2442,7 +2442,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.28'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.28</div>');
 
       // Match 38
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2456,7 +2456,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.32'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.32</div>');
 
       // Match 39
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2470,7 +2470,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
       // Match 40
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2484,7 +2484,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.20'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.20</div>');
 
       // Match 41
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2498,7 +2498,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.27'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.27</div>');
 
       // Match 42
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2512,7 +2512,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.21'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.21</div>');
 
       // Match 43
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2526,7 +2526,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.30'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.30</div>');
 
       // Match 44
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2540,7 +2540,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.19'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.19</div>');
 
       // Match 45
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2554,7 +2554,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.28'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.28</div>');
 
       // Match 46
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2568,7 +2568,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.22'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.22</div>');
 
       // Match 47
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2582,7 +2582,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
       // Match 48
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2596,7 +2596,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.27'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.27</div>');
 
       // Match 49
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2610,7 +2610,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.30'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.30</div>');
 
       // Match 50
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2624,7 +2624,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.28'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.28</div>');
 
       // Match 51
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2638,7 +2638,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
       // Match 52
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2652,7 +2652,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.26'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.26</div>');
 
       // Match 53
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2666,7 +2666,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.30'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.30</div>');
 
       // Match 54
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2680,7 +2680,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.25'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.25</div>');
 
       // Match 55
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2694,7 +2694,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
       // Match 56
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2708,7 +2708,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.30'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.30</div>');
 
       // Match 57
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2722,7 +2722,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
       // Match 58
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2736,7 +2736,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.4'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.4</div>');
 
       // Match 59
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2750,7 +2750,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
       // Match 60
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2764,7 +2764,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
       // Match 61
       // Check to see if winner of previous match is being passed into this match correctly 
@@ -2778,7 +2778,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if winner was successfully set, passing in "Players moved to next round" text.
       $this->assertRaw(t('Players moved to next round'));
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
 	  // Championship Bracket
       // Match 62
@@ -2799,7 +2799,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Set Game 2 Winner
       $this->drupalPost('tourney/match/62', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.3'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
       // Checking 32 man Tourney Winner is displaying on the Tournament page
       $edit = array();
@@ -2830,7 +2830,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalPost('tourney/match/63', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw(t('user.29'));
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
 	  // Checking 7 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
