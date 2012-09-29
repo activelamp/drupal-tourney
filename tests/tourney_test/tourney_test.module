@@ -24,8 +24,11 @@ function tourney_test_menu() {
  */
 function tourney_testing() {  
   $output = '';
-  // module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  // $test = new DoubleEliminationController(5);
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RoundRobin');
+  $test = new RoundRobinController(10);
+  $test->build();
+  dpm($test->data);
+  return $test->render();
   // $wrapper = entity_metadata_wrapper('tourney_match');
   // // $test->setPluginOptions(array('show_byes' => TRUE));
   // $output .= $test->render();
@@ -40,7 +43,7 @@ function tourney_testing() {
  */
 function tourney_test_theme_registry_alter(&$theme_registry) {
   $path = drupal_get_path('module', 'tourney_test') . '/theme';
-  $theme_registry['tourney_match_render']['path'] = $path;
+  //$theme_registry['tourney_match_render']['path'] = $path;
 }
 
 
