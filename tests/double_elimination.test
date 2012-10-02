@@ -2739,7 +2739,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
 	    // Championship Bracket
       // Match 60
       // Check to see if winner of previous match is being passed into this match correctly 
-      $this->drupalGet('tourney/match/62');
+      $this->drupalGet('tourney/match/60');
       $this->assertRaw(t('<tr class="odd"><td>user.3</td>'));
       $this->assertRaw(t('<tr class="even"><td>user.29</td>'));
 
@@ -2751,9 +2751,9 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Play Sixtieth Match
       $edit = array();
       // Set Game 1 Winner
-      $this->drupalPost('tourney/match/62', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
+      $this->drupalPost('tourney/match/60', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Set Game 2 Winner
-      $this->drupalPost('tourney/match/62', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
+      $this->drupalPost('tourney/match/60', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
@@ -2763,32 +2763,33 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
-	   /** 
-  	  * Testing that the tie-breaker is getting set and played properly, by editing championship match winner to be from bottom bracket
-  	  */
-  	  // Edit championship match, game 2 to set lower bracket as winner
-  	  $edit = array('game.64' => 'user.29');
-  	  $this->drupalPost('tourney/match/62/edit', $edit, t('Save'));
+      /** 
+      * Testing that the tie-breaker is getting set and played properly, 
+      * by editing championship match winner to be from bottom bracket
+      */
+      // Edit championship match, game 2 to set lower bracket as winner
+      $edit = array('game.62' => 'user.29');
+      $this->drupalPost('tourney/match/60/edit', $edit, t('Save'));
 
   	  // Play 3rd game making slot 2 win match.
   	  $edit = array();
-  	  $this->drupalPost('tourney/match/62', $edit, t('Win'), array(), array(), 'tourney-game-win-form--2');
+  	  $this->drupalPost('tourney/match/60', $edit, t('Win'), array(), array(), 'tourney-game-win-form--2');
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
-	    // Match 63 - Tie Breaker
+	    // Match 61 - Tie Breaker
       // Check to see if winner of previous match is being passed into this match correctly 
-      $this->drupalGet('tourney/match/63');
+      $this->drupalGet('tourney/match/61');
       $this->assertRaw(t('<tr class="odd"><td>user.29</td>'));
       $this->assertRaw(t('<tr class="even"><td>user.3</td>'));
 
-	    // Play Fifteenth Match
+	    // Play Sixty First Match
       $edit = array();
-      $this->drupalPost('tourney/match/63', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
+      $this->drupalPost('tourney/match/61', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
-	    // Checking 7 man Tourney Winner is displaying on the Tournament page 
+	    // Checking 31 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
       $this->drupalGet('tourney/tournament/1');
       // Check to see if the winner is printed on the page.
@@ -2805,7 +2806,7 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       // Create the tournament.
       $this->createTourney($this->controller, 32);
 
-	  // Upper Bracket
+      // Upper Bracket
       $edit = array();
       // Match 1 Slot 1
       $edit['contestant1'] = 'user.3';
@@ -3756,13 +3757,13 @@ class DoubleElimimationTestCase extends TourneyWebTestCase {
       $this->assertRaw(t('<tr class="odd"><td>user.29</td>'));
       $this->assertRaw(t('<tr class="even"><td>user.3</td>'));
 
-	    // Play Fifteenth Match
+	    // Play Sixty Third Match
       $edit = array();
       $this->drupalPost('tourney/match/63', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
       // Check to see if the winner is printed on the page.
       $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.29</div>');
 
-	    // Checking 7 man Tourney Winner is displaying on the Tournament page 
+	    // Checking 32 man Tourney Winner is displaying on the Tournament page 
       $edit = array();
       $this->drupalGet('tourney/tournament/1');
       // Check to see if the winner is printed on the page.
