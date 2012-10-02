@@ -236,6 +236,7 @@ class RoundRobinNextMatchTestCase extends DrupalWebTestCase {
         'contestant2' => 28,
         'contestant2_slot' => 2,
       ),
+    );
 
     $this->checkNextMatch($match, $tournament);
 
