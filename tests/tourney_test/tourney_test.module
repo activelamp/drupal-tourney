@@ -25,7 +25,7 @@ function tourney_test_menu() {
 function tourney_testing() {  
   $output = '';
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RoundRobin');
-  $test = new RoundRobinController(8);
+  $test = new RoundRobinController(6);
   $test->build();
   dpm($test->data);
   return $test->render();
