@@ -16,7 +16,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
   /**
    * Testing 4 contestants
    */
-  public function testTourament4() {
+  public function testTournament4() {
       // Create the tournament.
     $tournament_name = $this->createTourney($this->controller, 4);
   
@@ -70,7 +70,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
 
     // Play Third Match
     $edit = array();
-    $this->drupalPost('tourney/match/3', $edit, t('Win'), array(), array(), 'tourney-game-win-form--2');
+    $this->drupalPost('tourney/match/3', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
     // Check to see if winner users of previous matches are being
     // passed into this game correctly
     $this->assertRaw('<tr class="odd"><td>user.3</td>');
@@ -86,7 +86,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalGet('tourney/tournament/1');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 4 Man Tourney
       $this->pass("End of 4 Man " . $this->controller);
     }
@@ -95,7 +95,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
      * Testing 5 contestants
      */
-    public function testTourament5() {
+    public function testTournament5() {
     // Create the tournament.
     $this->createTourney($this->controller, 5);
 
@@ -111,19 +111,19 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
 
     // Play First Match
     $edit = array();
-    $this->drupalPost('tourney/match/1', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
+    $this->drupalPost('tourney/match/1', $edit, t('Win'), array(), array(), 'tourney-game-win-form--2');
     // Check to see if winner was successfully set passing
     // in "Players moved to next round" text.
     $this->assertRaw(t('Players moved to next round'));
     // Check to see if the winner is printed on the page.
-    $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
+    $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.7</div>');
 
     // Match 2
     $edit = array();
     $this->drupalGet('tourney/match/2');
     // Check to see if winner of previous match is being
     // passed into this match correctly 
-    $this->assertRaw(t('<tr class="odd"><td>user.6</td>'));
+    $this->assertRaw(t('<tr class="odd"><td>user.7</td>'));
     // Match 2 Slot 1
     $edit['contestant1'] = 'user.3';
     // Save Match 2 (/tourney/match/2)
@@ -133,12 +133,12 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
 
     // Play Second Match
     $edit = array();
-    $this->drupalPost('tourney/match/2', $edit, t('Win'), array(), array(), 'tourney-game-win-form--2');
+    $this->drupalPost('tourney/match/2', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
     // Check to see if winner was successfully set, passing
     // in "Players moved to next round" text.
     $this->assertRaw(t('Players moved to next round'));
     // Check to see if the winner is printed on the page.
-    $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.6</div>');
+    $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
     // Match 3
     $edit = array();
@@ -162,10 +162,10 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
 
     // Play Fourth Match
     $edit = array();
-    $this->drupalPost('tourney/match/4', $edit, t('Win'), array(), array(), 'tourney-game-win-form--2');
+    $this->drupalPost('tourney/match/4', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
     // Check to see if winner users of previous matches
     // are being passed into this match correctly
-    $this->assertRaw('<tr class="odd"><td>user.6</td>');
+    $this->assertRaw('<tr class="odd"><td>user.3</td>');
     $this->assertRaw('<tr class="even"><td>user.5</td>');
 
     // If the controller is Single Elimination then finish this touranment 
@@ -175,7 +175,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalGet('tourney/tournament/1');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.5</div>');
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 5 Man Tourney
       $this->pass("End of 5 Man " . $this->controller);
     }
@@ -184,7 +184,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 6 contestants
     */
-    public function testTourament6() {
+    public function testTournament6() {
     // Create the tournament.
     $this->createTourney($this->controller, 6);
 
@@ -266,9 +266,9 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
 
     // Play Fifth Match
     $edit = array();
-    $this->drupalPost('tourney/match/5', $edit, t('Win'), array(), array(), 'tourney-game-win-form--2');
+    $this->drupalPost('tourney/match/5', $edit, t('Win'), array(), array(), 'tourney-game-win-form');
     // Check to see if the winner is printed on the page.
-    $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
+    $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
 
     // If the controller is Single Elimination then finish this touranment 
     // with following Tournament assertion.
@@ -277,7 +277,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
       $edit = array();
       $this->drupalGet('tourney/tournament/1');
       // Check to see if the winner is printed on the page.
-      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.8</div>');
+      $this->assertRaw('<div class="field-label">Winner:</div><div class="field-content">user.3</div>');
       // End of 6 Man Tourney
       $this->pass("End of 6 Man " . $this->controller);
    }
@@ -286,7 +286,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 7 contestants
     */
-    public function testTourament7() {
+    public function testTournament7() {
     // Create the tournament.
     $this->createTourney($this->controller, 7);
 
@@ -402,7 +402,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 8 contestants
     */
-    public function testTourament8() {
+    public function testTournament8() {
     // Create the tournament.
     $this->createTourney($this->controller, 8);
 
@@ -532,7 +532,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 9 contestants
     */
-    public function testTourament9() {
+    public function testTournament9() {
     // Create the tournament.
     $this->createTourney($this->controller, 9);
 
@@ -680,7 +680,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 10 contestants
     */
-    public function testTourament10() {
+    public function testTournament10() {
     // Create the tournament.
     $this->createTourney($this->controller, 10);
 
@@ -839,7 +839,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 11 contestants
     */
-    public function testTourament11() {
+    public function testTournament11() {
     // Create the tournament.
     $this->createTourney($this->controller, 11);
 
@@ -1021,7 +1021,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 12 contestants
     */
-    public function testTourament12() {
+    public function testTournament12() {
     // Create the tournament.
     $this->createTourney($this->controller, 12);
 
@@ -1219,7 +1219,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 13 contestants
     */
-    public function testTourament13() {
+    public function testTournament13() {
     // Create the tournament.
     $this->createTourney($this->controller, 13);
 
@@ -1436,7 +1436,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 14 contestants
     */
-    public function testTourament14() {
+    public function testTournament14() {
     // Create the tournament.
     $this->createTourney($this->controller, 14);
 
@@ -1665,7 +1665,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 15 contestants
     */
-    public function testTourament15() {
+    public function testTournament15() {
     // Create the tournament.
     $this->createTourney($this->controller, 15);
 
@@ -1914,7 +1914,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 16 contestants
     */
-    public function testTourament16() {
+    public function testTournament16() {
     // Create the tournament.
     $this->createTourney($this->controller, 16);
 
@@ -2181,7 +2181,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 17 contestants
     */
-    public function testTourament17() {
+    public function testTournament17() {
     // Create the tournament.
     $this->createTourney($this->controller, 17);
 
@@ -2466,7 +2466,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 18 contestants
     */
-    public function testTourament18() {
+    public function testTournament18() {
     // Create the tournament.
     $this->createTourney($this->controller, 18);
 
@@ -2765,7 +2765,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 19 contestants
     */
-    public function testTourament19() {
+    public function testTournament19() {
     // Create the tournament.
     $this->createTourney($this->controller, 19);
 
@@ -3081,7 +3081,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 20 contestants
     */
-    public function testTourament20() {
+    public function testTournament20() {
     // Create the tournament.
     $this->createTourney($this->controller, 20);
 
@@ -3416,7 +3416,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 21 contestants
     */
-    public function testTourament21() {
+    public function testTournament21() {
     // Create the tournament.
     $this->createTourney($this->controller, 21);
 
@@ -3764,7 +3764,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 22 contestants
     */
-    public function testTourament22() {
+    public function testTournament22() {
     // Create the tournament.
     $this->createTourney($this->controller, 22);
 
@@ -3772,7 +3772,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     $edit = array();
     // Match 1 Slot 1 
     $edit['contestant1'] = 'user.18';
-    // Match 1 Slot 2testTourament
+    // Match 1 Slot 2testTournament
     $edit['contestant2'] = 'user.19';
     // Save Match 1 (/tourney/match/1)
     $this->drupalPost('tourney/match/1/edit', $edit, t('Save'));
@@ -4130,7 +4130,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 23 contestants
     */
-    public function testTourament23() {
+    public function testTournament23() {
     // Create the tournament.
     $this->createTourney($this->controller, 23);
 
@@ -4510,7 +4510,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 24 contestants
     */
-    public function testTourament24() {
+    public function testTournament24() {
     // Create the tournament.
     $this->createTourney($this->controller, 24);
 
@@ -4906,7 +4906,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 25 contestants
     */
-    public function testTourament25() {
+    public function testTournament25() {
     // Create the tournament.
     $this->createTourney($this->controller, 25);
 
@@ -5319,7 +5319,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 26 contestants
     */
-    public function testTourament26() {
+    public function testTournament26() {
     // Create the tournament.
     $this->createTourney($this->controller, 26);
 
@@ -5750,7 +5750,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 27 contestants
     */
-    public function testTourament27() {
+    public function testTournament27() {
     // Create the tournament.
     $this->createTourney($this->controller, 27);
 
@@ -6197,7 +6197,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 28 contestants
     */
-    public function testTourament28() {
+    public function testTournament28() {
     // Create the tournament.
     $this->createTourney($this->controller, 28);
 
@@ -6661,7 +6661,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 29 contestants
     */
-    public function testTourament29(){
+    public function testTournament29(){
     // Create the tournament.
     $this->createTourney($this->controller, 29);
 
@@ -7142,7 +7142,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 30 contestants
     */
-    public function testTourament30() {
+    public function testTournament30() {
     // Create the tournament.
     $this->createTourney($this->controller, 30);
 
@@ -7640,7 +7640,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 31 contestants
     */
-    public function testTourament31() {
+    public function testTournament31() {
     // Create the tournament.
     $this->createTourney($this->controller, 31);
 
@@ -8155,7 +8155,7 @@ class SingleElimimationTestCase extends TourneyWebTestCase {
     /**
     * Testing 32 contestants
     */
-    public function testTourament32() {
+    public function testTournament32() {
     // Create the tournament.
     $this->createTourney($this->controller, 32);
 
