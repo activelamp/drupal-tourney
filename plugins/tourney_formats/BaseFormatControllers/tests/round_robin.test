@@ -164,6 +164,7 @@ class RoundRobinNextMatchTestCase extends DrupalWebTestCase {
         'contestant2' => 15,
         'contestant2_slot' => 2,
       ),
+    );
 
     $this->checkNextMatch($match, $tournament);
 
@@ -194,7 +195,7 @@ class RoundRobinNextMatchTestCase extends DrupalWebTestCase {
       ),
       4 => array(
         'contestant1' => 8,
-        'contestant1_slot' => 2,
+        'contestant1_slot' => 1,
         'contestant2' => 7,
         'contestant2_slot' => 1,
       ),
@@ -237,8 +238,8 @@ class RoundRobinNextMatchTestCase extends DrupalWebTestCase {
       11 => array(
         'contestant1' => 16,
         'contestant1_slot' => 2,
-        'contestant2' => 17,
-        'contestant2_slot' => 2,
+        'contestant2' => 14,
+        'contestant2_slot' => 1,
       ),
       12 => array(
         'contestant1' => 16,
@@ -266,7 +267,7 @@ class RoundRobinNextMatchTestCase extends DrupalWebTestCase {
       ),
       16 => array(
         'contestant1' => 19,
-        'contestant1_slot' => 1,
+        'contestant1_slot' => 2,
         'contestant2' => 20,
         'contestant2_slot' => 2,
       ),
