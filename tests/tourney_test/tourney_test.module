@@ -25,7 +25,14 @@ function tourney_test_menu() {
 function tourney_testing() {  
   $output = '';
   // module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-  // $test = new DoubleEliminationController(5);
+  // $test = new RegularSeasonController(8);
+  // $test->setPluginOptions(array(
+  //   'RegularSeasonController' => array(
+  //     'max_team_play' => 2
+  //   ),
+  // ));
+  // $test->build();
+  // dpm($test);
   // $wrapper = entity_metadata_wrapper('tourney_match');
   // // $test->setPluginOptions(array('show_byes' => TRUE));
   // $output .= $test->render();

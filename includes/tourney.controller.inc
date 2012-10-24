@@ -414,8 +414,10 @@ class TourneyController implements TourneyControllerInterface {
   /**
    * Set the plugin options for this tourney format.
    *
-   * @param $values
-   *   Takes a key value pair to populate plugin options.
+   * @param array $values
+   *   Associative array keyed by plugin class name:
+   *   - PluginClassName: (array) Associative array of plugin options keyed by
+   *     option name.
    */
   public function setPluginOptions($values) {
     foreach ($values as $key => $value) {
