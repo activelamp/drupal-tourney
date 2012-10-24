@@ -128,9 +128,9 @@ function template_preprocess_tourney_contestant(&$vars) {
   
   $vars['classes_array'][] = 'contestant-' . $vars['contestant']->slot;
   $vars['classes_array'][] = $vars['winner'] ? 'winner' : 'loser';
-
-  if (property_exists($vars['contestant'], 'name') && $vars['contestant']->name) {
-    $vars['name'] = $vars['contestant']->name;
+  
+  if (property_exists($vars['contestant'], 'entity_name') && $vars['contestant']->entity_name) {
+    $vars['name'] = $vars['contestant']->entity_name;
     $vars['classes_array'][] = 'eid-' . str_replace('.', '-', $vars['contestant']->eid);
   }
   else {
