@@ -43,7 +43,7 @@ class SingleElimNextMatchTestCase extends DrupalWebTestCase {
   }
 
 	/**
-	 * Testing Double Elimination next match logic.
+	 * Testing Single Elimination next match logic.
 	 */
   public function testSingleEliminationLogic() {
 
