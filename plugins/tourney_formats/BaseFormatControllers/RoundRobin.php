@@ -81,7 +81,10 @@ class RoundRobinController extends TourneyController {
    * TourneyController::saveMatches().
    */
   public function build() {
+    // Reset the static vars.
     parent::build();
+    drupal_static_reset('rr_matches');
+    
     $this->buildBrackets();
     $this->buildMatches();
     $this->buildGames();
@@ -162,7 +165,7 @@ class RoundRobinController extends TourneyController {
    * the value, and the seed position as the values of that array.
    */
   public function calculateSeeds() {
-    static $matches = array();
+    $matches = &drupal_static('rr_matches', array());
     $mid = 1;
     $slots = $this->slots;
 

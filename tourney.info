@@ -38,3 +38,4 @@ files[] = tests/unpublishing.test
 files[] = tests/paths.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/single_elim.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/double_elim.test
+files[] = plugins/tourney_formats/BaseFormatControllers/tests/round_robin.test
