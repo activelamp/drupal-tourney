@@ -550,8 +550,6 @@ class TourneyTournamentEntity extends TourneyEntity {
    */
   public function populateRoundRobinMatches($mid, $slot = '') {
     $match = $this->getMatchById($mid);
-//print_r($match);
-//exit();
     if (array_key_exists('nextMatch', $match->matchInfo)) {
       foreach ($match->getMatchContestants() as $contestant) {
         // If a slot was specified, ensure only that slot is processed.
@@ -585,10 +583,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   The slot number to process. Defaults to processing both slots.
    */
   public function populateRegularSeasonMatches($mid, $slot = '') {
-// @TODO : debug this. All matches should be populated but nothing is.
     $match = $this->getMatchById($mid);
-//print_r($match);
-//exit();
     if (array_key_exists('nextMatch', $match->matchInfo)) {
       foreach ($match->getMatchContestants() as $contestant) {
         // If a slot was specified, ensure only that slot is processed.
