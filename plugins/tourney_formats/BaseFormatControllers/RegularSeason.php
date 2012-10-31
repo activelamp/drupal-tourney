@@ -242,15 +242,15 @@ class RegularSeasonController extends TourneyController {
     $structure = array();
     // Loop through our rounds and set up each one
     foreach ($this->data['rounds'] as $round) {
-      $structure[$round['id']] = $round + array('matches' => array());
+      $structure[$round['id']] = $round; // + array('matches' => array());
+      // We will be using this key below. Currently it is a scalar, it is
+      // going to become an array.
+      $structure[$round['id']]['matches'] = array();
     }
     // Loop through our matches and add each one to its related round
-    if (!is_array($this->data['matches'])) {
-      throw new Exception('No matches found.');
-    }
-    // @todo why is this complaining about scalar? http://tourney/tourney/tournament/5
     foreach ($this->data['matches'] as $match) {
-      $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
+        $key = 'round-' . $match['round'];
+        $structure[$key]['matches'][$match['id']] = $match;
     }
     $this->structure = $structure;
 

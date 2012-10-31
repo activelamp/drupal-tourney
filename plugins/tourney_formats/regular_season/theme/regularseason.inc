@@ -31,7 +31,7 @@ function template_preprocess_tourney_regularseason_standings(&$vars) {
   if (is_object($plugin->tournament)) {
     $contestants = $plugin->tournament->getContestants();
     $standings = $plugin->tournament->getStandings();
-    uasort($standings, 'tourney_roundrobin_standings_sort');
+    uasort($standings, 'tourney_regularseason_standings_sort');
   } else {
     // Create fake contestants.
     for ($contestant = 1; $contestant <= $slots; $contestant++) {
@@ -47,6 +47,6 @@ function template_preprocess_tourney_regularseason_standings(&$vars) {
     $table['rows'][] = array($contestant->entity_name, $games_played, $wins, $losses);
   }
 
-  //$vars['standings'] = theme('table', $table);
-  $vars['standings'] = 'These are the standings';
+  $vars['standings'] = theme('table', $table);
+  //$vars['standings'] = 'These are the standings';
 }

@@ -548,27 +548,61 @@ class TourneyTournamentEntity extends TourneyEntity {
    * @param $slot
    *   The slot number to process. Defaults to processing both slots.
    */
-    public function populateRoundRobinMatches($mid, $slot = '') {
-      $match = $this->getMatchById($mid);
-      if (array_key_exists('nextMatch', $match->matchInfo)) {
-        foreach ($match->getMatchContestants() as $contestant) {
-          // If a slot was specified, ensure only that slot is processed.
-          if ($slot && $contestant->slot != $slot) continue;
-          
-          $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
-          $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];
+  public function populateRoundRobinMatches($mid, $slot = '') {
+    $match = $this->getMatchById($mid);
+    if (array_key_exists('nextMatch', $match->matchInfo)) {
+      foreach ($match->getMatchContestants() as $contestant) {
+        // If a slot was specified, ensure only that slot is processed.
+        if ($slot && $contestant->slot != $slot) continue;
 
-          if ($next === NULL) continue;
+        $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
+        $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];
 
-          $next_match = $this->getMatchById($next);
-          $next_match->addContestant($contestant, $next_slot);
+        if ($next === NULL) continue;
 
-          // Recurse
-          $this->populateRoundRobinMatches($next, $next_slot);
-        }
+        $next_match = $this->getMatchById($next);
+        $next_match->addContestant($contestant, $next_slot);
+
+        // Recurse
+        $this->populateRoundRobinMatches($next, $next_slot);
       }
-
     }
+  }
+
+  /**
+   * Rules Action Callback: Recursive function that sets players in
+   * RegularSeason.
+   * 
+   * Player positions in regularseason tournaments are based on the position
+   * they enter the tournament, not on whether or not a game is won or lost.
+   * Set players in all matches once the first round has been setup.
+   *
+   * @param $mid
+   *   The match id from the plugin.
+   * @param $slot
+   *   The slot number to process. Defaults to processing both slots.
+   */
+  public function populateRegularSeasonMatches($mid, $slot = '') {
+// @TODO : debug this. All matches should be populated but nothing is.
+    $match = $this->getMatchById($mid);
+    if (array_key_exists('nextMatch', $match->matchInfo)) {
+      foreach ($match->getMatchContestants() as $contestant) {
+        // If a slot was specified, ensure only that slot is processed.
+        if ($slot && $contestant->slot != $slot) continue;
+
+        $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
+        $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];
+
+        if ($next === NULL) continue;
+
+        $next_match = $this->getMatchById($next);
+        $next_match->addContestant($contestant, $next_slot);
+
+        // Recurse
+        $this->populateRegularSeasonMatches($next, $next_slot);
+      }
+    }
+  }
 
   /**
    * Get settings from tourney settings.

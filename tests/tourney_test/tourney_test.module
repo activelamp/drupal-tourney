@@ -24,11 +24,11 @@ function tourney_test_menu() {
  */
 function tourney_testing() {  
   $output = '';
-  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RegularSeason');
   $test = new RegularSeasonController(8);
   $test->setPluginOptions(array(
     'RegularSeasonController' => array(
-      'max_team_play' => 2
+      'max_team_play' => 1
     ),
   ));
   $test->build();
