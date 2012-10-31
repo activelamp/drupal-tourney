@@ -201,18 +201,18 @@ class RegularSeasonController extends TourneyController {
    * each match.
    */
   public function populatePositions() {
+    $this->calculateSeeds();
     foreach ($this->data['matches'] as $id => &$match) {
-      $nextMatch = &$this->find('matches', array(
-        'round'      => $match['round'] + 1,
-        'roundMatch' => (int) ceil($match['roundMatch'] / 2)
-      ), TRUE);
-      if (!$nextMatch) continue;
-      $slot = $match['id'] % 2 ? 1 : 2;
-      $match['nextMatch']['winner'] = array(
-        'id' => $nextMatch['id'], 
-        'slot' => $slot
-      );
-      $nextMatch['previousMatches'][$slot] = $id;
+      $slot1 = $this->calculateNextPosition($match, 1);
+      $slot2 = $this->calculateNextPosition($match, 2);
+      if ($slot1) {
+        $match['nextMatch'][1] = $slot1;
+        $this->data['matches'][$slot1['id']]['previousMatches'][$slot1['slot']] = $id;
+      }
+      if ($slot2) {
+        $match['nextMatch'][2] = $slot2;
+        $this->data['matches'][$slot2['id']]['previousMatches'][$slot2['slot']] = $id;
+      }
     }
   }
 
@@ -224,13 +224,11 @@ class RegularSeasonController extends TourneyController {
     $this->calculateSeeds();
     // Calculate the seed positions, then apply them to their matches while
     // also setting the bye boolean
-    foreach ($this->data['seeds'] as $id => $seeds) {
-      $match =& $this->data['matches'][$id];
-      $match['seeds'] = $seeds;
-      $match['bye'] = $seeds[2] === NULL;
-      if ($match['bye'] && isset($match['nextMatch'])) {
-        $slot = $match['id'] % 2 ? 1 : 2;
-        $this->data['matches'][$match['nextMatch']['winner']['id']]['seeds'][$slot] = $seeds[1];
+    foreach ($this->data['seeds'] as $mid => $seeds) {
+      if ($this->data['matches'][$mid]['round'] == 1) {
+        $match =& $this->data['matches'][$mid];
+        $match['seeds'] = $seeds;
+        $match['bye'] = $seeds[2] === NULL;
       }
     }
   }
@@ -243,103 +241,92 @@ class RegularSeasonController extends TourneyController {
     // Loop through our rounds and set up each one
     foreach ($this->data['rounds'] as $round) {
       $structure[$round['id']] = $round; // + array('matches' => array());
-      // We will be using this key below. Currently it is a scalar, it is
-      // going to become an array.
       $structure[$round['id']]['matches'] = array();
     }
     // Loop through our matches and add each one to its related round
     foreach ($this->data['matches'] as $match) {
-        $key = 'round-' . $match['round'];
-        $structure[$key]['matches'][$match['id']] = $match;
+      $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
     }
     $this->structure = $structure;
 
     return $this->structure;
   }
 
-  public function structureNested() {
-    $structure = array();
-    // Loop through our rounds and set up each one
-    foreach ($this->data['rounds'] as $round) {
-      $structure[$round['id']] = $round + array('matches' => array());
-    }
-    // Loop through our matches and add each one to its related round
-    foreach ($this->data['matches'] as $match) {
-      $structure['round-' . $match['round']]['matches'][$match['id']] = $match;
-    }
-    return $structure;
-  }
+  /**
+   * Figures out what seed position is playing in every match of the tournament.
+   *
+   * Creates a keyed array with the key being match number and slots array as
+   * the value, and the seed position as the values of that array.
+   */
+  public function calculateSeeds() {
+    $matches = &drupal_static('rr_matches', array());
+    $mid = 1;
+    $slots = (int) $this->slots;
 
-  public function structureTree() {
-    $match = end($this->data['matches']);
-    return $this->structureTreeNode($match);
-  }
+    if (empty($matches)) {
+      $matches = array();
+      foreach (range(1, $slots - 1) as $round) {
+        $list = range(2, $slots);
+        $list = array_merge(array(1), array_slice(array_merge($list, $list), $slots-$round, $slots-1));
+        foreach (range(1, $slots / 2) as $match) {
+          $match = array($list[$match-1], $list[$slots-$match]);
 
-  public function structureTreeNode($match) {
-    $node = $match;
-    if (isset($match['previousMatches'])) {
-      foreach ($match['previousMatches'] as $child) {
-        // If this is a feeder match, don't build child that goes to other bracket.
-        // if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
-        //   continue;
-        // }
-        $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
+          // Slot positions need to flip every other round.
+          $match = ($round % 2) ? $match : array_reverse($match);
+
+          // Make the array 1-based
+          array_unshift($match, NULL);
+          unset($match[0]);
+
+          $matches[$mid++] = $match;
+        }
       }
+      $matches_new[] = NULL;
+      for ($x=0; $x<$this->rounds_multiplier; $x++) {
+        foreach ($matches as $match) {
+          $matches_new[] = $match;
+        }
+      }
+      unset($matches_new[0]);
+      $matches = $matches_new;
     }
-    return $node;
+    return $this->data['seeds'] = $matches;
   }
 
   /**
-   * Calculate contestant starting positions
+   * Given a match info array, returns both the target match and slot.
+   *
+   * @param $match_info
+   *   The match data array.
+   * @param $slot
+   *   Slot placement, one-based.
+   * @return $result
+   *   Keyed array giving both the target match and slot
    */
-  public function calculateSeeds() {
-    // Set up the first seed position
-    $seeds = array(1);
-    // Setting a count variable lets us speed up execution by not calling it
-    // several times each iteration
-    $count = 0;
-    // Keep generating the series until we've met our number of slots
-    while (($count = count($seeds)) < $this->slots) {
-      $new_seeds = array();
-      // For every current seed number, we'll add in one after it that
-      // matches the current from the end of the new count.
-      // Example:
-      // (1, 2)
-      //   The new series will have 4 elements, which is the current * 2
-      // 4 - 1 = 3, however because we're 1-based, add 1: 4
-      //  (1, 4)
-      // 4 - 2 = 2 + 1 = 3
-      //  (2, 3)
-      // New series:
-      // (1, 4, 2, 3)
-      foreach ($seeds as $seed) {
-        $new_seeds[] = $seed;
-        $new_seeds[] = ($count * 2 + 1) - $seed;
+  function calculateNextPosition($match_info, $slot) {
+    $seeds = $this->data['seeds'];
+    $place = $match_info['id'];
+
+    // Get the current contestant slot number
+    $id = $seeds[$place][$slot];
+    foreach ($seeds as $mid => $slots) {
+      if ($mid <= $place) {
+        continue;
       }
-      // Set these changes to be iterated through again if necessary
-      $seeds = $new_seeds;
+      // Check for the next instance of it after the current match
+      if (in_array($id, $slots)) {
+        $slots = array_flip($slots);
+        return array('id' => $mid, 'slot' => $slots[$id]);
+      }
     }
-    // Now that we've generated a full list of positions, fill them out into
-    // a series of matches with two positions per.
-    // Loop through each two of them, and fill out all the seeds as long as
-    // they're within the number of participating contestants.
-    $positions = array();
-    for ($p = 0; $p < $count; $p += 2) {
-      $a = $seeds[$p];
-      $b = $seeds[$p+1];
-      $positions[] = array(1 => $a, 2 => $b <= $this->numContestants ? $b : NULL);
-    }
-    // This logic changed our zero-based array to one-based so our match
-    // ids will line up
-    array_unshift($positions, NULL);
-    unset($positions[0]);
-    $this->data['seeds'] = $positions;
+    return NULL;
   }
 
   public function render($style = 'tree') {
     // Build our data structure
     $this->build();
-    $this->structure($style);
+    $this->structure();
+    drupal_add_js($this->pluginInfo['path'] . '/theme/regularseason.js');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
 
