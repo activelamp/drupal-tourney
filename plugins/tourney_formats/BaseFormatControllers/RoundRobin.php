@@ -56,7 +56,9 @@ class RoundRobinController extends TourneyController {
       '#size' => 10,
       '#title' => t('Maximum times teams may play each other'),
       '#description' => t('Number of times team A will be allowed to play team B'),
-      '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,
+      '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,     
+      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
+      '#element_validate' => array('regular_match_times_validate'),
     );
 
     return $form;
@@ -126,7 +128,7 @@ class RoundRobinController extends TourneyController {
     $options = $this->pluginOptions;
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
     if (!empty($plugin_options) && $plugin_options['max_team_play']) {
-      $this->roundsMultiplier = $plugin_options['max_team_play'];
+      $this->roundsMultiplier = (int)$plugin_options['max_team_play'];
     }
 
     $this->buildBrackets();
@@ -323,4 +325,13 @@ class RoundRobinController extends TourneyController {
     drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
+}
+
+//function is called in by form #element_validate
+function regular_match_times_validate($element, &$form_state){
+  if (empty($element['#value']) && $form_state['values']['format'] == 'RoundRobinController'
+    || !empty($element['#value']) && is_numeric(parse_size($element['#value']))
+    && $element['#value'] < 1 && $form_state['values']['format'] == 'RoundRobinController') {
+    form_error($element, t('Maximum times teams may play each other must be a numeric value 1 or more.'));
+  } 
 }
