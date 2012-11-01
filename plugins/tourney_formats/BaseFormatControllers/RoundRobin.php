@@ -58,7 +58,7 @@ class RoundRobinController extends TourneyController {
       '#description' => t('Number of times team A will be allowed to play team B'),
       '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,     
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
-      '#element_validate' => array('roundrobinMatchTimesValidate'),
+      '#element_validate' => array('roundrobin_match_times_validate'),
     );
 
     return $form;
@@ -328,7 +328,7 @@ class RoundRobinController extends TourneyController {
 }
 
 //function is called in by form #element_validate
-function roundrobinMatchTimesValidate($element, &$form_state){
+function roundrobin_match_times_validate($element, &$form_state){
   if (empty($element['#value']) && $form_state['values']['format'] == 'RoundRobinController'
     || !empty($element['#value']) && is_numeric(parse_size($element['#value']))
     && $element['#value'] < 1 && $form_state['values']['format'] == 'RoundRobinController') {
