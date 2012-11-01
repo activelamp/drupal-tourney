@@ -5,4 +5,3 @@ configure = admin/config/tourney/tourney-history
 
 dependencies[] = tourney
 dependencies[] = date
-
