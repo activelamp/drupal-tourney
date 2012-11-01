@@ -34,6 +34,7 @@ class RegularSeasonController extends RoundRobinController {
       $this->matchesTotal = (pow($this->slots, 2) - $this->slots) / 2;
       $this->roundsTotal = $this->matchesTotal / $this->matchesPerRound;
     }
+
   }
 
   /**
