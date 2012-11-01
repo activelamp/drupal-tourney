@@ -25,10 +25,9 @@ function tourney_test_menu() {
 function tourney_testing() {  
   $output = '';
   module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RegularSeason');
-  $test = new RegularSeasonController(4);
-  // $test = new RoundRobinController(4);
+  $test = new RoundRobinController(4);
   $test->setPluginOptions(array(
-    'RegularSeasonController' => array(
+    'RoundRobinController' => array(
       'max_team_play' => 2
     ),
   ));
