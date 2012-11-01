@@ -1,0 +1,41 @@
+name = Tourney Module
+description = Provides entities to create a tournament, with matches, and games
+core = 7.x
+configure = admin/config/tourney
+
+dependencies[] = ctools (>7.x-1.0-rc1)
+dependencies[] = entity
+dependencies[] = relation (>7.x-1.0-rc2)
+dependencies[] = rules
+dependencies[] = views
+dependencies[] = views_bulk_operations
+dependencies[] = number
+dependencies[] = path
+
+files[] = includes/tourney.admin.inc
+files[] = includes/tourney.controller.inc
+files[] = includes/tourney.entity.tournament.inc
+files[] = includes/tourney.entity.match.inc
+files[] = includes/tourney.entity.game.inc
+files[] = includes/tourney.rank.inc
+files[] = plugins/tourney_formats/BaseFormatControllers/SingleElimination.php
+files[] = plugins/tourney_formats/BaseFormatControllers/DoubleElimination.php
+files[] = plugins/tourney_formats/BaseFormatControllers/RoundRobin.php
+
+; Views handlers
+files[] = views/handlers/tourney_handler_match_tree.inc
+files[] = views/handlers/tourney_handler_field_object_property.inc
+files[] = views/handlers/tourney_handler_field_entity_link_edit.inc
+files[] = views/handlers/tourney_handler_field_rank.inc
+
+; Tests
+files[] = tests/contestant.test
+files[] = tests/tourney.test
+files[] = tests/single_elimination.test
+files[] = tests/double_elimination.test
+files[] = tests/round_robin.test
+files[] = tests/unpublishing.test
+files[] = tests/paths.test
+files[] = plugins/tourney_formats/BaseFormatControllers/tests/single_elim.test
+files[] = plugins/tourney_formats/BaseFormatControllers/tests/double_elim.test
+files[] = plugins/tourney_formats/BaseFormatControllers/tests/round_robin.test
