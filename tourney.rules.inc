@@ -171,8 +171,8 @@ function tourney_action_game_is_won($match, $quotient) {
 
     // If all our games are played and won, then we'll need to make a new game to continue the match
     if ($match->checkGames() == TRUE) {
-      $game = $match->addGame();
-      $message = t('A new game has been created: !game', array('!game' => l($game->label, 'tourney/game/' . $game->id)));
+      $game = $match->addGame();    
+      $message = t("A new game has been created for {$game->title}.");
     }
     else {
       $message = t('Game updated, but not all games have a winner selected. Action not completed.');
