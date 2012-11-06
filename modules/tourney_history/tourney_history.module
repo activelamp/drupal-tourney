@@ -1,0 +1,212 @@
+<?php
+
+/**
+ * @file
+ * Allows for history of rankings to be determined by a specified time period.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function tourney_history_menu() {
+  $items = array();
+  $items['admin/config/tourney/tourney-history'] = array(
+    'title' => 'Tourney History',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tourney_history_settings'),
+    'access arguments' => array('manage tourney history settings'),
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function tourney_history_permission() {
+  return array(
+    'manage tourney history settings' =>  array(
+      'title' => t('Remove Tournament from Series'),
+      'description' => t('Remove tournaments from a series.'),
+    ),
+  );
+}
+
+/**
+ * Get the latest snapshot number from the database
+ *
+ * @return integer
+ *   Latest snapshot number.
+ */
+function tourney_history_current_snapshot() {
+  $result = db_query('SELECT MAX(snapshot) FROM {tourney_history}')->fetchCol();
+  return $result[0];
+}
+
+/**
+ * Save all tournament ranking in a new snapshot
+ */
+function tourney_history_snapshot_save() {
+  $result = db_query("SELECT tournament, GROUP_CONCAT(entity_type, '.', entity_id, ':', rank) AS ranks 
+    FROM {tourney_rank}
+    GROUP BY tournament");
+  $snapshot = tourney_history_current_snapshot() + 1;
+  foreach ($result->fetchAllKeyed() as $tournament => $standings) {
+    $standings = explode(',', $standings);
+    $ranks = array();
+    foreach ($standings as $row) {
+      @list($eid, $rank) = explode(':', $row);
+      $ranks[$eid] = $rank;
+    }
+    asort($ranks);
+    $normalized_ranks = array();
+    $current = null;
+    $place = 0;
+    foreach ($ranks as $user => $rank) {
+      if ( $rank !== $current ) {
+        $current = $rank;
+        $place++;
+      }
+      $normalized_ranks[$user] = $place;
+    }
+    db_insert('tourney_history')
+      ->fields(array(
+        'tournament' => $tournament,
+        'ranks' => serialize($normalized_ranks),
+        'snapshot' => $snapshot,
+        ))
+      ->execute();
+  }
+}
+
+/**
+ * Compare the last two snapshots and return the contestant rank changes
+ *
+ * @param $tournament
+ *   The tournament entity id to get changes from.
+ * @return array
+ *   A keyed array of contestants eids and their rank changes.
+ */
+function tourney_history_get_tournament_standing_changes($tournament) {
+  $snapshot = tourney_history_current_snapshot();
+  $tid = $tournament;
+  if ($cached = cache_get('tourney_history_' . $tid . '_' . $snapshot, 'cache_tourney')) {
+    return $cached->data;
+  }
+  $result = db_query('SELECT snapshot, ranks 
+    FROM {tourney_history} h 
+    WHERE h.tournament = :tournament AND h.snapshot >= :snapshot
+    ORDER BY h.snapshot DESC',
+    array(
+      ':tournament' => $tid,
+      ':snapshot' => $snapshot - 1,
+    ));
+  $snapshots = $result->fetchAllKeyed();  
+  $ranks = array();
+  foreach ($snapshots as $row) {
+    $ranks[] = unserialize($row);
+  }
+  $changes = array();
+  foreach ($ranks[0] as $user => $rank) {
+    $changes[$user] = $rank - (isset($ranks[1]) ? $ranks[1][$user] : 0);
+  }
+  cache_set('tourney_history_' . $tid . '_' . $snapshot, $changes, 'cache_tourney');
+  return $changes;
+}
+
+/**
+ * Obtain specific contestant rank change information from a tournament
+ *
+ * @param $tournament
+ *   The tournament entity id
+ * @param $contestant
+ *   Contestant eid
+ * @return integer
+ *   Rank change amount
+ */
+function tourney_history_get_contestant_standing_change($tournament, $contestant) {
+  $changes = tourney_history_get_tournament_standing_changes($tournament);
+  return isset($changes[$contestant]) ? $changes[$contestant] : 0;
+}
+
+/**
+ * Tourney_history system settings form
+ */
+function tourney_history_settings() {
+  $interval = variable_get('tourney_history_interval', '7');
+  $last = variable_get('tourney_history_last_snapshot', 0);
+  $form['tourney_history_snapshot_next'] = array(
+    '#type' => 'date',
+    '#title' => t('Next Scheduled Snapshot'),
+    '#default_value' => variable_get('tourney_history_snapshot_next', tourney_history_date("now +$interval days")),
+    '#description' => 'Last snapshot taken: ' . ($last ? date('M j Y', tourney_history_mktime($last)) : 'Never'),
+  );
+  $form['tourney_history_snapshot_interval'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Snapshot Interval (in days)'),
+    '#default_value' => $interval,
+  );
+  $form['actions']['tourney_history_manual_snapshot'] = array(
+    '#type' => 'submit',
+    '#value' => 'Manual Snapshot',
+    '#submit' => array('tourney_history_snapshot_save'),
+  );
+  $form['#validate'][] = 'tourney_history_validate';
+  return system_settings_form($form);
+}
+
+/**
+ * Tourney_history system settings form validation
+ */
+function tourney_history_validate($form, $form_state) {
+  $time = tourney_history_mktime($form_state['input']['tourney_history_snapshot_next']);
+  if ($time + 86400 < time()) {
+    form_set_error('tourney_history_snapshot_next', 'You must select a date in the future');    
+  }
+}
+
+/**
+ * Get an array formatted date from a strtotime string format date
+ *
+ * @param $date
+ *   The tournament entity id
+ * @return array
+ *   Array of array(year => 0, month => 0, day => 0) date format
+ */
+function tourney_history_date($date) {
+  $date = date("Y-n-j", strtotime($date));
+  @list($year, $month, $day) = explode('-', $date);
+  return array(
+    'year' => $year,
+    'month' => $month,
+    'day' => $day,
+  );
+}
+
+/**
+ * Get unix timestamp from an array formatted date
+ *
+ * @param $array
+ *   Array of array(year => 0, month => 0, day => 0) date format
+ * @return integer
+ *   Unix timestamp
+ */
+function tourney_history_mktime($array) {
+  extract($array);
+  return mktime(0, 0, 0, $month, $day, $year); 
+}
+
+/**
+ * Implements hook_cron
+ */
+function tourney_history_cron() {
+  $date = variable_get('tourney_history_snapshot_next', tourney_history_date("now"));
+  extract($date);
+  $time = mktime(0, 0, 0, $month, $day, $year);
+  if ($time < time()) {
+    $interval = variable_get('tourney_history_interval', '7');
+    variable_set('tourney_history_snapshot_next', tourney_history_date("now +$interval days"));
+    variable_set('tourney_history_last_snapshot', tourney_history_date('now'));
+    tourney_history_snapshot_save();
+  }
+}
