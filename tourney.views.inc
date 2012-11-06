@@ -125,6 +125,13 @@ function tourney_views_data_alter(&$data) {
         array('field' => 'entity_type', 'value' => 'user'),
       ),
     ),
+    'node' => array(
+      'left_field' => 'nid',
+      'field' => 'entity_id',
+      'extra' => array(
+        array('field' => 'entity_type', 'value' => 'node'),
+      ),
+    ),
   );
 
   $data['tourney_rank']['tournament'] = array(
