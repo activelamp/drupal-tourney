@@ -34,7 +34,7 @@ function tourney_default_rules_configuration() {
        ->action('drupal_message', array('message:select' => 'action-message'));
 
   $configs['rules_tourney_game_is_won'] = $rule;
-  
+
   $rule = rules_reaction_rule();
   $rule->label = 'Set round robin paths';
   $rule->active = TRUE;
@@ -55,6 +55,27 @@ function tourney_default_rules_configuration() {
        ->action('drupal_message', array('message:select' => 'action-message'));
 
   $configs['rules_tourney_set_all_matches'] = $rule;
+
+  $rule = rules_reaction_rule();
+  $rule->label = 'Set regular season paths';
+  $rule->active = TRUE;
+  $rule->event('tourney_match_update')
+       ->condition('data_is', array(
+         'data:select' => 'tourney-match:relation-has-match-tourney-tournament-reverse:0:format',
+         'value' => 'RegularSeasonController'
+       ))
+       ->condition('data_is_empty', array(
+         'data:select' => 'tourney-match:relation-has-game-tourney-game:0:winner',
+       ))
+       ->condition('tourney_condition_match_has_contestants', array(
+         'match:select' => 'tourney-match',
+       ))
+       ->action('tourney_action_set_regularseason_matches', array(
+         'match:select' => 'tourney-match',
+       ))
+       ->action('drupal_message', array('message:select' => 'action-message'));
+
+  $configs['rules_tourney_set_regularseason_matches'] = $rule;
 
   $rule = rules_reaction_rule();
   $rule->label = 'Tourney bye is created';
