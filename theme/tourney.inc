@@ -99,7 +99,7 @@ function template_preprocess_tourney_match_render(&$vars) {
     }
   }
 
-  $vars['complete'] = isset($match) && $match->winner !== '';
+  $vars['complete'] = isset($match) && is_object($match) && $match->winner !== '';
   $vars['is_bye'] = isset($matchInfo['bye']) && $matchInfo['bye'] == TRUE;
 
   $vars['match_classes_array'] = array();
