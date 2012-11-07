@@ -17,15 +17,16 @@ files[] = includes/tourney.controller.inc
 files[] = includes/tourney.entity.tournament.inc
 files[] = includes/tourney.entity.match.inc
 files[] = includes/tourney.entity.game.inc
+files[] = includes/tourney.rank.inc
 files[] = plugins/tourney_formats/BaseFormatControllers/SingleElimination.php
 files[] = plugins/tourney_formats/BaseFormatControllers/DoubleElimination.php
 files[] = plugins/tourney_formats/BaseFormatControllers/RoundRobin.php
 
 ; Views handlers
 files[] = views/handlers/tourney_handler_match_tree.inc
-files[] = views/handlers/tourney_plugin_style_tournament.inc
 files[] = views/handlers/tourney_handler_field_object_property.inc
 files[] = views/handlers/tourney_handler_field_entity_link_edit.inc
+files[] = views/handlers/tourney_handler_field_rank.inc
 
 ; Tests
 files[] = tests/contestant.test
@@ -38,3 +39,4 @@ files[] = tests/paths.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/single_elim.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/double_elim.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/round_robin.test
+
