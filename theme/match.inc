@@ -47,7 +47,7 @@ function tourney_load_games($ids, $total) {
 function tourney_games_to_table($games) {
   $header = array('Team Name');
   $rows   = array();
-  
+
   foreach ($games as $gn => $game) {
     $header[] = "Game " . ($gn + 1); //. ($game ? " | " . $game->id : "");
     
