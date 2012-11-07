@@ -54,7 +54,7 @@ class TourneyMatchEntity extends TourneyEntity {
       $r = relation_load($relation->rid);
       $game_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
     }
-
+    asort($game_ids);
     return $game_ids;
   }
 
