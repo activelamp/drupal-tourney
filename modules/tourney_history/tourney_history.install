@@ -1,0 +1,34 @@
+<?php
+/**
+ * @file
+ * Install, update, and uninstall functions for tourney_history.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function tourney_history_schema() {
+  $schema['tourney_history'] = array(
+    'description' => 'Stores information about each tournament.',
+    'fields' => array(
+      'tournament' => array(
+        'type' => 'int',
+        'length' => '11',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'snapshot' => array(
+        'type' => 'int',
+        'length' => '11',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'ranks' => array(
+        'type' => 'blob',
+        'serialize' => TRUE,
+        'serialized default' => 'a:0:{}',
+      ),
+    ),
+  );
+  return $schema;  
+}

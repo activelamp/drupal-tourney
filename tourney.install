@@ -270,6 +270,50 @@ function tourney_schema() {
     ),
     'indexes' => array('id' => array('id')),
   );
+  $schema['tourney_rank'] = array(
+    'description' => 'Stores information about each tournament.',
+    'fields' => array(
+      'tournament' => array(
+        'type' => 'int',
+        'length' => '11',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'entity_id' => array(
+        'type' => 'int',
+        'length' => '11',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'wins' => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'losses' => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'rank' => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => '',
+      ),
+    ),
+  );
 
   $schema['cache_tourney'] = drupal_get_schema_unprocessed('system', 'cache');
   return $schema;
@@ -631,6 +675,56 @@ function tourney_update_7012() {
   _tourney_set_extra_fields_defaults();
 }
 
+/**
+ * Add the tourney_rank table
+ */
+function tourney_update_7013() {
+  $schema['tourney_rank'] = array(
+    'description' => 'Stores information about each tournament.',
+    'fields' => array(
+      'tournament' => array(
+        'type' => 'int',
+        'length' => '11',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'entity_id' => array(
+        'type' => 'int',
+        'length' => '11',
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'wins' => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'losses' => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => '',
+      ),
+      'rank' => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => '',
+      ),
+    ),
+  );
+  db_create_table('tourney_rank', $schema['tourney_rank']);
+}
 /**
  * Helper functions
  */
