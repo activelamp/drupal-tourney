@@ -64,6 +64,22 @@ function tourney_rules_action_info() {
         ),
       ),
     ),
+    'tourney_action_set_regularseason_matches' => array(
+      'label' => t('Set contestant in all matches for Regular Season.'),
+      'group' => t('Tourney Rules'),
+      'parameter' => array(
+        'match' => array(
+          'type' => 'tourney_match',
+          'label' => t('The match this game belongs in'),
+        ),
+      ),
+      'provides' => array(
+        'action_message' => array(
+          'type' => 'text',
+          'label' => t('Action successful message'),
+        ),
+      ),
+    ),
   );
 
   return $actions;
@@ -155,8 +171,8 @@ function tourney_action_game_is_won($match, $quotient) {
 
     // If all our games are played and won, then we'll need to make a new game to continue the match
     if ($match->checkGames() == TRUE) {
-      $game = $match->addGame();
-      $message = t('A new game has been created: !game', array('!game' => l($game->label, 'tourney/game/' . $game->id)));
+      $game = $match->addGame();    
+      $message = t("A new game has been created for {$game->title}.");
     }
     else {
       $message = t('Game updated, but not all games have a winner selected. Action not completed.');
@@ -184,6 +200,22 @@ function tourney_action_game_is_won($match, $quotient) {
  */
 function tourney_action_set_all_matches($match) {
   $match->getTournament()->populateRoundRobinMatches($match->matchInfo['id']);
+  $message = t('Players added to all rounds');
+  
+  return array(
+    'action_message' => $message,
+  );
+}
+
+/**
+ * Recursive function that sets players in a RegularSeason tournament in all 
+ * their matches once the first round has been setup.
+ *
+ * @param $match (object)
+ *   The match the game belongs to
+ */
+function tourney_action_set_regularseason_matches($match) {
+  $match->getTournament()->populateRegularSeasonMatches($match->matchInfo['id']);
   $message = t('Players added to all rounds');
   
   return array(

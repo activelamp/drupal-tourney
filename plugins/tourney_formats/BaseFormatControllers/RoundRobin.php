@@ -10,20 +10,58 @@
  */
 
 class RoundRobinController extends TourneyController {
+  // Rules will examine this when deciding to fire off matchIsWon logic.
   public $moveWinners = FALSE;
+  // Number of contestants required per round to fill all matches for the
+  // round.
+  public $slots;
+  // Total number of matches if each team only plays each other once.
+  public $matchesTotal;
+  // Total number of rounds if each team only plays each other once.
+  public $roundsTotal;
+  // Number of matches per round.
+  public $matchesPerRound;
+  // Number of times team A must play team B.
+  public $roundsMultiplier = 1;
 
   /**
    * Constructor
    */
   public function __construct($numContestants, $tournament = NULL) {
     parent::__construct();
-    // Set our contestants, and then calculate the slots necessary to fit them
-    $this->numContestants = $numContestants;
-    $this->slots = $numContestants % 2 ? $numContestants + 1 : $numContestants;
     $this->tournament = $tournament;
+    // Set our contestants, and then calculate the slots necessary to fit them
+    if ($numContestants) {
+      $this->numContestants = $numContestants;
+      $this->matchesPerRound = ceil(($this->numContestants) / 2);
+      $this->slots = (int) $this->matchesPerRound * 2;
+      $this->matchesTotal = (pow($this->slots, 2) - $this->slots) / 2;
+      $this->roundsTotal = $this->matchesTotal / $this->matchesPerRound;
+    }
 
     // Flag used in rules to not fire off matchIsWon logic.
     $this->moveWinners = FALSE;
+  }
+
+  /**
+   * Options for this plugin.
+   */
+  public function optionsForm(&$form_state) {
+    $this->getPluginOptions();
+    $options = $this->pluginOptions;
+    $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
+
+    $form['max_team_play'] = array(
+      '#type' => 'textfield',
+      '#size' => 10,
+      '#title' => t('Maximum times teams may play each other'),
+      '#description' => t('Number of times team A will be allowed to play team B'),
+      '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,     
+      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
+      '#element_validate' => array('roundrobin_match_times_validate'),
+    );
+
+    return $form;
   }
 
   /**
@@ -84,7 +122,15 @@ class RoundRobinController extends TourneyController {
     // Reset the static vars.
     parent::build();
     drupal_static_reset('rr_matches');
-    
+
+    // Calculate the maximum number of rounds.
+    $this->getPluginOptions();
+    $options = $this->pluginOptions;
+    $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
+    if (!empty($plugin_options) && $plugin_options['max_team_play']) {
+      $this->roundsMultiplier = (int)$plugin_options['max_team_play'];
+    }
+
     $this->buildBrackets();
     $this->buildMatches();
     $this->buildGames();
@@ -100,29 +146,37 @@ class RoundRobinController extends TourneyController {
   public function buildBrackets() {
     $this->data['brackets']['main'] = $this->buildBracket(array(
       'id' => 'main',
-      'rounds' => $this->slots - 1,
+      'rounds' => $this->roundsTotal * $this->roundsMultiplier,
     ));
   }
 
+  /**
+   * Populate rounds and matches into our data property.
+   *
+   * @see TourneyController::buildRound().
+   * @see TourneyController::buildMatch().
+   */
   public function buildMatches() {
     $slots = $this->slots;
     $match = &drupal_static('match', 0);
+    $max_rounds = $this->roundsTotal * $this->roundsMultiplier;
 
     // Calculate and iterate through rounds and their matches based on slots
-    for ($round = 1; $round < $slots; $round++) {
+    for ($round = 1; $round <= $max_rounds; $round++) {
       // Add current round information to the data array
-      $this->data['rounds'][$round] =
-        $this->buildRound(array('id' => $round, 'bracket' => 'main'));
-
+      $this->data['rounds'][$round] = $this->buildRound(array(
+        'id' => $round,
+        'bracket' => 'main'
+      ));
       // Add in all matches and their information for this round
-      foreach (range(1, $slots / 2) as $roundMatch) {
-        $this->data['matches'][++$match] =
-          $this->buildMatch(array(
-            'id' => (int) $match,
-            'round' => (int) $round,
-            'roundMatch' => (int) $roundMatch,
-            'bracket' => 'main',
-          ));
+      foreach (range(1, $this->matchesPerRound) as $roundMatch) {
+        $this->data['matches'][++$match] = $this->buildMatch(array(
+          'id' => $match,
+          'round' => $round,
+          'tourneyRound' => $round,
+          'roundMatch' => (int) $roundMatch,
+          'bracket' => 'main',
+        ));
       }
     }
   }
@@ -187,6 +241,15 @@ class RoundRobinController extends TourneyController {
           $matches[$mid++] = $match;
         }
       }
+      // Extend matches by the round multiplier.
+      $matches_new = array(NULL);
+      for ($x=0; $x<$this->roundsMultiplier; $x++) {
+        foreach ($matches as $match) {
+          $matches_new[] = $match;
+        }
+      }
+      unset($matches_new[0]);
+      $matches = $matches_new;
     }
     return $this->data['seeds'] = $matches;
   }
@@ -262,4 +325,13 @@ class RoundRobinController extends TourneyController {
     drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
+}
+
+//function is called in by form #element_validate
+function roundrobin_match_times_validate($element, &$form_state){
+  if (empty($element['#value']) && $form_state['values']['format'] == 'RoundRobinController'
+    || !empty($element['#value']) && is_numeric(parse_size($element['#value']))
+    && $element['#value'] < 1 && $form_state['values']['format'] == 'RoundRobinController') {
+    form_error($element, t('Maximum times teams may play each other must be a numeric value 1 or more.'));
+  } 
 }
