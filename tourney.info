@@ -3,9 +3,9 @@ description = Provides entities to create a tournament, with matches, and games
 core = 7.x
 configure = admin/config/tourney
 
-dependencies[] = ctools (>7.x-1.0-rc1)
+dependencies[] = ctools
 dependencies[] = entity
-dependencies[] = relation (>7.x-1.0-rc2)
+dependencies[] = relation
 dependencies[] = rules
 dependencies[] = views
 dependencies[] = views_bulk_operations
