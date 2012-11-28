@@ -156,7 +156,7 @@ function tourney_views_data_alter(&$data) {
       'handler' => 'views_handler_field_numeric',
     ),
     'sort' => array(
-      'handler' => 'tourney_handler_rank_sort',
+      'handler' => 'tourney_handler_sort_rank',
     ),
   );
 

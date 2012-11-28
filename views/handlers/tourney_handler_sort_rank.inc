@@ -5,7 +5,7 @@
  * Custom views sort handler that handles NULL ranks properly.
  */
 
-class tourney_handler_rank_sort extends views_handler_sort {
+class tourney_handler_sort_rank extends views_handler_sort {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     
