@@ -1,10 +1,12 @@
 <?php
 
-class tourney_handler_field_rank extends views_handler_field {
-  function construct() {
-    parent::construct();
-  }
+/**
+ * @file
+ * Custom views field handler for displaying the change in rank from 
+ * tourney_history module.
+ */
 
+class tourney_handler_field_rank extends views_handler_field {
   function query() {
     // Add the tournament id field
     $this->query->add_field('tourney_rank', 'tournament');
