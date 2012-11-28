@@ -107,14 +107,15 @@ function tourney_views_data_alter(&$data) {
     ),
   );
 
-
-  $data['tourney_rank']['rank_change'] = array(
-    'title' => t('Rank Change'),
-    'help' => t('Contestant rank change.'),
-    'field' => array(
-      'handler' => 'tourney_handler_field_rank',
-    ),
-  );
+  if (module_exists('tourney_history')) {
+    $data['tourney_rank']['rank_change'] = array(
+      'title' => t('Rank Change'),
+      'help' => t('Contestant rank change.'),
+      'field' => array(
+        'handler' => 'tourney_handler_field_rank',
+      ),
+    );
+  }
 
   $data['tourney_rank']['table']['group'] = t('Tourney Rank');
   $data['tourney_rank']['table']['join'] = array(
@@ -155,7 +156,7 @@ function tourney_views_data_alter(&$data) {
       'handler' => 'views_handler_field_numeric',
     ),
     'sort' => array(
-      'handler' => 'views_handler_sort',
+      'handler' => 'tourney_handler_rank_sort',
     ),
   );
 
