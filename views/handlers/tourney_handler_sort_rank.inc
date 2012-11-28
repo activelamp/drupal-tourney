@@ -10,8 +10,8 @@ class tourney_handler_sort_rank extends views_handler_sort {
     parent::options_form($form, $form_state);
     
     $form['null_last'] = array(
-      '#title' => t('Place NULL values last (Database Required)'),
-      '#description' => 'Uses ISNULL() function in database to do this.',
+      '#title' => t('Place NULL values last (Database Support Required)'),
+      '#description' => 'Uses ISNULL() function in database to do this. Not all db\'s have this function',
       '#type' => 'checkbox',
       '#default_value' => $this->options['null_last'],
     );
