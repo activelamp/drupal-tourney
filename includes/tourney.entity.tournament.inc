@@ -359,6 +359,9 @@ class TourneyTournamentEntity extends TourneyEntity {
  */
   public function getContestants() {
     if (is_null($this->contestants)) {
+      if (!$this->tourneyFormatPlugin->data['matches']) {
+        $this->tourneyFormatPlugin->build();
+      }
       $matches = $this->tourneyFormatPlugin->data['matches'];
 
       // Set up two arrays to fill for seed order
@@ -532,6 +535,9 @@ class TourneyTournamentEntity extends TourneyEntity {
         $loserMatch->addContestant($loser, $slot)->save();
       }
     }
+    module_load_include('inc', 'tourney', 'includes/tourney.rank');
+    tourney_rank_win($this, $match->getWinnerEntity());
+    tourney_rank_lose($this, $match->getLoserEntity());
     
     $this->determineWinner();
   }

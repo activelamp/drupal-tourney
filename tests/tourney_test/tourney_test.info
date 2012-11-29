@@ -1,3 +1,5 @@
 name = Tourney Testing Module
 description = Tourney development module - place debug code here.
 core = 7.x
+package = Tourney
+

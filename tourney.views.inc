@@ -107,25 +107,90 @@ function tourney_views_data_alter(&$data) {
     ),
   );
 
-}
+  if (module_exists('tourney_history')) {
+    $data['tourney_rank']['rank_change'] = array(
+      'title' => t('Rank Change'),
+      'help' => t('Contestant rank change.'),
+      'field' => array(
+        'handler' => 'tourney_handler_field_rank',
+      ),
+    );
+  }
 
-function tourney_views_plugins() {
-  $path = drupal_get_path('module', 'tourney');
-  return array(
-    'module' => 'tourney',
-    'style' => array(
-      'tourney' => array(
-        'title' => 'Tournament Tree',
-        'handler' => 'tourney_plugin_style_tournament',
-        'path' => "$path/views/handlers",
-        'theme' => 'tourney_tournament_view',
-        'theme path' => "$path/views/theme",
-        'theme file' => 'tourney_tournament_view.inc',
-        'uses fields' => FALSE,
-        'uses row plugin' => FALSE,
-        'type' => 'normal',
-        'even empty' => TRUE,
+  $data['tourney_rank']['table']['group'] = t('Tourney Rank');
+  $data['tourney_rank']['table']['join'] = array(
+    'users' => array(
+      'left_field' => 'uid',
+      'field' => 'entity_id',
+      'extra' => array(
+        array('field' => 'entity_type', 'value' => 'user'),
       ),
     ),
+    'node' => array(
+      'left_field' => 'nid',
+      'field' => 'entity_id',
+      'extra' => array(
+        array('field' => 'entity_type', 'value' => 'node'),
+      ),
+    ),
+  );
+
+  $data['tourney_rank']['tournament'] = array(
+    'title' => t('Tournament ID'),
+    'help' => t('Tournament to filter rank rows.'),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_numeric',
+    ),
+  );
+
+  $data['tourney_rank']['rank'] = array(
+    'title' => t('Contestant Rank'),
+    'help' => t('Rank contestant has achieved in the tournament.'),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'tourney_handler_sort_rank',
+    ),
+  );
+
+  $data['tourney_rank']['wins'] = array(
+    'title' => t('Contestant Wins'),
+    'help' => t('Number of contestant Wins.'),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  $data['tourney_rank']['losses'] = array(
+    'title' => t('Contestant Losses'),
+    'help' => t('Number of contestant Losses.'),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+}
+
+function tourney_views_handlers() {
+  return array(
+
   );
 }

@@ -954,12 +954,14 @@ function tourney_tourney_match_view($entity, $view_mode, $langcode = 'en') {
     '#suffix' => '</div>',
     '#markup' => $entity->getWinner(),
   );
+  
+  $contestant_view_mode = $entity->getTournament()->get('contestant_view_mode', 'full');
   $i = 1;
   foreach ($entity->getMatchContestants() as $eid => $contestant) {
     $entity->content['match_contestant' . $i] = array(
       '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="field-content">',
       '#suffix' => '</div>',
-      '#markup' => $contestant->entity_name,
+      'contestant' => entity_view($contestant->entity_type, array($contestant), $contestant_view_mode),
     );
     $i++;
   }
