@@ -22,6 +22,7 @@ files[] = includes/tourney.rank.inc
 files[] = plugins/tourney_formats/BaseFormatControllers/SingleElimination.php
 files[] = plugins/tourney_formats/BaseFormatControllers/DoubleElimination.php
 files[] = plugins/tourney_formats/BaseFormatControllers/RoundRobin.php
+files[] = plugins/tourney_formats/BaseFormatControllers/ManualUpload.php
 
 ; Views handlers
 files[] = views/handlers/tourney_handler_match_tree.inc

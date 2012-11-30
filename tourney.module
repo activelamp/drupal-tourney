@@ -8,6 +8,11 @@ define('TOURNEY_GAMES', 5);
 define('TOURNEY_TRUNCATE', 12);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
+// @todo file upload ajax callback does not invoke ctools plugins. validators can not be found.
+require_once('plugins/tourney_formats/BaseFormatControllers/ManualUpload.php');
+require_once('plugins/tourney_formats/BaseFormatControllers/RoundRobin.php');
+
+
 /**
  * Implements hook_menu().
  */
