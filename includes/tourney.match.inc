@@ -394,7 +394,7 @@ function tourney_match_form_submit($form, &$form_state) {
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
   $match->getWinner();
   foreach ($form_state['input'] as $id => $value) {
-    // If we're not dealing with a game move on.  
+    // If we're not dealing with a game move on.
     if (!$value || substr($id, 0, 5) != 'game_' || $match_reset) continue;
 
     $parts = explode('_', $id);
