@@ -1106,8 +1106,10 @@ function tourney_update_alias($entity, $op, array $options = array()) {
   if (!isset($entity->path)) return;
 
   $path = $entity->path;
-  $path['alias'] = trim($path['alias']);
-
+  if(!empty($path['alias'])){
+    $path['alias'] = trim($path['alias']);
+  }
+  
   $has_pattern = module_exists('pathauto') ? pathauto_pattern_load_by_entity($entity->entity_type, $entity->type) : FALSE;
 
   if ($has_pattern && isset($entity->path['pathauto']) && $path['pathauto']) {
