@@ -47,14 +47,23 @@ class TourneyMatchEntity extends TourneyEntity {
   public static function fetchGameIds($match_id) {
     $game_ids = array();
 
-    $query = relation_query('tourney_match', $match_id);
-    $query->entityCondition('bundle', 'has_game');
-    $results = $query->execute();
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $game_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+    $cache_id = is_array($match_id) ? implode('-', $match_id) : $match_id;
+    if ( !$cache = cache_get('fetchGameIds_' . $cache_id, 'cache_tourney')) {
+      $query = relation_query('tourney_match', $match_id);
+      $query->entityCondition('bundle', 'has_game');
+      $results = $query->execute();
+      foreach ($results as $relation) {
+        $r = relation_load($relation->rid);
+        $game_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+      }
+      asort($game_ids);
+
+      cache_set('fetchGameIds_' . $cache_id, $game_ids, 'cache_tourney');
     }
-    asort($game_ids);
+    else {
+      $game_ids = $cache->data;
+    }
+
     return $game_ids;
   }
 
@@ -70,15 +79,23 @@ class TourneyMatchEntity extends TourneyEntity {
   public static function fetchTournamentId($match_id) {
     $tournament_id = NULL;
 
-    $query = relation_query('tourney_match', $match_id);
-    $query->entityCondition('bundle', 'has_match');
-    $results = $query->execute();
+    if ( !$cache = cache_get('fetchTournamentId_' . $match_id, 'cache_tourney')) {
+      $query = relation_query('tourney_match', $match_id);
+      $query->entityCondition('bundle', 'has_match');
+      $results = $query->execute();
 
-    if (!empty($results)) {
-      $relation = array_pop($results);
-      $r = relation_load($relation->rid);
-      $tournament_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+      if (!empty($results)) {
+        $relation = array_pop($results);
+        $r = relation_load($relation->rid);
+        $tournament_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+      }
+
+      cache_set('fetchTournamentId_' . $match_id, $tournament_id, 'cache_tourney');
     }
+    else {
+      $tournament_id = $cache->data;
+    }
+
     return $tournament_id;
   }
 
@@ -101,24 +118,30 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     $contestants = array();
 
-    $query = relation_query('tourney_match', $match_id);
-    $query->entityCondition('bundle', 'contestant');
-    $results = $query->execute();
+    if ( !$cache = cache_get('fetchContestantIds_' . $match_id, 'cache_tourney')) {
+      $query = relation_query('tourney_match', $match_id);
+      $query->entityCondition('bundle', 'contestant');
+      $results = $query->execute();
 
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      if ( !$r ) return array();
-      $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
-      $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-      $contestants[] = array(
-        'type' => $type,
-        'id' => $id,
-        'eid' => $type . '.' . $id,
-        'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
-      );
+      foreach ($results as $relation) {
+        $r = relation_load($relation->rid);
+        if ( !$r ) return array();
+        $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
+        $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
+        $contestants[] = array(
+          'type' => $type,
+          'id' => $id,
+          'eid' => $type . '.' . $id,
+          'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
+        );
+      }
+      uasort($contestants, 'TourneyMatchEntity::contestantSort');
+
+      cache_set('fetchContestantIds_' . $match_id, $contestants, 'cache_tourney');
     }
-    uasort($contestants, 'TourneyMatchEntity::contestantSort');
-
+    else {
+      $contestants = $cache->data;
+    }
     return $contestants;
   }
 
@@ -305,7 +328,7 @@ class TourneyMatchEntity extends TourneyEntity {
    *   sorted in descending order.
    */
   public function fetchRanks($reset = FALSE) {
-    if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'tourney_cache')) {
+    if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'cache_tourney')) {
       $games = array();
       if(is_array($this->matchInfo)) {
       if (!array_key_exists('bye', $this->matchInfo) && count($this->getMatchContestants()) < 2) {
@@ -322,7 +345,7 @@ class TourneyMatchEntity extends TourneyEntity {
       }
 
       asort($winners);
-      cache_set('tourney_winner_count_' . $this->id, $winners, 'tourney_cache');
+      cache_set('tourney_winner_count_' . $this->id, $winners, 'cache_tourney');
       return $winners;
     }
     return !empty($cache->data) ? $cache->data : array();
@@ -566,6 +589,8 @@ class TourneyMatchEntity extends TourneyEntity {
   public function addContestant($entity, $slot = NULL) {
     /* This logic allows contestants that are already on the match to be moved
     without potentially being affected when the copy is removed */
+    cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
+
     $current_eids = array();
     foreach ($this->getContestantIds() as $contestant) {
       $current_eids[$contestant['eid']] = $contestant['slot'];
@@ -625,6 +650,7 @@ class TourneyMatchEntity extends TourneyEntity {
     $game->save();
     // Add the relationship to the game.
     $rid = tourney_create_relation('has_game', 'tourney_match', $this->id, 'tourney_game', $game->id);
+    cache_clear_all('fetchGameIds_' . $this->id, 'cache_tourney', TRUE);
     return $game;
   }
 
@@ -657,6 +683,7 @@ class TourneyMatchEntity extends TourneyEntity {
         if ($relation_game->id == $game_id) {
           $relation_game->delete();
           relation_delete($relation->rid);
+          cache_clear_all('fetchGameIds_' . $this->id, 'cache_tourney', TRUE);
           break;
         }
       }

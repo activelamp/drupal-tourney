@@ -83,3 +83,22 @@ function tourney_rank_lose($tournament, $contestant) {
     ->condition('entity_id', $contestant->entity_id)
     ->execute();
 }
+
+function tourney_rank_reset($tournament) {
+  db_query('DELETE FROM {tourney_rank}
+    WHERE tournament = :tournament',
+    array(':tournament' => $tournament->id
+    ));
+  $game_ids = $tournament->getGameIds();
+  $games = entity_load('tourney_game', $game_ids);
+  foreach ($games as $game) {
+    $contestants = $game->getContestants();
+    if ($game->winner) {
+      tourney_rank_win($tournament, $contestants[$game->winner]);
+      unset($contestants[$game->winner]);
+      $loser = reset($contestants);
+      tourney_rank_lose($tournament, $loser);
+    }
+  }
+  return '';
+}
