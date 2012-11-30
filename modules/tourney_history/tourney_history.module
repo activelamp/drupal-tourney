@@ -106,6 +106,12 @@ function tourney_history_get_tournament_standing_changes($tournament) {
       ':snapshot' => $snapshot - 1,
     ));
   $snapshots = $result->fetchAllKeyed();  
+  
+  // Bail out now if no history.
+  if (empty($snapshots)) {
+    return;
+  }
+  
   $ranks = array();
   foreach ($snapshots as $row) {
     $ranks[] = unserialize($row);

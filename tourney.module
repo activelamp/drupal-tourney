@@ -596,6 +596,11 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'tourney.match.inc',
       'path' => $path . '/includes',
     ),
+    'tourney_match' => array(
+      'render element' => 'elements',
+      'template' => 'tourney-match',
+      'path' => $path . '/theme',
+    ),
   ) + _tourney_theme($existing, $type, $theme, $path);
 }
 
