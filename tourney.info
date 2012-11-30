@@ -1,11 +1,12 @@
 name = Tourney Module
 description = Provides entities to create a tournament, with matches, and games
+package = Tourney
 core = 7.x
 configure = admin/config/tourney
 
-dependencies[] = ctools (>7.x-1.0-rc1)
+dependencies[] = ctools
 dependencies[] = entity
-dependencies[] = relation (>7.x-1.0-rc2)
+dependencies[] = relation
 dependencies[] = rules
 dependencies[] = views
 dependencies[] = views_bulk_operations
@@ -27,6 +28,7 @@ files[] = views/handlers/tourney_handler_match_tree.inc
 files[] = views/handlers/tourney_handler_field_object_property.inc
 files[] = views/handlers/tourney_handler_field_entity_link_edit.inc
 files[] = views/handlers/tourney_handler_field_rank.inc
+files[] = views/handlers/tourney_handler_sort_rank.inc
 
 ; Tests
 files[] = tests/contestant.test
@@ -39,3 +41,4 @@ files[] = tests/paths.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/single_elim.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/double_elim.test
 files[] = plugins/tourney_formats/BaseFormatControllers/tests/round_robin.test
+

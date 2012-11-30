@@ -24,11 +24,16 @@ function tourney_test_menu() {
  */
 function tourney_testing() {  
   $output = '';
-  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RoundRobin');
-  $test = new RoundRobinController(6);
+  module_load_include('php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RegularSeason');
+  $test = new RoundRobinController(4);
+  $test->setPluginOptions(array(
+    'RoundRobinController' => array(
+      'max_team_play' => 2
+    ),
+  ));
   $test->build();
-  dpm($test->data);
-  return $test->render();
+  dpm($test);
+  $output = $test->render();
   // $wrapper = entity_metadata_wrapper('tourney_match');
   // // $test->setPluginOptions(array('show_byes' => TRUE));
   // $output .= $test->render();

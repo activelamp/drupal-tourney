@@ -189,7 +189,16 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#description' => t('Names that have been truncated will have an ellipsis added to the end of the string.'),
     '#size' => 40,
     '#maxlength' => 255,
-    '#default_value' => $tourney->get('config_truncate', TOURNEY_TRUNCATE),
+    '#default_value' => $tourney->get('truncate', TOURNEY_TRUNCATE),
+  );
+  
+  $view_mode_options = _tourney_get_contestant_view_modes();
+  $form['contestants']['config_contestant_view_mode'] = array(
+    '#type' => 'select',
+    '#title' => t('View mode to use when rendering a contestant "extra" field.'),
+    '#options' => _tourney_get_contestant_view_modes(),
+    '#description' => t('Choose any view mode available to a contestant entity.'),
+    '#default_value' => $tourney->get('contestant_view_mode', 'full'),
   );
 
   $form['path'] = tourney_create_path_field($tourney);
@@ -251,6 +260,26 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
 
   $form['#submit'][] = 'tourney_tournament_form_submit';
   return $form;
+}
+
+/**
+ * Helper function for creating a dropdown of view modes for contestants.
+ */
+function _tourney_get_contestant_view_modes() {
+  $options = array();
+  
+  module_load_include('inc', 'tourney', 'includes/tourney.admin');
+  $entities = entity_get_info();
+  foreach ($entities as $key => $entity) {
+    $report = tourney_relation_type_tableselect_values('contestant', $key);
+    if (!empty($report)) {
+      foreach($entity['view modes'] as $vm_key => $view_mode) {
+        $options[$entity['label']][$vm_key] = $view_mode['label'];
+      }
+    }
+  }
+  
+  return $options;  
 }
 
 /**
