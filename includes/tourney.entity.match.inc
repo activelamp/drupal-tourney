@@ -558,10 +558,10 @@ class TourneyMatchEntity extends TourneyEntity {
   /**
    * Adds a contestant entity to an object by creating the necessary relation
    *
-   * @param integer $slot
-   *   Contestant slot to target
    * @param Object entity
    *   Any type of entity to fill the target slot with
+   * @param integer $slot
+   *   Contestant slot to target
    */
   public function addContestant($entity, $slot = NULL) {
     /* This logic allows contestants that are already on the match to be moved
