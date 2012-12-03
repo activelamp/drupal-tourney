@@ -111,6 +111,11 @@ class ManualUploadController extends TourneyController {
    * @see hook_theme().
    */
   public static function theme($existing, $type, $theme, $path) {
+    // If this class is extended the only way to get our (manualupload) theme
+    // to operate is to set the path by hand, otherwise the external module
+    // that has extended us will try to open the following files it its own
+    // directory.
+    $path = drupal_get_path('module', 'tourney') . '/plugins/tourney_formats/manual_upload';
     return array(
       'tourney_manualupload_standings' => array(
         'variables' => array('plugin' => NULL),
