@@ -373,8 +373,8 @@ function manualupload_match_lineup_validate($element, &$form_state) {
   // Don't marry an option to its plugin name. Our class may have been
   // extended, in which case the same plugin options will be keyed with another
   // value.
-  $result = search_nested_arrays($form_state['values']['plugin_options'], 'match_lineup_file');
-  $fid = $result['fid'];
+  $plugin = $form_state['values']['format'];
+  $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
   $schema = manualupload_parse_file($fid);
   $form_state['values']['players'] = count($schema['contestants']);
 }
@@ -429,35 +429,3 @@ function manualupload_parse_file($fid) {
   return $report;
 }
 
-
-function search_nested_arrays($array, $key){
-    if(is_object($array))
-        $array = (array)$array;
-    
-    // search for the key
-    $result = array();
-    foreach ($array as $k => $value) { 
-        if(is_array($value) || is_object($value)){
-            $r = search_nested_arrays($value, $key);
-            if(!is_null($r))
-                array_push($result,$r);
-        }
-    }
-    
-    if(array_key_exists($key, $array))
-        array_push($result,$array[$key]);
-    
-    
-    if(count($result) > 0){
-        // resolve nested arrays
-        $result_plain = array();
-        foreach ($result as $k => $value) { 
-            if(is_array($value))
-                $result_plain = array_merge($result_plain,$value);
-            else
-                array_push($result_plain,$value);
-        }
-        return $result_plain;
-    }
-    return NULL;
-}
