@@ -111,6 +111,11 @@ class ManualUploadController extends TourneyController {
    * @see hook_theme().
    */
   public static function theme($existing, $type, $theme, $path) {
+    // If this class is extended the only way to get our (manualupload) theme
+    // to operate is to set the path by hand, otherwise the external module
+    // that has extended us will try to open the following files it its own
+    // directory.
+    $path = drupal_get_path('module', 'tourney') . '/plugins/tourney_formats/manual_upload';
     return array(
       'tourney_manualupload_standings' => array(
         'variables' => array('plugin' => NULL),
@@ -365,7 +370,11 @@ function manualupload_match_times_validate($element, &$form_state) {
 }
 
 function manualupload_match_lineup_validate($element, &$form_state) {
-  $fid = $form_state['values']['plugin_options']['ManualUploadController']['match_lineup_file']['fid'];
+  // Don't marry an option to its plugin name. Our class may have been
+  // extended, in which case the same plugin options will be keyed with another
+  // value.
+  $plugin = $form_state['values']['format'];
+  $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
   $schema = manualupload_parse_file($fid);
   $form_state['values']['players'] = count($schema['contestants']);
 }
