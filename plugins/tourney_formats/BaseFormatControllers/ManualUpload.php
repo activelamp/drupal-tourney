@@ -61,9 +61,9 @@ class ManualUploadController extends TourneyController {
     $form['max_team_play'] = array(
       '#type' => 'textfield',
       '#size' => 10,
-      '#title' => t('Maximum times teams may play each other'),
-      '#description' => t('Number of times team A will be allowed to play team B'),
-      '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,     
+      '#title' => t('Rounds multiplier.'),
+      '#description' => t('Uploaded team match schedule will be multiplied by this, with each schedule entering its own round.'),
+      '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#element_validate' => array('manualupload_match_times_validate'),
     );
@@ -365,7 +365,7 @@ function manualupload_match_times_validate($element, &$form_state) {
   if (empty($element['#value']) && $form_state['values']['format'] == 'ManualUploadController'
     || !empty($element['#value']) && is_numeric(parse_size($element['#value']))
     && $element['#value'] < 1 && $form_state['values']['format'] == 'ManualUploadController') {
-    form_error($element, t('Maximum times teams may play each other must be a numeric value 1 or more.'));
+    form_error($element, t('Maximum rounds must be a numeric value 1 or more.'));
   } 
 }
 
@@ -375,8 +375,12 @@ function manualupload_match_lineup_validate($element, &$form_state) {
   // value.
   $plugin = $form_state['values']['format'];
   $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
-  $schema = manualupload_parse_file($fid);
-  $form_state['values']['players'] = count($schema['contestants']);
+  try {
+    $schema = manualupload_parse_file($fid);
+    $form_state['values']['players'] = count($schema['contestants']);
+  } catch (Exception $e) {
+    form_error($element, $e->getMessage());
+  }
 }
 
 /**
@@ -399,17 +403,33 @@ function manualupload_match_lineup_validate($element, &$form_state) {
  */
 function manualupload_parse_file($fid) {
   $report = array();
-  $file = file_load($fid);
-  $file_contents = file_get_contents($file->uri);
+  if (!is_numeric($fid)) {
+    throw new Exception('Invalid parameter. File identification must be integer.');
+  }
+  if (!$file = file_load(intval($fid))) {
+    throw new Exception('File can not be loaded from FID.');
+  };
+  if (!$file_contents = file_get_contents($file->uri)) {
+    throw new Exception('File can not be read or is empty.');
+  };
   $file_lines = explode("\n", $file_contents);
+  if (empty($file_lines)) {
+    throw new Exception('File is empty or of the wrong format.');
+  }
   // Determine which columns contain the team players.
   $file_info = str_getcsv($file_lines[0]);
+  if (empty($file_info)) {
+    throw new Exception('Can not locate file meta data (column names).');
+  }
   $report['meta'] = $file_info;
   $teams_meta = array();
   foreach($file_info as $key => $value) {
-    if (strtoupper($value) == 'TEAM') {
+    if (strpos(strtoupper($value), 'TEAM') !== FALSE) {
       $teams_meta[] = $key;
     }
+  }
+  if (empty($teams_meta)) {
+    throw new Exception('Can not locate team columns.');
   }
   $report['team_fields'] = $teams_meta;
   // Generate a 1 based array of all contestants. The numeric keys will
@@ -420,6 +440,9 @@ function manualupload_parse_file($fid) {
     $report['rows'][] = $elements;
     $file_contestants[$elements[$teams_meta[0]]] = TRUE;
     $file_contestants[$elements[$teams_meta[1]]] = TRUE;
+  }
+  if (empty($file_contestants)) {
+    throw new Exception('Can not locate team contestants.');
   }
   $file_contestants = array_keys($file_contestants);
   array_unshift($file_contestants, FALSE);
