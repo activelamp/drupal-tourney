@@ -16,6 +16,6 @@ class tourney_handler_field_rank extends views_handler_field {
     $tourney = $values->tourney_rank_tournament;
     $eid = $this->view->base_table . '.' . $values->{$this->view->base_field};
     
-    return tourney_history_get_contestant_standing_change($tourney, $eid);
+    return esports_history_get_specific_change('team_ranks', $tourney, $eid);
   }
 }

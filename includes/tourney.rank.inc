@@ -34,6 +34,7 @@ function tourney_rank_exists($tournament, $contestant) {
  *   Contestant entity
  */
 function tourney_rank_create($tournament, $contestant) {
+  if (!$contestant) return FALSE;
   db_insert('tourney_rank')
     ->fields(array(
       'tournament' => $tournament->id,
@@ -44,6 +45,7 @@ function tourney_rank_create($tournament, $contestant) {
       'rank' => 0,
     ))
     ->execute();
+  return TRUE;
 }
 
 /**
@@ -55,7 +57,7 @@ function tourney_rank_create($tournament, $contestant) {
  *   Contestant entity
  */
 function tourney_rank_win($tournament, $contestant) {
-  if (!tourney_rank_exists($tournament, $contestant)) tourney_rank_create($tournament, $contestant);
+  if (!tourney_rank_exists($tournament, $contestant) && !tourney_rank_create($tournament, $contestant)) return;
   db_update('tourney_rank')
     ->expression('wins', 'wins + 1')
     ->expression('rank', 'rank - 1')
@@ -74,7 +76,7 @@ function tourney_rank_win($tournament, $contestant) {
  *   Contestant entity
  */
 function tourney_rank_lose($tournament, $contestant) {
-  if (!tourney_rank_exists($tournament, $contestant)) tourney_rank_create($tournament, $contestant);
+  if (!tourney_rank_exists($tournament, $contestant) && !tourney_rank_create($tournament, $contestant)) return;
   db_update('tourney_rank')
     ->expression('losses', 'losses + 1')
     ->expression('rank', 'rank + 1')
