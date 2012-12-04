@@ -17,6 +17,9 @@ function tourney_default_rules_configuration() {
          'entity:select' => 'tourney-game:relation-has-game-tourney-match-reverse:0',
          'type' => 'tourney_match'
        ))
+       ->condition(rules_condition('data_is_empty', array(
+          'data:select' => 'tourney-game:winner'
+       ))->negate())
        ->action('tourney_action_get_game_count', array(
          'match:select' => 'tourney-game:relation-has-game-tourney-match-reverse:0'
        ))
@@ -35,47 +38,63 @@ function tourney_default_rules_configuration() {
 
   $configs['rules_tourney_game_is_won'] = $rule;
 
-  $rule = rules_reaction_rule();
-  $rule->label = 'Set round robin paths';
-  $rule->active = TRUE;
-  $rule->event('tourney_match_update')
-       ->condition('data_is', array(
-         'data:select' => 'tourney-match:relation-has-match-tourney-tournament-reverse:0:format',
-         'value' => 'RoundRobinController'
-       ))
-       ->condition('data_is_empty', array(
-         'data:select' => 'tourney-match:relation-has-game-tourney-game:0:winner',
-       ))
-       ->condition('tourney_condition_match_has_contestants', array(
-         'match:select' => 'tourney-match',
-       ))
-       ->action('tourney_action_set_all_matches', array(
-         'match:select' => 'tourney-match',
-       ))
-       ->action('drupal_message', array('message:select' => 'action-message'));
 
-  $configs['rules_tourney_set_all_matches'] = $rule;
-
-  $rule = rules_reaction_rule();
-  $rule->label = 'Set regular season paths';
-  $rule->active = TRUE;
-  $rule->event('tourney_match_update')
-       ->condition('data_is', array(
-         'data:select' => 'tourney-match:relation-has-match-tourney-tournament-reverse:0:format',
-         'value' => 'RegularSeasonController'
-       ))
-       ->condition('data_is_empty', array(
-         'data:select' => 'tourney-match:relation-has-game-tourney-game:0:winner',
-       ))
-       ->condition('tourney_condition_match_has_contestants', array(
-         'match:select' => 'tourney-match',
-       ))
-       ->action('tourney_action_set_regularseason_matches', array(
-         'match:select' => 'tourney-match',
-       ))
-       ->action('drupal_message', array('message:select' => 'action-message'));
-
-  $configs['rules_tourney_set_regularseason_matches'] = $rule;
+  // BKH 2012.11.30 Modified this rule in the UI, but the export does not
+  // supply php code. So we need to import the export instead.
+  //
+  // $rule = rules_reaction_rule();
+  // $rule->label = 'Set round robin paths';
+  // $rule->active = TRUE;
+  // $rule->event('tourney_match_update')
+  //      ->condition('data_is', array(
+  //        'data:select' => 'tourney-match:relation-has-match-tourney-tournament-reverse:0:format',
+  //        'value' => 'RoundRobinController'
+  //      ))
+  //      ->condition('data_is_empty', array(
+  //        'data:select' => 'tourney-match:relation-has-game-tourney-game:0:winner',
+  //      ))
+  //      ->condition('tourney_condition_match_has_contestants', array(
+  //        'match:select' => 'tourney-match',
+  //      ))
+  //      ->action('tourney_action_set_all_matches', array(
+  //        'match:select' => 'tourney-match',
+  //      ))
+  //      ->action('drupal_message', array('message:select' => 'action-message'));
+  // 
+  // $configs['rules_tourney_set_all_matches'] = $rule;
+  $rule = rules_import('{ "rules_tourney_set_all_matches" : {
+      "LABEL" : "Set round robin paths",
+      "PLUGIN" : "reaction rule",
+      "REQUIRES" : [ "rules", "tourney" ],
+      "ON" : [ "tourney_match_update" ],
+      "IF" : [
+        { "data_is_empty" : { "data" : [ "tourney-match:relation-has-game-tourney-game:0:winner" ] } },
+        { "tourney_condition_match_has_contestants" : { "match" : [ "tourney-match" ] } },
+        { "OR" : [
+            { "data_is" : {
+                "data" : [ "tourney-match:relation-has-match-tourney-tournament-reverse:0:format" ],
+                "value" : "ManualUploadController"
+              }
+            },
+            { "data_is" : {
+                "data" : [ "tourney-match:relation-has-match-tourney-tournament-reverse:0:format" ],
+                "value" : "RoundRobinController"
+              }
+            }
+          ]
+        }
+      ],
+      "DO" : [
+        { "tourney_action_set_all_matches" : {
+            "USING" : { "match" : [ "tourney-match" ] },
+            "PROVIDE" : { "action_message" : { "action_message" : "Action successful message" } }
+          }
+        },
+        { "drupal_message" : { "message" : [ "action-message" ] } }
+      ]
+    }
+  }');
+  $configs[$rule->name] = $rule;
 
   $rule = rules_reaction_rule();
   $rule->label = 'Tourney bye is created';

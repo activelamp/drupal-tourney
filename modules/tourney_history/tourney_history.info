@@ -1,5 +1,6 @@
 name = Tourney History Module
 description = Allows for history of rankings to be determined by a specified time period
+package = Tourney
 core = 7.x
 configure = admin/config/tourney/tourney-history
 

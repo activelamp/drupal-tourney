@@ -62,12 +62,12 @@ function tourney_history_snapshot_save() {
     $normalized_ranks = array();
     $current = null;
     $place = 0;
-    foreach ($ranks as $user => $rank) {
+    foreach ($ranks as $eid => $rank) {
       if ( $rank !== $current ) {
         $current = $rank;
         $place++;
       }
-      $normalized_ranks[$user] = $place;
+      $normalized_ranks[$eid] = $place;
     }
     db_insert('tourney_history')
       ->fields(array(
@@ -90,9 +90,13 @@ function tourney_history_snapshot_save() {
 function tourney_history_get_tournament_standing_changes($tournament) {
   $snapshot = tourney_history_current_snapshot();
   $tid = $tournament;
+  
+  // Return the cache if available.
   if ($cached = cache_get('tourney_history_' . $tid . '_' . $snapshot, 'cache_tourney')) {
     return $cached->data;
   }
+  
+  // Get the two latest snapshots from the history table.
   $result = db_query('SELECT snapshot, ranks 
     FROM {tourney_history} h 
     WHERE h.tournament = :tournament AND h.snapshot >= :snapshot
@@ -102,14 +106,23 @@ function tourney_history_get_tournament_standing_changes($tournament) {
       ':snapshot' => $snapshot - 1,
     ));
   $snapshots = $result->fetchAllKeyed();  
+  
+  // Bail out now if no history.
+  if (empty($snapshots)) {
+    return;
+  }
+  
   $ranks = array();
   foreach ($snapshots as $row) {
     $ranks[] = unserialize($row);
   }
+  
+  // Compare the most recent snapshot to previous snapshot ranks.
   $changes = array();
-  foreach ($ranks[0] as $user => $rank) {
-    $changes[$user] = $rank - (isset($ranks[1]) ? $ranks[1][$user] : 0);
+  foreach ($ranks[0] as $eid => $rank) {
+    $changes[$eid] = isset($ranks[1]) ? $rank - $ranks[1][$eid] : 0;
   }
+  
   cache_set('tourney_history_' . $tid . '_' . $snapshot, $changes, 'cache_tourney');
   return $changes;
 }

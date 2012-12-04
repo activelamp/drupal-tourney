@@ -350,6 +350,8 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
+  $match_reset = FALSE;
+  
   // Check to see if the contestants on this match are different than who is
   // currently associated with the match. If they are different, we need to
   // reset the match.

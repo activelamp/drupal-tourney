@@ -8,6 +8,11 @@ define('TOURNEY_GAMES', 5);
 define('TOURNEY_TRUNCATE', 12);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
+// @todo file upload ajax callback does not invoke ctools plugins. validators can not be found.
+require_once('plugins/tourney_formats/BaseFormatControllers/ManualUpload.php');
+require_once('plugins/tourney_formats/BaseFormatControllers/RoundRobin.php');
+
+
 /**
  * Implements hook_menu().
  */
@@ -596,6 +601,11 @@ function tourney_theme($existing, $type, $theme, $path) {
       'file' => 'tourney.match.inc',
       'path' => $path . '/includes',
     ),
+    'tourney_match' => array(
+      'render element' => 'elements',
+      'template' => 'tourney-match',
+      'path' => $path . '/theme',
+    ),
   ) + _tourney_theme($existing, $type, $theme, $path);
 }
 
@@ -1106,8 +1116,10 @@ function tourney_update_alias($entity, $op, array $options = array()) {
   if (!isset($entity->path)) return;
 
   $path = $entity->path;
-  $path['alias'] = trim($path['alias']);
-
+  if(!empty($path['alias'])){
+    $path['alias'] = trim($path['alias']);
+  }
+  
   $has_pattern = module_exists('pathauto') ? pathauto_pattern_load_by_entity($entity->entity_type, $entity->type) : FALSE;
 
   if ($has_pattern && isset($entity->path['pathauto']) && $path['pathauto']) {
@@ -1403,3 +1415,78 @@ function tourney_create_path_field($entity) {
 
   return $form['path'];
 }
+
+/**
+ * Reports if an entity bundle is a target for the given relation type.
+ *
+ * @param string|array $type
+ *   Machine name of the relation type.
+ * @param string $target_entity
+ *   (optional) Machine name of the target entity. If no entity is specified
+ *   then all bundles of any entity, if any, will report TRUE.
+ * @param string $target_bundle
+ *   (optional) Machine name of the target entity bundle to match. If no
+ *   bundle is specified then any target bundles of type $target_entity will
+ *   report TRUE.
+ *
+ * @return bool
+ * Return FALSE on no match, or TRUE if entity bundle is a target.
+ */
+function tourney_relation_type_is_target($type, $target_entity = '', $target_bundle = '') {
+  $report = FALSE;
+
+  // Recursive call when $type is an array.
+  if (is_array($type)) {
+    foreach ($type as $type_element) {
+      tourney_relation_type_is_target($type_element, $target_entity, $target_bundle);
+    }
+    return TRUE;
+  }
+  elseif (!isset($type) || !is_string($type)) {
+    throw new Exception(t('Required parameter missing'));
+  }
+
+  try {
+    $relation_type = relation_type_load($type);
+    $entity_type = entity_get_info($target_entity);
+  }
+  catch (Exception $e) {
+    throw new Exception(t('Parameter will not load object') . ': ' . $e->getMessage());
+  }
+
+  if (!$relation_type) {
+    throw new Exception(t('Relation type does not exist') . ': ' . $type);
+  }
+  if ($target_entity && !$entity_type) {
+    throw new Exception(t('Target entity type does not exist') . ': ' . $target_entity);
+  }
+  if ($target_bundle && !$target_entity) {
+    throw new Exception(t('Target bundle can not be specified without a target entity') . ': ' . $target_bundle);
+  }
+
+  $target_value = $target_entity;
+  if ($target_bundle) {
+    $target_value = $target_value . ':' . $target_bundle;
+  }
+
+  $targets = $relation_type->target_bundles;
+  $new_targets = array();
+  foreach ($targets as $key => $target) {
+    $target_elm = explode(':', $target);
+    if (count($target_elm) < 2) {
+      throw new Exception(t('Impossible'));
+    }
+    if (($target_entity) && ($target_bundle)) {
+      if ($target == $target_value) {
+        $report = TRUE;
+        break;
+      }
+    }
+    elseif (($target_entity) && ($target_elm[0] == $target_value)) {
+      $report = TRUE;
+    }
+  }
+
+  return $report;
+}
+
