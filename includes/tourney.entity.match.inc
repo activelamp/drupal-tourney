@@ -581,12 +581,16 @@ class TourneyMatchEntity extends TourneyEntity {
   /**
    * Adds a contestant entity to an object by creating the necessary relation
    *
-   * @param integer $slot
-   *   Contestant slot to target
    * @param Object entity
    *   Any type of entity to fill the target slot with
+   * @param integer $slot
+   *   Contestant slot to target
    */
   public function addContestant($entity, $slot = NULL) {
+    if (!tourney_relation_type_is_target('contestant', $entity->entity_type)) {
+      throw new Exception('Invalid entity type. This type is not configured to be a contestant.');
+    }
+
     /* This logic allows contestants that are already on the match to be moved
     without potentially being affected when the copy is removed */
     cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
