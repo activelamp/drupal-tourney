@@ -58,6 +58,13 @@ class ManualUploadController extends TourneyController {
     $options = $this->pluginOptions;
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
 
+    $form['match_lineup_file'] = array(
+      '#type' => 'managed_file',
+      '#title' => t('Choose a file'),
+      '#description' => t('A csv file to specify which teams play on matches. Each row is a match. First row must contain column name description. Column name description for team\'s columns must contain the word \'team\'.'),
+      '#size' => 22,
+      '#element_validate' => array('manualupload_match_lineup_validate'),
+    );
     $form['max_team_play'] = array(
       '#type' => 'textfield',
       '#size' => 10,
@@ -66,14 +73,6 @@ class ManualUploadController extends TourneyController {
       '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#element_validate' => array('manualupload_match_times_validate'),
-    );
-    $form['match_lineup_file'] = array(
-      //'#name' => 'bob',
-      '#type' => 'managed_file',
-      '#title' => t('Choose a file'),
-      '#size' => 22,
-      '#element_validate' => array('manualupload_match_lineup_validate'),
-      //'#required' => TRUE,
     );
 
     return $form;
