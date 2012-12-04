@@ -17,6 +17,9 @@ function tourney_default_rules_configuration() {
          'entity:select' => 'tourney-game:relation-has-game-tourney-match-reverse:0',
          'type' => 'tourney_match'
        ))
+       ->condition(rules_condition('data_is_empty', array(
+          'data:select' => 'tourney-game:winner'
+       ))->negate())
        ->action('tourney_action_get_game_count', array(
          'match:select' => 'tourney-game:relation-has-game-tourney-match-reverse:0'
        ))
