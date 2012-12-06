@@ -1002,7 +1002,7 @@ function tourney_tourney_game_view($entity, $view_mode, $langcode = 'en') {
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
   );
-  $entity->content['match_winner'] = array(
+  $entity->content['game_winner'] = array(
     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#markup' => $entity->winner,
