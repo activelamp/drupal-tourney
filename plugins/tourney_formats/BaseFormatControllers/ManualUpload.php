@@ -58,6 +58,8 @@ class ManualUploadController extends TourneyController {
     $options = $this->pluginOptions;
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
 
+    form_load_include($form_state, 'php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/ManualUpload');
+
     $form['match_lineup_file'] = array(
       '#type' => 'managed_file',
       '#title' => t('Choose a file'),
@@ -354,7 +356,6 @@ class ManualUploadController extends TourneyController {
 
 }
 
-
 /**
  * Element validate callback.
  *
@@ -373,12 +374,14 @@ function manualupload_match_lineup_validate($element, &$form_state) {
   // extended, in which case the same plugin options will be keyed with another
   // value.
   $plugin = $form_state['values']['format'];
-  $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
-  try {
-    $schema = manualupload_parse_file($fid);
-    $form_state['values']['players'] = count($schema['contestants']);
-  } catch (Exception $e) {
-    form_error($element, $e->getMessage());
+  if (array_key_exists('match_lineup_file', $form_state['values']['plugin_options'][$plugin])) {
+    $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
+    try {
+      $schema = manualupload_parse_file($fid);
+      $form_state['values']['players'] = count($schema['contestants']);
+    } catch (Exception $e) {
+      form_error($element, $e->getMessage());
+    }
   }
 }
 
@@ -436,9 +439,12 @@ function manualupload_parse_file($fid) {
   $file_contestants = array();
   for($x=1; $x<sizeof($file_lines); $x++) {
     $elements = str_getcsv($file_lines[$x]);
-    $report['rows'][] = $elements;
-    $file_contestants[$elements[$teams_meta[0]]] = TRUE;
-    $file_contestants[$elements[$teams_meta[1]]] = TRUE;
+    // If the line is empty just ignore it.
+    if (!empty($elements) && strlen($elements[0])) {
+      $report['rows'][] = $elements;
+      $file_contestants[$elements[$teams_meta[0]]] = TRUE;
+      $file_contestants[$elements[$teams_meta[1]]] = TRUE;
+    }
   }
   if (empty($file_contestants)) {
     throw new Exception('Can not locate team contestants.');
@@ -450,4 +456,5 @@ function manualupload_parse_file($fid) {
 
   return $report;
 }
+
 
