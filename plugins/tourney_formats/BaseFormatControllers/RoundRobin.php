@@ -51,12 +51,14 @@ class RoundRobinController extends TourneyController {
     $options = $this->pluginOptions;
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
 
+    form_load_include($form_state, 'php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RoundRobin');
+
     $form['max_team_play'] = array(
       '#type' => 'textfield',
       '#size' => 10,
       '#title' => t('Maximum times teams may play each other'),
       '#description' => t('Number of times team A will be allowed to play team B'),
-      '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,     
+      '#default_value' => array_key_exists('max_team_play', $plugin_options) ? $plugin_options['max_team_play'] : 1,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#element_validate' => array('roundrobin_match_times_validate'),
     );
@@ -335,3 +337,4 @@ function roundrobin_match_times_validate($element, &$form_state){
     form_error($element, t('Maximum times teams may play each other must be a numeric value 1 or more.'));
   } 
 }
+
