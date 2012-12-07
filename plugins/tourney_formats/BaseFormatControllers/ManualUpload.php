@@ -361,8 +361,10 @@ class ManualUploadController extends TourneyController {
    *   (int) Number of players in this tournament as configured by plugin.
    */
   public function getNumberOfPlayers() {
-
-    return $this->pluginOptions['ManualUploadController']['players'];
+    // Plugin options should be keyed by class name. If ManualUploadController
+    // has been extended then use the called class's name as the key.
+    $class = get_called_class();
+    return $this->pluginOptions[$class]['players'];
   }
 
 }
