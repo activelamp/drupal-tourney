@@ -486,6 +486,24 @@ class TourneyController implements TourneyControllerInterface {
     }
     return array_key_exists($mid, $this->data['matches']) ? $this->data['matches'][$mid] : NULL;
   }
+
+  /**
+   * Return the number of players stored in the plugin options.
+   *
+   * Your plugin may use this parent function if you have assigned a value
+   * in optionsForm to the 'players' key.
+   *
+   * @return
+   *   (int) Number of players in this tournament as configured by plugin.
+   */
+  public function getNumberOfPlayers() {
+    $class = get_called_class();
+    $players = isset($this->pluginOptions[$class]['players']) ?
+               $this->pluginOptions[$class]['players'] : 0;
+
+    return $players;
+  }
+
 }
 
 /**
@@ -524,6 +542,17 @@ interface TourneyControllerInterface {
   public function populateSeedPositions();
 
   /**
+   * Primarly this is used during tournament construction. Before the
+   * tournament is saved it will query the plugin to determine how many
+   * players the thournament should have. At the time the method is run
+   * the tournament object available will probably be in memory only!
+   *
+   * @return
+   *   (int) The number of players.
+   */
+  public function getNumberOfPlayers();
+
+  /**
    * Render the tournament
    */
   public function render();
@@ -544,3 +573,4 @@ abstract class TourneyEntity extends Entity {
     parent::delete();
   }
 }
+

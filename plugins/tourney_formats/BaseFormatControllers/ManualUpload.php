@@ -65,7 +65,7 @@ class ManualUploadController extends TourneyController {
       '#title' => t('Choose a file'),
       '#description' => t('A csv file to specify which teams play on matches. Each row is a match. First row must contain column name description. Column name description for team\'s columns must contain the word \'team\'.'),
       '#size' => 22,
-      '#element_validate' => array('manualupload_match_lineup_validate'),
+      '#element_validate' => array('manualupload_file_validate'),
     );
     $form['max_team_play'] = array(
       '#type' => 'textfield',
@@ -354,6 +354,17 @@ class ManualUploadController extends TourneyController {
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
 
+  /**
+   * Return the number of players stored in the plugin options.
+   *
+   * @return
+   *   (int) Number of players in this tournament as configured by plugin.
+   */
+  public function getNumberOfPlayers() {
+
+    return $this->pluginOptions['ManualUploadController']['players'];
+  }
+
 }
 
 /**
@@ -366,19 +377,24 @@ function manualupload_match_times_validate($element, &$form_state) {
     || !empty($element['#value']) && is_numeric(parse_size($element['#value']))
     && $element['#value'] < 1 && $form_state['values']['format'] == 'ManualUploadController') {
     form_error($element, t('Maximum rounds must be a numeric value 1 or more.'));
-  } 
+  }
 }
 
-function manualupload_match_lineup_validate($element, &$form_state) {
+/**
+ * Callback for #element_validate.
+ *
+ * @see ManualUploadController::optionsForm()
+ */
+function manualupload_file_validate($element, &$form_state) {
   // Don't marry an option to its plugin name. Our class may have been
   // extended, in which case the same plugin options will be keyed with another
   // value.
   $plugin = $form_state['values']['format'];
-  if (array_key_exists('match_lineup_file', $form_state['values']['plugin_options'][$plugin])) {
+  if (isset($form_state['values']['plugin_options'][$plugin]['match_lineup_file'])) {
     $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
     try {
       $schema = manualupload_parse_file($fid);
-      $form_state['values']['players'] = count($schema['contestants']);
+      $form_state['values']['plugin_options'][$plugin]['players'] = count($schema['contestants']);
     } catch (Exception $e) {
       form_error($element, $e->getMessage());
     }
@@ -456,5 +472,4 @@ function manualupload_parse_file($fid) {
 
   return $report;
 }
-
 
