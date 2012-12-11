@@ -434,12 +434,15 @@ function tourney_tournament_get_match_games($entity, $load_entity = TRUE, $reset
 /**
  * Delete multiple tournament entities.
  *
+ * @todo This function may be deprecated and certinally should not be called
+ *       as any form of programming api as it will leave matches in the db.
+ *
  * @param $ids
  *   An array of test entity IDs.
  */
-function tourney_tournament_delete_multiple(array $ids) {
-  entity_get_controller('tourney_tournament')->delete($ids);
-}
+// function tourney_tournament_delete_multiple(array $ids) {
+//   entity_get_controller('tourney_tournament')->delete($ids);
+// }
 
 /**
  * Page callback. Show a listing of default entities.

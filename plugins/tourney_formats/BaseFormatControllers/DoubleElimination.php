@@ -10,28 +10,6 @@
  * tournament.
  */
 class DoubleEliminationController extends SingleEliminationController {
-  /**
-   * Options for this plugin.
-   */
-   public function optionsForm(&$form_state) {
-     $this->getPluginOptions();
-     $options = $this->pluginOptions;
-     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
-
-     form_load_include($form_state, 'php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/DoubleElimination');
-
-     $form['players'] = array(
-       '#type' => 'textfield',
-       '#size' => 10,
-       '#title' => t('Number of Contestants'),
-       '#description' => t('Number of contestants that will be playing in this tournament.'),
-       '#default_value' => array_key_exists('players', $plugin_options) ? $plugin_options['players'] : 3,
-       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
-       '#element_validate' => array('doubleelimination_players_validate'),
-     );
-
-     return $form;
-   }
 
   /**
    * Theme implementations specific to this plugin.
@@ -350,17 +328,5 @@ class DoubleEliminationController extends SingleEliminationController {
     return $node;
   }
 
-}
-
-/**
- * Callback for #element_validate.
- *
- * @see DoubleEliminationController::optionsForm()
- */
-function doubleelimination_players_validate($element, &$form_state) {
-  $value = $element['#value'];
-  if ($value < 3) {
-    form_error($element, t('%name must be three or more.', array('%name' => $element['#title'])));
-  }
 }
 

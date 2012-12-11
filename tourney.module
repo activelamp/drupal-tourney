@@ -1202,13 +1202,25 @@ function tourney_action_info() {
       'label' => t('Unpublish selected entities'),
       'configurable' => FALSE,
     ),
-
+    'tourney_tournament_delete_action' => array(
+      'type' => 'tourney_tournament',
+      'label' => t('Delete selected tournaments'),
+      'configurable' => FALSE,
+    ),
     'tourney_match_update_labels_action' => array(
       'type' => 'tourney_match',
       'label' => t('Update Match Labels'),
       'configurable' => FALSE,
     ),
   );
+}
+
+/**
+ * VBO action: Delete entity.
+ */
+function tourney_tournament_delete_action(&$entity, $context) {
+  $tournament = tourney_tournament_load(array($entity->entity_id));
+  $tournament->delete();
 }
 
 /**
