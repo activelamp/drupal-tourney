@@ -8,11 +8,6 @@ define('TOURNEY_GAMES', 5);
 define('TOURNEY_TRUNCATE', 12);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
-// @todo file upload ajax callback does not invoke ctools plugins. validators can not be found.
-require_once('plugins/tourney_formats/BaseFormatControllers/ManualUpload.php');
-require_once('plugins/tourney_formats/BaseFormatControllers/RoundRobin.php');
-
-
 /**
  * Implements hook_menu().
  */
@@ -1018,7 +1013,7 @@ function tourney_tourney_game_view($entity, $view_mode, $langcode = 'en') {
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
   );
-  $entity->content['match_winner'] = array(
+  $entity->content['game_winner'] = array(
     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
     '#suffix' => '</div>',
     '#markup' => $entity->winner,
@@ -1059,7 +1054,8 @@ function tourney_game_save(&$game) {
  */
 function tourney_get_types() {
   ctools_include('plugins');
-  return ctools_get_plugins('tourney', 'tourney_formats');
+  $plugins = ctools_get_plugins('tourney', 'tourney_formats');
+  return $plugins;
 }
 
 /**
