@@ -22,7 +22,7 @@ class tourney_handler_field_rank extends views_handler_field {
     if ($change > 0) {
       $rank_change = 'rank-down';
     }
-    if ($change < 0) {
+    elseif ($change < 0) {
       $rank_change = 'rank-up';
     }
     else {

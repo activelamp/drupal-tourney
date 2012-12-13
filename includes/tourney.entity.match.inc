@@ -10,8 +10,6 @@ class TourneyMatchEntity extends TourneyEntity {
   public  $tournamentId = NULL;
   public  $gameIds = NULL;
   public  $contestantIds = NULL;
-  public  $contestant1 = NULL;
-  public  $contestant2 = NULL;
   public  $uri;
   public  $matchInfo = NULL;
   public  $hasByes = NULL;
@@ -253,21 +251,6 @@ class TourneyMatchEntity extends TourneyEntity {
       $entities[$entity->eid]->slot = $contestant['slot'];
     }
     return $entities;
-  }
-
-  /**
-   * Load contestants on match entity object.
-   *
-   * @todo: Not used anywhere in tourney. Pull this out once it is no longer a
-   *   dependency on LoL.
-   */
-  public function loadContestants() {
-    if (empty($this->contestant1) || empty($this->contestant2)) {
-      foreach ($this->getContestantIds() as $slot => $contestant) {
-        $entity = entity_load_single_by_eid($contestant['eid']);
-        $this->{'contestant' . ($slot + 1)} = $entity;
-      }
-    }
   }
 
   /**

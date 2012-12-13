@@ -126,7 +126,7 @@ function tourney_match_form($form, &$form_state, $match) {
     );
 
     foreach ($match->getGames() as $id => $game) {
-      if (!$game->getWinner()) {
+      if (!$game->getWinner() && count($match->getGames()) > 1) {
         continue;
       }
       $form['fix_games']['game.' . $id] = array(

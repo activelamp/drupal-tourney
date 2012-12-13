@@ -60,7 +60,7 @@ function tourney_rank_win($tournament, $contestant) {
   if (!tourney_rank_exists($tournament, $contestant) && !tourney_rank_create($tournament, $contestant)) return;
   db_update('tourney_rank')
     ->expression('wins', 'wins + 1')
-    ->expression('rank', 'rank - 1')
+    ->expression('rank', 'rank + .5')
     ->condition('tournament', $tournament->id)
     ->condition('entity_type', $contestant->entity_type)
     ->condition('entity_id', $contestant->entity_id)
@@ -79,7 +79,7 @@ function tourney_rank_lose($tournament, $contestant) {
   if (!tourney_rank_exists($tournament, $contestant) && !tourney_rank_create($tournament, $contestant)) return;
   db_update('tourney_rank')
     ->expression('losses', 'losses + 1')
-    ->expression('rank', 'rank + 1')
+    ->expression('rank', 'rank - .5')
     ->condition('tournament', $tournament->id)
     ->condition('entity_type', $contestant->entity_type)
     ->condition('entity_id', $contestant->entity_id)
