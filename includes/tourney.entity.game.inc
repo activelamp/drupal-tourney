@@ -41,14 +41,21 @@ class TourneyGameEntity extends TourneyEntity {
       return NULL;
     }
     if (is_null($this->matchId)) {
-      $query = relation_query('tourney_game', $this->id);
-      $query->entityCondition('bundle', 'has_game');
-      $results = $query->execute();
+      if ( !$cache = cache_get('getMatchId_' . $this->id, 'cache_tourney')) {
+        $query = relation_query('tourney_game', $this->id);
+        $query->entityCondition('bundle', 'has_game');
+        $results = $query->execute();
 
-      if (!empty($results)) {
-        $relation = array_pop($results);
-        $r = relation_load($relation->rid);
-        $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+        if (!empty($results)) {
+          $relation = array_pop($results);
+          $r = relation_load($relation->rid);
+          $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+        }
+
+        cache_set('getMatchId_' . $this->id, $this->matchId, 'cache_tourney');
+      }
+      else {
+        $this->matchId = $cache->data;
       }
     }
     return $this->matchId;
@@ -65,14 +72,21 @@ class TourneyGameEntity extends TourneyEntity {
    */
   public function getTournamentId() {
     if (is_null($this->tournamentId)) {
-      $query = relation_query('tourney_match', $this->getMatchId());
-      $query->entityCondition('bundle', 'has_match');
-      $results = $query->execute();
+      if ( !$cache = cache_get('getTournamentId_' . $this->getMatchId(), 'cache_tourney')) {
+        $query = relation_query('tourney_match', $this->getMatchId());
+        $query->entityCondition('bundle', 'has_match');
+        $results = $query->execute();
 
-      if (!empty($results)) {
-        $relation = array_pop($results);
-        $r = relation_load($relation->rid);
-        $this->tournamentId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+        if (!empty($results)) {
+          $relation = array_pop($results);
+          $r = relation_load($relation->rid);
+          $this->tournamentId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
+        }
+
+        cache_set('getTournamentId_' . $this->getMatchId(), $this->tournamentId, 'cache_tourney');
+      }
+      else {
+        $this->tournamentId = $cache->data;
       }
     }
     return $this->tournamentId;

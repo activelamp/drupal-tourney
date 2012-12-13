@@ -46,6 +46,17 @@ function tourney_menu() {
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
+  $items['tourney/tournament/%tourney_tournament/reset'] = array(
+    'title' => 'Reset Ranks',
+    'page callback' => 'tourney_rank_reset',
+    'page arguments' => array(2),
+    'access callback' => 'tourney_access',
+    'access arguments' => array('edit', 'tournament'),
+    'file' => 'includes/tourney.rank.inc',
+    'weight' => 5,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
   $items['tourney/tournament/%tourney_tournament/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'tourney_confirm_delete_page',
@@ -939,7 +950,7 @@ function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') 
 /**
  * Implements hook_ENTITY_view().
  */
-function tourney_tourney_match_view($entity, $view_mode, $langcode = 'en') {
+function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'en') {
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'
   );
@@ -971,7 +982,7 @@ function tourney_tourney_match_view($entity, $view_mode, $langcode = 'en') {
     $i++;
   }
   
-  if (!array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
+  if (property_exists($entity, 'matchInfo') && $entity->matchInfo && !array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
     $entity->content['match_table'] = array(
       '#theme' => 'tourney_render_match',
       '#match' => $entity,

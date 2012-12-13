@@ -34,6 +34,7 @@ function tourney_rank_exists($tournament, $contestant) {
  *   Contestant entity
  */
 function tourney_rank_create($tournament, $contestant) {
+  if (!$contestant) return FALSE;
   db_insert('tourney_rank')
     ->fields(array(
       'tournament' => $tournament->id,
@@ -44,6 +45,7 @@ function tourney_rank_create($tournament, $contestant) {
       'rank' => 0,
     ))
     ->execute();
+  return TRUE;
 }
 
 /**
@@ -55,10 +57,10 @@ function tourney_rank_create($tournament, $contestant) {
  *   Contestant entity
  */
 function tourney_rank_win($tournament, $contestant) {
-  if (!tourney_rank_exists($tournament, $contestant)) tourney_rank_create($tournament, $contestant);
+  if (!tourney_rank_exists($tournament, $contestant) && !tourney_rank_create($tournament, $contestant)) return;
   db_update('tourney_rank')
     ->expression('wins', 'wins + 1')
-    ->expression('rank', 'rank - 1')
+    ->expression('rank', 'rank + .5')
     ->condition('tournament', $tournament->id)
     ->condition('entity_type', $contestant->entity_type)
     ->condition('entity_id', $contestant->entity_id)
@@ -74,12 +76,31 @@ function tourney_rank_win($tournament, $contestant) {
  *   Contestant entity
  */
 function tourney_rank_lose($tournament, $contestant) {
-  if (!tourney_rank_exists($tournament, $contestant)) tourney_rank_create($tournament, $contestant);
+  if (!tourney_rank_exists($tournament, $contestant) && !tourney_rank_create($tournament, $contestant)) return;
   db_update('tourney_rank')
     ->expression('losses', 'losses + 1')
-    ->expression('rank', 'rank + 1')
+    ->expression('rank', 'rank - .5')
     ->condition('tournament', $tournament->id)
     ->condition('entity_type', $contestant->entity_type)
     ->condition('entity_id', $contestant->entity_id)
     ->execute();
+}
+
+function tourney_rank_reset($tournament) {
+  db_query('DELETE FROM {tourney_rank}
+    WHERE tournament = :tournament',
+    array(':tournament' => $tournament->id
+    ));
+  $game_ids = $tournament->getGameIds();
+  $games = entity_load('tourney_game', $game_ids);
+  foreach ($games as $game) {
+    $contestants = $game->getContestants();
+    if ($game->winner) {
+      tourney_rank_win($tournament, $contestants[$game->winner]);
+      unset($contestants[$game->winner]);
+      $loser = reset($contestants);
+      tourney_rank_lose($tournament, $loser);
+    }
+  }
+  return '';
 }
