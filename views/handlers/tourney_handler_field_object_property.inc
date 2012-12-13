@@ -18,9 +18,9 @@ class tourney_handler_field_object_property extends views_handler_field {
    * Render the property
    */
   function render(&$values) {
-    $match = tourney_match_load($values->id);
+    $entity = $this->load($values->id);
     $property = $this->underscoreToCamelCase($this->real_field);
-    return is_array($match->$property) ? join(", ", $match->$property) : $match->$property;
+    return is_array($entity->$property) ? join(", ", $entity->$property) : $entity->$property;
   }
   
   /**
@@ -33,5 +33,19 @@ class tourney_handler_field_object_property extends views_handler_field {
     }
     return lcfirst(join("", $parts));
   }
-
+  
+  /**
+   * Load the entity for the type of tourney entity this is. Uses the primary
+   * table to determine the type of entity.
+   * 
+   * @param $id
+   *   The entity id to load.
+   * @return
+   *   Returns the fully loaded object.
+   */
+   function load($id) {
+     @list(, $type) = explode("_", $this->table);
+     $function = 'tourney_' . $type . '_load';
+     return $function($id);
+   }
 }

@@ -54,6 +54,7 @@ function tourney_views_data_alter(&$data) {
       'handler' => 'tourney_handler_match_tree',
     ),
   );
+
   $data['tourney_match']['match_tree_depth'] = array(
     'title' => t('Match Tree Depth'),
     'help' => t('Match ID custom depth filter'),
@@ -88,6 +89,13 @@ function tourney_views_data_alter(&$data) {
       'title' => t('Edit link'),
       'help' => t('Provide a simple link to edit the game.'),
       'handler' => 'tourney_handler_field_entity_link_edit',
+    ),
+  );
+  $data['tourney_game']['tournament_id'] = array(
+    'title' => t('Tournament Id'),
+    'help' => t('The tournament id loaded on the game object'),
+    'field' => array(
+      'handler' => 'tourney_handler_field_object_property',
     ),
   );
   
