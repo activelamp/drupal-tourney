@@ -499,7 +499,7 @@ class TourneyController implements TourneyControllerInterface {
   public function getNumberOfPlayers() {
     $class = get_called_class();
     $players = isset($this->pluginOptions[$class]['players']) ?
-               $this->pluginOptions[$class]['players'] : 0;
+      $this->pluginOptions[$class]['players'] : 0;
 
     return $players;
   }
