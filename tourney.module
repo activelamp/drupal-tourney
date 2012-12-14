@@ -971,11 +971,18 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
     '#markup' => $entity->getWinner(),
   );
   
+  $default_contestant_classes = array('field-content', 'contestant');
   $contestant_view_mode = $entity->getTournament()->get('contestant_view_mode', 'full');
   $i = 1;
   foreach ($entity->getMatchContestants() as $eid => $contestant) {
+    $contestant_classes = $default_contestant_classes;
+    $contestant_classes[] = 'contestant-' . $i;
+    if ($entity->winner == $contestant->entity_type . '.' . $contestant->entity_id) {
+      $contestant_classes[] = 'winner';
+    }
+    
     $entity->content['match_contestant' . $i] = array(
-      '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="field-content">',
+      '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="'. join(' ', $contestant_classes) .'">',
       '#suffix' => '</div>',
       'contestant' => entity_view($contestant->entity_type, array($contestant), $contestant_view_mode),
     );
