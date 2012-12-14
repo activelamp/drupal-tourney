@@ -53,6 +53,15 @@ class RoundRobinController extends TourneyController {
 
     form_load_include($form_state, 'php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/RoundRobin');
 
+    $form['players'] = array(
+      '#type' => 'textfield',
+      '#size' => 10,
+      '#title' => t('Number of Contestants'),
+      '#description' => t('Number of contestants that will be playing in this tournament.'),
+      '#default_value' => array_key_exists('players', $plugin_options) ? $plugin_options['players'] : 4,
+      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
+      '#element_validate' => array('roundrobin_players_validate'),
+    );
     $form['max_team_play'] = array(
       '#type' => 'textfield',
       '#size' => 10,
@@ -327,6 +336,7 @@ class RoundRobinController extends TourneyController {
     drupal_add_js($this->pluginInfo['path'] . '/theme/roundrobin.js');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
+
 }
 
 //function is called in by form #element_validate
@@ -335,6 +345,18 @@ function roundrobin_match_times_validate($element, &$form_state){
     || !empty($element['#value']) && is_numeric(parse_size($element['#value']))
     && $element['#value'] < 1 && $form_state['values']['format'] == 'RoundRobinController') {
     form_error($element, t('Maximum times teams may play each other must be a numeric value 1 or more.'));
-  } 
+  }
+}
+
+/**
+ * Callback for #element_validate.
+ *
+ * @see RoundRobinController::optionsForm()
+ */
+function roundrobin_players_validate($element, &$form_state) {
+  $value = $element['#value'];
+  if ($value < 4) {
+    form_error($element, t('%name must be four or more.', array('%name' => $element['#title'])));
+  }
 }
 

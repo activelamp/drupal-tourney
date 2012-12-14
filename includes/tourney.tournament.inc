@@ -75,20 +75,6 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   // Get options form from plugin if one exists.
   tourney_get_plugin_options($tourney, $form, $form_state);
 
-  $form['players'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Number of contestants'),
-    '#description' => t('Enter the number contestants playing in this tournament. Must be at least 2 or more players.'),
-    '#size' => 10,
-    '#required' => TRUE,
-    '#maxlength' => 2,
-    '#disabled' => isset($tourney->players) ? TRUE : FALSE,
-    '#default_value' => isset($tourney->players) ? $tourney->players : '2',
-    '#attributes' => array('class' => array('edit-configure-round-names-url')),
-    '#weight' => 1,
-    '#element_validate' => array('tourney_tournament_validate_contestants'),
-  );
-
   $form['additional_settings'] = array(
     '#type' => 'vertical_tabs',
     '#weight' => 99,
@@ -279,17 +265,7 @@ function _tourney_get_contestant_view_modes() {
     }
   }
   
-  return $options;  
-}
-
-/**
- * Validate the number of contestants. Needs to be a number greater than 3
- */
-function tourney_tournament_validate_contestants($element, &$form_state) {
-  $value = $element['#value'];
-  if ($value !== '' && (!is_numeric($value) || intval($value) != $value || $value < 2)) {
-    form_error($element, t('%name must be two or more.', array('%name' => $element['#title'])));
-  }
+  return $options;
 }
 
 /**
@@ -373,6 +349,16 @@ function tourney_tournament_form_submit($form, &$form_state) {
   tourney_set_plugin_options($tourney, $form_state, TRUE);
 
   entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
+
+  // Grab the number of contestants from the plugin.
+  $controller = $tourney->format;
+  $plugin = new $controller(0, $tourney);
+  $plugin->getPluginOptions();
+  if (!$players = $plugin->getNumberOfPlayers()) {
+    throw new Exception('Plugin returned 0 players. Tournament can not be constructed.');
+  }
+  $tourney->players = $players;
+  unset($plugin);
   tourney_tournament_save($tourney);
 
   // Any fields preceded with "config_" should be saved as configuration.
@@ -448,12 +434,15 @@ function tourney_tournament_get_match_games($entity, $load_entity = TRUE, $reset
 /**
  * Delete multiple tournament entities.
  *
+ * @todo This function may be deprecated and certinally should not be called
+ *       as any form of programming api as it will leave matches in the db.
+ *
  * @param $ids
  *   An array of test entity IDs.
  */
-function tourney_tournament_delete_multiple(array $ids) {
-  entity_get_controller('tourney_tournament')->delete($ids);
-}
+// function tourney_tournament_delete_multiple(array $ids) {
+//   entity_get_controller('tourney_tournament')->delete($ids);
+// }
 
 /**
  * Page callback. Show a listing of default entities.
@@ -703,3 +692,4 @@ function tourney_configure_rounds_cache_clear($id) {
   ctools_include('object-cache');
   ctools_object_cache_clear('tourney_configure_rounds', $id);
 }
+

@@ -554,6 +554,13 @@ function tourney_views_default_views() {
       'override_label' => 0,
       'label' => '',
     ),
+    'action::tourney_tournament_delete_action' => array(
+      'selected' => 1,
+      'use_queue' => 0,
+      'skip_confirmation' => 0,
+      'override_label' => 0,
+      'label' => '',
+    ),
     'action::system_goto_action' => array(
       'selected' => 0,
       'use_queue' => 0,

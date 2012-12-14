@@ -31,6 +31,17 @@ class SingleEliminationController extends TourneyController {
     $options = $this->pluginOptions;
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
 
+    form_load_include($form_state, 'php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
+
+    $form['players'] = array(
+      '#type' => 'textfield',
+      '#size' => 10,
+      '#title' => t('Number of Contestants'),
+      '#description' => t('Number of contestants that will be playing in this tournament.'),
+      '#default_value' => array_key_exists('players', $plugin_options) ? $plugin_options['players'] : 2,
+      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
+      '#element_validate' => array('singleelimination_players_validate'),
+    );
     $form['third_place'] = array(
       '#type' => 'checkbox',
       '#title' => t('Generate a third place match'),
@@ -327,3 +338,16 @@ class SingleEliminationController extends TourneyController {
   }
 
 }
+
+/**
+ * Callback for #element_validate.
+ *
+ * @see SingleEliminationController::optionsForm()
+ */
+function singleelimination_players_validate($element, &$form_state) {
+  $value = $element['#value'];
+  if ($value < 2) {
+    form_error($element, t('%name must be two or more.', array('%name' => $element['#title'])));
+  }
+}
+

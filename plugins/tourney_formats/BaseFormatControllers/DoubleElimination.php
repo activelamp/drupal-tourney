@@ -10,11 +10,7 @@
  * tournament.
  */
 class DoubleEliminationController extends SingleEliminationController {
-  /**
-   * Options for this plugin.
-   */
-  public function optionsForm(&$form_state) {}
-  
+
   /**
    * Theme implementations specific to this plugin.
    */
@@ -23,7 +19,7 @@ class DoubleEliminationController extends SingleEliminationController {
     $parent_info = TourneyController::getPluginInfo('SingleEliminationController');
     return parent::theme($existing, $type, $theme, $parent_info['path']);
   }
-  
+
   /**
    * Preprocess variables for the template passed in.
    * 
@@ -319,7 +315,6 @@ class DoubleEliminationController extends SingleEliminationController {
     }
   }
 
-
   public function structureTreeNode($match) {
    // if ($match['bracket'] != 'loser') return parent::structureTreeNode($match);
     $node = $match;
@@ -332,4 +327,6 @@ class DoubleEliminationController extends SingleEliminationController {
     }
     return $node;
   }
+
 }
+
