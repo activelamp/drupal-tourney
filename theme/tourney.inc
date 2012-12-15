@@ -71,6 +71,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   // Get the contestant output from the contestant template
   $contestant_output = '';
   $seeds = isset($matchInfo['seeds']) ? $matchInfo['seeds'] : '';
+  
   foreach (array_values($contestants) as $slot => $contestant) {
     $slot++;
     if (!is_object($contestant)) {
