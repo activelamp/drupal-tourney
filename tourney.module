@@ -1539,6 +1539,6 @@ function tourney_relation_type_is_target($type, $target_entity = '', $target_bun
  */
 function tourney_relation_query($entity_type = NULL, $entity_id = NULL, $r_index = NULL) {
   $query = relation_query($entity_type, $entity_id, $r_index);
-  unset($query->range);
+  $query->range = array();
   return $query;
 }
