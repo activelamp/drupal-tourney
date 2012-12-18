@@ -52,7 +52,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   An array of match entity ids.
    */
   public static function fetchMatchIds($tournament_id) {
-    $query = relation_query('tourney_tournament', $tournament_id);
+    $query = tourney_relation_query('tourney_tournament', $tournament_id);
     $query->entityCondition('bundle', 'has_match');
     $query->range(0, 1000); // Override the default RelationQuery class.
     $results = $query->execute();
@@ -290,7 +290,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    */
   public function delete() {
     // Find all the relationships to matches for this tournament.
-    $mquery = relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
+    $mquery = tourney_relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
     $matches = $mquery->execute();
 
     // Build an array of stuff to delete.
@@ -338,7 +338,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     }
     else {
       if ($this->name_original !== $this->name) {
-        $mquery = relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
+        $mquery = tourney_relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
         $matches = $mquery->execute();
         foreach (array_keys($matches) as $rid) {
           $relation = relation_load($rid);
