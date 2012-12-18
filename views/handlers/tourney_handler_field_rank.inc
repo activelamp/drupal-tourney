@@ -9,7 +9,7 @@
 class tourney_handler_field_rank extends views_handler_field {
   function query() {
     // Add the tournament id field
-    $this->query->add_field('tourney_rank', 'tournament');
+    $this->query->add_field($this->relationship, 'tournament');
   }
 
   function render($values) {
