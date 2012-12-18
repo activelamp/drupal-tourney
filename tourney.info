@@ -31,6 +31,7 @@ files[] = views/handlers/tourney_handler_field_object_property.inc
 files[] = views/handlers/tourney_handler_field_entity_link_edit.inc
 files[] = views/handlers/tourney_handler_field_rank.inc
 files[] = views/handlers/tourney_handler_sort_rank.inc
+files[] = views/handlers/tourney_handler_relationship_rank.inc
 
 ; Tests
 files[] = tests/contestant.test
