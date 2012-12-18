@@ -1516,3 +1516,29 @@ function tourney_relation_type_is_target($type, $target_entity = '', $target_bun
   return $report;
 }
 
+/**
+ * Returns a query object to find related entities.
+ *
+ * Overrides the default relation_query() function by removing the maximum
+ * 50 record limitation. Continue to use the procedural api so that we do not
+ * accidently loose functionality provided in the future.
+ *
+ * @param $entity_type
+ *   (optional) The entity type of one of the endpoints.
+ * @param $entity_id
+ *   (optional) The entity id of one of the endpoints. Can also be an array of
+ *   entity IDs.
+ * @param $r_index
+ *   (optional) The index of the search entity in the relation to be found
+ *   (0 = source, 1 = target).
+ *
+ * @return RelationQuery
+ *   The query object itself.
+ *
+ * @see relation_query()
+ */
+function tourney_relation_query($entity_type = NULL, $entity_id = NULL, $r_index = NULL) {
+  $query = relation_query($entity_type, $entity_id, $r_index);
+  $query->range = array();
+  return $query;
+}

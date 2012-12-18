@@ -47,7 +47,7 @@ class TourneyMatchEntity extends TourneyEntity {
 
     $cache_id = is_array($match_id) ? implode('-', $match_id) : $match_id;
     if ( !$cache = cache_get('fetchGameIds_' . $cache_id, 'cache_tourney')) {
-      $query = relation_query('tourney_match', $match_id);
+      $query = tourney_relation_query('tourney_match', $match_id);
       $query->entityCondition('bundle', 'has_game');
       $results = $query->execute();
       foreach ($results as $relation) {
@@ -78,7 +78,7 @@ class TourneyMatchEntity extends TourneyEntity {
     $tournament_id = NULL;
 
     if ( !$cache = cache_get('fetchTournamentId_' . $match_id, 'cache_tourney')) {
-      $query = relation_query('tourney_match', $match_id);
+      $query = tourney_relation_query('tourney_match', $match_id);
       $query->entityCondition('bundle', 'has_match');
       $results = $query->execute();
 
@@ -117,7 +117,7 @@ class TourneyMatchEntity extends TourneyEntity {
     $contestants = array();
 
     if ( !$cache = cache_get('fetchContestantIds_' . $match_id, 'cache_tourney')) {
-      $query = relation_query('tourney_match', $match_id);
+      $query = tourney_relation_query('tourney_match', $match_id);
       $query->entityCondition('bundle', 'contestant');
       $results = $query->execute();
 
@@ -418,14 +418,14 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function delete() {
     // Get all the contestant relations
-    $crelations = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant');
+    $crelations = tourney_relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant');
     $crids = $crelations->execute();
     foreach (array_keys($crids) as $rid) {
       relation_delete($rid);
     }
 
     // Get all the game relations and games
-    $gquery = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'has_game');
+    $gquery = tourney_relation_query('tourney_match', $this->id)->entityCondition('bundle', 'has_game');
     $game_relations = $gquery->execute();
 
     // Delete the games in this match
@@ -547,7 +547,7 @@ class TourneyMatchEntity extends TourneyEntity {
       return FALSE;
     }
     // Get all the contestants, and, if we haven't got any, we can't remove any!
-    $relations = relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant')->execute();
+    $relations = tourney_relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant')->execute();
     if (empty($relations)) {
       return;
     }
@@ -661,7 +661,7 @@ class TourneyMatchEntity extends TourneyEntity {
       // related entities. This code just runs through all the related games to
       // the match to find the specific relation for the game to delete, and
       // removes it.
-      $relations = relation_query('tourney_match', $this->id)
+      $relations = tourney_relation_query('tourney_match', $this->id)
         ->entityCondition('bundle', 'has_game')->execute();
 
       foreach (array_reverse($relations) as $relation) {

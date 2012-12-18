@@ -42,7 +42,7 @@ class TourneyGameEntity extends TourneyEntity {
     }
     if (is_null($this->matchId)) {
       if ( !$cache = cache_get('getMatchId_' . $this->id, 'cache_tourney')) {
-        $query = relation_query('tourney_game', $this->id);
+        $query = tourney_relation_query('tourney_game', $this->id);
         $query->entityCondition('bundle', 'has_game');
         $results = $query->execute();
 
@@ -73,7 +73,7 @@ class TourneyGameEntity extends TourneyEntity {
   public function getTournamentId() {
     if (is_null($this->tournamentId)) {
       if ( !$cache = cache_get('getTournamentId_' . $this->getMatchId(), 'cache_tourney')) {
-        $query = relation_query('tourney_match', $this->getMatchId());
+        $query = tourney_relation_query('tourney_match', $this->getMatchId());
         $query->entityCondition('bundle', 'has_match');
         $results = $query->execute();
 
