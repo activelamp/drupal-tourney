@@ -65,7 +65,9 @@ class ManualUploadController extends TourneyController {
       '#title' => t('Choose a file'),
       '#description' => t('A csv file to specify which teams play on matches. Each row is a match. First row must contain column name description. Column name description for team\'s columns must contain the word \'team\'.'),
       '#size' => 22,
+      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#element_validate' => array('manualupload_file_validate'),
+      "#upload_validators"  => array("file_validate_extensions" => array("csv txt")),
     );
     $form['max_team_play'] = array(
       '#type' => 'textfield',
