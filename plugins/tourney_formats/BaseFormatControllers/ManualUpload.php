@@ -67,7 +67,6 @@ class ManualUploadController extends TourneyController {
       '#default_value' => array_key_exists('match_lineup_file', $plugin_options) ? $plugin_options['match_lineup_file'] : 0,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#size' => 22,
-      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#element_validate' => array('manualupload_file_validate'),
       "#upload_validators"  => array("file_validate_extensions" => array("csv txt")),
     );
