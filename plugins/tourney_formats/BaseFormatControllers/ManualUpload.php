@@ -64,8 +64,9 @@ class ManualUploadController extends TourneyController {
       '#type' => 'managed_file',
       '#title' => t('Choose a file'),
       '#description' => t('A csv file to specify which teams play on matches. Each row is a match. First row must contain column name description. Column name description for team\'s columns must contain the word \'team\'.'),
-      '#size' => 22,
+      '#default_value' => array_key_exists('match_lineup_file', $plugin_options) ? $plugin_options['match_lineup_file'] : 0,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
+      '#size' => 22,
       '#element_validate' => array('manualupload_file_validate'),
       "#upload_validators"  => array("file_validate_extensions" => array("csv txt")),
     );
@@ -399,6 +400,12 @@ function manualupload_file_validate($element, &$form_state) {
     try {
       $schema = manualupload_parse_file($fid);
       $form_state['values']['plugin_options'][$plugin]['players'] = count($schema['contestants']);
+      $file = file_load($fid);
+      if (!$file = file_move($file, 'public://')) {
+        throw new Exception('Unable to move file to permanent location.');
+      }
+      $file->status = 1;
+      file_save($file);
     } catch (Exception $e) {
       form_error($element, $e->getMessage());
     }
