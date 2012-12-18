@@ -408,7 +408,7 @@ function tourney_tournament_get_match_games($entity, $load_entity = TRUE, $reset
   $cache_name = 'tourney_match_games_' . $entity->id . ($load_entity ? '_entity' : '');
   $cache = cache_get($cache_name, 'cache_tourney');
   if ($reset || !$cache || ($cache && empty($cache->data))) {
-    $query = relation_query('tourney_match', $entity->id);
+    $query = tourney_relation_query('tourney_match', $entity->id);
     $query->entityCondition('bundle', 'has_game');
     $results = $query->execute();
 
