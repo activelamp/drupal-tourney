@@ -1520,7 +1520,7 @@ function tourney_relation_type_is_target($type, $target_entity = '', $target_bun
  * Returns a query object to find related entities.
  *
  * Overrides the default relation_query() function by removing the maximum
- * 50 record limitation. Continue to use the precedural api so that we do not
+ * 50 record limitation. Continue to use the procedural api so that we do not
  * accidently loose functionality provided in the future.
  *
  * @param $entity_type
