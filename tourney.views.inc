@@ -117,9 +117,10 @@ function tourney_views_data_alter(&$data) {
   
   $data['tourney_rank']['table']['group'] = t('Tourney Rank');
   // relationship
-  $data['node']['nid'] = array(
+  $data['node']['tourney_rank_rel'] = array(
     'group' => t('Tourney Rank'),
     'title' => t('Tourney Rank'),
+    'real field' => 'nid',
     'help' => t('Create a tourney rank relationship to a node.'),
     'relationship' => array(
       'handler' => 'views_handler_relationship',
@@ -129,9 +130,10 @@ function tourney_views_data_alter(&$data) {
       'title' => t('tourney'),
     ),
   );
-  $data['user']['uid'] = array(
+  $data['user']['tourney_rank_rel'] = array(
     'group' => t('Tourney Rank'),
     'title' => t('Tourney Rank'),
+    'real field' => 'uid',
     'help' => t('Create a tourney rank relationship to a user.'),
     'relationship' => array(
       'handler' => 'views_handler_relationship',
