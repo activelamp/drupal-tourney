@@ -292,21 +292,21 @@ function tourney_schema() {
         'description' => '',
       ),
       'wins' => array(
-        'type' => 'int',
+        'type' => 'float',
         'length' => '11',
         'default' => 0,
         'not null' => TRUE,
         'description' => '',
       ),
       'losses' => array(
-        'type' => 'int',
+        'type' => 'float',
         'length' => '11',
         'default' => 0,
         'not null' => TRUE,
         'description' => '',
       ),
       'rank' => array(
-        'type' => 'int',
+        'type' => 'float',
         'length' => '11',
         'default' => 0,
         'not null' => TRUE,
@@ -466,32 +466,8 @@ function tourney_update_7002() {
  * tourney_match table.
  */
 function tourney_update_7003() {
-  $schema['tourney'] = array(
-    'description' => 'Stores information about each tournament.',
-    'fields' => array(
-      'id' => array(
-        'type' => 'varchar',
-        'length' => '64',
-        'default' => '',
-        'not null' => TRUE,
-        'description' => 'An machine_name identifier for the tournament object.',
-      ),
-      'type' => array(
-        'type' => 'varchar',
-        'length' => '64',
-        'default' => '',
-        'not null' => TRUE,
-        'description' => 'The type of information being stored for the tournament.',
-      ),
-      'value' => array(
-        'type' => 'blob',
-        'description' => 'A serialized array of options for this tournament.',
-        'serialize' => TRUE,
-        'serialized default' => 'a:0:{}',
-      ),
-    ),
-    'indexes' => array('id' => array('id')),
-  );
+  $schema = tourney_schema();
+
   db_create_table('tourney', $schema['tourney']);
   db_drop_field('tourney_match', 'next_match_winner');
   db_drop_field('tourney_match', 'next_match_loser');
@@ -679,52 +655,40 @@ function tourney_update_7012() {
  * Add the tourney_rank table
  */
 function tourney_update_7013() {
-  $schema['tourney_rank'] = array(
-    'description' => 'Stores information about each tournament.',
-    'fields' => array(
-      'tournament' => array(
-        'type' => 'int',
-        'length' => '11',
-        'not null' => TRUE,
-        'description' => '',
-      ),
-      'entity_type' => array(
-        'type' => 'varchar',
-        'length' => '64',
-        'not null' => TRUE,
-        'description' => '',
-      ),
-      'entity_id' => array(
-        'type' => 'int',
-        'length' => '11',
-        'not null' => TRUE,
-        'description' => '',
-      ),
-      'wins' => array(
-        'type' => 'int',
-        'length' => '11',
-        'default' => 0,
-        'not null' => TRUE,
-        'description' => '',
-      ),
-      'losses' => array(
-        'type' => 'int',
-        'length' => '11',
-        'default' => 0,
-        'not null' => TRUE,
-        'description' => '',
-      ),
-      'rank' => array(
-        'type' => 'int',
-        'length' => '11',
-        'default' => 0,
-        'not null' => TRUE,
-        'description' => '',
-      ),
-    ),
-  );
+  $schema = tourney_schema();
   db_create_table('tourney_rank', $schema['tourney_rank']);
 }
+
+/**
+ * Changes the win loss fields to float fields.
+ */
+function tourney_update_7014() {
+  db_change_field('tourney_rank', 'wins', 'wins', array(
+    'type' => 'float',
+    'length' => '11',
+    'default' => 0,
+    'not null' => TRUE,
+    'description' => '',
+  ));
+  db_change_field('tourney_rank', 'losses', 'losses', array(
+    'type' => 'float',
+    'length' => '11',
+    'default' => 0,
+    'not null' => TRUE,
+    'description' => '',
+  ));
+  db_change_field('tourney_rank', 'rank', 'rank', array(
+    'type' => 'float',
+    'length' => '11',
+    'default' => 0,
+    'not null' => TRUE,
+    'description' => '',
+  ));
+  return t('Machine name fields updated successfully.');
+}
+
+
+
 /**
  * Helper functions
  */
