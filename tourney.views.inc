@@ -212,16 +212,6 @@ function tourney_views_data_alter(&$data) {
       'handler' => 'views_handler_sort',
     ),
   );
-  
-  if (module_exists('tourney_history')) {
-    $data['tourney_rank']['rank_change'] = array(
-      'title' => t('Rank Change'),
-      'help' => t('Contestant rank change.'),
-      'field' => array(
-        'handler' => 'tourney_handler_field_rank',
-      ),
-    );
-  }
 }
 
 function tourney_views_handlers() {
