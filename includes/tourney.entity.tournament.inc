@@ -307,6 +307,11 @@ class TourneyTournamentEntity extends TourneyEntity {
         )), 'warning');
       }
     }
+    
+    // Remove any ranks from the tourney_rank table.
+    db_delete('tourney_rank')
+      ->condition('tournament', $this->id)
+      ->execute();
 
     parent::delete();
   }
