@@ -116,22 +116,49 @@ function tourney_views_data_alter(&$data) {
   );
 
   $data['tourney_rank']['table']['group'] = t('Tourney Rank');
-  $data['tourney_rank']['table']['join'] = array(
-    'users' => array(
-      'left_field' => 'uid',
-      'field' => 'entity_id',
-      'extra' => array(
-        array('field' => 'entity_type', 'value' => 'user'),
-      ),
-    ),
-    'node' => array(
-      'left_field' => 'nid',
-      'field' => 'entity_id',
-      'extra' => array(
-        array('field' => 'entity_type', 'value' => 'node'),
-      ),
+  // relationship
+  $data['node']['tourney_rank_rel'] = array(
+    'group' => t('Tourney Rank'),
+    'title' => t('Tourney Rank'),
+    'real field' => 'nid',
+    'help' => t('Create a tourney rank relationship to a node.'),
+    'relationship' => array(
+      'handler' => 'views_handler_relationship',
+      'base' => 'tourney_rank',
+      'base field' => 'entity_id',
+      'label' => t('tourney'),
+      'title' => t('tourney'),
     ),
   );
+  $data['user']['tourney_rank_rel'] = array(
+    'group' => t('Tourney Rank'),
+    'title' => t('Tourney Rank'),
+    'real field' => 'uid',
+    'help' => t('Create a tourney rank relationship to a user.'),
+    'relationship' => array(
+      'handler' => 'views_handler_relationship',
+      'base' => 'tourney_rank',
+      'base field' => 'entity_id',
+      'label' => t('tourney'),
+      'title' => t('tourney'),
+    ),
+  );
+  // $data['tourney_rank']['table']['join'] = array(
+  //     'users' => array(
+  //       'left_field' => 'uid',
+  //       'field' => 'entity_id',
+  //       'extra' => array(
+  //         array('field' => 'entity_type', 'value' => 'user'),
+  //       ),
+  //     ),
+  //     'node' => array(
+  //       'left_field' => 'nid',
+  //       'field' => 'entity_id',
+  //       'extra' => array(
+  //         array('field' => 'entity_type', 'value' => 'node'),
+  //       ),
+  //     ),
+  //   );
 
   $data['tourney_rank']['tournament'] = array(
     'title' => t('Tournament ID'),
@@ -185,6 +212,16 @@ function tourney_views_data_alter(&$data) {
       'handler' => 'views_handler_sort',
     ),
   );
+  
+  if (module_exists('tourney_history')) {
+    $data['tourney_rank']['rank_change'] = array(
+      'title' => t('Rank Change'),
+      'help' => t('Contestant rank change.'),
+      'field' => array(
+        'handler' => 'tourney_handler_field_rank',
+      ),
+    );
+  }
 }
 
 function tourney_views_handlers() {

@@ -162,7 +162,7 @@ function tourney_series_entity_info() {
 
 function tourney_series_get_tournaments_on_series($series) {
   //$tourney = relation_get_related_entity('node', $event->nid, 'event_tournament', 0);
-  $query = relation_query('tourney_series', $series->id);
+  $query = tourney_relation_query('tourney_series', $series->id);
   $query->entityCondition('bundle', 'has_tournament');
   $results = $query->execute();
   if(is_array($results) && !empty($results)) {
@@ -187,7 +187,7 @@ function tourney_series_get_tournaments_on_series($series) {
 }
 
 function get_tourney_series_relation($tourney_id, $series_id) {
-  $query = relation_query('tourney_series', $series_id);
+  $query = tourney_relation_query('tourney_series', $series_id);
   $query->entityCondition('bundle', 'has_tournament');
   $results = $query->execute();
   if(is_array($results)) {
@@ -211,7 +211,7 @@ function get_tourney_series_relation($tourney_id, $series_id) {
 
 function tourney_series_get_series_by_tourney($tourney) {
   //$tourney = relation_get_related_entity('node', $event->nid, 'event_tournament', 0);
-  $query = relation_query('tourney_tournament', $tourney->id);
+  $query = tourney_relation_query('tourney_tournament', $tourney->id);
   $query->entityCondition('bundle', 'has_tournament');
   $results = $query->execute();
   if(is_array($results) && !empty($results)) {
