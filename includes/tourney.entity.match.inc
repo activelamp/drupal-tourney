@@ -55,8 +55,9 @@ class TourneyMatchEntity extends TourneyEntity {
         $game_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
       }
       asort($game_ids);
-
-      cache_set('fetchGameIds_' . $cache_id, $game_ids, 'cache_tourney');
+      if (count($game_ids) > 0) {
+        cache_set('fetchGameIds_' . $cache_id, $game_ids, 'cache_tourney');
+      }
     }
     else {
       $game_ids = $cache->data;
@@ -88,7 +89,9 @@ class TourneyMatchEntity extends TourneyEntity {
         $tournament_id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
       }
 
-      cache_set('fetchTournamentId_' . $match_id, $tournament_id, 'cache_tourney');
+      if (isset($tournament_id)) {
+        cache_set('fetchTournamentId_' . $match_id, $tournament_id, 'cache_tourney');
+      }
     }
     else {
       $tournament_id = $cache->data;
@@ -134,8 +137,9 @@ class TourneyMatchEntity extends TourneyEntity {
         );
       }
       uasort($contestants, 'TourneyMatchEntity::contestantSort');
-
-      cache_set('fetchContestantIds_' . $match_id, $contestants, 'cache_tourney');
+      if (count($contestants) > 1) {
+        cache_set('fetchContestantIds_' . $match_id, $contestants, 'cache_tourney');
+      }
     }
     else {
       $contestants = $cache->data;
