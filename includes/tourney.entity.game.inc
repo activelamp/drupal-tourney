@@ -52,7 +52,9 @@ class TourneyGameEntity extends TourneyEntity {
           $this->matchId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
         }
 
-        cache_set('getMatchId_' . $this->id, $this->matchId, 'cache_tourney');
+        if (isset($this->matchId)) {
+          cache_set('getMatchId_' . $this->id, $this->matchId, 'cache_tourney');
+        }
       }
       else {
         $this->matchId = $cache->data;
@@ -83,7 +85,9 @@ class TourneyGameEntity extends TourneyEntity {
           $this->tournamentId = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
         }
 
-        cache_set('getTournamentId_' . $this->getMatchId(), $this->tournamentId, 'cache_tourney');
+        if (isset($this->tournamentId)) {
+          cache_set('getTournamentId_' . $this->getMatchId(), $this->tournamentId, 'cache_tourney');
+        }
       }
       else {
         $this->tournamentId = $cache->data;
