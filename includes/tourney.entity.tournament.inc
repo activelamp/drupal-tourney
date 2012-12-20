@@ -565,6 +565,11 @@ class TourneyTournamentEntity extends TourneyEntity {
         // If a slot was specified, ensure only that slot is processed.
         if ($slot && $contestant->slot != $slot) continue;
 
+        // It's possible for a manual upload schema to specify a next match
+        // for the first or second contestant but not the other.
+        if (!isset($match->matchInfo['nextMatch'][$contestant->slot]['id']))
+          continue;
+
         $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
         $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];
 
