@@ -459,6 +459,12 @@ function tourney_format_contestant_options($contestants) {
 function tourney_game_form($form, &$form_state, $game) {
   $game->type = 'game';
   $form_state['game'] = $game;
+
+  $match_id = $game->getMatchId();
+  $form['match_link'] = array(
+    '#weight' => -50,
+    '#markup' => l('Go to Match (' . $match_id . ')', 'tourney/match/' . $match_id)
+  );
   $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
