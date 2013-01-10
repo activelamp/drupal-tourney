@@ -110,6 +110,36 @@ class TourneyTournamentEntity extends TourneyEntity {
     return tourney_entity_load_by_name('tourney_match', $this->name . '_match-' . $mid, $reset);
   }
 
+  public function getHeadToHeadMatchIds($contestant1, $contestant2) {
+    $match_ids = $this->getMatchIds();
+
+    $query = tourney_relation_query($contestant1->entity_type, $contestant1->entity_id);
+    $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
+    $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
+
+    $relation_ids = array_keys($query->execute());
+    $relations = entity_load('relation', $relation_ids);
+
+    $match_ids = array();
+    foreach ($relations as $relation) {
+      $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+    }
+
+    $query = tourney_relation_query($contestant2->entity_type, $contestant2->entity_id);
+    $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
+    $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
+
+    $relation_ids = array_keys($query->execute());
+    $relations = entity_load('relation', $relation_ids);
+
+    $match_ids = array();
+    foreach ($relations as $relation) {
+      $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+    }
+
+    return $match_ids;
+  }
+
   /**
    * Retrieve a match by machine name.
    *
@@ -521,7 +551,15 @@ class TourneyTournamentEntity extends TourneyEntity {
         return;
       }
       // clear winner and loser so we can get a fresh winner, just in case
+      $old_winner = $match->getWinner();
       $match->clearWinner();
+
+      module_load_include('inc', 'tourney', 'includes/tourney.rank');
+      if ($old_winner && $old_winner !== $match->getWinner()) {
+        tourney_rank_win($this, $match->getLoserEntity(), TRUE);
+        tourney_rank_lose($this, $match->getWinnerEntity(), TRUE);
+      }
+
       $winner = $match->getWinnerEntity();
       $loser = $match->getLoserEntity();
       // this code here lets the champion round rule fire before setting winners
@@ -539,7 +577,6 @@ class TourneyTournamentEntity extends TourneyEntity {
         $loserMatch->addContestant($loser, $slot)->save();
       }
     }
-    module_load_include('inc', 'tourney', 'includes/tourney.rank');
     tourney_rank_win($this, $match->getWinnerEntity());
     tourney_rank_lose($this, $match->getLoserEntity());
     
@@ -576,7 +613,7 @@ class TourneyTournamentEntity extends TourneyEntity {
         if ($next === NULL) continue;
 
         $next_match = $this->getMatchById($next);
-        $next_match->addContestant($contestant, $next_slot);
+        $next_match->addContestant($contestant, $next_slot)->save();
 
         // Recurse
         $this->populateRoundRobinMatches($next, $next_slot);
