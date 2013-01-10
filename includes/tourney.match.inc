@@ -257,6 +257,7 @@ function _tourney_match_contestants($match, $this_eid = null) {
   if (!$match->getTournament()->get('no_automation', FALSE)) {
     _tourney_match_contestants_sanitize($match, $this_eid, $options);
   }
+
   return $options;
 }
 
@@ -294,22 +295,22 @@ function _tourney_match_contestants_sanitize($match, $this_eid, &$options) {
   $matches = tourney_match_load_multiple($match_ids);
 
   // Unset users in the options array that are already selected
-  $contestants = $match->getTournament()->getContestants();
-  unset($contestants[$this_eid]);
-  foreach ($match->getContestantIds() as $contestant) {
-    // Don't want to remove contestants that are part of this match.
-    if (isset($match->matchInfo['seeds']) && $match->matchInfo['seeds']) {
-      if ( !isset($match->matchInfo['seeds'][$contestant['slot']]) ) continue;
-    }
-    unset($contestants[$contestant['eid']]);
-  }
-  foreach ($contestants as $eid => $contestant ) {
-    foreach (array_keys($options) as $group) {
-      if (is_array($options[$group]) && array_key_exists($eid, $options[$group])) {
-        unset($options[$group][$eid]);
-      }
-    }
-  }
+  // $contestants = $match->getTournament()->getContestants();
+  // unset($contestants[$this_eid]);
+  // foreach ($match->getContestantIds() as $contestant) {
+  //   // Don't want to remove contestants that are part of this match.
+  //   if (isset($match->matchInfo['seeds']) && $match->matchInfo['seeds']) {
+  //     if ( !isset($match->matchInfo['seeds'][$contestant['slot']]) ) continue;
+  //   }
+  //   unset($contestants[$contestant['eid']]);
+  // }
+  // foreach ($contestants as $eid => $contestant ) {
+  //   foreach (array_keys($options) as $group) {
+  //     if (is_array($options[$group]) && array_key_exists($eid, $options[$group])) {
+  //       unset($options[$group][$eid]);
+  //     }
+  //   }
+  // }
 
   // special case naming occurs with different bundled node types
   $userkey = array_key_exists('user', $options) ? 'user' : (array_key_exists('user - user', $options) ? 'user - user' : NULL);
@@ -376,7 +377,7 @@ function tourney_match_form_submit($form, &$form_state) {
     }
     else {
       $contestant = $match->getContestant(1);
-      $match->removeContestant($contestant);
+      $match->removeContestant($contestant, FALSE);
     }
   }
   if (array_key_exists('contestant2', $form_state['input'])) {
@@ -387,7 +388,7 @@ function tourney_match_form_submit($form, &$form_state) {
     }
     else {
       $contestant = $match->getContestant(2);
-      $match->removeContestant($contestant);
+      $match->removeContestant($contestant, FALSE);
     }
   }
 
@@ -461,6 +462,12 @@ function tourney_format_contestant_options($contestants) {
 function tourney_game_form($form, &$form_state, $game) {
   $game->type = 'game';
   $form_state['game'] = $game;
+
+  $match_id = $game->getMatchId();
+  $form['match_link'] = array(
+    '#weight' => -50,
+    '#markup' => l('Go to Match (' . $match_id . ')', 'tourney/match/' . $match_id)
+  );
   $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
