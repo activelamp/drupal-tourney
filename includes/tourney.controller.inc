@@ -427,6 +427,10 @@ class TourneyController implements TourneyControllerInterface {
 
   /**
    * Get the plugin options for this tourney format.
+   *
+   * @todo is this returning more then just options specifically for the
+   * plugin? Is it returning options for the tournament in general? The method
+   * name indicates only options for the plugin will be returned.
    */
   public function getPluginOptions() {
     // Get plugin options from a tournament

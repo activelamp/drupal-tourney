@@ -337,6 +337,11 @@ class TourneyTournamentEntity extends TourneyEntity {
         )), 'warning');
       }
     }
+    
+    // Remove any ranks from the tourney_rank table.
+    db_delete('tourney_rank')
+      ->condition('tournament', $this->id)
+      ->execute();
 
     parent::delete();
   }
@@ -596,6 +601,11 @@ class TourneyTournamentEntity extends TourneyEntity {
       foreach ($match->getMatchContestants() as $contestant) {
         // If a slot was specified, ensure only that slot is processed.
         if ($slot && $contestant->slot != $slot) continue;
+
+        // It's possible for a manual upload schema to specify a next match
+        // for the first or second contestant but not the other.
+        if (!isset($match->matchInfo['nextMatch'][$contestant->slot]['id']))
+          continue;
 
         $next = $match->matchInfo['nextMatch'][$contestant->slot]['id'];
         $next_slot = $match->matchInfo['nextMatch'][$contestant->slot]['slot'];

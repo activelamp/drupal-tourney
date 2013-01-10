@@ -448,8 +448,10 @@ function tourney_game_edit($game) {
  */
 function tourney_format_contestant_options($contestants) {
   $options = array();
-  foreach ($contestants as $id => $contestant) {
-    $options[$id] = $contestant->entity_name;
+  if (is_array($contestants)) {
+    foreach ($contestants as $id => $contestant) {
+      $options[$id] = $contestant->entity_name;
+    }
   }
   return $options;
 }

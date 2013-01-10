@@ -157,9 +157,15 @@ class ManualUploadController extends TourneyController {
     if (!empty($plugin_options) && $plugin_options['max_team_play']) {
       $this->roundsMultiplier = (int)$plugin_options['max_team_play'];
     }
-    // Parse the uploaded file. Drupal should delete this temporary file
-    // after about 6 hours so we don't need to worry about it.
-    $this->uploadSchema = $this->parseUploadFile($plugin_options['match_lineup_file']['fid']);
+    if (!empty($plugin_options) && !isset($plugin_options['file_schema'])) {
+      try {
+        $plugin_options['file_schema'] = $this->parseUploadFile($plugin_options['match_lineup_file']['fid']);
+        $this->tournament->set(get_class($this), $plugin_options);
+      } catch (Exception $e) {
+        drupal_set_message("Missing schema file for tournament {$this->tournament->id}: " . $e->getMessage(), 'warning');
+      }
+    }
+    $this->uploadSchema = $plugin_options['file_schema'];
 
     $this->buildBrackets();
     $this->buildMatches();
