@@ -407,7 +407,7 @@ class TourneyMatchEntity extends TourneyEntity {
       // @todo: Why are we using matchWinner instead of winner?
       if ($this->winner !== $this->matchWinner) {
         $this->winner = $this->matchWinner;
-        $this->save();
+        // $this->save();
       }
     }
     return $this->matchWinner;
@@ -449,6 +449,7 @@ class TourneyMatchEntity extends TourneyEntity {
    * Save the entity
    */
   public function save() {
+    $this->winner = $this->getWinner();
     parent::save();
     // Set the tournament winner if this was the last match.
     if ($this->getTournament()) {
@@ -539,7 +540,7 @@ class TourneyMatchEntity extends TourneyEntity {
  * @param integer $entity
  *   Contestant entity to remove.
  */
-  public function removeContestant($entity) {
+  public function removeContestant($entity, $save = TRUE) {
     // If we're locked, can't remove the contestant
     if ($this->isLocked()) {
       $message = t('Match is locked, cannot modify contestants.');
@@ -558,7 +559,7 @@ class TourneyMatchEntity extends TourneyEntity {
         relation_delete($relation->rid);
       }
     }
-    $this->save();
+    if ($save) $this->save();
   }
 
   /**
@@ -583,11 +584,11 @@ class TourneyMatchEntity extends TourneyEntity {
       $current_eids[$contestant['eid']] = $contestant['slot'];
     }
     if ( isset($current_eids[$entity->eid]) ) {
-      $this->removeContestant($this->getContestant($current_eids[$entity->eid]));
+      $this->removeContestant($this->getContestant($current_eids[$entity->eid]), FALSE);
     }
     /* */
     if ($slot && $this->getContestant($slot)) {
-      $this->removeContestant($this->getContestant($slot));
+      $this->removeContestant($this->getContestant($slot), FALSE);
     }
     $entity_keys = array(
       array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
