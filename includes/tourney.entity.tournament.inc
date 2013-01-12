@@ -542,6 +542,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   match object to run win code on
    */
   public function matchIsWon($match) {
+    $old_winner = $match->winner;
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
     $match->cleanGames();
@@ -551,11 +552,11 @@ class TourneyTournamentEntity extends TourneyEntity {
         return;
       }
       // clear winner and loser so we can get a fresh winner, just in case
-      $old_winner = $match->getWinner();
       $match->clearWinner();
 
       module_load_include('inc', 'tourney', 'includes/tourney.rank');
       if ($old_winner && $old_winner !== $match->getWinner()) {
+        $rank_reset = TRUE;
         tourney_rank_win($this, $match->getLoserEntity(), TRUE);
         tourney_rank_lose($this, $match->getWinnerEntity(), TRUE);
       }
@@ -577,8 +578,11 @@ class TourneyTournamentEntity extends TourneyEntity {
         $loserMatch->addContestant($loser, $slot)->save();
       }
     }
-    tourney_rank_win($this, $match->getWinnerEntity());
-    tourney_rank_lose($this, $match->getLoserEntity());
+    if ($old_winner && $old_winner !== $match->getWinner()) {
+      tourney_rank_win($this, $match->getWinnerEntity());
+      tourney_rank_lose($this, $match->getLoserEntity());
+    }
+    
     
     $this->determineWinner();
   }
