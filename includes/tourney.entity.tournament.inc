@@ -556,7 +556,6 @@ class TourneyTournamentEntity extends TourneyEntity {
 
       module_load_include('inc', 'tourney', 'includes/tourney.rank');
       if ($old_winner && $old_winner !== $match->getWinner()) {
-        $rank_reset = TRUE;
         tourney_rank_win($this, $match->getLoserEntity(), TRUE);
         tourney_rank_lose($this, $match->getWinnerEntity(), TRUE);
       }
@@ -578,7 +577,7 @@ class TourneyTournamentEntity extends TourneyEntity {
         $loserMatch->addContestant($loser, $slot)->save();
       }
     }
-    if ($old_winner && $old_winner !== $match->getWinner()) {
+    if (!$old_winner || ($old_winner && $old_winner !== $match->getWinner())) {
       tourney_rank_win($this, $match->getWinnerEntity());
       tourney_rank_lose($this, $match->getLoserEntity());
     }
