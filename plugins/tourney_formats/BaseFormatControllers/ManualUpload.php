@@ -172,11 +172,6 @@ class ManualUploadController extends TourneyController {
     $this->buildGames();
 
     $this->data['contestants'] = array();
-
-    // Calculate and set the match pathing
-    $this->populatePositions();
-    // Set in the seed positions
-    $this->populateSeedPositions();
   }
 
   /**

@@ -28,8 +28,6 @@ class TourneyMatchEntity extends TourneyEntity {
       $this->gameIds = $this->getGameIds();
       // Add a url to the object
       $this->uri = $this->getUri();
-
-      $this->matchInfo = $this->getMatchInfo();
     }
   }
 
@@ -317,6 +315,8 @@ class TourneyMatchEntity extends TourneyEntity {
   public function fetchRanks($reset = FALSE) {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'cache_tourney')) {
       $games = array();
+      $this->getMatchInfo();
+      
       if(is_array($this->matchInfo)) {
       if (!array_key_exists('bye', $this->matchInfo) && count($this->getMatchContestants()) < 2) {
         return array();
@@ -366,6 +366,7 @@ class TourneyMatchEntity extends TourneyEntity {
    * @return bool
    */
   public function isFinished() {
+    $this->getMatchInfo();
     // If this is a bye, it's finished
     if(isset($this->matchInfo)) {
       if (array_key_exists('bye', $this->matchInfo) && $this->matchInfo['bye']) {
@@ -617,6 +618,7 @@ class TourneyMatchEntity extends TourneyEntity {
   *   Match entity of the desired match, otherwise NULL
   */
   public function nextMatch($direction = 'winner') {
+    $this->getMatchInfo();
     if (array_key_exists('nextMatch', $this->matchInfo)
       && array_key_exists($direction, $this->matchInfo['nextMatch'])) {
       $next_plugin_id = $this->matchInfo['nextMatch'][$direction]['id'];
