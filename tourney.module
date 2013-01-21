@@ -951,50 +951,63 @@ function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') 
  * Implements hook_ENTITY_view().
  */
 function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'en') {
+  $match_extra_fields = $entity->getTournament()->get('match_extra_fields', array());
+  
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'
   );
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
   );
-  $entity->content['tournament'] = array(
-    '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#theme' => 'link',
-    '#text' => 'Go to tournament ' . $entity->getTournament()->label,
-    '#path' => $entity->getTournament()->getUri(),
-    '#options' => array('attributes' => array(), 'html' => FALSE),
-  );
-  $entity->content['match_winner'] = array(
-    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->getWinner(),
-  );
   
-  $default_contestant_classes = array('field-content', 'contestant');
-  $contestant_view_mode = $entity->getTournament()->get('contestant_view_mode', 'full');
-  $i = 1;
-  foreach ($entity->getMatchContestants() as $eid => $contestant) {
-    $contestant_classes = $default_contestant_classes;
-    $contestant_classes[] = 'contestant-' . $i;
-    if ($entity->winner == $contestant->entity_type . '.' . $contestant->entity_id) {
-      $contestant_classes[] = 'winner';
-    }
-    
-    $entity->content['match_contestant' . $i] = array(
-      '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="'. join(' ', $contestant_classes) .'">',
+  if (array_key_exists('tournament', $match_extra_fields) && $match_extra_fields['tournament']) {
+    $entity->content['tournament'] = array(
+      '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
       '#suffix' => '</div>',
-      'contestant' => entity_view($contestant->entity_type, array($contestant), $contestant_view_mode),
+      '#theme' => 'link',
+      '#text' => 'Go to tournament ' . $entity->getTournament()->label,
+      '#path' => $entity->getTournament()->getUri(),
+      '#options' => array('attributes' => array(), 'html' => FALSE),
     );
-    $i++;
   }
   
-  if (property_exists($entity, 'matchInfo') && $entity->matchInfo && !array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
-    $entity->content['match_table'] = array(
-      '#theme' => 'tourney_render_match',
-      '#match' => $entity,
+  if (array_key_exists('match_winner', $match_extra_fields) && $match_extra_fields['match_winner']) {
+    $entity->content['match_winner'] = array(
+      '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $entity->getWinner(),
     );
   }
+  
+  if (array_key_exists('contestants', $match_extra_fields) && $match_extra_fields['contestants']) {
+    $default_contestant_classes = array('field-content', 'contestant');
+    $contestant_view_mode = $entity->getTournament()->get('contestant_view_mode', 'full');
+    $i = 1;
+    foreach ($entity->getMatchContestants() as $eid => $contestant) {
+      $contestant_classes = $default_contestant_classes;
+      $contestant_classes[] = 'contestant-' . $i;
+      if ($entity->winner == $contestant->entity_type . '.' . $contestant->entity_id) {
+        $contestant_classes[] = 'winner';
+      }
+    
+      $entity->content['match_contestant' . $i] = array(
+        '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="'. join(' ', $contestant_classes) .'">',
+        '#suffix' => '</div>',
+        'contestant' => entity_view($contestant->entity_type, array($contestant), $contestant_view_mode),
+      );
+      $i++;
+    }
+  }
+  
+  if (array_key_exists('match_table', $match_extra_fields) && $match_extra_fields['match_table']) {
+    if (property_exists($entity, 'matchInfo') && $entity->matchInfo && !array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
+      $entity->content['match_table'] = array(
+        '#theme' => 'tourney_render_match',
+        '#match' => $entity,
+      );
+    }
+  }
+  
 
   if ($view_mode == 'match_block') {
     $entity->content['match_block'] = array(

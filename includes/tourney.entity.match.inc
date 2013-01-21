@@ -157,7 +157,7 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function getTournament() {
     if (is_null($this->matchTournament)) {
-      $this->matchTournament = relation_get_related_entity('tourney_match', $this->id, 'has_match', 1);
+      $this->matchTournament = tourney_tournament_load($this->getTournamentId());
     }
     return $this->matchTournament;
   }

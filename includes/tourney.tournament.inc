@@ -120,6 +120,25 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
       ),
     ),
   );
+  
+  $form['extra_fields'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Extra fields'),
+    '#description' => t('Choose which extra fields to enable.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#access' => user_access('administer tourney'),
+    '#weight' => 20,
+  );
+  
+  $form['extra_fields']['config_match_extra_fields'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Match fields'),
+    '#options' => drupal_map_assoc(array('tournament', 'match_winner', 'contestants', 'match_table')),
+    '#description' => t('Extra fields to show on the match entity view.'),
+    '#default_value' => $tourney->get('match_extra_fields', FALSE),
+  );
 
   $form['bundles'] = array(
     '#type' => 'fieldset',
