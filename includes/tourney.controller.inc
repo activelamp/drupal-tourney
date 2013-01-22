@@ -329,50 +329,73 @@ class TourneyController implements TourneyControllerInterface {
       $create_alias = TRUE;
     }
 
+    $batch = array(
+      'title' => t('Creating Tournament Matches'),
+      'init_message' => t('Saving matches...'),
+      'progress_message' => t('Saving @current of @total matches.'),
+      'error_message' => t('Saving matches failed.'),
+      'operations' => array(),
+    );
+
     foreach ($matches as $mid => $match) {
-      // Set $id to the round number
-      $bracket_id = '';
-      $round_num = '';
+      $batch['operations'][] = array('tourney_batch_save', array($this, $mid, $match));
+    }
 
-      // Set the games to zero for byes.
-      if (array_key_exists('bye', $match) && $match['bye'] === TRUE) {
-        continue;
+    batch_set($batch);
+  }
+  
+  public static function saveMatch($controller, $mid, $match, &$context) {
+    watchdog('tourney', 'Saving matches with TourneyController');
+    
+    $create_alias = FALSE;
+    if (module_exists('pathauto')) {
+      module_load_include('inc', 'pathauto');
+      $create_alias = TRUE;
+    }
+    
+    // Set $id to the round number
+    $bracket_id = '';
+    $round_num = '';
+
+    // Set the games to zero for byes.
+    if (array_key_exists('bye', $match) && $match['bye'] === TRUE) {
+      continue;
+    }
+    $games = $controller->tournament->get('default_games', TOURNEY_GAMES);
+    $values = array(
+      'type' => $controller->tournament->get('match_bundle', 'match'),
+      'label' => 'Match ' . $mid,
+      'name' => $controller->tournament->name . '_match-' . $mid,
+      'games' => $games,
+    );
+    
+    $new_match = new TourneyMatchEntity($values);
+    $new_match->save();
+    if ($create_alias && pathauto_pattern_load_by_entity($new_match->entity_type, $new_match->type)) {
+      $uri = entity_uri($new_match->entity_type, $new_match);
+      pathauto_create_alias('tourney', 'insert', $uri['path'], array($new_match->entity_type => $new_match), $new_match->type);
+    }
+
+
+    // Create the Tourney/Match relation and save bracket and round data to it
+    $rid = tourney_create_relation('has_match', 'tourney_tournament', $controller->tournament->id, 'tourney_match', $new_match->id);
+
+    // Create the Match/Game relation
+    if ($games > 0) {
+      $game = new TourneyGameEntity(array(
+        'type' => $controller->tournament->get('game_bundle', 'game'),
+        'title' => 'Game 1',
+        'name' => $new_match->name . '_game-1',
+      ));
+      $game->save();
+      if ($create_alias && pathauto_pattern_load_by_entity($game->entity_type, $game->type)) {
+        $uri = entity_uri($game->entity_type, $game);
+        pathauto_create_alias('tourney', 'insert', $uri['path'], array($game->entity_type => $game), $game->type);
       }
-      $games = $this->tournament->get('default_games', TOURNEY_GAMES);
-      $values = array(
-        'type' => $this->tournament->get('match_bundle', 'match'),
-        'label' => 'Match ' . $mid,
-        'name' => $this->tournament->name . '_match-' . $mid,
-        'games' => $games,
-      );
-      $new_match = new TourneyMatchEntity($values);
-      $new_match->save();
-      if ($create_alias && pathauto_pattern_load_by_entity($new_match->entity_type, $new_match->type)) {
-        $uri = entity_uri($new_match->entity_type, $new_match);
-        pathauto_create_alias('tourney', 'insert', $uri['path'], array($new_match->entity_type => $new_match), $new_match->type);
-      }
-
-
-      // Create the Tourney/Match relation and save bracket and round data to it
-      $rid = tourney_create_relation('has_match', 'tourney_tournament', $this->tournament->id, 'tourney_match', $new_match->id);
-
-      // Create the Match/Game relation
-      if ($games > 0) {
-        $game = new TourneyGameEntity(array(
-          'type' => $this->tournament->get('game_bundle', 'game'),
-          'title' => 'Game 1',
-          'name' => $new_match->name . '_game-1',
-        ));
-        $game->save();
-        if ($create_alias && pathauto_pattern_load_by_entity($game->entity_type, $game->type)) {
-          $uri = entity_uri($game->entity_type, $game);
-          pathauto_create_alias('tourney', 'insert', $uri['path'], array($game->entity_type => $game), $game->type);
-        }
-        tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
-      }
+      tourney_create_relation('has_game', 'tourney_match', $new_match->id, 'tourney_game', $game->id);
     }
   }
-
+  
   /**
    * Retrieve a match by machine name if we have a tournament.
    *

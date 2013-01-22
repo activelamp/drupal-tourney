@@ -1040,6 +1040,10 @@ function tourney_tourney_game_view($entity, $view_mode, $langcode = 'en') {
   );
 }
 
+function tourney_batch_save($controller, $mid, $match, &$context) {
+  $controller::saveMatch($controller, $mid, $match, $context);
+}
+
 /**
  * Save a tournament entity.
  */

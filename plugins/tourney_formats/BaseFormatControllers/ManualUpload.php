@@ -354,7 +354,7 @@ class ManualUploadController extends TourneyController {
     // Build our data structure
     $this->build();
     $this->structure();
-    drupal_add_js($this->pluginInfo['path'] . '/theme/manualupload_match_times_validate.js');
+    // drupal_add_js($this->pluginInfo['path'] . '/theme/manualupload_match_times_validate.js');
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
 

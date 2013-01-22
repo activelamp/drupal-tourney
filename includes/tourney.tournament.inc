@@ -137,7 +137,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#title' => t('Match fields'),
     '#options' => drupal_map_assoc(array('tournament', 'match_winner', 'contestants', 'match_table')),
     '#description' => t('Extra fields to show on the match entity view.'),
-    '#default_value' => $tourney->get('match_extra_fields', FALSE),
+    '#default_value' => $tourney->get('match_extra_fields', array()),
   );
 
   $form['bundles'] = array(
