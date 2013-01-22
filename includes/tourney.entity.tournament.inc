@@ -392,12 +392,10 @@ class TourneyTournamentEntity extends TourneyEntity {
  *   List of contestants, all entities from the first round of a tournament.
  */
   public function getContestants() {
+    if ($this->is_new) return;
     if (is_null($this->contestants)) {
       if (is_object($this->tourneyFormatPlugin) && !$this->tourneyFormatPlugin->data['matches']) {
         $this->tourneyFormatPlugin->build();
-      }
-      else {
-        return array();
       }
       $matches = $this->tourneyFormatPlugin->data['matches'];
 
