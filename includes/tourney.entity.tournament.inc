@@ -393,8 +393,11 @@ class TourneyTournamentEntity extends TourneyEntity {
  */
   public function getContestants() {
     if (is_null($this->contestants)) {
-      if (!$this->tourneyFormatPlugin->data['matches']) {
+      if (is_object($this->tourneyFormatPlugin) && !$this->tourneyFormatPlugin->data['matches']) {
         $this->tourneyFormatPlugin->build();
+      }
+      else {
+        return array();
       }
       $matches = $this->tourneyFormatPlugin->data['matches'];
 
