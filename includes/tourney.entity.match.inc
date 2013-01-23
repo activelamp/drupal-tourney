@@ -113,6 +113,7 @@ class TourneyMatchEntity extends TourneyEntity {
   public static function fetchContestantIds($match_id = NULL) {
     if ($match_id == NULL) {
       if (!isset($this)) return NULL;
+      if (!$this->id) return NULL;
       $match_id = $this->id;
     }
     $contestants = array();
@@ -579,6 +580,8 @@ class TourneyMatchEntity extends TourneyEntity {
     if (!tourney_relation_type_is_target('contestant', $entity->entity_type)) {
       throw new Exception('Invalid entity type. This type is not configured to be a contestant.');
     }
+
+    if (!$this->id) $this->save();
 
     /* This logic allows contestants that are already on the match to be moved
     without potentially being affected when the copy is removed */
