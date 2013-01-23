@@ -282,6 +282,7 @@ function _tourney_match_contestants_sanitize($match, $this_eid, &$options) {
   $plugin = $tournament->tourneyFormatPlugin;
 
   // Get all the matches in round 1 for this tournament
+  if (!$plugin->data) $plugin->build();
   $tourney_matches = $plugin->data['matches'];
   $match_ids = array();
   foreach ($tourney_matches as $m) {
