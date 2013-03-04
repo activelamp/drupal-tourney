@@ -111,30 +111,43 @@ class TourneyTournamentEntity extends TourneyEntity {
   }
 
   public function getHeadToHeadMatchIds($contestant1, $contestant2) {
-    $match_ids = $this->getMatchIds();
-
-    $query = tourney_relation_query($contestant1->entity_type, $contestant1->entity_id);
-    $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
-    $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
-
-    $relation_ids = array_keys($query->execute());
-    $relations = entity_load('relation', $relation_ids);
-
-    $match_ids = array();
-    foreach ($relations as $relation) {
-      $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+    if ($contestant1->entity_id > $contestant2->entity_id) {
+      $temp = $contestant1;
+      $contestant1 = $contestant2;
+      $contestant2 = $temp;
     }
 
-    $query = tourney_relation_query($contestant2->entity_type, $contestant2->entity_id);
-    $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
-    $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
+    $cache_id = 'getHeadToHeadMatchIds_' . $contestant1->eid . '_' . $contestant2->eid;
+    if ( !$cache = cache_get($cache_id, 'cache_tourney')) {
+      $match_ids = $this->getMatchIds();
 
-    $relation_ids = array_keys($query->execute());
-    $relations = entity_load('relation', $relation_ids);
+      $query = tourney_relation_query($contestant1->entity_type, $contestant1->entity_id);
+      $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
+      $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
 
-    $match_ids = array();
-    foreach ($relations as $relation) {
-      $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+      $relation_ids = array_keys($query->execute());
+      $relations = entity_load('relation', $relation_ids);
+
+      $match_ids = array();
+      foreach ($relations as $relation) {
+        $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+      }
+
+      $query = tourney_relation_query($contestant2->entity_type, $contestant2->entity_id);
+      $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
+      $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
+
+      $relation_ids = array_keys($query->execute());
+      $relations = entity_load('relation', $relation_ids);
+
+      $match_ids = array();
+      foreach ($relations as $relation) {
+        $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+      }
+      cache_set($cache_id, $match_ids, 'cache_tourney');
+    }
+    else {
+      $match_ids = $cache->data;
     }
 
     return $match_ids;
