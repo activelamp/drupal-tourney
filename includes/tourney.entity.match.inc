@@ -456,6 +456,13 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function save() {
     $this->winner = $this->getWinner();
+    if (property_exists($this, 'field_tournament') && !$this->field_tournament[LANGUAGE_NONE]) {
+      $tournament = $this->getTournament();
+      if ($tournament) {
+        $this->field_tournament[LANGUAGE_NONE][0]['target_id'] = $tournament->id;
+      }
+    }
+  
     parent::save();
     // Set the tournament winner if this was the last match.
     if ($this->getTournament()) {

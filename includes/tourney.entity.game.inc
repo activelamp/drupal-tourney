@@ -181,6 +181,13 @@ class TourneyGameEntity extends TourneyEntity {
   }
 
   public function save() {
+    if (property_exists($this, 'field_match') && !$this->field_match[LANGUAGE_NONE]) {
+      $match = $this->getMatchId();
+      if ($match) {
+        $this->field_match[LANGUAGE_NONE][0]['target_id'] = $match;
+      }
+    }
+
     parent::save();
     cache_clear_all('tourney_winner_count_' . $this->getMatchId(), 'cache_tourney');
   }
