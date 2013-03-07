@@ -468,6 +468,7 @@ class TourneyMatchEntity extends TourneyEntity {
     if ($this->getTournament()) {
       cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
     }
+    cache_clear_all('getHeadToHeadMatchIds_*', $match_ids, 'cache_tourney', TRUE);
   }
 
   /**
