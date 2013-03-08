@@ -456,11 +456,19 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function save() {
     $this->winner = $this->getWinner();
+    if (property_exists($this, 'field_tournament') && !$this->field_tournament[LANGUAGE_NONE]) {
+      $tournament = $this->getTournament();
+      if ($tournament) {
+        $this->field_tournament[LANGUAGE_NONE][0]['target_id'] = $tournament->id;
+      }
+    }
+  
     parent::save();
     // Set the tournament winner if this was the last match.
     if ($this->getTournament()) {
       cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
     }
+    cache_clear_all('getHeadToHeadMatchIds_*', 'cache_tourney', TRUE);
   }
 
   /**
