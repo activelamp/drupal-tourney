@@ -27,7 +27,7 @@ function tourney_menu() {
     'page callback' => 'tourney_tournament_page_view',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('view', 'tournament'),
+    'access arguments' => array('view', 'tourney_tournament', 2),
     'file' => 'includes/tourney.tournament.inc',
   );
   $items['tourney/tournament/%tourney_tournament/view'] = array(
@@ -40,7 +40,7 @@ function tourney_menu() {
     'page callback' => 'tourney_tournament_edit',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('edit', 'tournament'),
+    'access arguments' => array('edit', 'tourney_tournament'),
     'file' => 'includes/tourney.tournament.inc',
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
@@ -51,7 +51,7 @@ function tourney_menu() {
     'page callback' => 'tourney_rank_reset',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('edit', 'tournament'),
+    'access arguments' => array('edit', 'tourney_tournament'),
     'file' => 'includes/tourney.rank.inc',
     'weight' => 5,
     'type' => MENU_LOCAL_TASK,
@@ -62,7 +62,7 @@ function tourney_menu() {
     'page callback' => 'tourney_confirm_delete_page',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('delete', 'tournament'),
+    'access arguments' => array('delete', 'tourney_tournament'),
     'file' => 'includes/tourney.admin.inc',
     'weight' => 10,
     'type' => MENU_CALLBACK,
@@ -74,7 +74,7 @@ function tourney_menu() {
     'page callback' => 'tourney_match_page_view',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('view', 'match'),
+    'access arguments' => array('view', 'tourney_match'),
     'file' => 'includes/tourney.match.inc',
   );
   $items['tourney/match/%tourney_match/view'] = array(
@@ -87,7 +87,7 @@ function tourney_menu() {
     'page callback' => 'tourney_match_edit',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('edit', 'match'),
+    'access arguments' => array('edit', 'tourney_match'),
     'file' => 'includes/tourney.match.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -98,7 +98,7 @@ function tourney_menu() {
     'page callback' => 'tourney_game_page_view',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('view', 'game'),
+    'access arguments' => array('view', 'tourney_game'),
     'file' => 'includes/tourney.match.inc',
   );
   $items['tourney/game/%tourney_game/view'] = array(
@@ -111,7 +111,7 @@ function tourney_menu() {
     'page callback' => 'tourney_game_edit',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('edit', 'game'),
+    'access arguments' => array('edit', 'tourney_game'),
     'file' => 'includes/tourney.match.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -710,18 +710,18 @@ function tourney_entity_get_types($entity_name, $type_name = NULL) {
 /**
  * Access callback for tourney module.
  */
-function tourney_access($op = 'view', $group = NULL, $account = NULL) {
+function tourney_access($op = 'view', $entity_type, $entity = NULL, $account = NULL) {
   if (user_access('administer tourney')) {
     return TRUE;
   }
-  // @todo: this is bad should get this from menu item passed.
-  $entity_id = arg(2);
+  if (is_null($entity)) {
+    $entity = menu_get_object($entity_type, 2);
+  }
   switch ($op) {
     case 'view':
-      if (!$group) {
+      if (!$entity_type) {
         return FALSE;
       }
-      $entity = entity_load_single('tourney_' . $group, $entity_id);
       if (property_exists($entity, 'status') && $entity->status == 0) {
         return user_access('view unpublished tourney');
       }

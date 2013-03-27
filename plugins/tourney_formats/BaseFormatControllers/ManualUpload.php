@@ -33,7 +33,7 @@ class ManualUploadController extends TourneyController {
    */
   public function __construct($numContestants, $tournament = NULL) {
     parent::__construct();
-    $this->tournament = $tournament;
+    // $this->tournament = $tournament;
     // Set our contestants, and then calculate the slots necessary to fit them
     if ($numContestants) {
       $this->numContestants = $numContestants;
