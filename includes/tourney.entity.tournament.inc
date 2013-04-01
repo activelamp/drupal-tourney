@@ -398,12 +398,12 @@ class TourneyTournamentEntity extends TourneyEntity {
     }
   }
 
-/**
- * Gets a list of participating contestants in seed order from the first round.
- *
- * @return array $contestants
- *   List of contestants, all entities from the first round of a tournament.
- */
+  /**
+   * Gets a list of participating contestants in seed order from the first round.
+   *
+   * @return array $contestants
+   *   List of contestants, all entities from the first round of a tournament.
+   */
   public function getContestants() {
     if (property_exists($this, 'is_new') && $this->is_new) return array();
     if (is_null($this->contestants)) {
@@ -440,19 +440,47 @@ class TourneyTournamentEntity extends TourneyEntity {
 
     return $this->contestants;
   }
+  
+  /**
+   * Traverse all matches and get all contestants.
+   * 
+   * Use this method instead of getContestants() when the tourney format does
+   * not include all the contestants in the first round. This method finds all
+   * contestants by loading each match. The results are cached.
+   */
+  public function getMatchContestants() {
+    if (!$cache = cache_get('getMatchContestants_' . $this->id, 'cache_tourney')) {
+      $match_ids = $this->getMatchIds();
+      $contestants = array();
+      foreach ($match_ids as $id) {
+        $contestant = relation_get_related_entity('tourney_match', $id, 'contestant');
+        if (!array_key_exists($contestant->eid, $contestants)) {
+          $contestants[$contestant->eid] = $contestant;
+        }
+        $this->$contestants = $contestants;
+        if (!empty($contestants)) {
+          cache_set('getMatchContestants_' . $this->id, $contestants, 'cache_tourney');
+        }
+      }
+    }
+    else {
+      $this->contestants = $cache->data;
+    }
+    return $this->contestants;
+  }
 
-/**
- * Pull all matches in and returns a list of all the tallies of wins/losses
- *
- * @return array $standings
- *   Keyed array with eid as the key and array of data as the value
- *   $standings['eid'] = array(
- *     'wins'   => 0,
- *     'losses' => 0,
- *     'total'  => 0,
- *     'first'  => 0, // First is used for the rare case of ties, just to see who won first
- *   )
- */
+  /**
+   * Pull all matches in and returns a list of all the tallies of wins/losses
+   *
+   * @return array $standings
+   *   Keyed array with eid as the key and array of data as the value
+   *   $standings['eid'] = array(
+   *     'wins'   => 0,
+   *     'losses' => 0,
+   *     'total'  => 0,
+   *     'first'  => 0, // First is used for the rare case of ties, just to see who won first
+   *   )
+   */
   public function getStandings() {
     $matches = $this->getMatchIds();
     $standings = array();
