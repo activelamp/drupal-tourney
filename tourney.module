@@ -708,21 +708,22 @@ function tourney_entity_get_types($entity_name, $type_name = NULL) {
 }
 
 /**
- * Access callback for tourney module.
+ * Entity access callback for tourney module.
+ *
+ * This is the access callback for the entity when it has not been accessed 
+ * through a menu router. I.E. a node with an entity reference field to a
+ * tournament.
+ *
+ * @see entity_access()
  */
-function tourney_access($op = 'view', $entity_type, $entity = NULL, $account = NULL) {
+function tourney_access($op = 'view', $entity_type = NULL, $entity = NULL, $account = NULL) {
   if (user_access('administer tourney')) {
     return TRUE;
   }
-  if (is_null($entity)) {
-    $entity = menu_get_object($entity_type, 2);
-  }
+
   switch ($op) {
     case 'view':
-      if (!$entity_type) {
-        return FALSE;
-      }
-      if (property_exists($entity, 'status') && $entity->status == 0) {
+      if (is_object($entity) && property_exists($entity, 'status') && $entity->status == 0) {
         return user_access('view unpublished tourney');
       }
       else {
