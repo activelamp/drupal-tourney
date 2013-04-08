@@ -554,25 +554,30 @@ class TourneyTournamentEntity extends TourneyEntity {
     if ($this->get('no_automation', FALSE)) {
       return 0x3;
     }
+    
     if ((user_access('administer tourney') == FALSE && user_access("edit tourney") == FALSE)
       || count($match->getGameIds()) > 1) {
       return FALSE;
     }
+    $match->getMatchInfo();
     $round = $match->matchInfo['round'];
-
-    // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
-    if ($round == 1 && $match->matchInfo['bracket'] === 'main') {
-      // Both slots can be set
-      $return = 0x3;
-    }
-    elseif ($match->matchInfo && array_key_exists('seeds', $match->matchInfo)) {
-      foreach (array(1,2) as $slot) {
-        if (array_key_exists($slot, $match->matchInfo['seeds'])) {
-          $return += $slot;
+    
+    if (!array_key_exists('canSetContestants', $match->matchInfo)) {
+      // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
+      if ($round == 1 && $match->matchInfo['bracket'] === 'main') {
+        // Both slots can be set
+        $match->matchInfo['canSetContestants'] = 0x3;
+      }
+      elseif ($match->matchInfo && array_key_exists('seeds', $match->matchInfo)) {
+        foreach (array(1,2) as $slot) {
+          if (array_key_exists($slot, $match->matchInfo['seeds'])) {
+            $match->matchInfo['canSetContestants'] += $slot;
+          }
         }
       }
     }
-    return $return;
+
+    return $match->matchInfo['canSetContestants'];
   }
 
   /**
