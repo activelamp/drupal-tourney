@@ -581,7 +581,15 @@ function tourney_set_plugin_options(&$tourney, &$form_state, $to_cache = FALSE) 
   }
 }
 
-function tourney_configure_rounds($js = FALSE, $object_id, $slots, $controller) {
+function tourney_configure_rounds($js = FALSE, $object_id, $controller, $slots) {
+  // @todo: Make these player counts not hard coded
+  list($single, $double, $roundrobin) = array_slice(func_get_args(), -3);
+  switch($controller) {
+    case 'SingleEliminationController': $slots = $single; break;
+    case 'DoubleEliminationController': $slots = $double; break;
+    case 'RoundRobinController':        $slots = $roundrobin; break;
+  }
+  
   $form_state = array(
     'ajax' => $js,
     'title' => t('Configure Round names.'),
