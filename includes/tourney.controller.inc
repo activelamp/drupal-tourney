@@ -155,8 +155,14 @@ class TourneyController implements TourneyControllerInterface {
    *   Filled out round data array
    */
   public function buildRound($data) {
+    if (is_object($this->tournament)) {
+      // If we have a tournament see if we have a round name defined.
+      $round_name = $this->tournament->get("round_" . $data['id']) 
+        ? $this->tournament->get("round_" . $data['id']) : 'Round ' . $data['id'];
+    }
+    
     $round = array(
-      'title' => 'Round ' . $data['id'],
+      'title' => $round_name,
       'id'    => 'round-' . $data['id'],
     ) + $data;
     return $round;
