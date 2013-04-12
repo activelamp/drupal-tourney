@@ -318,7 +318,7 @@ function tourney_entity_info() {
       ),
       'bundles' => array(),
       'bundle keys' => array(
-        'bundle' => 'type',
+        'bundle' => 'name',
       ),
       'view modes' => array(
         'full' => array(
