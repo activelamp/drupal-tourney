@@ -82,6 +82,13 @@ function tourney_views_data_alter(&$data) {
       'handler' => 'tourney_handler_field_object_property',
     ),
   );
+  $data['tourney_match']['match_slot'] = array(
+    'title' => t('Match Slot ID'),
+    'help' => t('The internal match slot provided by tourney plugin for match.'),
+    'argument' => array(
+      'handler' => 'tourney_handler_argument_match_id',
+    ),
+  );
   
   // Tourney Game additions
   $data['tourney_game']['edit_game'] = array(

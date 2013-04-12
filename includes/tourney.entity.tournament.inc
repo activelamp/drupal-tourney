@@ -9,6 +9,7 @@ class TourneyTournamentEntity extends TourneyEntity {
 
   public  $matchIds = NULL;
   public  $gameIds = NULL;
+  public  $roundMatchIds = NULL;
   public  $uri;
   public  $data;
   public  $contestants = NULL;
@@ -151,6 +152,23 @@ class TourneyTournamentEntity extends TourneyEntity {
     // }
 
     return $match_ids;
+  }
+  
+  /**
+   * Creates multi-dimensional array of rounds with corresponding matches in each round.
+   * 
+   * @return
+   *   Returns an array of rounds with match mids of each round as the value.
+   */
+  public function getRoundMatchIds() {
+    if (is_null($this->roundMatchIds)) {
+      $plugin = $this->tourneyFormatPlugin;
+      $plugin->build();
+      foreach($plugin->data['matches'] as $mid => $match_info) {
+        $this->roundMatchIds[$match_info['round']][] = $mid;
+      }
+    }
+    return $this->roundMatchIds;
   }
 
   /**
