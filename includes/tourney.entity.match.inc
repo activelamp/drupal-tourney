@@ -588,7 +588,7 @@ class TourneyMatchEntity extends TourneyEntity {
     if (!tourney_relation_type_is_target('contestant', $entity->entity_type)) {
       throw new Exception('Invalid entity type. This type is not configured to be a contestant.');
     }
-    
+
     // If this is round 1, save seed positions.
     if ($this->matchInfo['round'] == 1) {
       $tourney = $this->getTournament();
@@ -596,7 +596,7 @@ class TourneyMatchEntity extends TourneyEntity {
       if (!is_array($plugin_options['seed_positions'])) {
         $plugin_options['seed_positions'] = array();
       }
-      $plugin_options['seed_positions'] = array_merge($plugin_options['seed_positions'], array($entity->eid => array('weight' => $this->matchInfo['seeds'][$entity->slot])));
+      $plugin_options['seed_positions'] = array_merge($plugin_options['seed_positions'], array($entity->eid => array('weight' => $this->matchInfo['seeds'][$slot])));
       $tourney->set($tourney->format, $plugin_options);
     }
 
