@@ -365,7 +365,7 @@ class TourneyController implements TourneyControllerInterface {
 
     // Set the games to zero for byes.
     if (array_key_exists('bye', $match) && $match['bye'] === TRUE) {
-      continue;
+      return;
     }
     $games = $controller->tournament->get('default_games', TOURNEY_GAMES);
     $values = array(

@@ -409,7 +409,7 @@ function tourney_tournament_page_view($tourney, $view_mode = 'full') {
   $entity_info = entity_get_info('tourney_tournament');
   $mode = array_key_exists($view_mode, $entity_info['view modes'])
     ? $view_mode : 'full';
-
+    $tourney->tourneyFormatPlugin->build();
   return $tourney->view($mode, NULL, TRUE);
 }
 
