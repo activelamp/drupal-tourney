@@ -467,7 +467,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    * contestants by loading each match. The results are cached.
    */
   public function getMatchContestants() {
-    if (!$cache = cache_get('getMatchContestants_' . $this->id, 'cache_tourney')) {
+    if (!$cache = cache_get(__FUNCTION__ . ':' . $this->id, 'cache_tourney')) {
       $match_ids = $this->getMatchIds();
       $contestants = array();
       foreach ($match_ids as $id) {
@@ -476,15 +476,42 @@ class TourneyTournamentEntity extends TourneyEntity {
           $contestants[$contestant->eid] = $contestant;
         }
         $this->$contestants = $contestants;
-        if (!empty($contestants)) {
-          cache_set('getMatchContestants_' . $this->id, $contestants, 'cache_tourney');
-        }
+      }
+      if (!empty($contestants)) {
+        cache_set(__FUNCTION__ . ':' . $this->id, $contestants, 'cache_tourney');
       }
     }
     else {
       $this->contestants = $cache->data;
     }
     return $this->contestants;
+  }
+  
+  /**
+   * Traverse all matches and get all matches a contestant is on.
+   * 
+   * This method finds all contestants by loading each match. The results are cached.
+   */
+  public function getContestantMatches($contestant_eid) {
+    $cid = __FUNCTION__ . ':' . $this->id . ':' . $contestant_eid;
+    if (!$cache = cache_get($cid, 'cache_tourney')) {
+      $match_ids = $this->getMatchIds();
+      $matches = array();
+      foreach ($match_ids as $match_id) {
+        $match = tourney_match_load($match_id);
+        $contestants = $match->getMatchContestants();
+        if (array_key_exists($contestant_eid, $contestants)) {
+          $matches[$match_id] = $match_id;
+        }
+      }
+      if (!empty($matches)) {
+        cache_set($cid, $matches, 'cache_tourney');
+      }
+    }
+    else {
+      $matches = $cache->data;
+    }
+    return $matches;
   }
 
   /**
