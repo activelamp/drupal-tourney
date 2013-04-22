@@ -99,8 +99,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
       $vars['match'] = null;
     }
   }
-  // krumo($node);
-  // krumo($bye);
+
   $vars['round_name']       = $round_name;
   $vars['node_classes']     = implode(' ', $node_classes);
   $vars['path_classes']     = implode(' ', $path_classes);
