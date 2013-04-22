@@ -28,9 +28,11 @@
         print drupal_render($match_output); 
       }
     ?>
-    <div class="connector to-parent <?php print $node_classes; ?> <?php print $path_classes; ?>">
-      <div class="path"></div>
-    </div>
+    <?php if (!$bye): ?>
+      <div class="connector to-parent <?php print $node_classes; ?> <?php print $path_classes; ?>">
+        <div class="path"></div>
+      </div>
+    <?php endif; ?>
   </div>
 </div>
 <div class="clear"></div>
