@@ -46,7 +46,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
 
   $node_classes = array();
   $path_classes = array();
-
+  $bye = (isset($node['bye'])) ? $node['bye'] : FALSE;
   $has_children = isset($node['children']) && count($node['children']);
   $is_child     = isset($node['child']);
 
@@ -99,10 +99,12 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
       $vars['match'] = null;
     }
   }
-
+  // krumo($node);
+  // krumo($bye);
   $vars['round_name']       = $round_name;
   $vars['node_classes']     = implode(' ', $node_classes);
   $vars['path_classes']     = implode(' ', $path_classes);
+  $vars['bye']              = $bye;
   $vars['has_children']     = $has_children;
   $vars['round_name']       = '';
 }
