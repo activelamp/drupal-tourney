@@ -146,8 +146,15 @@ function tourney_menu() {
     'page callback' => 'tourney_configure_rounds',
     'page arguments' => array(1),
     'access arguments' => array('create tourney'),
-    'file' => 'includes/tourney.tournament.inc',
+    'file' => 'includes/tourney.modal.rounds.inc',
   );
+  $items['tourney/%ctools_js/seeds/configure'] = array(
+    'page callback' => 'tourney_configure_seeds',
+    'page arguments' => array(1),
+    'access arguments' => array('create tourney'),
+    'file' => 'includes/tourney.modal.seeds.inc',
+  );
+  
 
   return $items;
 }

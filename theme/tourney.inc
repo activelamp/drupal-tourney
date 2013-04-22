@@ -28,6 +28,7 @@ function template_preprocess_tourney_tournament_render(&$vars) {
  */
 function template_preprocess_tourney_match_render(&$vars) {
   $plugin = &$vars['plugin'];
+  $tournament = $plugin->tournament;
 
   $match = $vars['match'];
   $matchInfo = $match;
@@ -74,20 +75,30 @@ function template_preprocess_tourney_match_render(&$vars) {
   
   foreach (array_values($contestants) as $slot => $contestant) {
     $slot++;
+    $seed_name = '';
+
     if (!is_object($contestant)) {
       $contestant = (object) $contestant;
     }
+    if (isset($seeds[$slot]) && is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
+      if ($tournament->get('show_seed_names', FALSE)) {
+        $seed_name = $tournament->get('seed_' . $seeds[$slot]);
+      }
+      else {
+        $seed_name = $seeds[$slot];
+      }
+    }
+    
     $contestant->slot = !empty($contestant->slot) ? $contestant->slot : $slot;
     $contestant_output .= theme('tourney_contestant', array(
       'contestant' => $contestant, 
-      'seed' => isset($seeds[$slot]) ? $seeds[$slot] : NULL,
+      'seed' => $seed_name,
       'plugin' => $plugin,
       'winner' => property_exists($contestant, 'eid') && $contestant->eid == $match->winner,
     ));
   }
   
   // If we have a tournament object, get the match url from the plugin.
-  $tournament = $plugin->tournament;
   if (is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
     $match_uri = $plugin->getMatchURI($matchInfo['id']);
     if ($match_uri) {

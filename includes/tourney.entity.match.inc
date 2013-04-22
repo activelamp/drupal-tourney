@@ -592,12 +592,12 @@ class TourneyMatchEntity extends TourneyEntity {
     // If this is round 1, save seed positions.
     if (array_key_exists('seeds', $this->matchInfo) && array_key_exists($slot, $this->matchInfo['seeds'])) {
       $tourney = $this->getTournament();
-      $plugin_options = $tourney->get($tourney->format);
-      if (!array_key_exists('seed_positions', $plugin_options) && !is_array($plugin_options['seed_positions'])) {
-        $plugin_options['seed_positions'] = array();
+      $seed_positions = $tourney->get('seed_positions');
+      if (!is_array($seed_positions)) {
+        $seed_positions = array();
       }
-      $plugin_options['seed_positions'] = array_merge($plugin_options['seed_positions'], array($entity->eid => array('weight' => $this->matchInfo['seeds'][$slot])));
-      $tourney->set($tourney->format, $plugin_options);
+      $seed_positions = array_merge($seed_positions, array($entity->eid => array('weight' => $this->matchInfo['seeds'][$slot])));
+      $tourney->set('seed_positions', $seed_positions);
     }
 
     if (!$this->id) $this->save();
