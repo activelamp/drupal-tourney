@@ -142,7 +142,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#attributes' => array('class' => array('ctools-use-modal')),
     '#states' => array(
       'visible' => array(
-        ':input[name="config_customize_seed_names"]' => array('checked' => TRUE),
+        ':input[name="config_show_seed_names"]' => array('checked' => TRUE),
       ),
     ),
   );
