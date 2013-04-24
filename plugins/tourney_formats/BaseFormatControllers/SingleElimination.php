@@ -91,7 +91,7 @@ class SingleEliminationController extends TourneyController {
       // Set the matches variable.
       if (!empty($this->pluginOptions) && $this->pluginOptions[get_class($this)]['third_place']) {
         // Don't try to render the children of a third place match.
-        unset($node['children']);
+        unset($node['previousMatches']);
 
         // New tree should start from the second to last match.
         $match = $this->data['matches'][$node['id'] - 1];
@@ -187,7 +187,6 @@ class SingleEliminationController extends TourneyController {
       'roundMatch' => 1,
       'bracket' => 'consolation',
     ));
-
     // Populate positions for third place match.
     $this->populatePositionsThirdPlace();
   }
@@ -200,8 +199,9 @@ class SingleEliminationController extends TourneyController {
     $this->data['matches'][$count]['previousMatches'] = array($count - 3, $count - 2);
 
     // Set the next match for losers.
-    foreach ($this->data['matches'][$count]['previousMatches'] as $mid) {
+    foreach ($this->data['matches'][$count]['previousMatches'] as $id => $mid) {
       $this->data['matches'][$mid]['nextMatch']['loser']['id'] = $count;
+      $this->data['matches'][$mid]['nextMatch']['loser']['slot'] = $id + 1;
     }
   }
 
@@ -214,13 +214,15 @@ class SingleEliminationController extends TourneyController {
     foreach ($this->data['matches'] as $id => &$match) {
       $nextMatch = &$this->find('matches', array(
         'round'       => $match['round'] + 1,
-        'roundMatch'  => (int) ceil($match['roundMatch'] / 2)
+        'roundMatch'  => (int) ceil($match['roundMatch'] / 2),
+        'bracket' => $match['bracket'],
       ), TRUE);
       if (!$nextMatch) continue;
       $slot = $match['id'] % 2 ? 1 : 2;
       $match['nextMatch']['winner'] = array('id' => $nextMatch['id'], 'slot' => $slot);
       $nextMatch['previousMatches'][$slot] = $id;
-    }
+    }  
+    
   }
 
   /**
@@ -277,12 +279,11 @@ class SingleEliminationController extends TourneyController {
 
   public function structureTreeNode($match) {
     $node = $match;
-    if (isset($match['previousMatches'])) {
+    if (!empty($match['previousMatches'])) {
       foreach ($match['previousMatches'] as $child) {
-        // If this is a feeder match, don't build child that goes to other bracket.
-        // if (array_key_exists('feeder', $match) && $match['bracket'] != $this->data['matches'][$child]['bracket']) {
-        //   continue;
-        // }
+        // @todo: need to fix this
+        if ($match['bracket'] == 'consolation') continue;
+
         $node['children'][] = $this->structureTreeNode($this->data['matches'][$child]);
       }
     }

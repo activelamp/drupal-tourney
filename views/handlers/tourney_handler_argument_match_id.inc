@@ -8,7 +8,7 @@
 class tourney_handler_argument_match_id extends views_handler_argument {
   function query($group_by = false) {}
    /**
-    * Called to add the sort to a query.  Adds ISNULL() to the alias parameter.
+    * Remove items from results that are not in a round.
     */
   function post_execute(&$results) {
     foreach ($results as $id => &$row) {

@@ -51,20 +51,19 @@ function tourney_configure_seeds_form($form, &$form_state) {
   );
 
   foreach (range(1, $form_state['slots']) as $sid) {
-    $property = 'seed_' . $sid;
-    $seed_title = '';
     // If the object_id is numeric, we have a tournament id.
     if (is_numeric($form_state['object_id'])) {
       $tourney = tourney_tournament_load($form_state['object_id']);
       $seed_title = $tourney->get('seed_' . $sid, $seed['title']);
     }
     if (!$seed_title) {
-      $form_state['object']->$property = $sid;
+      $seed_title = $sid;
     }
 
+    $property = 'seed_' . $sid;
     $form['seed_' . $sid] = array(
       '#type' => 'textfield',
-      '#title' => t('Seed #@num', array('@num' => $sid)),
+      '#title' => $seed['title'],
       '#description' => t('Enter the title for seed in position %seed_number.', array('%seed_number' => $sid)),
       '#size' => 40,
       '#maxlength' => 255,

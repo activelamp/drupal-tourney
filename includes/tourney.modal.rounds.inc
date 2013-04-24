@@ -80,7 +80,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
       $round_title = $tourney->get('round_' . $rid, $round['title']);
     }
     else {
-      $round_title = $round['title'];
+      $round_title = $round['id'];
     }
 
     $property = 'round_' . $rid;
