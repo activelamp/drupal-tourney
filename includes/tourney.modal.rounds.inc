@@ -63,6 +63,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
   );
 
   foreach ($plugin->data['rounds'] as $rid => $round) {
+    $round_title = '';
     // Set the bracket fieldset
     if (!array_key_exists('bracket_' . $round['bracket'], $form)) {
       $form['bracket_' . $round['bracket']] = array(
