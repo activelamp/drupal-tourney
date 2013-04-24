@@ -114,7 +114,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   $vars['complete'] = isset($match) && is_object($match) && $match->winner !== '';
   $vars['is_bye'] = isset($matchInfo['bye']) && $matchInfo['bye'] == TRUE;
 
-  $vars['match_classes_array'] = array('round-' . $matchInfo['round']);
+  $vars['match_classes_array'] = array('round-' . $matchInfo['round'], 'bracket-' . $matchInfo['bracket'] . '-round-' . $matchInfo['round']);
   if ($vars['complete']) $vars['match_classes_array'][] = 'complete';
   if ($vars['is_bye']) $vars['match_classes_array'][] = 'bye';
   if (isset($match) && is_object($match) && $match->status == 0) $vars['match_classes_array'][] = 'not-necessary';
