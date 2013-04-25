@@ -82,7 +82,7 @@ function template_preprocess_tourney_match_render(&$vars) {
     }
     if (isset($seeds[$slot]) && is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
       if ($tournament->get('show_seed_names', FALSE)) {
-        $seed_name = $tournament->get('seed_' . $seeds[$slot]);
+        $seed_name = $tournament->get('seed_' . $seeds[$slot], $seeds[$slot]);
       }
       else {
         $seed_name = $seeds[$slot];
