@@ -4,7 +4,7 @@
  * Create tournament, match, and game entities for creating tournaments.
  */
 
-define('TOURNEY_GAMES', 5);
+define('TOURNEY_GAMES', 3);
 define('TOURNEY_TRUNCATE', 12);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
