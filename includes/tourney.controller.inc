@@ -374,6 +374,7 @@ class TourneyController implements TourneyControllerInterface {
       'name' => $controller->tournament->name . '_match-' . $mid,
       'games' => $games,
       'field_tournament' => array(LANGUAGE_NONE => array(array('target_id' => array($controller->tournament->id)))),
+      '_match' => $match,
     );
     
     $new_match = new TourneyMatchEntity($values);
@@ -394,6 +395,7 @@ class TourneyController implements TourneyControllerInterface {
         'title' => 'Game 1',
         'name' => $new_match->name . '_game-1',
         'field_match' => array(LANGUAGE_NONE => array(array('target_id' => array($new_match->id)))),
+        '_match' => $match,
       ));
       $game->save();
       if ($create_alias && pathauto_pattern_load_by_entity($game->entity_type, $game->type)) {
