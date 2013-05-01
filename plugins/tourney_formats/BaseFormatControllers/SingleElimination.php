@@ -22,6 +22,23 @@ class SingleEliminationController extends TourneyController {
     $this->slots = pow(2, ceil(log($this->numContestants, 2)));
     $this->tournament = $tournament;
   }
+  
+  /**
+   * Get the number of possible winners for this plugin at the end of each round.
+   * 
+   * @param $num_contestants
+   *   Finds the number of winners in each round after the first.
+   */
+  public static function possibleWinners($num_contestants) {
+    $count = array(1);
+    $plugin = new SingleEliminationController($num_contestants);
+    $plugin->build();
+    for ($i = 1; $i < count($plugin->data['rounds']); $i++) {
+      $count[] = $plugin->data['rounds'][$i]['matches'];
+    }
+    sort($count);
+    return $count;
+  }
 
   /**
    * Options for this plugin.
@@ -32,13 +49,13 @@ class SingleEliminationController extends TourneyController {
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
 
     form_load_include($form_state, 'php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
-
+    $num_players = array_key_exists('players', $plugin_options) ? $plugin_options['players'] : 2;
     $form['players'] = array(
       '#type' => 'textfield',
       '#size' => 10,
       '#title' => t('Number of Contestants'),
       '#description' => t('Number of contestants that will be playing in this tournament.'),
-      '#default_value' => array_key_exists('players', $plugin_options) ? $plugin_options['players'] : 2,
+      '#default_value' => $num_players,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#element_validate' => array('singleelimination_players_validate'),
       '#attributes' => array('class' => array('edit-configure-round-names-url', 'edit-configure-seed-names-url')),
@@ -46,6 +63,11 @@ class SingleEliminationController extends TourneyController {
         'enabled' => array(
           ':input[name="format"]' => array('value' => get_class($this)),
         ),
+      ),
+      '#ajax' => array(
+        'event' => 'blur',
+        'callback' => 'tourney_winner_options',
+        'wrapper' => 'SingleEliminationController_replace_num_winners'
       ),
     );
     $form['third_place'] = array(
@@ -55,6 +77,23 @@ class SingleEliminationController extends TourneyController {
       '#default_value' => array_key_exists('third_place', $plugin_options)
         ? $plugin_options['third_place'] : -1,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
+    );
+    
+    $possible = array(1);
+    if ($num_players || $num_players = $form_state['values']['plugin_options'][$form_state['values']['format']]['players']) {
+      $possible = self::possibleWinners($num_players);
+    }
+
+    $form['num_winners'] = array(
+      '#type' => 'select',
+      '#title' => t('How many winners does this tournament have?'),
+      '#options' => drupal_map_assoc($possible),
+      '#prefix' => '<div id="SingleEliminationController_replace_num_winners">',
+      '#suffix' => '</div>',
+      '#default_value' => array_key_exists('num_winners', $plugin_options)
+        ? $plugin_options['num_winners'] : -1,
+      '#description' => t('Setting more than one winner will hide matches that occur after the winner count is met.')
+      /** @todo: We should think about not even creating the matches */
     );
 
     return $form;
@@ -127,10 +166,12 @@ class SingleEliminationController extends TourneyController {
 
     $this->data['contestants'] = array();
 
-    // Calculate and set the match pathing
+    // Calculate and set the match pathing.
     $this->populatePositions();
-    // Set in the seed positions
+    // Set in the seed positions.
     $this->populateSeedPositions();
+    // Set a property for any matches that should be hidden.
+    $this->populateIrrelevantMatches();
   }
 
   public function buildBrackets() {
@@ -241,6 +282,17 @@ class SingleEliminationController extends TourneyController {
         $slot = $match['id'] % 2 ? 1 : 2;
         $this->data['matches'][$match['nextMatch']['winner']['id']]['seeds'][$slot] = $seeds[1];
       }
+    }
+  }
+  
+  /**
+   * Adds data to the matches data in the plugin for matches that should not be visible.
+   */
+  public function populateIrrelevantMatches() {
+    $options = $this->getPluginOptions();
+    dpm($options);
+    foreach ($this->data['matches'] as $id => &$match) {
+      
     }
   }
 
@@ -358,3 +410,6 @@ function singleelimination_players_validate($element, &$form_state) {
   }
 }
 
+function tourney_winner_options($form, $form_state) {
+  return $form['plugin_options']['SingleEliminationController']['num_winners'];
+}
