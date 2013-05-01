@@ -88,13 +88,15 @@ function template_preprocess_tourney_match_render(&$vars) {
         $seed_name = $seeds[$slot];
       }
     }
-    
+
     $contestant->slot = !empty($contestant->slot) ? $contestant->slot : $slot;
     $contestant_output .= theme('tourney_contestant', array(
       'contestant' => $contestant, 
       'seed' => $seed_name,
       'plugin' => $plugin,
-      'winner' => property_exists($contestant, 'eid') && $contestant->eid == $match->winner,
+      'winner' => property_exists($contestant, 'eid') && $contestant->eid == $match->winner ? $match->winner : FALSE,
+      'winner_set' => !empty($match->winner),
+      'final_match' => array_key_exists('final_match', $match->matchInfo) && $match->matchInfo['final_match'],
     ));
   }
   
@@ -113,10 +115,16 @@ function template_preprocess_tourney_match_render(&$vars) {
 
   $vars['complete'] = isset($match) && is_object($match) && $match->winner !== '';
   $vars['is_bye'] = isset($matchInfo['bye']) && $matchInfo['bye'] == TRUE;
+  $vars['hide'] = array_key_exists('hide', $matchInfo) && $matchInfo['hide'] == TRUE;
 
-  $vars['match_classes_array'] = array('round-' . $matchInfo['round'], 'bracket-' . $matchInfo['bracket'] . '-round-' . $matchInfo['round']);
+  $vars['match_classes_array'] = array(
+    'round-' . $matchInfo['round'],
+    'bracket-' . $matchInfo['bracket'] . '-round-' . $matchInfo['round']
+  );
+  
   if ($vars['complete']) $vars['match_classes_array'][] = 'complete';
   if ($vars['is_bye']) $vars['match_classes_array'][] = 'bye';
+  if ($vars['hide']) $vars['match_classes_array'][] = 'hide-match';
   if (isset($match) && is_object($match) && $match->status == 0) $vars['match_classes_array'][] = 'not-necessary';
   $vars['match_classes'] = implode(' ', $vars['match_classes_array']);
 
@@ -137,9 +145,11 @@ function template_preprocess_tourney_contestant(&$vars) {
   
   // Let the plugin preprocess variables
   $plugin->preprocess('tourney-contestant', $vars);
-  
+
   $vars['classes_array'][] = 'contestant-' . $vars['contestant']->slot;
-  $vars['classes_array'][] = $vars['winner'] ? 'winner' : '';
+  if ($vars['winner_set'] || $vars['final_match']) {
+    $vars['classes_array'][] = $vars['winner'] || $vars['final_match'] ? 'winner' : 'loser';
+  }
   
   if (property_exists($vars['contestant'], 'entity_name') && $vars['contestant']->entity_name) {
     $vars['name'] = $vars['contestant']->entity_name;

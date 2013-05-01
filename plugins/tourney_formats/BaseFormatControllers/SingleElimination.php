@@ -290,9 +290,31 @@ class SingleEliminationController extends TourneyController {
    */
   public function populateIrrelevantMatches() {
     $options = $this->getPluginOptions();
-    dpm($options);
-    foreach ($this->data['matches'] as $id => &$match) {
+    $num_winners = $options[__CLASS__]['num_winners'];
+    
+    if ($num_winners > 1) {
+      // Find last round we need to show.
+      $last_mid = 0;
+      $num_match_last_round = $num_winners / 2;
+      foreach ($this->data['rounds'] as $id => &$round) {
+        $last_mid += $round['matches'];
+        if ($round['matches'] == $num_match_last_round) {
+          $mid_count = $last_mid;
+        }
+        $round['hide'] = $round['matches'] < $num_match_last_round;
+      }
+      $round['hide'] = $round['matches'] < $num_match_last_round;
+      $disabled_matches = array_slice($this->data['matches'], $mid_count, NULL, TRUE);
+      $last_round_matches = array_slice($this->data['matches'], $mid_count - $num_match_last_round, $num_match_last_round, TRUE);
       
+      // Mark disabled matches.
+      foreach ($disabled_matches as $id => $match) {
+        $this->data['matches'][$id]['hide'] = TRUE;
+      }
+      // Mark last round matches.
+      foreach ($last_round_matches as $id => $match) {
+        $this->data['matches'][$id]['final_match'] = TRUE;
+      }
     }
   }
 
