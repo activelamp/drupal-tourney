@@ -96,7 +96,6 @@ function template_preprocess_tourney_match_render(&$vars) {
       'plugin' => $plugin,
       'winner' => property_exists($contestant, 'eid') && $contestant->eid == $match->winner ? $match->winner : FALSE,
       'winner_set' => !empty($match->winner),
-      'final_match' => array_key_exists('final_match', $match->matchInfo) && $match->matchInfo['final_match'],
     ));
   }
   
@@ -147,13 +146,10 @@ function template_preprocess_tourney_contestant(&$vars) {
   $plugin->preprocess('tourney-contestant', $vars);
 
   $vars['classes_array'][] = 'contestant-' . $vars['contestant']->slot;
-<<<<<<< HEAD
   $vars['classes_array'][] = $vars['winner'] ? 'winner' : '';
-=======
-  if ($vars['winner_set'] || $vars['final_match']) {
-    $vars['classes_array'][] = $vars['winner'] || $vars['final_match'] ? 'winner' : 'loser';
+  if ($vars['winner_set']) {
+    $vars['classes_array'][] = $vars['winner'] ? 'winner' : 'loser';
   }
->>>>>>> more-winners
   
   if (property_exists($vars['contestant'], 'entity_name') && $vars['contestant']->entity_name) {
     $vars['name'] = $vars['contestant']->entity_name;
