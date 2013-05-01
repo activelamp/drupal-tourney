@@ -123,6 +123,7 @@ class TourneyController implements TourneyControllerInterface {
    * @todo: Should these be abstract? Do we want to provide a default
    *   implemenations?
    */
+  public static function possibleWinners() {}
   public function populatePositions() {}
   public function populateSeedPositions() {}
   public function preprocess($template, &$vars) {}

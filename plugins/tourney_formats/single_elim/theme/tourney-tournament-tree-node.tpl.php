@@ -18,7 +18,7 @@
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
-  <div class="parent">
+  <div class="parent <?php print $parent_classes; ?>">
     <?php if ($round_name): ?>
       <h2 class="round-title"><?php print $round_name; ?></h2>
     <?php endif; ?>

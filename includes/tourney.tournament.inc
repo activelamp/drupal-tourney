@@ -96,7 +96,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#group' => 'additional_settings',
     '#weight' => 0,
   );
-
+  
   $form['tourney']['config_show_byes'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show Byes'),

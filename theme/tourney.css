@@ -307,6 +307,10 @@
   width: 87%;
 }
 
+.tourney-tournament .hide-match,
+.tourney-tournament div.parent.hide-match {
+  display: none;
+}
 
 .tourney-tournament .match .contestant.winner {
   background-color: #C8C8C8;
