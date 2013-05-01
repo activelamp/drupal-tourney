@@ -295,7 +295,7 @@ class SingleEliminationController extends TourneyController {
     if ($num_winners > 1) {
       // Find last round we need to show.
       $last_mid = 0;
-      $num_match_last_round = $num_winners / 2;
+      $num_match_last_round = $num_winners; // Number of matches in last round.
       foreach ($this->data['rounds'] as $id => &$round) {
         $last_mid += $round['matches'];
         if ($round['matches'] == $num_match_last_round) {
