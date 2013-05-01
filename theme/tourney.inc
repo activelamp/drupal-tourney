@@ -139,7 +139,7 @@ function template_preprocess_tourney_contestant(&$vars) {
   $plugin->preprocess('tourney-contestant', $vars);
   
   $vars['classes_array'][] = 'contestant-' . $vars['contestant']->slot;
-  $vars['classes_array'][] = $vars['winner'] ? 'winner' : 'loser';
+  $vars['classes_array'][] = $vars['winner'] ? 'winner' : '';
   
   if (property_exists($vars['contestant'], 'entity_name') && $vars['contestant']->entity_name) {
     $vars['name'] = $vars['contestant']->entity_name;
