@@ -52,7 +52,7 @@ class TourneyMatchEntity extends TourneyEntity {
         $r = relation_load($relation->rid);
         $game_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
       }
-      asort($game_ids);
+      sort($game_ids);
       if (count($game_ids) > 0) {
         cache_set('fetchGameIds_' . $cache_id, $game_ids, 'cache_tourney');
       }
