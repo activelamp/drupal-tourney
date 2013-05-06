@@ -424,23 +424,19 @@ class TourneyTournamentEntity extends TourneyEntity {
    */
   public function getContestants() {
     if (property_exists($this, 'is_new') && $this->is_new) return array();
-    if (is_null($this->contestants)) {
-      if (is_object($this->tourneyFormatPlugin) && !$this->tourneyFormatPlugin->data['matches']) {
-        $this->tourneyFormatPlugin->build();
-      }
-      $matches = $this->tourneyFormatPlugin->data['matches'];
+    
+    if (!$cache = cache_get(__FUNCTION__ . ':' . $this->id, 'cache_tourney')) {
+      if (is_null($this->contestants)) {
+        if (is_object($this->tourneyFormatPlugin) && !$this->tourneyFormatPlugin->data['matches']) {
+          $this->tourneyFormatPlugin->build();
+        }
+        $matches = $this->tourneyFormatPlugin->data['matches'];
 
-      // Set up two arrays to fill for seed order
-      $seed_1 = array();
-      $seed_2 = array();
-      if(is_array($matches)) {
-        foreach ($matches as $mid => $match_info) {
-          if ($match_info['round'] == 1) {
-            // If the match is a bye, get the next match id
-            if (array_key_exists('bye', $match_info) && $match_info['bye'] == TRUE) {
-              $mid = $match_info['nextMatch']['winner']['id'];
-            }
-
+        // Set up two arrays to fill for seed order
+        $seed_1 = array();
+        $seed_2 = array();
+        if(is_array($matches)) {
+          foreach ($matches as $mid => $match_info) {
             $match = $this->tourneyFormatPlugin->getMatchById($mid);
             if (is_object($match)) {
               $seed = 1;
@@ -450,35 +446,9 @@ class TourneyTournamentEntity extends TourneyEntity {
               }
             }
           }
+          // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5
+          $this->contestants = array_merge($seed_1, array_reverse($seed_2));
         }
-        // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5
-        $this->contestants = array_merge($seed_1, array_reverse($seed_2));
-      }
-    }
-
-    return $this->contestants;
-  }
-  
-  /**
-   * Traverse all matches and get all contestants.
-   * 
-   * Use this method instead of getContestants() when the tourney format does
-   * not include all the contestants in the first round. This method finds all
-   * contestants by loading each match. The results are cached.
-   */
-  public function getMatchContestants() {
-    if (!$cache = cache_get(__FUNCTION__ . ':' . $this->id, 'cache_tourney')) {
-      $match_ids = $this->getMatchIds();
-      $contestants = array();
-      foreach ($match_ids as $id) {
-        $contestant = relation_get_related_entity('tourney_match', $id, 'contestant');
-        if (!array_key_exists($contestant->eid, $contestants)) {
-          $contestants[$contestant->eid] = $contestant;
-        }
-        $this->$contestants = $contestants;
-      }
-      if (!empty($contestants)) {
-        cache_set(__FUNCTION__ . ':' . $this->id, $contestants, 'cache_tourney');
       }
     }
     else {
