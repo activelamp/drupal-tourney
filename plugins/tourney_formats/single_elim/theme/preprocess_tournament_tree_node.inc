@@ -51,6 +51,8 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   $is_child     = isset($node['child']);
 
   $node_classes[] = 'bracket-' . $node['bracket'];
+  $node_classes[] = 'round-' . $node['round'];
+  $node_classes[] = 'match-' . $node['id'];
   if ($node['bracket'] != 'main' && $has_children && count($node['children']) == 2) {
     $node_classes[] = 'feeder';
   } 
