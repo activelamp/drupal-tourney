@@ -1567,3 +1567,24 @@ function tourney_relation_query($entity_type = NULL, $entity_id = NULL, $r_index
   $query->range = array();
   return $query;
 }
+
+/**
+ * Returns the number of slots based on players set in plugin.
+ * 
+ * @param $controller
+ *   The plugin type that has a player field.
+ * @param $args
+ *   All the parameters passed into the functions below.
+ * 
+ * @see tourney_configure_rounds().
+ * @see tourney_configure_seeds().
+ */
+function tourney_configure_slots($args) {
+  // Get the third parameter, it's the controller in the parameter list.
+  $controller = $args[2];
+  $plugins_with_player = json_decode(array_pop($args));
+  $key = array_search($controller, $plugins_with_player);
+  
+  // The number of players start after the initial 3 parameters.
+  return $args[$key + 3];
+}

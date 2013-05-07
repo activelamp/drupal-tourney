@@ -68,7 +68,6 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => -10,
   );
 
-
   $form['format'] = array(
     '#type' => 'select',
     '#title' => t('Tournament style'),
@@ -76,12 +75,25 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#options' => tourney_get_type_options(),
     '#disabled' => isset($tourney->format) ? TRUE : FALSE,
     '#default_value' => isset($tourney->format) ? $tourney->format : -1,
-    '#attributes' => array('class' => array('edit-configure-round-names-url')),
+    '#attributes' => array('class' => array('edit-configure-round-names-url', 'edit-configure-seed-names-url')),
     '#weight' => -8,
   );
 
   // Get options form from plugin if one exists.
   tourney_get_plugin_options($tourney, $form, $form_state);
+  
+  $plugins_with_players = array();
+  foreach ($form['plugin_options'] as $key => $plugin) {
+    if (strpos($key, '#') === 0) continue;
+    if (!empty($plugin['players'])) {
+      $plugins_with_players[] = $key;
+    }
+  }
+  $form['plugins_with_players'] = array(
+    '#type' => 'hidden',
+    '#default_value' => json_encode($plugins_with_players),
+    '#attributes' => array('class' => array('edit-configure-seed-names-url')),
+  );
 
   $form['additional_settings'] = array(
     '#type' => 'vertical_tabs',

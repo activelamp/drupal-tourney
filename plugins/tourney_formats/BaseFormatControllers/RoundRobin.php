@@ -61,7 +61,7 @@ class RoundRobinController extends TourneyController {
       '#default_value' => array_key_exists('players', $plugin_options) ? $plugin_options['players'] : 4,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#element_validate' => array('roundrobin_players_validate'),
-      '#attributes' => array('class' => array('edit-configure-round-names-url')),
+      '#attributes' => array('class' => array('edit-configure-round-names-url', 'edit-configure-seed-names-url')),
       '#states' => array(
         'enabled' => array(
           ':input[name="format"]' => array('value' => get_class($this)),

@@ -8,7 +8,9 @@
  */
 
 
-function tourney_configure_seeds($js = FALSE, $object_id, $slots) {
+function tourney_configure_seeds($js = FALSE, $object_id, $controller) {
+  $slots = tourney_configure_slots(func_get_args());
+  
   $form_state = array(
     'ajax' => $js,
     'title' => t('Configure seed names.'),

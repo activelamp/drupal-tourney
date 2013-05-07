@@ -6,14 +6,8 @@
  */
 
 
-function tourney_configure_rounds($js = FALSE, $object_id, $controller, $slots) {
-  // @todo: Make these player counts not hard coded
-  list($single, $double, $roundrobin) = array_slice(func_get_args(), -3);
-  switch($controller) {
-    case 'SingleEliminationController': $slots = $single; break;
-    case 'DoubleEliminationController': $slots = $double; break;
-    case 'RoundRobinController':        $slots = $roundrobin; break;
-  }
+function tourney_configure_rounds($js = FALSE, $object_id, $controller) {
+  $slots = tourney_configure_slots(func_get_args());
   
   $form_state = array(
     'ajax' => $js,
@@ -88,7 +82,7 @@ function tourney_configure_rounds_form($form, &$form_state) {
     $form['bracket_' . $round['bracket']]['round_' . $rid] = array(
       '#type' => 'textfield',
       '#title' => $round['title'],
-      '#description' => t('Enter the title for %round_name in the %bracket_name bracket.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
+      '#description' => t('Enter the title for %round_name in the %bracket_name bracket.', array('%round_name' => $round['id'], '%bracket_name' => $round['bracket'])),
       '#size' => 40,
       '#maxlength' => 255,
       '#default_value' => property_exists($form_state['object'], $property) ? $form_state['object']->$property : $round_title,
