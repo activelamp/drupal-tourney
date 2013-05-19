@@ -19,7 +19,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
 
   // Use the entity id as the configure form id, or generate random string.
   $random_id = !empty($form_state['input']) ? $form_state['input']['rounds_form_id'] : user_password(32);
-  $form['rounds_form_id'] = array(
+  $form['rounds_form_id'] = $form['seeds_form_id'] = array(
     '#type' => 'hidden',
     '#value' => !empty($tourney->id) ? $tourney->id : $random_id,
   );
@@ -29,6 +29,14 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#type' => 'hidden',
     '#attributes' => array('class' => array('edit-configure-round-names-url')),
     '#value' => url('tourney/nojs/rounds/configure/' . $form['rounds_form_id']['#value']),
+    '#weight' => -100,
+  );
+
+  // Used as the base url for ctools modal popup.
+  $form['configure_seed_names_url'] = array(
+    '#type' => 'hidden',
+    '#attributes' => array('class' => array('edit-configure-seed-names-url')),
+    '#value' => url('tourney/nojs/seeds/configure/' . $form['seeds_form_id']['#value']),
     '#weight' => -100,
   );
 
@@ -60,7 +68,6 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => -10,
   );
 
-
   $form['format'] = array(
     '#type' => 'select',
     '#title' => t('Tournament style'),
@@ -68,12 +75,25 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#options' => tourney_get_type_options(),
     '#disabled' => isset($tourney->format) ? TRUE : FALSE,
     '#default_value' => isset($tourney->format) ? $tourney->format : -1,
-    '#attributes' => array('class' => array('edit-configure-round-names-url')),
+    '#attributes' => array('class' => array('edit-configure-round-names-url', 'edit-configure-seed-names-url')),
     '#weight' => -8,
   );
 
   // Get options form from plugin if one exists.
   tourney_get_plugin_options($tourney, $form, $form_state);
+  
+  $plugins_with_players = array();
+  foreach ($form['plugin_options'] as $key => $plugin) {
+    if (strpos($key, '#') === 0) continue;
+    if (!empty($plugin['players'])) {
+      $plugins_with_players[] = $key;
+    }
+  }
+  $form['plugins_with_players'] = array(
+    '#type' => 'hidden',
+    '#default_value' => json_encode($plugins_with_players),
+    '#attributes' => array('class' => array('edit-configure-seed-names-url')),
+  );
 
   $form['additional_settings'] = array(
     '#type' => 'vertical_tabs',
@@ -88,7 +108,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#group' => 'additional_settings',
     '#weight' => 0,
   );
-
+  
   $form['tourney']['config_show_byes'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show Byes'),
@@ -119,6 +139,43 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
         ':input[name="config_show_round_names"]' => array('checked' => TRUE),
       ),
     ),
+  );
+  
+  $form['tourney']['config_show_seed_names'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Customize Seeds'),
+    '#description' => t('Customize seed names for each contestant.'),
+    '#default_value' => $tourney->get('show_seed_names', FALSE),
+  );
+
+  $form['tourney']['configure_seed_names'] = array(
+    '#type' => 'button',
+    '#value' => t('Configure seed names'),
+    '#attributes' => array('class' => array('ctools-use-modal')),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="config_show_seed_names"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+  
+  $form['extra_fields'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Extra fields'),
+    '#description' => t('Choose which extra fields to enable.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#access' => user_access('administer tourney'),
+    '#weight' => 20,
+  );
+  
+  $form['extra_fields']['config_match_extra_fields'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Match fields'),
+    '#options' => drupal_map_assoc(array('tournament', 'match_winner', 'contestants', 'match_table')),
+    '#description' => t('Extra fields to show on the match entity view.'),
+    '#default_value' => $tourney->get('match_extra_fields', array()),
   );
 
   $form['bundles'] = array(
@@ -390,7 +447,7 @@ function tourney_tournament_page_view($tourney, $view_mode = 'full') {
   $entity_info = entity_get_info('tourney_tournament');
   $mode = array_key_exists($view_mode, $entity_info['view modes'])
     ? $view_mode : 'full';
-
+    $tourney->tourneyFormatPlugin->build();
   return $tourney->view($mode, NULL, TRUE);
 }
 
@@ -538,14 +595,29 @@ function tourney_get_plugin_options($tourney, &$form, &$form_state) {
  *   The tourney form.
  * @param $to_cache
  *   If a tournament hasn't been saved yet, use this flag to store setting to cache.
+ * 
+ * @todo: refactor this duplicate code with seeds and rounds.
  */
 function tourney_set_plugin_options(&$tourney, &$form_state, $to_cache = FALSE) {
+  module_load_include('inc', 'tourney', 'includes/tourney.modal.rounds');
+  module_load_include('inc', 'tourney', 'includes/tourney.modal.seeds');
+  
   // Add the round names to tourney settings
   if ($tourney->config['show_round_names']) {
     $rounds = tourney_configure_rounds_cache_get($form_state['values']['rounds_form_id']);
     foreach ((array) $rounds as $key => $round) {
       if (strpos($key, 'round_') === 0) {
         $form_state['values']['plugin_options'][$key] = $round;
+      }
+    }
+  }
+  
+  // Add the seed names to tourney settings
+  if ($tourney->config['show_seed_names']) {
+    $seeds = tourney_configure_seeds_cache_get($form_state['values']['seeds_form_id']);
+    foreach ((array) $seeds as $key => $seed) {
+      if (strpos($key, 'seed_') === 0) {
+        $form_state['values']['plugin_options'][$key] = $seed;
       }
     }
   }
@@ -561,135 +633,3 @@ function tourney_set_plugin_options(&$tourney, &$form_state, $to_cache = FALSE) 
     }
   }
 }
-
-function tourney_configure_rounds($js = FALSE, $object_id, $slots, $controller) {
-  $form_state = array(
-    'ajax' => $js,
-    'title' => t('Configure Round names.'),
-    'controller' => $controller,
-    'slots' => $slots,
-    'object_id' => $object_id,
-  );
-
-  if ($js) {
-    ctools_include('ajax');
-    ctools_include('modal');
-    $output = ctools_modal_form_wrapper('tourney_configure_rounds_form', $form_state);
-
-    if ($form_state['executed'] && $js) {
-      $commands = array();
-      $commands[] = ctools_modal_command_dismiss();
-
-      print ajax_render($commands);
-      exit;
-    }
-
-    print ajax_render($output);
-    exit;
-  }
-  else {
-    return drupal_get_form('tourney_configure_rounds_form', $form_state, $form_state);
-  }
-}
-
-function tourney_configure_rounds_form($form, &$form_state) {
-  if (!array_key_exists('controller', $form_state) && $form_state['build_info']['args'][0]['controller']) {
-    $form_state['controller'] = $form_state['build_info']['args'][0]['controller'];
-    $form_state['slots'] = $form_state['build_info']['args'][0]['slots'];
-    $form_state['object_id'] = $form_state['build_info']['args'][0]['object_id'];
-  }
-
-  // Instantiate a tournament so we can look at the data array.
-  $plugin = new $form_state['controller']($form_state['slots']);
-  $plugin->build();
-
-  $form_state['object'] = tourney_configure_rounds_cache_get($form_state['object_id']);
-
-  $form['num_rounds'] = array(
-    '#type' => 'value',
-    '#value' => count($plugin->data['rounds']),
-  );
-
-  foreach ($plugin->data['rounds'] as $rid => $round) {
-    // Set the bracket fieldset
-    if (!array_key_exists('bracket_' . $round['bracket'], $form)) {
-      $form['bracket_' . $round['bracket']] = array(
-        '#type' => 'fieldset',
-        '#title' => t('%bracket_name Bracket', array('%bracket_name' => $round['bracket'])),
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        '#access' => user_access('administer tourney'),
-      );
-    }
-
-    // If the object_id is numeric, we have a tournament id.
-    if (is_numeric($form_state['object_id'])) {
-      $tourney = tourney_tournament_load($form_state['object_id']);
-      $round_title = $tourney->get('round_' . $rid, $round['title']);
-    }
-    else {
-      $round_title = $round['title'];
-    }
-
-    $property = 'round_' . $rid;
-    $form['bracket_' . $round['bracket']]['round_' . $rid] = array(
-      '#type' => 'textfield',
-      '#title' => $round['title'],
-      '#description' => t('Enter the title for %round_name in the %bracket_name bracket.', array('%round_name' => $round['title'], '%bracket_name' => $round['bracket'])),
-      '#size' => 40,
-      '#maxlength' => 255,
-      '#default_value' => property_exists($form_state['object'], $property) ? $form_state['object']->$property : $round_title,
-    );
-  }
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Set Round Names'),
-  );
-
-  return $form;
-}
-
-/**
- * Set the round names in object cache.
- */
-function tourney_configure_rounds_form_submit(&$form, &$form_state) {
-  $form_state['object']->num_rounds = $form_state['values']['num_rounds'];
-
-  for($i = 1; $i <= $form_state['object']->num_rounds; $i++) {
-    $property = 'round_' . $i;
-    $form_state['object']->$property = $form_state['values']['round_' . $i];
-  }
-  tourney_configure_rounds_cache_set($form_state['object_id'], $form_state['object']);
-}
-
-/**
- * Store our little cache so that we can retain data from form to form.
- */
-function tourney_configure_rounds_cache_set($id, $object) {
-  ctools_include('object-cache');
-  ctools_object_cache_set('tourney_configure_rounds', $id, $object);
-}
-
-/**
- * Get the current object from the cache, or default.
- */
-function tourney_configure_rounds_cache_get($id) {
-  ctools_include('object-cache');
-  $object = ctools_object_cache_get('tourney_configure_rounds', $id);
-  if (!$object) {
-    // Create a default object.
-    $object = new stdClass;
-  }
-
-  return $object;
-}
-
-/**
- * Clear the cache.
- */
-function tourney_configure_rounds_cache_clear($id) {
-  ctools_include('object-cache');
-  ctools_object_cache_clear('tourney_configure_rounds', $id);
-}
-

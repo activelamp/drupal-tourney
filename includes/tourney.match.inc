@@ -126,9 +126,6 @@ function tourney_match_form($form, &$form_state, $match) {
     );
 
     foreach ($match->getGames() as $id => $game) {
-      if (!$game->getWinner() && count($match->getGames()) > 1) {
-        continue;
-      }
       $form['fix_games']['game.' . $id] = array(
         '#type' => 'radios',
         '#title' => t('Game @id', array('@id' => $id)),
@@ -282,6 +279,7 @@ function _tourney_match_contestants_sanitize($match, $this_eid, &$options) {
   $plugin = $tournament->tourneyFormatPlugin;
 
   // Get all the matches in round 1 for this tournament
+  if (!$plugin->data) $plugin->build();
   $tourney_matches = $plugin->data['matches'];
   $match_ids = array();
   foreach ($tourney_matches as $m) {
@@ -357,14 +355,16 @@ function tourney_match_form_submit($form, &$form_state) {
   // currently associated with the match. If they are different, we need to
   // reset the match.
   $contestant_ids = array_keys($match->getMatchContestants());
-  if (!empty($contestant_ids) 
-    && (!in_array($form_state['values']['contestant1'], $contestant_ids)
-      || !in_array($form_state['values']['contestant2'], $contestant_ids))) {
-    
-    $match->resetMatch();
-    $match_reset = TRUE;
-    drupal_set_message('The games in this match have been reset');
-  }
+  // @todo: Not sure what this code did, but it seems we dont need anymore.
+  //   Remove this in a few days if we don't see bug pop up.
+  // if (!empty($contestant_ids) 
+  //   && (!in_array($form_state['values']['contestant1'], $contestant_ids)
+  //     || !in_array($form_state['values']['contestant2'], $contestant_ids))) {
+  //   
+  //   $match->resetMatch();
+  //   $match_reset = TRUE;
+  //   drupal_set_message('The games in this match have been reset');
+  // }
 
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];

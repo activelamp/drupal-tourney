@@ -9,6 +9,7 @@ class TourneyTournamentEntity extends TourneyEntity {
 
   public  $matchIds = NULL;
   public  $gameIds = NULL;
+  public  $roundMatchIds = NULL;
   public  $uri;
   public  $data;
   public  $contestants = NULL;
@@ -111,33 +112,63 @@ class TourneyTournamentEntity extends TourneyEntity {
   }
 
   public function getHeadToHeadMatchIds($contestant1, $contestant2) {
-    $match_ids = $this->getMatchIds();
-
-    $query = tourney_relation_query($contestant1->entity_type, $contestant1->entity_id);
-    $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
-    $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
-
-    $relation_ids = array_keys($query->execute());
-    $relations = entity_load('relation', $relation_ids);
-
-    $match_ids = array();
-    foreach ($relations as $relation) {
-      $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+    if ($contestant1->entity_id > $contestant2->entity_id) {
+      $temp = $contestant1;
+      $contestant1 = $contestant2;
+      $contestant2 = $temp;
     }
 
-    $query = tourney_relation_query($contestant2->entity_type, $contestant2->entity_id);
-    $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
-    $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
+    // $cache_id = 'getHeadToHeadMatchIds_' . $contestant1->eid . '_' . $contestant2->eid;
+    // if ( !$cache = cache_get($cache_id, 'cache_tourney')) {
+      $match_ids = $this->getMatchIds();
 
-    $relation_ids = array_keys($query->execute());
-    $relations = entity_load('relation', $relation_ids);
+      $query = tourney_relation_query($contestant1->entity_type, $contestant1->entity_id);
+      $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
+      $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
 
-    $match_ids = array();
-    foreach ($relations as $relation) {
-      $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
-    }
+      $relation_ids = array_keys($query->execute());
+      $relations = entity_load('relation', $relation_ids);
+
+      $match_ids = array();
+      foreach ($relations as $relation) {
+        $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+      }
+
+      $query = tourney_relation_query($contestant2->entity_type, $contestant2->entity_id);
+      $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
+      $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
+
+      $relation_ids = array_keys($query->execute());
+      $relations = entity_load('relation', $relation_ids);
+
+      $match_ids = array();
+      foreach ($relations as $relation) {
+        $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
+      }
+    //   cache_set($cache_id, $match_ids, 'cache_tourney');
+    // }
+    // else {
+    //   $match_ids = $cache->data;
+    // }
 
     return $match_ids;
+  }
+  
+  /**
+   * Creates multi-dimensional array of rounds with corresponding matches in each round.
+   * 
+   * @return
+   *   Returns an array of rounds with match mids of each round as the value.
+   */
+  public function getRoundMatchIds() {
+    if (is_null($this->roundMatchIds)) {
+      $plugin = $this->tourneyFormatPlugin;
+      $plugin->build();
+      foreach($plugin->data['matches'] as $mid => $match_info) {
+        $this->roundMatchIds[$match_info['round']][] = $mid;
+      }
+    }
+    return $this->roundMatchIds;
   }
 
   /**
@@ -385,30 +416,27 @@ class TourneyTournamentEntity extends TourneyEntity {
     }
   }
 
-/**
- * Gets a list of participating contestants in seed order from the first round.
- *
- * @return array $contestants
- *   List of contestants, all entities from the first round of a tournament.
- */
+  /**
+   * Gets a list of participating contestants in seed order from the first round.
+   *
+   * @return array $contestants
+   *   List of contestants, all entities from the first round of a tournament.
+   */
   public function getContestants() {
-    if (is_null($this->contestants)) {
-      if (!$this->tourneyFormatPlugin->data['matches']) {
-        $this->tourneyFormatPlugin->build();
-      }
-      $matches = $this->tourneyFormatPlugin->data['matches'];
+    if (property_exists($this, 'is_new') && $this->is_new) return array();
+    
+    if (!$cache = cache_get(__FUNCTION__ . ':' . $this->id, 'cache_tourney')) {
+      if (is_null($this->contestants)) {
+        if (is_object($this->tourneyFormatPlugin) && !$this->tourneyFormatPlugin->data['matches']) {
+          $this->tourneyFormatPlugin->build();
+        }
+        $matches = $this->tourneyFormatPlugin->data['matches'];
 
-      // Set up two arrays to fill for seed order
-      $seed_1 = array();
-      $seed_2 = array();
-      if(is_array($matches)) {
-        foreach ($matches as $mid => $match_info) {
-          if ($match_info['round'] == 1) {
-            // If the match is a bye, get the next match id
-            if (array_key_exists('bye', $match_info) && $match_info['bye'] == TRUE) {
-              $mid = $match_info['nextMatch']['winner']['id'];
-            }
-
+        // Set up two arrays to fill for seed order
+        $seed_1 = array();
+        $seed_2 = array();
+        if(is_array($matches)) {
+          foreach ($matches as $mid => $match_info) {
             $match = $this->tourneyFormatPlugin->getMatchById($mid);
             if (is_object($match)) {
               $seed = 1;
@@ -418,27 +446,56 @@ class TourneyTournamentEntity extends TourneyEntity {
               }
             }
           }
+          // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5
+          $this->contestants = array_merge($seed_1, array_reverse($seed_2));
         }
-        // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5
-        $this->contestants = array_merge($seed_1, array_reverse($seed_2));
       }
     }
-
+    else {
+      $this->contestants = $cache->data;
+    }
     return $this->contestants;
   }
+  
+  /**
+   * Traverse all matches and get all matches a contestant is on.
+   * 
+   * This method finds all contestants by loading each match. The results are cached.
+   */
+  public function getContestantMatches($contestant_eid) {
+    $cid = __FUNCTION__ . ':' . $this->id . ':' . $contestant_eid;
+    if (!$cache = cache_get($cid, 'cache_tourney')) {
+      $match_ids = $this->getMatchIds();
+      $matches = array();
+      foreach ($match_ids as $match_id) {
+        $match = tourney_match_load($match_id);
+        $contestants = $match->getMatchContestants();
+        if (array_key_exists($contestant_eid, $contestants)) {
+          $matches[$match_id] = $match_id;
+        }
+      }
+      if (!empty($matches)) {
+        cache_set($cid, $matches, 'cache_tourney');
+      }
+    }
+    else {
+      $matches = $cache->data;
+    }
+    return $matches;
+  }
 
-/**
- * Pull all matches in and returns a list of all the tallies of wins/losses
- *
- * @return array $standings
- *   Keyed array with eid as the key and array of data as the value
- *   $standings['eid'] = array(
- *     'wins'   => 0,
- *     'losses' => 0,
- *     'total'  => 0,
- *     'first'  => 0, // First is used for the rare case of ties, just to see who won first
- *   )
- */
+  /**
+   * Pull all matches in and returns a list of all the tallies of wins/losses
+   *
+   * @return array $standings
+   *   Keyed array with eid as the key and array of data as the value
+   *   $standings['eid'] = array(
+   *     'wins'   => 0,
+   *     'losses' => 0,
+   *     'total'  => 0,
+   *     'first'  => 0, // First is used for the rare case of ties, just to see who won first
+   *   )
+   */
   public function getStandings() {
     $matches = $this->getMatchIds();
     $standings = array();
@@ -512,25 +569,30 @@ class TourneyTournamentEntity extends TourneyEntity {
     if ($this->get('no_automation', FALSE)) {
       return 0x3;
     }
+    
     if ((user_access('administer tourney') == FALSE && user_access("edit tourney") == FALSE)
       || count($match->getGameIds()) > 1) {
       return FALSE;
     }
+    $match->getMatchInfo();
     $round = $match->matchInfo['round'];
-
-    // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
-    if ($round == 1 && $match->matchInfo['bracket'] === 'main') {
-      // Both slots can be set
-      $return = 0x3;
-    }
-    elseif ($match->matchInfo && array_key_exists('seeds', $match->matchInfo)) {
-      foreach (array(1,2) as $slot) {
-        if (array_key_exists($slot, $match->matchInfo['seeds'])) {
-          $return += $slot;
+    
+    if (!array_key_exists('canSetContestants', $match->matchInfo)) {
+      // Return a bitwise value with contestant slots turned on (slot 1 in right most position)
+      if ($round == 1 && $match->matchInfo['bracket'] === 'main') {
+        // Both slots can be set
+        $match->matchInfo['canSetContestants'] = 0x3;
+      }
+      elseif ($match->matchInfo && array_key_exists('seeds', $match->matchInfo)) {
+        foreach (array(1,2) as $slot) {
+          if (array_key_exists($slot, $match->matchInfo['seeds'])) {
+            $match->matchInfo['canSetContestants'] += $slot;
+          }
         }
       }
     }
-    return $return;
+
+    return $match->matchInfo['canSetContestants'];
   }
 
   /**
@@ -547,6 +609,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     $info = $match->matchInfo;
     $match->cleanGames();
     
+    module_load_include('inc', 'tourney', 'includes/tourney.rank');
     if (!$this->get('no_automation', FALSE) && $this->format != 'RoundRobinController') {
       if (!$match->isFinished()) {
         return;
@@ -554,9 +617,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       // clear winner and loser so we can get a fresh winner, just in case
       $match->clearWinner();
 
-      module_load_include('inc', 'tourney', 'includes/tourney.rank');
       if ($old_winner && $old_winner !== $match->getWinner()) {
-        $rank_reset = TRUE;
         tourney_rank_win($this, $match->getLoserEntity(), TRUE);
         tourney_rank_lose($this, $match->getWinnerEntity(), TRUE);
       }
@@ -578,7 +639,7 @@ class TourneyTournamentEntity extends TourneyEntity {
         $loserMatch->addContestant($loser, $slot)->save();
       }
     }
-    if ($old_winner && $old_winner !== $match->getWinner()) {
+    if (!$old_winner || ($old_winner && $old_winner !== $match->getWinner())) {
       tourney_rank_win($this, $match->getWinnerEntity());
       tourney_rank_lose($this, $match->getLoserEntity());
     }

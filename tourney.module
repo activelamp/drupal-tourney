@@ -4,7 +4,7 @@
  * Create tournament, match, and game entities for creating tournaments.
  */
 
-define('TOURNEY_GAMES', 5);
+define('TOURNEY_GAMES', 3);
 define('TOURNEY_TRUNCATE', 12);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
@@ -27,7 +27,7 @@ function tourney_menu() {
     'page callback' => 'tourney_tournament_page_view',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('view', 'tournament'),
+    'access arguments' => array('view', 'tourney_tournament', 2),
     'file' => 'includes/tourney.tournament.inc',
   );
   $items['tourney/tournament/%tourney_tournament/view'] = array(
@@ -40,7 +40,7 @@ function tourney_menu() {
     'page callback' => 'tourney_tournament_edit',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('edit', 'tournament'),
+    'access arguments' => array('edit', 'tourney_tournament'),
     'file' => 'includes/tourney.tournament.inc',
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
@@ -51,7 +51,7 @@ function tourney_menu() {
     'page callback' => 'tourney_rank_reset',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('edit', 'tournament'),
+    'access arguments' => array('edit', 'tourney_tournament'),
     'file' => 'includes/tourney.rank.inc',
     'weight' => 5,
     'type' => MENU_LOCAL_TASK,
@@ -62,7 +62,7 @@ function tourney_menu() {
     'page callback' => 'tourney_confirm_delete_page',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('delete', 'tournament'),
+    'access arguments' => array('delete', 'tourney_tournament'),
     'file' => 'includes/tourney.admin.inc',
     'weight' => 10,
     'type' => MENU_CALLBACK,
@@ -74,7 +74,7 @@ function tourney_menu() {
     'page callback' => 'tourney_match_page_view',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('view', 'match'),
+    'access arguments' => array('view', 'tourney_match'),
     'file' => 'includes/tourney.match.inc',
   );
   $items['tourney/match/%tourney_match/view'] = array(
@@ -87,7 +87,7 @@ function tourney_menu() {
     'page callback' => 'tourney_match_edit',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('edit', 'match'),
+    'access arguments' => array('edit', 'tourney_match'),
     'file' => 'includes/tourney.match.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -98,7 +98,7 @@ function tourney_menu() {
     'page callback' => 'tourney_game_page_view',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('view', 'game'),
+    'access arguments' => array('view', 'tourney_game'),
     'file' => 'includes/tourney.match.inc',
   );
   $items['tourney/game/%tourney_game/view'] = array(
@@ -111,7 +111,7 @@ function tourney_menu() {
     'page callback' => 'tourney_game_edit',
     'page arguments' => array(2),
     'access callback' => 'tourney_access',
-    'access arguments' => array('edit', 'game'),
+    'access arguments' => array('edit', 'tourney_game'),
     'file' => 'includes/tourney.match.inc',
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -146,8 +146,15 @@ function tourney_menu() {
     'page callback' => 'tourney_configure_rounds',
     'page arguments' => array(1),
     'access arguments' => array('create tourney'),
-    'file' => 'includes/tourney.tournament.inc',
+    'file' => 'includes/tourney.modal.rounds.inc',
   );
+  $items['tourney/%ctools_js/seeds/configure'] = array(
+    'page callback' => 'tourney_configure_seeds',
+    'page arguments' => array(1),
+    'access arguments' => array('create tourney'),
+    'file' => 'includes/tourney.modal.seeds.inc',
+  );
+  
 
   return $items;
 }
@@ -708,21 +715,22 @@ function tourney_entity_get_types($entity_name, $type_name = NULL) {
 }
 
 /**
- * Access callback for tourney module.
+ * Entity access callback for tourney module.
+ *
+ * This is the access callback for the entity when it has not been accessed 
+ * through a menu router. I.E. a node with an entity reference field to a
+ * tournament.
+ *
+ * @see entity_access()
  */
-function tourney_access($op = 'view', $group = NULL, $account = NULL) {
+function tourney_access($op = 'view', $entity_type = NULL, $entity = NULL, $account = NULL) {
   if (user_access('administer tourney')) {
     return TRUE;
   }
-  // @todo: this is bad should get this from menu item passed.
-  $entity_id = arg(2);
+
   switch ($op) {
     case 'view':
-      if (!$group) {
-        return FALSE;
-      }
-      $entity = entity_load_single('tourney_' . $group, $entity_id);
-      if (property_exists($entity, 'status') && $entity->status == 0) {
+      if (is_object($entity) && property_exists($entity, 'status') && $entity->status == 0) {
         return user_access('view unpublished tourney');
       }
       else {
@@ -984,50 +992,63 @@ function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') 
  * Implements hook_ENTITY_view().
  */
 function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'en') {
+  $match_extra_fields = $entity->getTournament()->get('match_extra_fields', array());
+  
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'
   );
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
   );
-  $entity->content['tournament'] = array(
-    '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#theme' => 'link',
-    '#text' => 'Go to tournament ' . $entity->getTournament()->label,
-    '#path' => $entity->getTournament()->getUri(),
-    '#options' => array('attributes' => array(), 'html' => FALSE),
-  );
-  $entity->content['match_winner'] = array(
-    '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-    '#suffix' => '</div>',
-    '#markup' => $entity->getWinner(),
-  );
   
-  $default_contestant_classes = array('field-content', 'contestant');
-  $contestant_view_mode = $entity->getTournament()->get('contestant_view_mode', 'full');
-  $i = 1;
-  foreach ($entity->getMatchContestants() as $eid => $contestant) {
-    $contestant_classes = $default_contestant_classes;
-    $contestant_classes[] = 'contestant-' . $i;
-    if ($entity->winner == $contestant->entity_type . '.' . $contestant->entity_id) {
-      $contestant_classes[] = 'winner';
-    }
-    
-    $entity->content['match_contestant' . $i] = array(
-      '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="'. join(' ', $contestant_classes) .'">',
+  if (array_key_exists('tournament', $match_extra_fields) && $match_extra_fields['tournament']) {
+    $entity->content['tournament'] = array(
+      '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
       '#suffix' => '</div>',
-      'contestant' => entity_view($contestant->entity_type, array($contestant), $contestant_view_mode),
+      '#theme' => 'link',
+      '#text' => 'Go to tournament ' . $entity->getTournament()->label,
+      '#path' => $entity->getTournament()->getUri(),
+      '#options' => array('attributes' => array(), 'html' => FALSE),
     );
-    $i++;
   }
   
-  if (property_exists($entity, 'matchInfo') && $entity->matchInfo && !array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
-    $entity->content['match_table'] = array(
-      '#theme' => 'tourney_render_match',
-      '#match' => $entity,
+  if (array_key_exists('match_winner', $match_extra_fields) && $match_extra_fields['match_winner']) {
+    $entity->content['match_winner'] = array(
+      '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $entity->getWinner(),
     );
   }
+  
+  if (array_key_exists('contestants', $match_extra_fields) && $match_extra_fields['contestants']) {
+    $default_contestant_classes = array('field-content', 'contestant');
+    $contestant_view_mode = $entity->getTournament()->get('contestant_view_mode', 'full');
+    $i = 1;
+    foreach ($entity->getMatchContestants() as $eid => $contestant) {
+      $contestant_classes = $default_contestant_classes;
+      $contestant_classes[] = 'contestant-' . $i;
+      if ($entity->winner == $contestant->entity_type . '.' . $contestant->entity_id) {
+        $contestant_classes[] = 'winner';
+      }
+    
+      $entity->content['match_contestant' . $i] = array(
+        '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="'. join(' ', $contestant_classes) .'">',
+        '#suffix' => '</div>',
+        'contestant' => entity_view($contestant->entity_type, array($contestant), $contestant_view_mode),
+      );
+      $i++;
+    }
+  }
+  
+  if (array_key_exists('match_table', $match_extra_fields) && $match_extra_fields['match_table']) {
+    if (property_exists($entity, 'matchInfo') && $entity->matchInfo && !array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
+      $entity->content['match_table'] = array(
+        '#theme' => 'tourney_render_match',
+        '#match' => $entity,
+      );
+    }
+  }
+  
 
   if ($view_mode == 'match_block') {
     $entity->content['match_block'] = array(
@@ -1058,6 +1079,10 @@ function tourney_tourney_game_view($entity, $view_mode, $langcode = 'en') {
     '#suffix' => '</div>',
     '#markup' => $entity->winner,
   );
+}
+
+function tourney_batch_save($controller, $mid, $match, &$context) {
+  $controller::saveMatch($controller, $mid, $match, $context);
 }
 
 /**
@@ -1574,4 +1599,25 @@ function tourney_relation_query($entity_type = NULL, $entity_id = NULL, $r_index
   $query = relation_query($entity_type, $entity_id, $r_index);
   $query->range = array();
   return $query;
+}
+
+/**
+ * Returns the number of slots based on players set in plugin.
+ * 
+ * @param $controller
+ *   The plugin type that has a player field.
+ * @param $args
+ *   All the parameters passed into the functions below.
+ * 
+ * @see tourney_configure_rounds().
+ * @see tourney_configure_seeds().
+ */
+function tourney_configure_slots($args) {
+  // Get the third parameter, it's the controller in the parameter list.
+  $controller = $args[2];
+  $plugins_with_player = json_decode(array_pop($args));
+  $key = array_search($controller, $plugins_with_player);
+  
+  // The number of players start after the initial 3 parameters.
+  return $args[$key + 3];
 }

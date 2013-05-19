@@ -28,8 +28,6 @@ class TourneyMatchEntity extends TourneyEntity {
       $this->gameIds = $this->getGameIds();
       // Add a url to the object
       $this->uri = $this->getUri();
-
-      $this->matchInfo = $this->getMatchInfo();
     }
   }
 
@@ -54,7 +52,7 @@ class TourneyMatchEntity extends TourneyEntity {
         $r = relation_load($relation->rid);
         $game_ids[] = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
       }
-      asort($game_ids);
+      sort($game_ids);
       if (count($game_ids) > 0) {
         cache_set('fetchGameIds_' . $cache_id, $game_ids, 'cache_tourney');
       }
@@ -115,6 +113,7 @@ class TourneyMatchEntity extends TourneyEntity {
   public static function fetchContestantIds($match_id = NULL) {
     if ($match_id == NULL) {
       if (!isset($this)) return NULL;
+      if (!$this->id) return NULL;
       $match_id = $this->id;
     }
     $contestants = array();
@@ -159,7 +158,7 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function getTournament() {
     if (is_null($this->matchTournament)) {
-      $this->matchTournament = relation_get_related_entity('tourney_match', $this->id, 'has_match', 1);
+      $this->matchTournament = tourney_tournament_load($this->getTournamentId());
     }
     return $this->matchTournament;
   }
@@ -317,6 +316,8 @@ class TourneyMatchEntity extends TourneyEntity {
   public function fetchRanks($reset = FALSE) {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'cache_tourney')) {
       $games = array();
+      $this->getMatchInfo();
+      
       if(is_array($this->matchInfo)) {
       if (!array_key_exists('bye', $this->matchInfo) && count($this->getMatchContestants()) < 2) {
         return array();
@@ -366,6 +367,7 @@ class TourneyMatchEntity extends TourneyEntity {
    * @return bool
    */
   public function isFinished() {
+    $this->getMatchInfo();
     // If this is a bye, it's finished
     if(isset($this->matchInfo)) {
       if (array_key_exists('bye', $this->matchInfo) && $this->matchInfo['bye']) {
@@ -454,11 +456,19 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function save() {
     $this->winner = $this->getWinner();
+    if (property_exists($this, 'field_tournament') && !$this->field_tournament[LANGUAGE_NONE]) {
+      $tournament = $this->getTournament();
+      if ($tournament) {
+        $this->field_tournament[LANGUAGE_NONE][0]['target_id'] = $tournament->id;
+      }
+    }
+  
     parent::save();
     // Set the tournament winner if this was the last match.
     if ($this->getTournament()) {
       cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
     }
+    cache_clear_all('getHeadToHeadMatchIds_*', 'cache_tourney', TRUE);
   }
 
   /**
@@ -579,6 +589,19 @@ class TourneyMatchEntity extends TourneyEntity {
       throw new Exception('Invalid entity type. This type is not configured to be a contestant.');
     }
 
+    // If this is round 1, save seed positions.
+    if (array_key_exists('seeds', $this->matchInfo) && array_key_exists($slot, $this->matchInfo['seeds'])) {
+      $tourney = $this->getTournament();
+      $seed_positions = $tourney->get('seed_positions');
+      if (!is_array($seed_positions)) {
+        $seed_positions = array();
+      }
+      $seed_positions = array_merge($seed_positions, array($entity->eid => array('weight' => $this->matchInfo['seeds'][$slot])));
+      $tourney->set('seed_positions', $seed_positions);
+    }
+
+    if (!$this->id) $this->save();
+
     /* This logic allows contestants that are already on the match to be moved
     without potentially being affected when the copy is removed */
     cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
@@ -617,6 +640,7 @@ class TourneyMatchEntity extends TourneyEntity {
   *   Match entity of the desired match, otherwise NULL
   */
   public function nextMatch($direction = 'winner') {
+    $this->getMatchInfo();
     if (array_key_exists('nextMatch', $this->matchInfo)
       && array_key_exists($direction, $this->matchInfo['nextMatch'])) {
       $next_plugin_id = $this->matchInfo['nextMatch'][$direction]['id'];

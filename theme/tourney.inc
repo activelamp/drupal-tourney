@@ -28,6 +28,7 @@ function template_preprocess_tourney_tournament_render(&$vars) {
  */
 function template_preprocess_tourney_match_render(&$vars) {
   $plugin = &$vars['plugin'];
+  $tournament = $plugin->tournament;
 
   $match = $vars['match'];
   $matchInfo = $match;
@@ -74,24 +75,35 @@ function template_preprocess_tourney_match_render(&$vars) {
   
   foreach (array_values($contestants) as $slot => $contestant) {
     $slot++;
+    $seed_name = '';
+
     if (!is_object($contestant)) {
       $contestant = (object) $contestant;
     }
+    if (isset($seeds[$slot]) && is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
+      if ($tournament->get('show_seed_names', FALSE)) {
+        $seed_name = $tournament->get('seed_' . $seeds[$slot], $seeds[$slot]);
+      }
+      else {
+        $seed_name = $seeds[$slot];
+      }
+    }
+
     $contestant->slot = !empty($contestant->slot) ? $contestant->slot : $slot;
     $contestant_output .= theme('tourney_contestant', array(
       'contestant' => $contestant, 
-      'seed' => isset($seeds[$slot]) ? $seeds[$slot] : NULL,
+      'seed' => $seed_name,
       'plugin' => $plugin,
-      'winner' => property_exists($contestant, 'eid') && $contestant->eid == $match->winner,
+      'winner' => property_exists($contestant, 'eid') && $contestant->eid == $match->winner ? $match->winner : FALSE,
+      'winner_set' => !empty($match->winner),
     ));
   }
   
   // If we have a tournament object, get the match url from the plugin.
-  $tournament = $plugin->tournament;
   if (is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
     $match_uri = $plugin->getMatchURI($matchInfo['id']);
     if ($match_uri) {
-      $editable = $editable == TRUE && $plugin->canSetContestants($matchInfo['id']);
+      $editable = $editable == TRUE && $plugin->canSetContestants($matchInfo['id']) && user_access('edit tourney');
       $contestant_output = l($contestant_output, $match_uri . ($editable ? "/edit" : ''), array(
         'html' => TRUE,
         'attributes' => array('class' => 'match-link'),
@@ -102,10 +114,16 @@ function template_preprocess_tourney_match_render(&$vars) {
 
   $vars['complete'] = isset($match) && is_object($match) && $match->winner !== '';
   $vars['is_bye'] = isset($matchInfo['bye']) && $matchInfo['bye'] == TRUE;
+  $vars['hide'] = array_key_exists('hide', $matchInfo) && $matchInfo['hide'] == TRUE;
 
-  $vars['match_classes_array'] = array();
+  $vars['match_classes_array'] = array(
+    'round-' . $matchInfo['round'],
+    'bracket-' . $matchInfo['bracket'] . '-round-' . $matchInfo['round']
+  );
+  
   if ($vars['complete']) $vars['match_classes_array'][] = 'complete';
   if ($vars['is_bye']) $vars['match_classes_array'][] = 'bye';
+  if ($vars['hide']) $vars['match_classes_array'][] = 'hide-match';
   if (isset($match) && is_object($match) && $match->status == 0) $vars['match_classes_array'][] = 'not-necessary';
   $vars['match_classes'] = implode(' ', $vars['match_classes_array']);
 
@@ -126,9 +144,12 @@ function template_preprocess_tourney_contestant(&$vars) {
   
   // Let the plugin preprocess variables
   $plugin->preprocess('tourney-contestant', $vars);
-  
+
   $vars['classes_array'][] = 'contestant-' . $vars['contestant']->slot;
-  $vars['classes_array'][] = $vars['winner'] ? 'winner' : 'loser';
+  $vars['classes_array'][] = $vars['winner'] ? 'winner' : '';
+  if ($vars['winner_set']) {
+    $vars['classes_array'][] = $vars['winner'] ? 'winner' : 'loser';
+  }
   
   if (property_exists($vars['contestant'], 'entity_name') && $vars['contestant']->entity_name) {
     $vars['name'] = $vars['contestant']->entity_name;
