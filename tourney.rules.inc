@@ -148,7 +148,7 @@ function tourney_action_game_is_won($match, $quotient) {
   if ($resetMatch) {
     return;
   }
-  
+
   $plugin = $match->getTournament()->tourneyFormatPlugin;
   $message = '';
   // Create a new game if enough games have not been won yet.
@@ -163,6 +163,12 @@ function tourney_action_game_is_won($match, $quotient) {
         $match->nextMatch()->status = 1;
         $match->nextMatch()->removeContestant($match->getWinnerEntity());
         $match->nextMatch()->save();
+        // Re-calculate the winner (if any). If the game has been changed then
+        // there may no longer *be* a winner. If there is no winner then during
+        // the save a winner will be calculated, if any, so this is safe for all
+        // conditions.
+        $match->clearWinner();
+        $match->save();
       }
       if ($match->nextMatch('loser')) {
         $match->nextMatch('loser')->removeContestant($match->getLoserEntity());
