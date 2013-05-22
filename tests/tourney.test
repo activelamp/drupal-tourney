@@ -39,6 +39,9 @@ class TourneyWebTestCase extends DrupalWebTestCase {
    *   Returns the name of the tournament that was added.
    */
   protected function createTourney($format, $players, $default_games = 1) {
+    $this->verbose("Creating new tournament.");
+    $this->verbose("Number of players requested: {$players}");
+    $this->verbose("Format: {$format}");
     // Create the tournament.
     $edit = array();  
     // Set the Name of the tournament to a Random name.
@@ -48,7 +51,16 @@ class TourneyWebTestCase extends DrupalWebTestCase {
     // Set machine name of the tournament
     $edit['name'] = strtolower($edit['label']);
     // Set the number of Contestants in this tournament
-    $edit['players'] = $players;
+    //$edit['players'] = $players;
+    if ($format == 'RoundRobinController') {
+      $edit['plugin_options[RoundRobinController][players]'] = $players;
+    }
+    else if ($format == 'SingleEliminationController') {
+      $edit['plugin_options[SingleEliminationController][players]'] = $players;
+    }
+    else if ($format == 'DoubleEliminationController') {
+      $edit['plugin_options[DoubleEliminationController][players]'] = $players;
+    }
     // Set the Tournament 'Type'
     $edit['format'] = $format;
     // Set the number of games played in a single match, for all matches in tourament.

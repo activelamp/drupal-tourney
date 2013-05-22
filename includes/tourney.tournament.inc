@@ -169,13 +169,14 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#access' => user_access('administer tourney'),
     '#weight' => 20,
   );
-  
+
+  $extra_field_options = drupal_map_assoc(array('tournament', 'match_winner', 'contestants', 'match_table'));
   $form['extra_fields']['config_match_extra_fields'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Match fields'),
-    '#options' => drupal_map_assoc(array('tournament', 'match_winner', 'contestants', 'match_table')),
+    '#options' => $extra_field_options,
     '#description' => t('Extra fields to show on the match entity view.'),
-    '#default_value' => $tourney->get('match_extra_fields', array()),
+    '#default_value' => ($tourney->is_new) ? $extra_field_options : $tourney->get('match_extra_fields', array()),
   );
 
   $form['bundles'] = array(

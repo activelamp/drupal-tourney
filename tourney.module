@@ -338,7 +338,7 @@ function tourney_entity_info() {
         ),
       ),
 
-      'access callback' => 'tourney_access',
+      'access callback' => 'tourney_entity_access',
       'module' => 'tourney',
     );
 
@@ -731,6 +731,39 @@ function tourney_access($op = 'view', $entity_type = NULL, $entity = NULL, $acco
   switch ($op) {
     case 'view':
       if (is_object($entity) && property_exists($entity, 'status') && $entity->status == 0) {
+        return user_access('view unpublished tourney');
+      }
+      else {
+        return user_access('access tourney');
+      }
+
+    case 'edit':
+      return user_access('edit tournament');
+
+    case 'delete':
+      return user_access('delete tournament');
+  }
+
+  return FALSE;
+}
+
+/**
+ * Entity access callback for tourney module.
+ *
+ * This is the access callback for the entity when it has not been accessed 
+ * through a menu router. I.E. a node with an entity reference field to a
+ * tournament.
+ *
+ * @see entity_access()
+ */
+function tourney_entity_access($op = 'view', $entity = NULL, $account = NULL, $entity_type = NULL) {
+  if (user_access('administer tourney')) {
+    return TRUE;
+  }
+
+  switch ($op) {
+    case 'view':
+      if (property_exists($entity, 'status') && $entity->status == 0) {
         return user_access('view unpublished tourney');
       }
       else {
