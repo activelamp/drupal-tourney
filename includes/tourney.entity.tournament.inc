@@ -483,7 +483,31 @@ class TourneyTournamentEntity extends TourneyEntity {
     }
     return $matches;
   }
-
+  
+  /**
+   * Checks to see if a contestant is still active in any match in tournament.
+   * 
+   * Look at every match the contestant passed in is on. If the contestant is
+   * on any match that does NOT have a winner, then the contestant is still
+   * active on the tournament.
+   * 
+   * @param $contestant_eid
+   *   The entity and id of the contestant to lookup.
+   * @return bool
+   *   Returns True of the contestant is still active.
+   */
+  public function isContestantActive($contestant_eid) {
+    $matches = $this->getContestantMatches($contestant_eid);
+    
+    foreach($matches as $match_id) {
+      $match = tourney_match_load($match_id);
+      if (empty($match->winner)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   /**
    * Pull all matches in and returns a list of all the tallies of wins/losses
    *
