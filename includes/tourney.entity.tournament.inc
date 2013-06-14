@@ -118,7 +118,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       $contestant2 = $temp;
     }
 
-    $cache_id = 'getHeadToHeadMatchIds_' . $contestant1->eid . '_' . $contestant2->eid;
+    $cache_id = 'getHeadToHeadMatchIds:' . $this->id . ':' . $contestant1->eid . ':' . $contestant2->eid;
     if ( !$cache = cache_get($cache_id, 'cache_tourney')) {
       $match_ids = $this->getMatchIds();
 
