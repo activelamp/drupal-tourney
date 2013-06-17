@@ -425,7 +425,8 @@ class TourneyTournamentEntity extends TourneyEntity {
   public function getContestants() {
     if (property_exists($this, 'is_new') && $this->is_new) return array();
     
-    if (!$cache = cache_get(__FUNCTION__ . ':' . $this->id, 'cache_tourney')) {
+    $cid = __FUNCTION__ . ':' . $this->id;
+    if (!$cache = cache_get($cid, 'cache_tourney')) {
       if (is_null($this->contestants)) {
         if (is_object($this->tourneyFormatPlugin) && !$this->tourneyFormatPlugin->data['matches']) {
           $this->tourneyFormatPlugin->build();
@@ -437,7 +438,7 @@ class TourneyTournamentEntity extends TourneyEntity {
         $seed_2 = array();
         if(is_array($matches)) {
           foreach ($matches as $mid => $match_info) {
-            $match = $this->tourneyFormatPlugin->getMatchById($mid);
+            $match = $this->getMatchById($mid);
             if (is_object($match)) {
               $seed = 1;
               foreach ($match->getMatchContestants() as $eid => $contestant) {
@@ -454,6 +455,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     else {
       $this->contestants = $cache->data;
     }
+    cache_set($cid, $this->contestants, 'cache_tourney');
     return $this->contestants;
   }
   

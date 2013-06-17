@@ -95,8 +95,9 @@ class ManualUploadController extends TourneyController {
     if ($template == 'tourney-tournament-render') {
       $vars['classes_array'][] = 'tourney-tournament-manualupload';
 
-      $vars['header'] = theme('tourney_manualupload_standings', array('plugin' => $this));
-      $vars['matches'] = theme('tourney_manualupload', array('plugin' => $this));
+      // @todo: These calls are pretty expensive. Add settings to turn this on.
+      // $vars['header'] = theme('tourney_manualupload_standings', array('plugin' => $this));
+      // $vars['matches'] = theme('tourney_manualupload', array('plugin' => $this));
     }
     if ($template == 'tourney-match-render') {
       $last_match = count($vars['plugin']->structure['round-1']['matches']);

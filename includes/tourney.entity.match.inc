@@ -248,6 +248,7 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function getMatchContestants() {
     $entities = array();
+
     foreach ($this->getContestantIds() as $contestant) {
       $entity = entity_load_single_by_eid($contestant['eid']);
       $entities[$entity->eid] = $entity;
@@ -605,6 +606,7 @@ class TourneyMatchEntity extends TourneyEntity {
     /* This logic allows contestants that are already on the match to be moved
     without potentially being affected when the copy is removed */
     cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
+    cache_clear_all('getContestants:' . $this->tournamentId, 'cache_tourney', TRUE);
 
     $current_eids = array();
     foreach ($this->getContestantIds() as $contestant) {
