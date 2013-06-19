@@ -427,30 +427,8 @@ class TourneyTournamentEntity extends TourneyEntity {
     
     $cid = __FUNCTION__ . ':' . $this->id;
     if (!$cache = cache_get($cid, 'cache_tourney')) {
-      if (is_null($this->contestants)) {
-        if (is_object($this->tourneyFormatPlugin) && !$this->tourneyFormatPlugin->data['matches']) {
-          $this->tourneyFormatPlugin->build();
-        }
-        $matches = $this->tourneyFormatPlugin->data['matches'];
-
-        // Set up two arrays to fill for seed order
-        $seed_1 = array();
-        $seed_2 = array();
-        if(is_array($matches)) {
-          foreach ($matches as $mid => $match_info) {
-            $match = $this->getMatchById($mid);
-            if (is_object($match)) {
-              $seed = 1;
-              foreach ($match->getMatchContestants() as $eid => $contestant) {
-                $group = "seed_" . $seed++;
-                ${$group}[$eid] = $contestant;
-              }
-            }
-          }
-          // Reverse seed_2, so we return contestants as 1 2 3 4 8 7 6 5
-          $this->contestants = array_merge($seed_1, array_reverse($seed_2));
-        }
-      }
+      $contestant_eids = array_keys($this->get('seed_positions'));
+      $this->contestants = entity_load_by_eid($contestant_eids);
     }
     else {
       $this->contestants = $cache->data;
@@ -722,16 +700,16 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   If the setting does not exists, the default value to return.
    */
   public function get($name, $default = NULL) {
+    global $_tourney_config;
+    if (!isset($_tourney_config)) {
+      tourney_initialize_configuration();
+    }
+
     if (!property_exists($this, 'entity_id')) {
       if ($name == '**ALL**') {
         return isset($this->config) ? $this->config : array();
       }
-      return isset($this->config[$name]) ? $this->config[$name] : $default;
-    }
-
-    global $_tourney_config;
-    if (!isset($_tourney_config)) {
-      tourney_initialize_configuration();
+      return isset($this->config[$name]) ? $this->config[$name] : (isset($_tourney_config[$this->id][$name]) ? $_tourney_config[$this->id][$name] : $default);
     }
 
     if ($name == '**ALL**') {
@@ -767,5 +745,6 @@ class TourneyTournamentEntity extends TourneyEntity {
     cache_clear_all('configuration', 'cache_tourney');
 
     $_tourney_config[$this->id][$name] = $value;
+    $this->config[$name] = $value;
   }
 }
