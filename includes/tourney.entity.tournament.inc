@@ -332,20 +332,6 @@ class TourneyTournamentEntity extends TourneyEntity {
   }
 
   /**
-   * Get the path to a tourney url without needing a tourney object loaded.
-   */
-  public static function path($id) {
-    return 'tourney/tournament/' . $id;
-  }
-
-  /**
-   * Return the uri to the entity object
-   */
-  public function getUri() {
-    return TourneyTournamentEntity::path($this->id);
-  }
-
-  /**
    * Delete a tournament.
    */
   public function delete() {
@@ -709,7 +695,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       if ($name == '**ALL**') {
         return isset($this->config) ? $this->config : array();
       }
-      return isset($this->config[$name]) ? $this->config[$name] : (isset($_tourney_config[$this->id][$name]) ? $_tourney_config[$this->id][$name] : $default);
+      return isset($this->config[$name]) ? $this->config[$name] : (isset($this->id) && isset($_tourney_config[$this->id][$name]) ? $_tourney_config[$this->id][$name] : $default);
     }
 
     if ($name == '**ALL**') {

@@ -10,7 +10,7 @@
  */
 function tourney_series_menu() {
   $items = array();
-  $items['tourney-series/add'] = array(
+  $items['tourney/series/add'] = array(
     'title' => 'Add a new tournament series',
     'page callback' => 'entity_ui_get_form',
     'page arguments' => array('tourney_series', NULL, 'add'),
@@ -18,7 +18,21 @@ function tourney_series_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'includes/tourney_series.admin.inc',
   );
-  $items['tourney-series/%tourney_series/edit'] = array(
+  $items['tourney/series/%tourney_series'] = array(
+    'title callback' => 'tourney_page_title',
+    'title arguments' => array(2),
+    'page callback' => 'tourney_series_page_view',
+    'page arguments' => array(2),
+    'access callback' => 'tourney_access',
+    'access arguments' => array('view', 'tourney_series', 2),
+    'file' => 'includes/tourney_series.admin.inc',
+  );
+  $items['tourney/series/%tourney_series/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['tourney/series/%tourney_series/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'tourney_series_edit',
     'page arguments' => array(2),
@@ -29,7 +43,7 @@ function tourney_series_menu() {
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
-  $items['tourney-series/%tourney_series/delete'] = array(
+  $items['tourney/series/%tourney_series/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'tourney_series_confirm_delete_page',
     'page arguments' => array(2),
@@ -39,30 +53,7 @@ function tourney_series_menu() {
     'weight' => 10,
     'type' => MENU_CALLBACK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-  );
-  //add another way to create a tournament and associate it with a series
-  $items['admin/tourney-series-tournament-add/%'] = array(
-    'title' => 'Add a new tournament to series',
-    'page callback' => 'entity_ui_get_form',
-    'page arguments' => array('tourney_tournament', NULL, 'add'),
-    'access arguments' => array('create tourney'),
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'file path' => drupal_get_path('module', 'tourney'),
-    'file' => 'includes/tourney.tournament.inc',
-  );
-  $items['tourney_series/autocomplete'] = array(
-    'page callback' => '_tourney_series_autocomplete',
-    'access arguments' => array('add tourney to series'),
-    'type' => MENU_CALLBACK
-  );
-  $items['admin/tourney-series-tournament-remove/%/%'] = array(
-    'title' => 'Remove tournament',
-    'page callback' => 'tourney_series_remove_tourney',
-    'page arguments' => array(2, 3),
-    'access arguments' => array('remove tourney from series'),
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'file' => 'includes/tourney_series.admin.inc',
-  );
+  );  
   return $items;
 }
 
@@ -82,7 +73,6 @@ function tourney_series_permission() {
   );
 }
 
-
 /**
  * Implements hook_entity_info().
  */
@@ -90,7 +80,7 @@ function tourney_series_entity_info() {
   $return = array();
   $entity_name  = 'tourney_series';
   $entity_short = 'series';
-  $entity_class = 'TourneySeries';
+  $entity_class = 'TourneySeriesEntity';
 
   $return[$entity_name] = array(
     'label' => $entity_name,
@@ -160,130 +150,88 @@ function tourney_series_entity_info() {
   return $return;
 }
 
-function tourney_series_get_tournaments_on_series($series) {
-  //$tourney = relation_get_related_entity('node', $event->nid, 'event_tournament', 0);
-  $query = tourney_relation_query('tourney_series', $series->id);
-  $query->entityCondition('bundle', 'has_tournament');
-  $results = $query->execute();
-  if(is_array($results) && !empty($results)) {
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
-      $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-      $series_arr[] = array(
-        'type' => $type,
-        'id' => $id,
-        'eid' => $type . '.' . $id,
-        'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
-      );
-    }
-    if(is_array($series_arr) && !empty($series_arr)) {
-      foreach ($series_arr as $s) {
-        $return_array[] = entity_load_single_by_eid($s['eid']);
-      }
-      return $return_array;
-    }
-  }
+/**
+ * Save the tournament series
+ *
+ * @param TourneySeriesEntity $series
+ */
+function tourney_series_save($series) {
+  entity_save('tourney_series', $series);
 }
 
-function get_tourney_series_relation($tourney_id, $series_id) {
-  $query = tourney_relation_query('tourney_series', $series_id);
-  $query->entityCondition('bundle', 'has_tournament');
-  $results = $query->execute();
-  if(is_array($results)) {
-    foreach($results as $relation) {
-      $r = relation_load($relation->rid);
-      $type = $r->endpoints[LANGUAGE_NONE][1]['entity_type'];
-      $id = $r->endpoints[LANGUAGE_NONE][1]['entity_id'];
-      $series_arr[] = array(
-        'type' => $type,
-        'id' => $id,
-        'eid' => $type . '.' . $id,
-        'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
-      );
-      if($id == $tourney_id) {
-        relation_delete($relation->rid);
-        drupal_goto(drupal_get_destination());
-      }
-    }
-  }
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function tourney_series_ctools_plugin_type() {
+  $plugins['tourney_series'] = array(
+    'load themes' => TRUE,
+  );
+
+  return $plugins;
 }
 
-function tourney_series_get_series_by_tourney($tourney) {
-  //$tourney = relation_get_related_entity('node', $event->nid, 'event_tournament', 0);
-  $query = tourney_relation_query('tourney_tournament', $tourney->id);
-  $query->entityCondition('bundle', 'has_tournament');
-  $results = $query->execute();
-  if(is_array($results) && !empty($results)) {
-    foreach ($results as $relation) {
-      $r = relation_load($relation->rid);
-      $type = $r->endpoints[LANGUAGE_NONE][0]['entity_type'];
-      $id = $r->endpoints[LANGUAGE_NONE][0]['entity_id'];
-      $series_arr[] = array(
-        'type' => $type,
-        'id' => $id,
-        'eid' => $type . '.' . $id,
-        'slot' => $r->slot ? $r->slot[LANGUAGE_NONE][0]['value'] : NULL,
-      );
-    }
-    if(is_array($series_arr) && !empty($series_arr)) {
-      foreach ($series_arr as $s) {
-        $return_array[] = entity_load_single_by_eid($s['eid']);
-      }
-      return $return_array;
-    }
-  }
-}
-
-function tourney_series_form_tourney_tournament_form_alter(&$form, &$form_state) {
-  $form_state['series'] = arg(1) === 'tourney-series-tournament-add' ? arg(2) : NULL;
-  if ($form_state['series']) {
-    array_push($form['#submit'], 'tourney_series_tourney_tournament_form_submit');
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function tourney_series_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'tourney_series' && $plugin == 'tourney_series') {
+    return 'plugins/tourney_series';
   }
 }
 
 /**
- * Submit callback for tourney_tournement entities.
- *
- * @see lol_tourney_form_tourney_tournament_form_alter()
+ * Implements hook_views_api().
  */
-function tourney_series_tourney_tournament_form_submit($form, &$form_state) {
-  $series_eid  = $form_state['series'];
-  $tourney_id = $form_state['tourney_tournament']->id;
-  if ($series_eid && $tourney_id) {
-    $tourney = lol_tourney_get_event_tournament_by_series($series_eid);
-    $entity_keys = array(
-      array('entity_type' => 'tourney_series', 'entity_id' => $series_eid),
-      array('entity_type' => 'tourney_tournament', 'entity_id' => $tourney_id),
-    );
-    $rid = relation_insert('has_tournament', $entity_keys);
-  }
+function tourney_series_views_api() {
+  return array(
+    'api' => '3',
+  );
 }
 
-function tourney_series_autocomplete_form_validate($form, &$form_state) {
-  if($form_state['triggering_element']['#value'] == 'Add') {
-    $series_eid  = $form_state['series']->id;
-    $tourney_id = $form['attach_tourneys']['#value'];
-    if ($series_eid && $tourney_id) {
-      $entity_keys = array(
-        array('entity_type' => 'tourney_series', 'entity_id' => $series_eid),
-        array('entity_type' => 'tourney_tournament', 'entity_id' => $tourney_id),
-      );
-      $rid = relation_insert('has_tournament', $entity_keys);
-    }
-  }
+/**
+ * Fetch metadata for all tournament_type plugins.
+ *
+ * @return
+ *   An array of arrays with information about all available tournament types.
+ */
+function tourney_series_get_types() {
+  ctools_include('plugins');
+  $plugins = ctools_get_plugins('tourney_series', 'tourney_series');
+  return $plugins;
 }
 
-function _tourney_series_autocomplete($string) {
-  $query = db_select('tourney_tournament', 't')
-    ->fields('t', array('id', 'label'))
-    ->condition('t.label', '%' . db_like($string) . '%', 'LIKE')
-    ->range(0,10)
-    ->execute();
+/**
+ * Fetch a tournament series object
+ *
+ * @param $id
+ *   Integer specifying the tournament series id
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   A fully-loaded object of FALSE of it cannot be loaded.
+ *
+ * @see tourney_series_load_multiple()
+ */
+function tourney_series_load($id = NULL, $reset = FALSE) {
+  $ids = isset($id) ? array($id) : array();
+  $conditions = array();
+  $series = tourney_series_load_multiple($ids, $conditions, $reset);
 
-  foreach($query as $row) {
-    $matches[$row->id] = check_plain($row->label);
-  }
+  return $series ? reset($series) : FALSE;
+}
 
-  drupal_json_output($matches);
+/**
+ * Load multiple tournament series entities based on certain conditions.
+ *
+ * @param $ids
+ *   An array of entity IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {entity} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   An array of tournament entity objects, indexed by id.
+ */
+function tourney_series_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('tourney_series', $ids, $conditions, $reset);
 }

@@ -192,20 +192,6 @@ class TourneyGameEntity extends TourneyEntity {
     cache_clear_all('tourney_winner_count_' . $this->getMatchId(), 'cache_tourney');
   }
 
-  /**
-   * Get the path to a tourney url without needing a tourney object loaded.
-   */
-  public static function path($id) {
-    return 'tourney/game/' . $id;
-  }
-
-  /**
-   * Return the uri to the entity object
-   */
-  public function getUri() {
-    return TourneyGameEntity::path($this->id);
-  }
-
   public function delete() {
     parent::delete();
   }

@@ -72,7 +72,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#type' => 'select',
     '#title' => t('Tournament style'),
     '#description' => t('Choose the style of play for this tournament'),
-    '#options' => tourney_get_type_options(),
+    '#options' => tourney_get_type_options(false, tourney_get_types()),
     '#disabled' => isset($tourney->format) ? TRUE : FALSE,
     '#default_value' => isset($tourney->format) ? $tourney->format : -1,
     '#attributes' => array('class' => array('edit-configure-round-names-url', 'edit-configure-seed-names-url')),
@@ -528,7 +528,7 @@ function tourney_tournament_edit($tournament) {
 /**
  * Build an options array to be used in forms.
  */
-function tourney_get_type_options($reset = FALSE) {
+function tourney_get_type_options($reset = FALSE, $plugins) {
   ctools_include('plugins');
   static $options = array();
 
@@ -536,7 +536,6 @@ function tourney_get_type_options($reset = FALSE) {
     return $options;
   }
 
-  $plugins = tourney_get_types();
   uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
     $options[$info['controller']] = $info['title'];

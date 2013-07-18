@@ -10,89 +10,7 @@
  */
 function tourney_views_default_views() {
   $views = array();
-  
-  $view = new view();
-  $view->name = 'games_in_match';
-  $view->description = 'Provides a local tab for all games in match';
-  $view->tag = 'default';
-  $view->base_table = 'tourney_match';
-  $view->human_name = 'Games in match';
-  $view->core = 7;
-  $view->api_version = '3.0';
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
-  /* Display: Master */
-  $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['use_more_always'] = FALSE;
-  $handler->display->display_options['access']['type'] = 'none';
-  $handler->display->display_options['cache']['type'] = 'none';
-  $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['query']['options']['query_comment'] = FALSE;
-  $handler->display->display_options['exposed_form']['type'] = 'basic';
-  $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['style_plugin'] = 'table';
-  $handler->display->display_options['style_options']['columns'] = array(
-    'id' => 'id',
-    'title' => 'title',
-  );
-  $handler->display->display_options['style_options']['default'] = 'id';
-  $handler->display->display_options['style_options']['info'] = array(
-    'id' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'title' => array(
-      'sortable' => 0,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-  );
-  /* Relationship: Match: Relation: has game (tourney_match → tourney_game) */
-  $handler->display->display_options['relationships']['relation_has_game_tourney_game']['id'] = 'relation_has_game_tourney_game';
-  $handler->display->display_options['relationships']['relation_has_game_tourney_game']['table'] = 'tourney_match';
-  $handler->display->display_options['relationships']['relation_has_game_tourney_game']['field'] = 'relation_has_game_tourney_game';
-  $handler->display->display_options['relationships']['relation_has_game_tourney_game']['r_index'] = '-1';
-  /* Field: Game: Game ID */
-  $handler->display->display_options['fields']['id']['id'] = 'id';
-  $handler->display->display_options['fields']['id']['table'] = 'tourney_game';
-  $handler->display->display_options['fields']['id']['field'] = 'id';
-  $handler->display->display_options['fields']['id']['relationship'] = 'relation_has_game_tourney_game';
-  /* Field: Match: Label */
-  $handler->display->display_options['fields']['label']['id'] = 'label';
-  $handler->display->display_options['fields']['label']['table'] = 'tourney_match';
-  $handler->display->display_options['fields']['label']['field'] = 'label';
-  /* Field: Game: Edit link */
-  $handler->display->display_options['fields']['edit_game']['id'] = 'edit_game';
-  $handler->display->display_options['fields']['edit_game']['table'] = 'tourney_game';
-  $handler->display->display_options['fields']['edit_game']['field'] = 'edit_game';
-  $handler->display->display_options['fields']['edit_game']['relationship'] = 'relation_has_game_tourney_game';
-  $handler->display->display_options['fields']['edit_game']['label'] = 'Edit Game';
-  $handler->display->display_options['fields']['edit_game']['element_label_colon'] = FALSE;
-  /* Contextual filter: Match: Match ID */
-  $handler->display->display_options['arguments']['id']['id'] = 'id';
-  $handler->display->display_options['arguments']['id']['table'] = 'tourney_match';
-  $handler->display->display_options['arguments']['id']['field'] = 'id';
-  $handler->display->display_options['arguments']['id']['default_action'] = 'empty';
-  $handler->display->display_options['arguments']['id']['default_argument_type'] = 'fixed';
-  $handler->display->display_options['arguments']['id']['summary']['number_of_records'] = '0';
-  $handler->display->display_options['arguments']['id']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['id']['summary_options']['items_per_page'] = '25';
-
-  /* Display: Page */
-  $handler = $view->new_display('page', 'Page', 'page_1');
-  $handler->display->display_options['path'] = 'tourney/match/%/games';
-  $handler->display->display_options['menu']['type'] = 'tab';
-  $handler->display->display_options['menu']['title'] = 'Games';
-  $handler->display->display_options['menu']['weight'] = '0';
-  $handler->display->display_options['menu']['context'] = 0;
-  $handler->display->display_options['tab_options']['weight'] = '0';
-  $views['games_in_match'] = $view;
-  
   $view = new view();
   $view->name = 'tourney';
   $view->description = '';
@@ -301,7 +219,7 @@ function tourney_views_default_views() {
   $handler->display->display_options['header']['area']['field'] = 'area';
   $handler->display->display_options['header']['area']['empty'] = TRUE;
   $handler->display->display_options['header']['area']['content'] = '<div class="item-list"><ul class="action-links"><li class="first last">
-   <a href="/tourney/add">Add Tournament</a></li>
+   <a href="/tourney/tournament/add">Add Tournament</a></li>
   </ul></div>';
   $handler->display->display_options['header']['area']['format'] = 'filtered_html';
   $handler->display->display_options['defaults']['fields'] = FALSE;
@@ -438,12 +356,16 @@ function tourney_views_default_views() {
   <a href="/tourney/tournament/[id]/edit">Edit</a>
   <a href="/tourney/tournament/[id]/delete">Delete</a>';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  $handler->display->display_options['path'] = 'admin/content/tourney';
-  $handler->display->display_options['menu']['type'] = 'tab';
-  $handler->display->display_options['menu']['title'] = 'Tournaments';
+  $handler->display->display_options['path'] = 'admin/content/tourney/tournaments';
+  $handler->display->display_options['menu']['type'] = 'default tab';
+  $handler->display->display_options['menu']['title'] = 'Tourney';
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'management';
   $handler->display->display_options['menu']['context'] = 0;
+  $handler->display->display_options['menu']['context_only_inline'] = 0;
+  $handler->display->display_options['tab_options']['type'] = 'tab';
+  $handler->display->display_options['tab_options']['title'] = 'Tournaments';
+  $handler->display->display_options['tab_options']['weight'] = '0';
 
   /* Display: Tournament Matches */
   $handler = $view->new_display('page', 'Tournament Matches', 'page_1');
@@ -601,7 +523,7 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['nothing']['label'] = 'Operations';
   $handler->display->display_options['fields']['nothing']['alter']['text'] = '<a href="/tourney/match/[id_1]">View</a>
   <a href="/tourney/match/[id_1]/edit">Edit</a>';
-  $handler->display->display_options['path'] = 'admin/content/tourney/%/matches';
+  $handler->display->display_options['path'] = 'admin/content/tourney/tournaments/%/matches';
 
   /* Display: Match Games */
   $handler = $view->new_display('page', 'Match Games', 'page_2');
@@ -769,7 +691,7 @@ function tourney_views_default_views() {
   $handler->display->display_options['arguments']['id_2']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['id_2']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['id_2']['summary_options']['items_per_page'] = '25';
-  $handler->display->display_options['path'] = 'admin/content/tourney/%/matches/%/games';
+  $handler->display->display_options['path'] = 'admin/content/tourney/tournaments/%/matches/%/games';
   $views['tourney'] = $view;
 
   return $views;
