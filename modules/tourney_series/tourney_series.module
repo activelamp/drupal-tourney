@@ -103,7 +103,7 @@ function tourney_series_entity_info() {
       'bundle' => 'name',
     ),
     'access callback' => 'tourney_access',
-    'module' => 'tourney',
+    'module' => 'tourney_series',
   );
 
   // Add bundle info but bypass entity_load() as we cannot use it here.
@@ -139,11 +139,11 @@ function tourney_series_entity_info() {
       'label' => 'label',
     ),
     'access callback' => 'tourney_type_access',
-    'module' => 'tourney',
+    'module' => 'tourney_series',
     // Enable the entity API's admin UI.
     'admin ui' => array(
       'path' => 'admin/structure/tourney/' . $entity_short,
-      'file' => 'includes/tourney.admin.inc',
+      'file' => 'includes/tourney_series.admin.inc',
     ),
   );
 
@@ -234,4 +234,11 @@ function tourney_series_load($id = NULL, $reset = FALSE) {
  */
 function tourney_series_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
   return entity_load('tourney_series', $ids, $conditions, $reset);
+}
+
+/**
+ * Menu auto loaders.
+ */
+function tourney_series_type_load($type) {
+  return tourney_entity_get_types('tourney_series_type', $type);
 }

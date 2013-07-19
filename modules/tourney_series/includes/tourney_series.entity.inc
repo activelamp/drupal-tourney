@@ -26,19 +26,30 @@ class TourneySeriesEntity extends TourneyEntity {
    * @return TourneySeriesEntity
    *   Returns the tourney series object of the tournament.
    */
-  public static function getByTournament($tourney_id) {
-
+  public static function getByTournamentId($tourney_id) {
+    $query = new EntityFieldQuery();
+    $results = $query->entityCondition('entity_type', 'tourney_series')
+      ->fieldCondition('tournaments', 'target_id', $tourney_id)
+      ->execute();
+    $series = array_shift($results['tourney_series']);
+    return tourney_series_load($series->id);
   }
   
   /**
    * Get tournaments in series.
+   *
+   * @return TourneyTournamentEntity
+   *   Returns the loaded tournament objects in series.
    */
   public function getTournaments() {
-    // TODO: Implement isFinished() method.
+    $wrapper = entity_metadata_wrapper('tourney_series', $this);
+    return $wrapper->tournaments->value();
   }
 
   public function isFinished() {
-    // TODO: Implement isFinished() method.
+    $finished = strlen($this->getWinner());
+
+    return $finished;
   }
 
   public function isStarted() {

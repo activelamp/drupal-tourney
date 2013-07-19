@@ -141,4 +141,23 @@ function tourney_series_install() {
     'weight' => 0,
   ));
   $type->save();
+
+  // Define fields for the tournament has match relation.
+  $field = array(
+    'field_name' => 'tournaments',
+    'cardinality' => -1,
+    'type' => 'entityreference',
+    'settings' => array(
+      'target_type' => 'tourney_tournament'
+    ),
+  );
+  field_create_field($field);
+
+  $field_instance = array(
+    'entity_type' => 'tourney_series',
+    'bundle' => 'series',
+    'field_name' => 'tournaments',
+    'label' => st('Tournaments'),
+  );
+  field_create_instance($field_instance);
 }
