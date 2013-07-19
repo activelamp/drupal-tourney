@@ -13,7 +13,7 @@ define('TOURNEY_DEBUG_EXTENDS', FALSE);
  */
 function tourney_menu() {
   $items = array();
-  $items['tourney/add'] = array(
+  $items['tourney/tournament/add'] = array(
     'title' => 'Add a new tournament',
     'page callback' => 'entity_ui_get_form',
     'page arguments' => array('tourney_tournament', NULL, 'add'),
@@ -244,7 +244,7 @@ function tourney_admin_paths() {
   if (variable_get('node_admin_theme')) {
     return array(
       'tourney/*/*/*' => TRUE,
-      'tourney/add' => TRUE,
+      'tourney/*/add' => TRUE,
     );
   }
 }

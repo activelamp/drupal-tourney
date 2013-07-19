@@ -123,7 +123,7 @@ class TourneyController implements TourneyControllerInterface {
    * @todo: Should these be abstract? Do we want to provide a default
    *   implemenations?
    */
-  public static function possibleWinners() {}
+  public static function possibleWinners($num_contestants) {}
   public function populatePositions() {}
   public function populateSeedPositions() {}
   public function preprocess($template, &$vars) {}
@@ -610,5 +610,28 @@ abstract class TourneyEntity extends Entity {
     watchdog('tourney', 'Deleted @type #@id.', array('@type' => $this->type, '@id' => $this->id));
     parent::delete();
   }
+
+  /**
+   * Get the path to a tourney url without needing a tourney object loaded.
+   *
+   * @param int $id
+   *   The entity id to get the path for.
+   * @param $entity_type
+   *   The type of tourney entity.
+   * @return string
+   *   The path to the entity.
+   */
+  public static function path($id, $entity_type) {
+    $str = substr($entity_type, 8);
+    return 'tourney/' . $str . '/' . $id;
+  }
+
+  /**
+   * Return the uri to the entity object
+   */
+  public function getUri() {
+    return TourneyEntity::path($this->id, $this->entityType);
+  }
+
 }
 
