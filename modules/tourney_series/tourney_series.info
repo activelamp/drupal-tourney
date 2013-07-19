@@ -2,9 +2,8 @@ name = Tourney Series Module
 description = Provides entities to create a tournament series
 package = Tourney
 core = 7.x
-configure = admin/config/tourney_series
 
 dependencies[] = tourney
 
-files[] = includes/tourney_series.inc
+files[] = includes/tourney_series.entity.inc
 

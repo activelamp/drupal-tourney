@@ -78,9 +78,9 @@ class SingleEliminationController extends TourneyController {
         ? $plugin_options['third_place'] : -1,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
     );
-
-    $players = $form_state['values']['plugin_options'][$form_state['values']['format']]['players'] ?: $players = $form_state['tourney']->players;
-    if ($players) {
+    
+    if (array_key_exists('values', $form_state)) {
+      $players = $form_state['values']['plugin_options'][$form_state['values']['format']]['players'] ?: $players = $form_state['tourney']->players;
       $possible = self::possibleWinners($players);
     }
     else {

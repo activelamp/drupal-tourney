@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Install, update and uninstall functions for tournaments.
+ * Install, update and uninstall functions for tournament series.
  */
 
 /**
@@ -25,13 +25,19 @@ function tourney_series_schema() {
         'not null' => TRUE,
         'default' => ''
       ),
-      'title' => array(
+      'label' => array(
         'description' => 'The title of the tournament series, always treated as non-markup plain text.',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => ''
       ),
+      'name' => array(
+        'description' => 'The machine-readable name of this tournament.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE
+       ),
       'format' => array(
         'description' => 'The format plugin of the tournament series.',
         'type' => 'varchar',
@@ -39,6 +45,18 @@ function tourney_series_schema() {
         'not null' => TRUE,
         'default' => ''
       ),
+      'winner' => array(
+        'description' => 'Winner of the tournament.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1
+       ),
     ),
     'primary key' => array('id'),
   );
@@ -116,26 +134,30 @@ function tourney_series_schema() {
  * Implements hook_install().
  */
 function tourney_series_install() {
-  $relation = new stdClass();
-  $relation->relation_type = 'has_tournament';
-  $relation->label = 'has tournament';
-  $relation->reverse_label = 'is tournament of';
-  $relation->directional = TRUE;
-  $relation->source_bundles['tourney_series:*'] = 'tourney_series:*';
-  $relation->target_bundles['tourney_tournaments:*'] = 'tourney_tournaments:*';
-  relation_type_save($relation);
-
+  // Create the default bundles for the tournaments
   $type = entity_create('tourney_series_type', array(
     'name' => 'series',
     'label' => st('Series'),
     'weight' => 0,
   ));
   $type->save();
-}
 
-/**
- * Implements hook_uninstall().
- */
-function tourney_series_uninstall() {
-  relation_type_delete('has_tournament');
+  // Define fields for the tournament has match relation.
+  $field = array(
+    'field_name' => 'tournaments',
+    'cardinality' => -1,
+    'type' => 'entityreference',
+    'settings' => array(
+      'target_type' => 'tourney_tournament'
+    ),
+  );
+  field_create_field($field);
+
+  $field_instance = array(
+    'entity_type' => 'tourney_series',
+    'bundle' => 'series',
+    'field_name' => 'tournaments',
+    'label' => st('Tournaments'),
+  );
+  field_create_instance($field_instance);
 }

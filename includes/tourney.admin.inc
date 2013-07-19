@@ -92,7 +92,7 @@ function tourney_admin_content() {
     ->orderByHeader($header);
   $tournaments = $query->execute();
 
-  $output .= theme('item_list', array('items' => array(l(t('Add tournament'), 'tourney/add')), 'attributes' => array('class' => 'action-links')));
+  $output .= theme('item_list', array('items' => array(l(t('Add tournament'), 'tourney/tournament/add')), 'attributes' => array('class' => 'action-links')));
   $output .= theme('tourney_admin_content', array('tournaments' => $tournaments, 'header' => $header));
   return $output;
 }
@@ -115,7 +115,7 @@ function theme_tourney_admin_content($variables) {
   else foreach ($tournaments as $tournament) {
     // $tournament is not a fully loaded object. Need to get the path via the
     // static method on tournaments.
-    $uri = TourneyTournamentEntity::path($tournament->id);
+    $uri = TourneyEntity::path($tournament->id, 'tourney_tournament');
     $info = TourneyController::getPluginInfo($tournament->format);
     $rows[] = array(
       l($tournament->id, $uri),
@@ -145,7 +145,7 @@ function tourney_confirm_delete($form, &$form_state, $tournament) {
   return confirm_form(
     $form,
     t('Are you sure you want to delete the tournament %title?', array('%title' => $tournament->label)),
-    'tourney/' . $tournament->id,
+    TourneyMatchEntity::path($tournament->id, 'tourney_tournament'),
     t('All matches belonging to this tournament will be deleted. This action cannot be undone.'),
     t('Delete'),
     t('Cancel'),
