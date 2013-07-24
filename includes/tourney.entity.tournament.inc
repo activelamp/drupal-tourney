@@ -119,7 +119,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     }
 
     $cache_id = 'getHeadToHeadMatchIds:' . $this->id . ':' . $contestant1->eid . ':' . $contestant2->eid;
-    if ( !$cache = cache_get($cache_id, 'cache_tourney')) {
+    if (!$cache = cache_get($cache_id, 'cache_tourney')) {
       $match_ids = $this->getMatchIds();
 
       $query = tourney_relation_query($contestant1->entity_type, $contestant1->entity_id);
@@ -127,13 +127,12 @@ class TourneyTournamentEntity extends TourneyEntity {
       $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');
 
       $relation_ids = array_keys($query->execute());
+      if (empty($relation_ids)) return;
       $relations = entity_load('relation', $relation_ids);
-
       $match_ids = array();
       foreach ($relations as $relation) {
         $match_ids[] = $relation->endpoints[LANGUAGE_NONE][0]['entity_id'];
       }
-
       $query = tourney_relation_query($contestant2->entity_type, $contestant2->entity_id);
       $query->fieldCondition('endpoints', 'entity_type', 'tourney_match', '=');
       $query->fieldCondition('endpoints', 'entity_id', $match_ids, 'IN');

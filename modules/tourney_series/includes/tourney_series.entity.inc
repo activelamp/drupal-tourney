@@ -31,6 +31,8 @@ class TourneySeriesEntity extends TourneyEntity {
     $results = $query->entityCondition('entity_type', 'tourney_series')
       ->fieldCondition('tournaments', 'target_id', $tourney_id)
       ->execute();
+    if (empty($results)) return;
+
     $series = array_shift($results['tourney_series']);
     return tourney_series_load($series->id);
   }
