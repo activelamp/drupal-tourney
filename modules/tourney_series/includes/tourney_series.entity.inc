@@ -6,6 +6,8 @@
 
 class TourneySeriesEntity extends TourneyEntity {
 
+  public $gameIds = array();
+
   /**
    * Constructor.
    */
@@ -56,6 +58,20 @@ class TourneySeriesEntity extends TourneyEntity {
 
   public function isStarted() {
     // TODO: Implement isStarted() method.
+  }
+
+  /**
+   * Lazy load all the game ids for this series. Once the games have been
+   * loaded for the tournament, it will return the 'cached' copy.
+   */
+  public function getGameIds() {
+    if (empty($this->gameIds)) {
+      foreach ($this->getTournaments() as $tourney) {
+        $this->gameIds = array_merge($this->gameIds, TourneyTournamentEntity::fetchGameIds($tourney->id));
+      }
+
+    }
+    return $this->gameIds;
   }
 
 }
