@@ -1054,7 +1054,7 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
     // Gathering the winner nid's from each game.
     // This will allow the amount of wins per match to be printed on each contestant.
     $wins = array();
-    foreach ($entity->gameIds as $key => $gameId) {
+    foreach ($entity->gameIds as $gameId) {
       $game = tourney_game_load($gameId);
       if (isset($game->winner)) {
         $wins[] = (int) str_replace('node.', '', $game->winner);
@@ -1073,7 +1073,7 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
     }
     // Place the game wins in it's own array to access later.
     $entity->content['game_wins'] = $game_wins;
-    
+
     $entity->content['match_block'] = array(
       '#theme' => 'tourney_match_render',
       '#match' => $entity,
