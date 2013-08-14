@@ -7,6 +7,7 @@
 class TourneySeriesEntity extends TourneyEntity {
 
   public $gameIds = array();
+  public $contestants = array();
 
   /**
    * Constructor.
@@ -72,6 +73,22 @@ class TourneySeriesEntity extends TourneyEntity {
 
     }
     return $this->gameIds;
+  }
+
+  /**
+   * Gets a list of participating contestants in seed order from the first round.
+   *
+   * @return array $contestants
+   *   List of contestants, all entities from the first round of a tournament.
+   */
+  public function getContestants() {
+    if (property_exists($this, 'is_new') && $this->is_new) return array();
+
+    foreach ($this->getTournaments() as $tourney) {
+      $this->contestants = array_merge($this->contestants, $tourney->getContestants());
+    }
+
+    return $this->contestants;
   }
 
 }
