@@ -242,3 +242,12 @@ function tourney_series_load_multiple($ids = array(), $conditions = array(), $re
 function tourney_series_type_load($type) {
   return tourney_entity_get_types('tourney_series_type', $type);
 }
+
+/**
+ * Given a tourney id, get the tourney series it belongs to
+ * @param $tourney_id
+ * @return \TourneySeriesEntity
+ */
+function tourney_series_by_tournament($tourney_id) {
+  return TourneySeriesEntity::getByTournamentId($tourney_id);
+}
