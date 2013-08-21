@@ -133,7 +133,7 @@ function tourney_match_form($form, &$form_state, $match) {
   );
 
   if (!$is_new) {
-    if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) {
+    if (is_array($match->matchInfo) && array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) {
       $form['contestant1']['#title'] = t('Contestant');
       $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
 
@@ -150,7 +150,7 @@ function tourney_match_form($form, &$form_state, $match) {
       );
     }
 
-    if (!array_key_exists('bye', $match->matchInfo) && $match->isLocked()) {
+    if (is_array($match->matchInfo) && !array_key_exists('bye', $match->matchInfo) && $match->isLocked()) {
       $form['fix_games'] = array(
         '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
       );
@@ -387,7 +387,7 @@ function tourney_match_form_validate($form, &$form_state) {
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
   $match_reset = FALSE;
-  $is_new = $match->is_new;
+  $is_new = isset($match->is_new) ? TRUE : FALSE;
 
   // Match was created manually through the user interface.
   if ($is_new) {
@@ -396,12 +396,12 @@ function tourney_match_form_submit($form, &$form_state) {
     // Calculate the next available sequential match number for
     // this tournament (sometimes confusing refered to as the
     // match id).
-    $ids = $tournament->getRoundMatchIds();
     $mid = 0;
-    foreach ($ids as $round => $value) {
-      foreach ($value as $next_mid) {
-        $mid = max($mid, $next_mid);
-      }
+    $ids = $tournament->getMatchIds();
+    foreach ($ids as $id) {
+      $this_match = tourney_match_load($id);
+      $this_mid = substr($this_match->name, strlen($tournament->name .'_match-'));
+      $mid = max($mid, $this_mid);
     }
     // Name must be unique, this must normally be set when
     // a tournament is created. @see build()
@@ -411,7 +411,8 @@ function tourney_match_form_submit($form, &$form_state) {
   // Check to see if the contestants on this match are different than who is
   // currently associated with the match. If they are different, we need to
   // reset the match.
-  $contestant_ids = array_keys($match->getMatchContestants());
+  // Line below commented out BKH 2013.08.21, not used??
+  // $contestant_ids = array_keys($match->getMatchContestants());
   // @todo: Not sure what this code did, but it seems we dont need anymore.
   //   Remove this in a few days if we don't see bug pop up.
   // if (!empty($contestant_ids) 
@@ -487,6 +488,11 @@ function tourney_match_form_submit($form, &$form_state) {
       '_match' => $match,
     ));
     $game->save();
+    $create_alias = FALSE;
+    if (module_exists('pathauto')) {
+      module_load_include('inc', 'pathauto');
+      $create_alias = TRUE;
+    }
     if ($create_alias && pathauto_pattern_load_by_entity($game->entity_type, $game->type)) {
       $uri = entity_uri($game->entity_type, $game);
       pathauto_create_alias('tourney', 'insert', $uri['path'], array($game->entity_type => $game), $game->type);
