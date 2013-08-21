@@ -19,11 +19,13 @@ class TourneyTournamentEntity extends TourneyEntity {
   private $tournamentMatches = NULL;
   public  $status;
   public  $path = array();
+  public  $type = 'blah';
 
   public $tourneyFormatPlugin = NULL;
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
+    $this->type = "tournament";
     // Instantiate the plugin, but only if our entity has been created
     // via entity_load(). If our entity has been constructed by another
     // means, like entity_create(), required properties will not yet be

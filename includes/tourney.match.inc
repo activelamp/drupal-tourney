@@ -54,6 +54,8 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 
 /**
  * The match form.
+ *
+ * This form may be used to edit an existing match, or to create a new one.
  */
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
@@ -65,25 +67,26 @@ function tourney_match_form($form, &$form_state, $match) {
     '#description' => t('The title you enter here appears on the page.'),
     '#size' => 40,
     '#maxlength' => 255,
-    '#default_value' => $match->label,
+    '#default_value' => isset($match->label) ? $match->label : '',
     '#weight' => -10,
   );
 
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
   $games = tourney_tournament_get_match_games($match);
 
-  $canset = $match->getTournament()->canSetContestants($match->getMID());
-  $contestants = $match->getMatchContestants();
-
-  $cid = 0;
-  foreach (array(1,2) as $slot) {
-    $contestant = $match->getContestant($slot);
-    $eid = is_object($contestant) ? $contestant->eid : null;
-    $form['contestant' . $slot] = array(
-      '#title' => check_plain(t('Contestant ' . $slot)),
-      '#default_value' => $eid,
-      '#disabled' => !($slot & $canset),
-    ) + _tourney_match_contestant($match, $eid);
+  // Don't bother with contestants if the match is not yet associated
+  // with a tournament.
+  if ($tournament = $match->getTournament()) {
+    $canset = $tournament->canSetContestants($match->getMID());
+    foreach (array(1,2) as $slot) {
+      $contestant = $match->getContestant($slot);
+      $eid = is_object($contestant) ? $contestant->eid : null;
+      $form['contestant' . $slot] = array(
+        '#title' => check_plain(t('Contestant ' . $slot)),
+        '#default_value' => $eid,
+        '#disabled' => !($slot & $canset),
+      ) + _tourney_match_contestant($match, $eid);
+    }
   }
 
   $form['games'] = array(
@@ -97,41 +100,43 @@ function tourney_match_form($form, &$form_state, $match) {
     '#disabled' => $match->isFinished(),
   );
 
-  if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) {
-    $form['contestant1']['#title'] = t('Contestant');
-    $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
+  if ($tournament) {
+    if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) {
+      $form['contestant1']['#title'] = t('Contestant');
+      $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
 
-    $form['contestant2'] = array(
-      '#type' => 'value',
-      '#value' => 0,
-    );
-
-    $form['games'] = array(
-      '#prefix' => '<h2>' . t('Games') . '</h2>',
-      '#suffix' => t('This match is a bye. No games to configure.'),
-      '#type' => 'value',
-      '#value' => 0,
-    );
-  }
-
-  if (!array_key_exists('bye', $match->matchInfo) && $match->isLocked()) {
-    $form['fix_games'] = array(
-      '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
-    );
-  }
-  else {
-    $form['fix_games'] = array(
-      '#theme' => 'tourney_match_fix',
-      '#games' => $match->games,
-    );
-
-    foreach ($match->getGames() as $id => $game) {
-      $form['fix_games']['game.' . $id] = array(
-        '#type' => 'radios',
-        '#title' => t('Game @id', array('@id' => $id)),
-        '#default_value' => $game->winner,
-        '#options' => tourney_format_contestant_options($game->getContestants()),
+      $form['contestant2'] = array(
+        '#type' => 'value',
+        '#value' => 0,
       );
+
+      $form['games'] = array(
+        '#prefix' => '<h2>' . t('Games') . '</h2>',
+        '#suffix' => t('This match is a bye. No games to configure.'),
+        '#type' => 'value',
+        '#value' => 0,
+      );
+    }
+
+    if (!array_key_exists('bye', $match->matchInfo) && $match->isLocked()) {
+      $form['fix_games'] = array(
+        '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
+      );
+    }
+    else {
+      $form['fix_games'] = array(
+        '#theme' => 'tourney_match_fix',
+        '#games' => $match->games,
+      );
+
+      foreach ($match->getGames() as $id => $game) {
+        $form['fix_games']['game.' . $id] = array(
+          '#type' => 'radios',
+          '#title' => t('Game @id', array('@id' => $id)),
+          '#default_value' => $game->winner,
+          '#options' => tourney_format_contestant_options($game->getContestants()),
+        );
+      }
     }
   }
 

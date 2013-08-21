@@ -22,7 +22,7 @@ class TourneyMatchEntity extends TourneyEntity {
 
   public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
-
+    $this->type = "match";
     if (property_exists($this, 'id') && $this->id) {
       $this->tournamentId = $this->getTournamentId();
       $this->gameIds = $this->getGameIds();
