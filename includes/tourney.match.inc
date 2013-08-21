@@ -355,7 +355,24 @@ function tourney_match_form_validate($form, &$form_state) {
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
   $match_reset = FALSE;
-  
+  $is_new = $match->is_new;
+
+  // Match was created manually through the user interface.
+  if ($match->is_new) {
+    $match->tournamentId = 1;
+    $tournament = tourney_tournament_load($match->tournamentId);
+    $ids = $tournament->getRoundMatchIds();
+    $mid = 0;
+    foreach ($ids as $round => $value) {
+      foreach ($value as $next_mid) {
+        $mid = max($mid, $next_mid);
+      }
+    }
+    // Name must be unique, this must normally be set when
+    // a tournament is created. @see build()
+    $match->name = $tournament->name . '_match-' . ++$mid;
+  }
+
   // Check to see if the contestants on this match are different than who is
   // currently associated with the match. If they are different, we need to
   // reset the match.
@@ -422,6 +439,26 @@ function tourney_match_form_submit($form, &$form_state) {
   entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
 
   $match->save();
+  if ($is_new) {
+    $tournament = tourney_tournament_load($match->tournamentId);
+    // Create the Tourney/Match relation.
+    $rid = tourney_create_relation('has_match', 'tourney_tournament', $match->tournamentId, 'tourney_match', $match->id);
+    // Create first game.
+    $game = new TourneyGameEntity(array(
+      'type' => $tournament->get('game_bundle', 'game'),
+      'title' => 'Game 1',
+      'name' => $match->name . '_game-1',
+      'field_match' => array(LANGUAGE_NONE => array(array('target_id' => array($match->id)))),
+      '_match' => $match,
+    ));
+    $game->save();
+    if ($create_alias && pathauto_pattern_load_by_entity($game->entity_type, $game->type)) {
+      $uri = entity_uri($game->entity_type, $game);
+      pathauto_create_alias('tourney', 'insert', $uri['path'], array($game->entity_type => $game), $game->type);
+    }
+    // Create the Match/Game relation.
+    tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
+  }
 
   $form_state['redirect'] = $match->getUri();
   drupal_set_message(t('Your match has been saved.'));
