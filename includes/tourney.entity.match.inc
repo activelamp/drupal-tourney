@@ -215,9 +215,14 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Get the tournament id
+   *
+   * @return int|bool
+   *   The unique tournament identifier on success, FALSE if the match
+   *   is new and has not been saved yet (possibly not associated with games
+   *   or a tournament)
    */
   public function getTournamentId() {
-    if (is_null($this->tournamentId)) {
+    if (is_null($this->tournamentId) && isset($this->id)) {
       $this->tournamentId = TourneyMatchEntity::fetchTournamentId($this->id);
     }
     return $this->tournamentId;
@@ -225,9 +230,14 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Get the game ids for this match.
+   *
+   * @return array|bool
+   *   An array of unique game identifiers on success, FALSE if the match
+   *   is new and has not been saved yet (possibly not associated with games
+   *   or a tournament)
    */
   public function getGameIds() {
-    if (is_null($this->gameIds)) {
+    if (is_null($this->gameIds) && isset($this->id)) {
       $this->gameIds = TourneyMatchEntity::fetchGameIds($this->id);
     }
     return $this->gameIds;

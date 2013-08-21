@@ -69,6 +69,30 @@ class TourneyTournamentEntity extends TourneyEntity {
   }
 
   /**
+   * Report all tournaments.
+   */
+  public static function fetchTournaments() {
+    return entity_load('tourney_tournament', FALSE, array(), FALSE);
+  }
+
+  /**
+   * Constructs a form options list containing all tournament names.
+   *
+   * @return array
+   *   Associative array keyd by tournament identifier and valued with
+   *   the tournament label on success. An empty array on failure or non
+   *   found.
+   */
+  public static function formOptionsTournaments() {
+    $options = array();
+    $tournaments = TourneyTournamentEntity::fetchTournaments();
+    foreach ($tournaments as $tournament) {
+      $options[$tournament->id] = $tournament->label;
+    }
+    return $options;
+  }
+
+  /**
    * Static function that returns an array of game ids for that passed in
    * tournament id.
    *
