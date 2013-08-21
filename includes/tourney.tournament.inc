@@ -176,7 +176,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#title' => t('Match fields'),
     '#options' => $extra_field_options,
     '#description' => t('Extra fields to show on the match entity view.'),
-    '#default_value' => ($tourney->is_new) ? $extra_field_options : $tourney->get('match_extra_fields', array()),
+    '#default_value' => isset($tourney->is_new) ? $extra_field_options : $tourney->get('match_extra_fields', array()),
   );
 
   $form['bundles'] = array(

@@ -22,7 +22,7 @@ class TourneyMatchEntity extends TourneyEntity {
 
   public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
-
+    $this->type = "match";
     if (property_exists($this, 'id') && $this->id) {
       $this->tournamentId = $this->getTournamentId();
       $this->gameIds = $this->getGameIds();
@@ -158,7 +158,10 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function getTournament() {
     if (is_null($this->matchTournament)) {
-      $this->matchTournament = tourney_tournament_load($this->getTournamentId());
+      // Only record if tourney_tournament_load() did not fail. No blind faith.
+      if ($tournament = tourney_tournament_load($this->getTournamentId())) {
+        $this->matchTournament = $tournament;
+      }
     }
     return $this->matchTournament;
   }
@@ -215,9 +218,14 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Get the tournament id
+   *
+   * @return int|bool
+   *   The unique tournament identifier on success, FALSE if the match
+   *   is new and has not been saved yet (possibly not associated with games
+   *   or a tournament)
    */
   public function getTournamentId() {
-    if (is_null($this->tournamentId)) {
+    if (is_null($this->tournamentId) && isset($this->id)) {
       $this->tournamentId = TourneyMatchEntity::fetchTournamentId($this->id);
     }
     return $this->tournamentId;
@@ -225,9 +233,14 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Get the game ids for this match.
+   *
+   * @return array|bool
+   *   An array of unique game identifiers on success, FALSE if the match
+   *   is new and has not been saved yet (possibly not associated with games
+   *   or a tournament)
    */
   public function getGameIds() {
-    if (is_null($this->gameIds)) {
+    if (is_null($this->gameIds) && isset($this->id)) {
       $this->gameIds = TourneyMatchEntity::fetchGameIds($this->id);
     }
     return $this->gameIds;
@@ -469,6 +482,8 @@ class TourneyMatchEntity extends TourneyEntity {
     if ($this->getTournament()) {
       cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
     }
+    // Why is the following line outside of the previous check?
+    // Why does the previous check exist?
     cache_clear_all('getHeadToHeadMatchIds:' . $this->getTournament()->id, 'cache_tourney', TRUE);
   }
 
@@ -577,7 +592,7 @@ class TourneyMatchEntity extends TourneyEntity {
     }
 
     // If this is round 1, save seed positions.
-    if (array_key_exists('seeds', $this->matchInfo) && array_key_exists($slot, $this->matchInfo['seeds'])) {
+    if (is_array($this->matchInfo) && array_key_exists('seeds', $this->matchInfo) && array_key_exists($slot, $this->matchInfo['seeds'])) {
       $tourney = $this->getTournament();
       $seed_positions = $tourney->get('seed_positions');
       if (!is_array($seed_positions)) {

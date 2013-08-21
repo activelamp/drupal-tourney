@@ -54,10 +54,13 @@ function tourney_game_win_form($form, &$form_state, $extra) {
 
 /**
  * The match form.
+ *
+ * This form may be used to edit an existing match, or to create a new one.
  */
 function tourney_match_form($form, &$form_state, $match) {
   $match->type = 'match';
   $form_state['match'] = $match;
+  $is_new = isset($match->is_new) ? TRUE : FALSE;
 
   $form['label'] = array(
     '#type' => 'textfield',
@@ -65,25 +68,57 @@ function tourney_match_form($form, &$form_state, $match) {
     '#description' => t('The title you enter here appears on the page.'),
     '#size' => 40,
     '#maxlength' => 255,
-    '#default_value' => $match->label,
+    '#default_value' => isset($match->label) ? $match->label : '',
     '#weight' => -10,
   );
 
+  // Offer a selection of all existing tournaments that this new match
+  // can be assocaited with.
+  if ($is_new) {
+    // Get a list of all tournaments.
+    $options = TourneyTournamentEntity::formOptionsTournaments();
+    // Try to load the default tournament option via a url parameter.
+    if (arg(2)) {
+      if (!$default_tournament = tourney_tournament_load(arg(2))) {
+        drupal_set_message('Tournament referenced in url can not be loaded.', 'warning');
+      }
+    }
+    // Try to load the default tournament option via the last tournament
+    // created.
+    if (!$default_tournament && !empty($options)) {
+      end($options);
+      $default_tournament = tourney_tournament_load(key($options));
+      reset($options);
+    }
+    // Complain that no tournaments are available!
+    if (!$default_tournament) {
+      drupal_set_message('No available tournaments found for this match!', 'error');
+    }
+    $form['tournament'] = array(
+      '#type' => 'select',
+      '#title' => t('Tournament'),
+      '#description' => t('Select the tournament this match should be attached to.'),
+      '#options' => $options,
+      '#weight' => -20,
+      '#default_value' => $default_tournament->id,
+    );
+  }
+
   module_load_include('inc', 'tourney', 'includes/tourney.tournament');
-  $games = tourney_tournament_get_match_games($match);
 
-  $canset = $match->getTournament()->canSetContestants($match->getMID());
-  $contestants = $match->getMatchContestants();
-
-  $cid = 0;
-  foreach (array(1,2) as $slot) {
-    $contestant = $match->getContestant($slot);
-    $eid = is_object($contestant) ? $contestant->eid : null;
-    $form['contestant' . $slot] = array(
-      '#title' => check_plain(t('Contestant ' . $slot)),
-      '#default_value' => $eid,
-      '#disabled' => !($slot & $canset),
-    ) + _tourney_match_contestant($match, $eid);
+  // Don't bother with contestants if the match is not yet associated
+  // with a tournament.
+  if (!$is_new) {
+    $canset = $match->getTournament()->canSetContestants($match->getMID());
+    foreach (array(1,2) as $slot) {
+      $contestant = $match->getContestant($slot);
+      $eid = is_object($contestant) ? $contestant->eid : null;
+      $form['contestant' . $slot] = array(
+        '#title' => check_plain(t('Contestant ' . $slot)),
+        '#default_value' => $eid,
+        '#disabled' => !($slot & $canset),
+      ) + _tourney_match_contestant($match, $eid);
+    }
   }
 
   $form['games'] = array(
@@ -92,46 +127,48 @@ function tourney_match_form($form, &$form_state, $match) {
     '#description' => t('Enter the number of games in this match'),
     '#size' => 4,
     '#maxlength' => 255,
-    '#default_value' => $match->games,
+    '#default_value' => isset($match->games) ? $match->games : 1,
     '#required' => TRUE,
     '#disabled' => $match->isFinished(),
   );
 
-  if (array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) {
-    $form['contestant1']['#title'] = t('Contestant');
-    $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
+  if (!$is_new) {
+    if (is_array($match->matchInfo) && array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) {
+      $form['contestant1']['#title'] = t('Contestant');
+      $form['contestant1']['#description'] = t('This contestant will receive a bye and automatically advance to the next round.');
 
-    $form['contestant2'] = array(
-      '#type' => 'value',
-      '#value' => 0,
-    );
-
-    $form['games'] = array(
-      '#prefix' => '<h2>' . t('Games') . '</h2>',
-      '#suffix' => t('This match is a bye. No games to configure.'),
-      '#type' => 'value',
-      '#value' => 0,
-    );
-  }
-
-  if (!array_key_exists('bye', $match->matchInfo) && $match->isLocked()) {
-    $form['fix_games'] = array(
-      '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
-    );
-  }
-  else {
-    $form['fix_games'] = array(
-      '#theme' => 'tourney_match_fix',
-      '#games' => $match->games,
-    );
-
-    foreach ($match->getGames() as $id => $game) {
-      $form['fix_games']['game.' . $id] = array(
-        '#type' => 'radios',
-        '#title' => t('Game @id', array('@id' => $id)),
-        '#default_value' => $game->winner,
-        '#options' => tourney_format_contestant_options($game->getContestants()),
+      $form['contestant2'] = array(
+        '#type' => 'value',
+        '#value' => 0,
       );
+
+      $form['games'] = array(
+        '#prefix' => '<h2>' . t('Games') . '</h2>',
+        '#suffix' => t('This match is a bye. No games to configure.'),
+        '#type' => 'value',
+        '#value' => 0,
+      );
+    }
+
+    if (is_array($match->matchInfo) && !array_key_exists('bye', $match->matchInfo) && $match->isLocked()) {
+      $form['fix_games'] = array(
+        '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
+      );
+    }
+    else {
+      $form['fix_games'] = array(
+        '#theme' => 'tourney_match_fix',
+        '#games' => $match->games,
+      );
+
+      foreach ($match->getGames() as $id => $game) {
+        $form['fix_games']['game.' . $id] = array(
+          '#type' => 'radios',
+          '#title' => t('Game @id', array('@id' => $id)),
+          '#default_value' => $game->winner,
+          '#options' => tourney_format_contestant_options($game->getContestants()),
+        );
+      }
     }
   }
 
@@ -350,11 +387,32 @@ function tourney_match_form_validate($form, &$form_state) {
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
   $match_reset = FALSE;
-  
+  $is_new = isset($match->is_new) ? TRUE : FALSE;
+
+  // Match was created manually through the user interface.
+  if ($is_new) {
+    $match->tournamentId = $form_state['values']['tournament'];
+    $tournament = tourney_tournament_load($match->tournamentId);
+    // Calculate the next available sequential match number for
+    // this tournament (sometimes confusing refered to as the
+    // match id).
+    $mid = 0;
+    $ids = $tournament->getMatchIds();
+    foreach ($ids as $id) {
+      $this_match = tourney_match_load($id);
+      $this_mid = substr($this_match->name, strlen($tournament->name .'_match-'));
+      $mid = max($mid, $this_mid);
+    }
+    // Name must be unique, this must normally be set when
+    // a tournament is created. @see build()
+    $match->name = $tournament->name . '_match-' . ++$mid;
+  }
+
   // Check to see if the contestants on this match are different than who is
   // currently associated with the match. If they are different, we need to
   // reset the match.
-  $contestant_ids = array_keys($match->getMatchContestants());
+  // Line below commented out BKH 2013.08.21, not used??
+  // $contestant_ids = array_keys($match->getMatchContestants());
   // @todo: Not sure what this code did, but it seems we dont need anymore.
   //   Remove this in a few days if we don't see bug pop up.
   // if (!empty($contestant_ids) 
@@ -417,6 +475,31 @@ function tourney_match_form_submit($form, &$form_state) {
   entity_form_submit_build_entity('tourney_match', $match, $form, $form_state);
 
   $match->save();
+  if ($is_new) {
+    $tournament = tourney_tournament_load($match->tournamentId);
+    // Create the Tourney/Match relation.
+    $rid = tourney_create_relation('has_match', 'tourney_tournament', $match->tournamentId, 'tourney_match', $match->id);
+    // Create first game.
+    $game = new TourneyGameEntity(array(
+      'type' => $tournament->get('game_bundle', 'game'),
+      'title' => 'Game 1',
+      'name' => $match->name . '_game-1',
+      'field_match' => array(LANGUAGE_NONE => array(array('target_id' => array($match->id)))),
+      '_match' => $match,
+    ));
+    $game->save();
+    $create_alias = FALSE;
+    if (module_exists('pathauto')) {
+      module_load_include('inc', 'pathauto');
+      $create_alias = TRUE;
+    }
+    if ($create_alias && pathauto_pattern_load_by_entity($game->entity_type, $game->type)) {
+      $uri = entity_uri($game->entity_type, $game);
+      pathauto_create_alias('tourney', 'insert', $uri['path'], array($game->entity_type => $game), $game->type);
+    }
+    // Create the Match/Game relation.
+    tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
+  }
 
   $form_state['redirect'] = $match->getUri();
   drupal_set_message(t('Your match has been saved.'));
