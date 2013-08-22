@@ -24,6 +24,7 @@ class TourneyTournamentEntity extends TourneyEntity {
 
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
+    $this->type = "tournament";
     // Instantiate the plugin, but only if our entity has been created
     // via entity_load(). If our entity has been constructed by another
     // means, like entity_create(), required properties will not yet be
@@ -64,6 +65,30 @@ class TourneyTournamentEntity extends TourneyEntity {
     }
 
     return $match_ids;
+  }
+
+  /**
+   * Report all tournaments.
+   */
+  public static function fetchTournaments() {
+    return entity_load('tourney_tournament', FALSE, array(), FALSE);
+  }
+
+  /**
+   * Constructs a form options list containing all tournament names.
+   *
+   * @return array
+   *   Associative array keyd by tournament identifier and valued with
+   *   the tournament label on success. An empty array on failure or non
+   *   found.
+   */
+  public static function formOptionsTournaments() {
+    $options = array();
+    $tournaments = TourneyTournamentEntity::fetchTournaments();
+    foreach ($tournaments as $tournament) {
+      $options[$tournament->id] = $tournament->label;
+    }
+    return $options;
   }
 
   /**

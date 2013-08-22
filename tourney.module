@@ -21,6 +21,16 @@ function tourney_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'includes/tourney.tournament.inc',
   );
+  $items['tourney/tournament/%tourney_tournament/addmatch'] = array(
+    'title' => 'Add extra match',
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('tourney_match', NULL, 'add'),
+    'access arguments' => array('create match'),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'includes/tourney.match.inc',
+    'weight' => 20,
+  );
   $items['tourney/tournament/%tourney_tournament'] = array(
     'title callback' => 'tourney_page_title',
     'title arguments' => array(2),
