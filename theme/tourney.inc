@@ -96,6 +96,7 @@ function template_preprocess_tourney_match_render(&$vars) {
       'plugin' => $plugin,
       'winner' => property_exists($contestant, 'eid') && $contestant->eid == $match->winner ? $match->winner : FALSE,
       'winner_set' => !empty($match->winner),
+      'wins' => $match->matchInfo['game_wins'][$slot-1],
     ));
   }
   
