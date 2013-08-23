@@ -81,7 +81,6 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
 
   // Get options form from plugin if one exists.
   tourney_get_plugin_options($tourney, $form, $form_state);
-  
   $plugins_with_players = array();
   foreach ($form['plugin_options'] as $key => $plugin) {
     if (strpos($key, '#') === 0) continue;
