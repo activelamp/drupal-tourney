@@ -25,7 +25,7 @@ function tourney_menu() {
     'title' => 'Add extra match',
     'page callback' => 'entity_ui_get_form',
     'page arguments' => array('tourney_match', NULL, 'add'),
-    'access arguments' => array('create match'),
+    'access arguments' => array('create tourney'),
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'includes/tourney.match.inc',
