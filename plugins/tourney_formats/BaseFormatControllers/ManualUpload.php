@@ -191,7 +191,7 @@ class ManualUploadController extends TourneyController {
         // no longer to exist. @see tourney_initialize_configuration(), ultimately
         // these options get pulled and written from the 'tourney' table.
         $plugin_options['file_schema'] = $this->parseUploadFile($plugin_options['match_lineup_file']['fid']);
-        //$this->tournament->set(get_class($this), $plugin_options);
+        $this->tournament->set(get_class($this), $plugin_options);
       } catch (Exception $e) {
         drupal_set_message("Missing schema file for tournament {$this->tournament->id}: " . $e->getMessage(), 'warning');
       }
@@ -453,7 +453,7 @@ function manualupload_file_validate($element, &$form_state) {
     }
   }
 
-  // Set the number of conestants based on the tournament match schema.
+  // Set the number of contestants based on the tournament match schema.
   $players = count($file_schema['contestants']); 
   if ($players > 0) {
     $form_state['values']['plugin_options'][$plugin]['players'] = $players;  
