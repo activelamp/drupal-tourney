@@ -434,11 +434,13 @@ function manualupload_file_validate($element, &$form_state) {
   }
 
   // Set the number of contestants based on the tournament match schema.
-  $players = count($file_schema['contestants']); 
-  if ($players > 0) {
-    $form_state['values']['plugin_options'][$plugin]['players'] = $players;  
-  } else {
-    form_error($element, t('Number of players must be greater than 0'));
+  if (isset($form_state['values']['plugin_options'][$plugin]['match_lineup_file'])) {
+    $players = count($file_schema['contestants']); 
+    if ($players > 0) {
+      $form_state['values']['plugin_options'][$plugin]['players'] = $players;  
+    } else {
+      form_error($element, t('Number of players must be greater than 0'));
+    }
   }
 
   // Save the file if it was just uploaded.
