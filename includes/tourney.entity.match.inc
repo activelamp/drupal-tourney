@@ -240,7 +240,11 @@ class TourneyMatchEntity extends TourneyEntity {
    *   or a tournament)
    */
   public function getGameIds() {
-    if (is_null($this->gameIds) && isset($this->id)) {
+    // NULL or empty are both conditions that should trigger a refresh, when
+    // an adhock match is created through the gui gameIds gets set to an empty
+    // array, and just checking for null was blocking reloading the actual
+    // attached games.
+    if (is_null($this->gameIds) || empty($this->gameIds) && isset($this->id)) {
       $this->gameIds = TourneyMatchEntity::fetchGameIds($this->id);
     }
     return $this->gameIds;
