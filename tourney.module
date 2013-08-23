@@ -1267,15 +1267,11 @@ function tourney_get_name_part($name, $part) {
 /**
  * Initializes a global tourney config object with contents of tourney config
  * from the db.
- *
- * @param bool $reset
- *   (optional) Set to TRUE to reload the tournament config cache.
- *
  */
-function tourney_initialize_configuration($reset = FALSE) {
+function tourney_initialize_configuration() {
   global $_tourney_config;
 
-  if (!$reset && ($cached = cache_get('configuration', 'cache_tourney'))) {
+  if ($cached = cache_get('configuration', 'cache_tourney')) {
     $config = $cached->data;
   }
   else {

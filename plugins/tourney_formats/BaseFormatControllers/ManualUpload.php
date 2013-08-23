@@ -145,26 +145,6 @@ class ManualUploadController extends TourneyController {
   }
 
   /**
-   * Refresh the cache storing tournament config options just in case the 
-   * file schema was recently saved, otherwise the file_schema will forever
-   * be 'missing' from the tournament config. If the file is missing we
-   * need the tournament config to give us the file schema.
-   *
-   * @see ManualUploadController::build()
-   */
-  public function getPluginOptions() {
-    parent::getPluginOptions();
-    $options = $this->pluginOptions;
-    $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
-    // Refresh the cache just in case the file schema was recently saved
-    // to the tourament configuration.
-    if (!empty($plugin_options) && !isset($plugin_options['file_schema'])) {
-      tourney_initialize_configuration(TRUE);
-      parent::getPluginOptions();
-    }        
-  }
-
-  /**
    * This builds the data array for the plugin. The most important data structure
    * your plugin should implement in build() is the matches array. It is from
    * this array that matches are saved to the Drupal entity system using
@@ -185,11 +165,11 @@ class ManualUploadController extends TourneyController {
     if (!empty($plugin_options) && $plugin_options['max_team_play']) {
       $this->roundsMultiplier = (int)$plugin_options['max_team_play'];
     }
+    // Write the file schema into the plugin options. Now the file needs
+    // no longer to exist. @see tourney_initialize_configuration(), ultimately
+    // these options get pulled and written from the 'tourney' table.
     if (!empty($plugin_options) && !isset($plugin_options['file_schema'])) {
       try {
-        // Write the file schema into the plugin options. Now the file needs
-        // no longer to exist. @see tourney_initialize_configuration(), ultimately
-        // these options get pulled and written from the 'tourney' table.
         $plugin_options['file_schema'] = $this->parseUploadFile($plugin_options['match_lineup_file']['fid']);
         $this->tournament->set(get_class($this), $plugin_options);
       } catch (Exception $e) {
