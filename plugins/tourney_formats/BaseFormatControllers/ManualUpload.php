@@ -79,6 +79,13 @@ class ManualUploadController extends TourneyController {
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#element_validate' => array('manualupload_match_times_validate'),
     );
+    if (isset($plugin_options['file_schema'])) {
+      $form['file_schema'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $plugin_options['file_schema'],
+        '#disabled' => TRUE,
+      );
+    }
 
     return $form;
   }
@@ -138,6 +145,26 @@ class ManualUploadController extends TourneyController {
   }
 
   /**
+   * Refresh the cache storing tournament config options just in case the 
+   * file schema was recently saved, otherwise the file_schema will forever
+   * be 'missing' from the tournament config. If the file is missing we
+   * need the tournament config to give us the file schema.
+   *
+   * @see ManualUploadController::build()
+   */
+  public function getPluginOptions() {
+    parent::getPluginOptions();
+    $options = $this->pluginOptions;
+    $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
+    // Refresh the cache just in case the file schema was recently saved
+    // to the tourament configuration.
+    if (!empty($plugin_options) && !isset($plugin_options['file_schema'])) {
+      tourney_initialize_configuration(TRUE);
+      parent::getPluginOptions();
+    }        
+  }
+
+  /**
    * This builds the data array for the plugin. The most important data structure
    * your plugin should implement in build() is the matches array. It is from
    * this array that matches are saved to the Drupal entity system using
@@ -160,8 +187,11 @@ class ManualUploadController extends TourneyController {
     }
     if (!empty($plugin_options) && !isset($plugin_options['file_schema'])) {
       try {
+        // Write the file schema into the plugin options. Now the file needs
+        // no longer to exist. @see tourney_initialize_configuration(), ultimately
+        // these options get pulled and written from the 'tourney' table.
         $plugin_options['file_schema'] = $this->parseUploadFile($plugin_options['match_lineup_file']['fid']);
-        $this->tournament->set(get_class($this), $plugin_options);
+        //$this->tournament->set(get_class($this), $plugin_options);
       } catch (Exception $e) {
         drupal_set_message("Missing schema file for tournament {$this->tournament->id}: " . $e->getMessage(), 'warning');
       }
@@ -396,18 +426,54 @@ function manualupload_file_validate($element, &$form_state) {
   // Don't marry an option to its plugin name. Our class may have been
   // extended, in which case the same plugin options will be keyed with another
   // value.
+  $file_schema = NULL;
   $plugin = $form_state['values']['format'];
+
+  // Try to get the tournament match schema from tournament options.
+  if (isset($form_state['tourney']) && $plugin) {
+    $tournament = $form_state['tourney'];
+    if ($tournament->tourneyFormatPlugin != NULL) {
+      $tournament->tourneyFormatPlugin->getPluginOptions();
+      $options = $tournament->tourneyFormatPlugin->pluginOptions;
+      $plugin_options = array_key_exists($plugin, $options) ? $options[$plugin] : array();
+      if (!empty($plugin_options) && isset($plugin_options['file_schema'])) {
+        $file_schema = $plugin_options['file_schema'];
+      }
+    }
+  }
+  // Try to get the tournament match schema from an uploaded file.
+  if (!$file_schema && $plugin) {
+    if (isset($form_state['values']['plugin_options'][$plugin]['match_lineup_file'])) {
+      $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
+      try {
+        $file_schema = manualupload_parse_file($fid);
+      } catch (Exception $e) {
+        form_error($element, $e->getMessage());
+      }
+    }
+  }
+
+  // Set the number of conestants based on the tournament match schema.
+  $players = count($file_schema['contestants']); 
+  if ($players > 0) {
+    $form_state['values']['plugin_options'][$plugin]['players'] = $players;  
+  } else {
+    form_error($element, t('Number of players must be greater than 0'));
+  }
+
+  // Save the file if it was just uploaded.
   if (isset($form_state['values']['plugin_options'][$plugin]['match_lineup_file'])) {
     $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
     try {
-      $schema = manualupload_parse_file($fid);
-      $form_state['values']['plugin_options'][$plugin]['players'] = count($schema['contestants']);
       $file = file_load($fid);
-      if (!$file = file_move($file, 'public://')) {
-        throw new Exception('Unable to move file to permanent location.');
+      // Tell drupal to keep track of this file if it was just uploaded.
+      if ($file->status != 1) {
+        if (!$file = file_move($file, 'public://')) {
+          throw new Exception('Unable to move file to permanent location.');
+        }
+        $file->status = 1;
+        file_save($file);
       }
-      $file->status = 1;
-      file_save($file);
     } catch (Exception $e) {
       form_error($element, $e->getMessage());
     }
