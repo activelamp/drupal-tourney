@@ -37,6 +37,10 @@ function template_preprocess_tourney_match_render(&$vars) {
       $match = $plugin->tournament->getMatchById($match['id']);
     }
   }
+  if (is_a($match, 'TourneyMatchEntity')) {
+    $match->getMatchInfo();
+    $matchInfo = $match->matchInfo;
+  }
 
   $editable = FALSE;
 

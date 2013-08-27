@@ -676,6 +676,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    */
   public function populateRoundRobinMatches($mid, $slot = '') {
     $match = $this->getMatchById($mid);
+    $match->getMatchInfo();
     if (array_key_exists('nextMatch', $match->matchInfo)) {
       foreach ($match->getMatchContestants() as $contestant) {
         // If a slot was specified, ensure only that slot is processed.
