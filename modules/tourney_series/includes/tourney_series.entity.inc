@@ -68,7 +68,7 @@ class TourneySeriesEntity extends TourneyEntity {
   public function getGameIds() {
     if (empty($this->gameIds)) {
       foreach ($this->getTournaments() as $tourney) {
-        $this->gameIds = array_merge($this->gameIds, TourneyTournamentEntity::fetchGameIds($tourney->id));
+        $this->gameIds = array_merge($this->gameIds, $tourney->getGameIds());
       }
 
     }
