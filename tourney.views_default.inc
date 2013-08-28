@@ -597,7 +597,7 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['nothing_1']['table'] = 'views';
   $handler->display->display_options['fields']['nothing_1']['field'] = 'nothing';
   $handler->display->display_options['fields']['nothing_1']['label'] = 'Games';
-  $handler->display->display_options['fields']['nothing_1']['alter']['text'] = '<a href="/admin/content/tourney/[id]/matches/[id_1]/games">View Games</a>';
+  $handler->display->display_options['fields']['nothing_1']['alter']['text'] = '<a href="/admin/content/tourney/tournaments/[id]/matches/[id_1]/games">View Games</a>';
   /* Field: Global: Custom text */
   $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['table'] = 'views';
