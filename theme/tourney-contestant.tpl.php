@@ -11,5 +11,5 @@
     <span class="seed"><?php print $seed ?></span>
   <?php endif;?>
   <span title="<?php print $name; ?>"><?php print $label; ?></span>
-  <span class="wins"><?php print $wins; ?></span>
+  <span class="wins"><?php print isset($wins) ? $wins : '0'; ?></span>
 </div>
