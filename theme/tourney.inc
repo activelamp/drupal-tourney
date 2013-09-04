@@ -104,7 +104,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   // If we have a tournament object, get the match url from the plugin.
   if (is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
     $match_uri = $plugin->getMatchURI($matchInfo['id']);
-    if ($match_uri) {
+    if ($match_uri && !$editable) {
       $editable = $editable == TRUE && $plugin->canSetContestants($matchInfo['id']) && user_access('edit tourney');
       $contestant_output = l($contestant_output, $match_uri . ($editable ? "/edit" : ''), array(
         'html' => TRUE,
@@ -122,7 +122,8 @@ function template_preprocess_tourney_match_render(&$vars) {
     'round-' . $matchInfo['round'],
     'bracket-' . $matchInfo['bracket'] . '-round-' . $matchInfo['round']
   );
-  
+
+  if ($editable) $vars['match_classes_array'][] = 'no-teams-set';
   if ($vars['complete']) $vars['match_classes_array'][] = 'complete';
   if ($vars['is_bye']) $vars['match_classes_array'][] = 'bye';
   if ($vars['hide']) $vars['match_classes_array'][] = 'hide-match';
