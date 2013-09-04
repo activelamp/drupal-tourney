@@ -81,7 +81,6 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
 
   // Get options form from plugin if one exists.
   tourney_get_plugin_options($tourney, $form, $form_state);
-  
   $plugins_with_players = array();
   foreach ($form['plugin_options'] as $key => $plugin) {
     if (strpos($key, '#') === 0) continue;
@@ -176,7 +175,7 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#title' => t('Match fields'),
     '#options' => $extra_field_options,
     '#description' => t('Extra fields to show on the match entity view.'),
-    '#default_value' => ($tourney->is_new) ? $extra_field_options : $tourney->get('match_extra_fields', array()),
+    '#default_value' => isset($tourney->is_new) ? $extra_field_options : $tourney->get('match_extra_fields', array()),
   );
 
   $form['bundles'] = array(

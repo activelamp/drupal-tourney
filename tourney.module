@@ -21,6 +21,16 @@ function tourney_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'includes/tourney.tournament.inc',
   );
+  $items['tourney/tournament/%tourney_tournament/addmatch'] = array(
+    'title' => 'Add extra match',
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('tourney_match', NULL, 'add'),
+    'access arguments' => array('create tourney'),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'includes/tourney.match.inc',
+    'weight' => 20,
+  );
   $items['tourney/tournament/%tourney_tournament'] = array(
     'title callback' => 'tourney_page_title',
     'title arguments' => array(2),
@@ -1208,13 +1218,12 @@ function tourney_views_api() {
  *   An optional array of additional options.
  */
 function tourney_update_alias($entity, $op, array $options = array()) {
-  if (!isset($entity->path)) return;
+  if (!isset($entity->path)) $entity->path = array('pathauto' => true);
 
   $path = $entity->path;
   if(!empty($path['alias'])){
     $path['alias'] = trim($path['alias']);
   }
-  
   $has_pattern = module_exists('pathauto') ? pathauto_pattern_load_by_entity($entity->entity_type, $entity->type) : FALSE;
 
   if ($has_pattern && isset($entity->path['pathauto']) && $path['pathauto']) {

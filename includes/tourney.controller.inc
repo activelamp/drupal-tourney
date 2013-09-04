@@ -580,9 +580,9 @@ interface TourneyControllerInterface {
   public function populateSeedPositions();
 
   /**
-   * Primarly this is used during tournament construction. Before the
+   * Primarily this is used during tournament construction. Before the
    * tournament is saved it will query the plugin to determine how many
-   * players the thournament should have. At the time the method is run
+   * players the the tournament should have. At the time the method is run
    * the tournament object available will probably be in memory only!
    *
    * @return
@@ -599,6 +599,10 @@ interface TourneyControllerInterface {
 abstract class TourneyEntity extends Entity {
   abstract public function isFinished();
   abstract public function isStarted();
+
+  public function __toString() {
+    return $this->label;
+  }
 
   /**
    * Retrieve property. Property created by hook_entity_load().
