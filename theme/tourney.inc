@@ -104,7 +104,7 @@ function template_preprocess_tourney_match_render(&$vars) {
   // If we have a tournament object, get the match url from the plugin.
   if (is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
     $match_uri = $plugin->getMatchURI($matchInfo['id']);
-    if ($match_uri && !$editable) {
+    if ($match_uri && !$editable || user_access('edit tourney')) {
       $editable = $editable == TRUE && $plugin->canSetContestants($matchInfo['id']) && user_access('edit tourney');
       $contestant_output = l($contestant_output, $match_uri . ($editable ? "/edit" : ''), array(
         'html' => TRUE,
