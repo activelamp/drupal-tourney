@@ -90,6 +90,7 @@ function template_preprocess_tourney_match_render(&$vars) {
       }
     }
 
+    $wins = (isset($match->matchInfo['game_wins'][$slot-1])) ? $match->matchInfo['game_wins'][$slot-1] : 0;
     $contestant->slot = !empty($contestant->slot) ? $contestant->slot : $slot;
     $contestant_output .= theme('tourney_contestant', array(
       'contestant' => $contestant, 
@@ -97,14 +98,14 @@ function template_preprocess_tourney_match_render(&$vars) {
       'plugin' => $plugin,
       'winner' => property_exists($contestant, 'eid') && $contestant->eid == $match->winner ? $match->winner : FALSE,
       'winner_set' => !empty($match->winner),
-      'wins' => $match->matchInfo['game_wins'][$slot-1],
+      'wins' => $wins,
     ));
   }
   
   // If we have a tournament object, get the match url from the plugin.
   if (is_object($tournament) && get_class($tournament) == 'TourneyTournamentEntity') {
     $match_uri = $plugin->getMatchURI($matchInfo['id']);
-    if ($match_uri) {
+    if ($match_uri && !$editable || user_access('edit tourney')) {
       $editable = $editable == TRUE && $plugin->canSetContestants($matchInfo['id']) && user_access('edit tourney');
       $contestant_output = l($contestant_output, $match_uri . ($editable ? "/edit" : ''), array(
         'html' => TRUE,
@@ -122,7 +123,8 @@ function template_preprocess_tourney_match_render(&$vars) {
     'round-' . $matchInfo['round'],
     'bracket-' . $matchInfo['bracket'] . '-round-' . $matchInfo['round']
   );
-  
+
+  if ($editable) $vars['match_classes_array'][] = 'no-teams-set';
   if ($vars['complete']) $vars['match_classes_array'][] = 'complete';
   if ($vars['is_bye']) $vars['match_classes_array'][] = 'bye';
   if ($vars['hide']) $vars['match_classes_array'][] = 'hide-match';
