@@ -63,6 +63,26 @@ function tourney_series_form($form, &$form_state, $series) {
     );
   }
 
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#weight' => 99,
+  );
+
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#weight' => 95,
+  );
+
+  $form['options']['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => isset($series->status) ? $series->status : 0,
+  );
+
   field_attach_form('tourney_series', $series, $form, $form_state);
 
   $form['#submit'][] = 'tourney_series_form_submit';
