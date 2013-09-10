@@ -44,7 +44,7 @@ class TourneyMatchEntity extends TourneyEntity {
     $game_ids = array();
 
     $cache_id = is_array($match_id) ? implode('-', $match_id) : $match_id;
-    if ( !$cache = cache_get('fetchGameIds_' . $cache_id, 'cache_tourney')) {
+    if (!$cache = cache_get('fetchGameIds_' . $cache_id, 'cache_tourney')) {
       $query = tourney_relation_query('tourney_match', $match_id);
       $query->entityCondition('bundle', 'has_game');
       $results = $query->execute();
@@ -239,12 +239,12 @@ class TourneyMatchEntity extends TourneyEntity {
    *   is new and has not been saved yet (possibly not associated with games
    *   or a tournament)
    */
-  public function getGameIds() {
+  public function getGameIds($reset = false) {
     // NULL or empty are both conditions that should trigger a refresh, when
     // an adhock match is created through the gui gameIds gets set to an empty
     // array, and just checking for null was blocking reloading the actual
     // attached games.
-    if (is_null($this->gameIds) || empty($this->gameIds) && isset($this->id)) {
+    if ($reset || is_null($this->gameIds) || empty($this->gameIds) && isset($this->id)) {
       $this->gameIds = TourneyMatchEntity::fetchGameIds($this->id);
     }
     return $this->gameIds;
@@ -333,7 +333,6 @@ class TourneyMatchEntity extends TourneyEntity {
    */
   public function fetchRanks($reset = FALSE) {
     if ($reset || !$cache = cache_get('tourney_winner_count_' . $this->id, 'cache_tourney')) {
-      $games = array();
       $this->getMatchInfo();
       
       if(is_array($this->matchInfo)) {
@@ -345,7 +344,8 @@ class TourneyMatchEntity extends TourneyEntity {
       foreach ($this->getMatchContestants() as $eid => $contestant) {
         $winners[$eid] = 0;
       }
-      foreach ($this->getGames() as $gid => $game) {
+      foreach ($this->getGameIds($reset) as $gid) {
+        $game = tourney_game_load($gid);
         if (!$game->getWinner()) continue;
         $winners[$game->getWinner()]++;
       }
@@ -741,7 +741,7 @@ class TourneyMatchEntity extends TourneyEntity {
   *   Boolean of whether all the games have been won
   */
   public function checkGames() {
-    foreach ($this->getGameIds() as $game_id) {
+    foreach ($this->getGameIds(TRUE) as $game_id) {
       $game = tourney_game_load($game_id);
       if (!$game->getWinner()) {
         return FALSE;
