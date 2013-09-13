@@ -435,7 +435,7 @@ class TourneyTournamentEntity extends TourneyEntity {
   public function getContestants() {
     if (property_exists($this, 'is_new') && $this->is_new) return array();
     
-    $cid = __FUNCTION__ . ':' . $this->id;
+    $cid = __FUNCTION__ . ':' . $this->eid;
     if (!$cache = cache_get($cid, 'cache_tourney')) {
       $contestant_eids = array_keys($this->get('seed_positions'));
       $this->contestants = entity_load_by_eid($contestant_eids);
