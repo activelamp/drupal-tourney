@@ -143,6 +143,7 @@ class TourneyController implements TourneyControllerInterface {
       'title' => ucfirst($data['id']) . ' Bracket',
       'id'    => 'bracket-' . $data['id'],
     ) + $data;
+    $this->invoke('build_bracket', $bracket);
     return $round;
   }
 
@@ -166,6 +167,7 @@ class TourneyController implements TourneyControllerInterface {
       'title' => $round_name,
       'id'    => 'round-' . $data['id'],
     ) + $data;
+    $this->invoke('build_round', $round);
     return $round;
   }
 
@@ -185,7 +187,8 @@ class TourneyController implements TourneyControllerInterface {
       'id'          => 'match-' . $data['id'],
       'match'       => $data['id'],
     ) + $data;
-    return $data;
+    $this->invoke('build_match', $match);
+    return $match;
   }
 
   /**
@@ -202,7 +205,22 @@ class TourneyController implements TourneyControllerInterface {
       'title'       => 'Game ' . $data['game'],
       'id'          => 'game-' . $data['id'],
     ) + $data;
+    $this->invoke('build_game', $game);
     return $game;
+  }
+
+  /**
+   * Invoke a tourney hook.
+   *
+   * @param $hook
+   * @param $data
+   */
+  protected function invoke($hook, &$data) {
+    // Let modules modify the view just prior to executing it.
+    foreach (module_implements('tourney_' . $hook) as $module) {
+      $function = $module . '_tourney_' . $hook;
+      $function($data);
+    }
   }
 
   /**
