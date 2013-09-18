@@ -139,12 +139,12 @@ class TourneyController implements TourneyControllerInterface {
    *   Filled out round data array
    */
   public function buildBracket($data) {
-    $round = array(
+    $bracket = array(
       'title' => ucfirst($data['id']) . ' Bracket',
       'id'    => 'bracket-' . $data['id'],
     ) + $data;
     $this->invoke('build_bracket', $bracket);
-    return $round;
+    return $bracket;
   }
 
   /**
@@ -184,8 +184,8 @@ class TourneyController implements TourneyControllerInterface {
     $match = array(
       'controller'  => $this,
       'title'       => 'Match ' . $data['id'],
-      'id'          => 'match-' . $data['id'],
-      'match'       => $data['id'],
+      'match'       => 'match-' . $data['id'],
+      'id'          => $data['id'],
     ) + $data;
     $this->invoke('build_match', $match);
     return $match;
