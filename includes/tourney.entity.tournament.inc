@@ -622,7 +622,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
     $match->cleanGames();
-    
+
     module_load_include('inc', 'tourney', 'includes/tourney.rank');
     if (!$this->get('no_automation', FALSE) && $this->format != 'RoundRobinController') {
       if (!$match->isFinished()) {
@@ -652,6 +652,10 @@ class TourneyTournamentEntity extends TourneyEntity {
         $slot = $match->matchInfo['nextMatch']['loser']['slot'];
         $loserMatch->addContestant($loser, $slot)->save();
       }
+    }
+    else {
+      $match->determineWinner();
+      $match->save();
     }
     if (!$old_winner || ($old_winner && $old_winner !== $match->getWinner())) {
       tourney_rank_win($this, $match->getWinnerEntity());
