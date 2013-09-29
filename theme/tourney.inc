@@ -73,7 +73,12 @@ function template_preprocess_tourney_match_render(&$vars) {
   // Get the contestant output from the contestant template
   $contestant_output = '';
   $seeds = isset($matchInfo['seeds']) ? $matchInfo['seeds'] : '';
-  
+
+  //find the order of how the contestants to games are stored
+  foreach($match->contestantIds as $key => $value) {
+    $contestant_map[$value['eid']] = $key;
+  }
+
   foreach (array_values($contestants) as $slot => $contestant) {
     $slot++;
     $seed_name = '';
@@ -89,8 +94,11 @@ function template_preprocess_tourney_match_render(&$vars) {
         $seed_name = $seeds[$slot];
       }
     }
-
-    $wins = (isset($match->matchInfo['game_wins'][$slot-1])) ? $match->matchInfo['game_wins'][$slot-1] : 0;
+    if(is_numeric($contestant_map[$contestant->eid])) {
+      $wins = (isset($match->matchInfo['game_wins'][$contestant_map[$contestant->eid]])) ? $match->matchInfo['game_wins'][$contestant_map[$contestant->eid]] : 0;
+    } else {
+      $wins = 0;
+    }
     $contestant->slot = !empty($contestant->slot) ? $contestant->slot : $slot;
     $contestant_output .= theme('tourney_contestant', array(
       'contestant' => $contestant, 
