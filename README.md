@@ -1,4 +1,4 @@
-CONTENTS OF THIS FILE
+CONTENTS OF THIS FILE [![Stories in Ready](https://badge.waffle.io/activelamp/drupal-tourney.png?label=ready)](http://waffle.io/activelamp/drupal-tourney)
 ---------------------
 
  * Introduction
