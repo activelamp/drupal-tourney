@@ -388,9 +388,9 @@ function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
   $match_reset = FALSE;
   $is_new = isset($match->is_new) ? TRUE : FALSE;
-
   // Match was created manually through the user interface.
   if ($is_new) {
+    $form_state['values']['status'] = 1;
     $match->tournamentId = $form_state['values']['tournament'];
     $tournament = tourney_tournament_load($match->tournamentId);
     // Calculate the next available sequential match number for

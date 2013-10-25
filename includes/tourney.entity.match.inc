@@ -19,6 +19,7 @@ class TourneyMatchEntity extends TourneyEntity {
   private $matchTournament = NULL;
   private $matchWinner = NULL;
   private $matchLoser = NULL;
+  public static $maxContestantCount = 2;
 
   public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
@@ -142,6 +143,12 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     else {
       $contestants = $cache->data;
+    }
+
+    if (count($contestants) > TourneyMatchEntity::$maxContestantCount) {
+      // clear our cache due to bad data.
+      cache_clear_all("fetchContestantIds_" . $match_id, 'cache_tourney');
+      throw new Exception("Match " . $matchId . " has too many contestants");
     }
     return $contestants;
   }
