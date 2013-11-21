@@ -14,6 +14,8 @@ class TourneySeriesEntity extends TourneyEntity {
    */
   public function __construct($values = array(), $entityType = 'tourney_series') {
     parent::__construct($values, $entityType);
+    // @todo: Remove this hardcoded bundle.
+    $this->type = "series";
 
     if (property_exists($this, 'id') && $this->id) {
       // Add a url to the object
