@@ -10,8 +10,35 @@
  *
  * @todo: Implement this.
  */
-function tourney_league_admin_content() {
-  return 'Not implemented yet.';
+function tourney_league_admin_content() {  
+  // load all the leagues.
+  $leagues = entity_load('tourney_league');
+
+  // table header
+  $header = array("ID", "Label", "Edit", "Delete");
+
+  // table rows
+  $rows = array();
+  foreach($leagues as $id => $league) {
+    $row = array();
+    $row[] = $id;
+    $row[] = l($league->label, "tourney/league/$id");
+    $row[] = l($league->label, "tourney/league/$id/edit");
+    $row[] = l($league->label, "tourney/league/$id/delete");
+    $rows[] = $row;
+  }
+
+  return theme_table(
+    array(
+      "header" => $header, 
+      "rows" => $rows, 
+      "attributes" => array(),
+      "caption" => "",
+      "colgroups" => array(),
+      "sticky" => array(),
+      "empty" => array()
+    )
+  );
 }
 
 /**
@@ -35,8 +62,18 @@ function tourney_league_page_title($league) {
 /**
  * @todo: Implement this.
  */
-function tourney_league_confirm_delete_page() {
-  return 'Not implemented yet.';
+function tourney_league_confirm_delete_page($form, &$form_state, $league) {
+  $form = array();
+
+  $form_state["#entity"] = $league;
+
+  $form['confirm'] = array(
+    "#type" => "submit",    
+    "#value" => t("Delete?"),    
+    "#submit" => "tourney_league_delete"
+  );
+
+  return $form;
 }
 
 
@@ -127,4 +164,12 @@ function tourney_league_edit($league) {
   drupal_set_title(t('Edit League: @title', array('@title' => $league->label)));
 
   return drupal_get_form('tourney_league_form', $league);
+}
+
+/**
+ * Page callback
+ */
+function tourney_league_delete($form, &$form_state, $league) {
+  entity_delete('tourney_league', $league->id);
+  $form_state['redirect'] = "admin/content/league";
 }
