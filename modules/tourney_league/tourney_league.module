@@ -1,0 +1,247 @@
+<?php
+/**
+ * Implements hook_entity_info
+ */
+function tourney_league_entity_info() {
+  $return = array();
+
+  $return['tourney_league'] = array(
+    'label' => t('League'),
+    'entity class' => 'LeagueEntity',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'tourney_league',
+    'uri callback' => 'tourney_league_uri',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'label',
+      'bundle' => 'type'
+    ),
+    'bundle keys' => array(
+      'bundle' => 'name',
+    ),
+    'bundles' => array(),
+    'static cache' => TRUE,
+    'view modes' => array(
+      'full' => array(
+        'label' => t('full'),
+        'custom settings' => FALSE
+      )
+    ),
+    'module' => 'tourney_league',
+    'access callback' => 'tourney_league_type_access',
+  );
+
+  // Add bundle info but bypass entity_load() as we cannot use it here.
+  $types = db_select('tourney_league_type', 'l')
+    ->fields('l')
+    ->execute()
+    ->fetchAllAssoc('name');
+
+  foreach ($types as $type => $info) {
+    $return['tourney_league']['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path' => 'admin/structure/leagues/manage/%tourney_league_type',
+        'real path' => 'admin/structure/leagues/manage/' . $type,
+        'bundle argument' => 4,
+        'access arguments' => array('administer leagues')
+      )
+    );
+  }
+
+  $return['tourney_league_type'] = array(
+    'label' => t('@entity type', array('@entity' => 'League')),
+    'plural label' => t('@entity types', array('@entity' => 'Leagues')),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIControllerExportable',
+    'base table' => 'tourney_league_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'tourney_league',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'name',
+      'label' => 'label',
+    ),
+    'module' => 'tourney_league',
+    'access callback' => 'tourney_league_type_access',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/structure/leagues',
+      'file' => 'includes/league.bundle.inc',
+      'controller class' => 'LeagueTypeUIController',
+    ),
+  );
+
+  return $return;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function tourney_league_type_access($op = NULL, $type = NULL, $account = NULL) {
+  return user_access('administer leagues', $account);
+}
+
+/**
+ * Load a league entity
+ */
+function tourney_league_load($id = NULL, $reset = FALSE) {
+  $ids = (isset($id) ? array($id) : array());
+  $league = tourney_league_load_multiple($ids, $reset);
+  return $league ? reset($league) : FALSE;
+}
+
+/**
+ * Loads multiple league entities
+ */
+function tourney_league_load_multiple($ids = array(), $reset = FALSE) {
+  return entity_load('tourney_league', $ids, array(), $reset);
+}
+
+/**
+ * returns the url for a league entity
+ */
+function league_uri($league) {
+  return array(
+    'path' => 'league/' . $league->id
+  );
+}
+
+function tourney_league_permission() {
+  return array(
+    'administer leagues' => array(
+      'title' => t('Administer Leagues'),
+      'description' => t('Perform administration tasks on leagues.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu
+ */
+function tourney_league_menu() {
+  $items['tourney/league/add'] = array(
+    'title' => 'Add a new league',
+    'page callback' => 'entity_ui_get_form',
+    'page arguments' => array('tourney_league', NULL, 'add'),
+    'access arguments' => array('administer leagues'),
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'includes/league.admin.inc',
+  );
+
+  $items['tourney/league/%tourney_league'] = array(
+    'title callback' => 'tourney_page_title',
+    'title arguments' => array(2),
+    'page callback' => 'tourney_league_page_view',
+    'page arguments' => array(2),
+    'access callback' => 'tourney_entity_access',
+    'access arguments' => array('view', 2),
+    'file' => 'includes/league.admin.inc',
+  );
+
+  $items['tourney/league/%tourney_league/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['tourney/league/%tourney_league/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'tourney_league_edit',
+    'page arguments' => array(2),
+    'access callback' => 'tourney_entity_access',
+    'access arguments' => array('edit', 2),
+    'file' => 'includes/league.admin.inc',
+    'weight' => 0,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['tourney/tournament/%tourney_league/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'tourney_confirm_delete_page',
+    'page arguments' => array(2),
+    'access callback' => 'tourney_entity_access',
+    'access arguments' => array('delete', 2),
+    'file' => 'includes/tourney.admin.inc',
+    'weight' => 10,
+    'type' => MENU_CALLBACK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['admin/content/league'] = array(
+    'title' => 'Leagues',
+    'page callback' => 'tourney_league_admin_content',
+    'access arguments' => array('administer leagues'),
+    'description' => 'View all the leagues',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'includes/league.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Function will return league types
+ */
+function tourney_league_entity_types() {
+  $types = &drupal_static(__FUNCTION__);
+
+  if (empty($types)) {
+    $types['league'] = (object) array(
+      'type' => 'league',
+      'name' => t('League information'),
+      'description' => t('A basic league entity')
+    );
+  }
+
+  return $types;
+}
+
+/**
+ * Menu argument loader; Load a league type by string.
+ *
+ * @param $type
+ *   The machine-readable name.
+ * @return
+ *   A league type array or FALSE if $type does not exist.
+ */
+function tourney_league_type_load($type) {
+  return is_array($type) ? $type : tourney_league_get_types($type);
+}
+
+/**
+ * Saves the league entity
+ */
+function tourney_league_save($league) {
+  return entity_get_controller('league')->save($league);
+}
+
+/**
+ * Function tourney_league_add will generate a form
+ */
+function tourney_league_add($type = 'league') {
+  $types = tourney_league_entity_types();
+  $type = isset($type) ? str_replace('-', '_', $type) : NULL;
+
+  if (empty($types[$type])) {
+    return MENU_NOT_FOUND;
+  }
+
+  return entity_ui_get_form($type, null, 'add');
+}
+
+/**
+ * Gets an array of all leagues types, keyed by the type name.
+ *
+ * @param $type_name
+ *   If set, the type with the given name is returned.
+ * @return array
+ *   Depending whether $type isset, an array of league types or a single one.
+ */
+function tourney_league_get_types($type_name = NULL) {
+  $types = entity_load_multiple_by_name('tourney_league_type', isset($type_name) ? array($type_name) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
+}

@@ -1,0 +1,9 @@
+name = Tourney League
+description = Tourney league module containing the league entity.
+core = 7.x
+package = Tourney
+
+dependencies[] = entity
+dependencies[] = tourney
+files[] = includes/league.entity.inc
+files[] = includes/league.bundle.inc
