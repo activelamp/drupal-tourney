@@ -180,6 +180,13 @@ function tourney_league_menu() {
     'file' => 'includes/league.admin.inc',
   );
 
+  $items['admin/structure/league/manage'] = array(
+    'title' => 'League administration',
+    'description' => 'Manage the league entity',
+    'page callback' => 'league_info',
+    'access arguments' => array('access content')
+  );
+
   return $items;
 }
 
