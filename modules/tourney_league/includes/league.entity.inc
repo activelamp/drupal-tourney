@@ -1,6 +1,8 @@
 <?php
-
+use Drupal\esports_tourney\ActiveTourney;
 class LeagueEntity extends Entity {
+  public $tourney_ids = NULL;
+  public $tourneys = NULL;
   public function __construct($values = array(), $entityType = NULL) {
     parent::__construct($values, $entityType);
     // @todo: Remove this hardcoded bundle.
@@ -44,7 +46,7 @@ class LeagueEntity extends Entity {
    */
   public static function fetchTourneyIds($league_id) {
     // get all tournaments with our league id as a reference.
-    $query = db_query('field_data_field_tourney_league_reference', 'r')
+    $query = db_select('field_data_field_tourney_league_reference', 'r')
       ->fields('r', array('entity_id'))
       ->condition('field_tourney_league_reference_target_id', $league_id)
       ->execute()
@@ -57,11 +59,54 @@ class LeagueEntity extends Entity {
    * Public function to fully load all tourneys for a league
    */
   public function getTournaments() {
-    $tourney_ids = LeagueEntity::fetchTourneyIds($this->id);
+    if ($this->tourneys == NULL) {
+      $this->tourney_ids = LeagueEntity::fetchTourneyIds($this->id);
 
-    // load all tourneys
-    $tourneys = tourney_tournament_load($tourney_ids);
+      // load all tourneys
+      $this->tourneys = tourney_tournament_load_multiple($this->tourney_ids);
+    }
+    return $this->tourneys;
+  }
 
-    return $tourneys;
+  /**
+   * Public function to get all teams in a league
+   */
+  public function getTeams($tourney_id = FALSE) {
+    $tourneys = $this->getTournaments();
+
+    if ($tourney_id && isset($tourneys[$tourney_id])) {
+      return $tourneys[$tourney_id]->getContestants();
+    }
+    else {
+      $return = array();
+      foreach($tourneys as $tourney_id => $tourney) {
+        $return[] = array("tourney_id" => $tourney_id) 
+          + $tourney->getContestants();
+      }
+      return $return;
+    }
+  }
+
+  /**
+   * public function to render a tournament
+   */
+  public function getStandingsView($tourney = FALSE) {
+    if (!$tourney) {
+      $tourneys = !$this->tourneys ? $this->getTournaments() : $this->tourneys;
+      
+      $return = array();
+      foreach ($tourneys as $tourney_id => $tourney) {
+        $instance = ActiveTourneyHandler::getInstance($tourney);
+        $return[$tourney_id] = $instance->getStandingsView();
+      }
+      return $return;
+    }
+    else {
+      if (is_int($tourney)) {
+        $tourney = ActiveTourneyEntity::getInstance()->getEntity($tourney);
+      }      
+      $instance = ActiveTourneyHandler::getInstance($tourney);
+      return $instance->getStandingsView();
+    }
   }
 }
