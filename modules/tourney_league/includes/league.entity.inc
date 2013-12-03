@@ -1,5 +1,6 @@
 <?php
-use Drupal\esports_tourney\ActiveTourney;
+use Drupal\esports_tourney\ActiveTourney\ActiveTourneyEntity;
+use Drupal\esports_tourney\ActiveTourney\ActiveTourneyHandler;
 class LeagueEntity extends Entity {
   public $tourney_ids = NULL;
   public $tourneys = NULL;
@@ -97,7 +98,7 @@ class LeagueEntity extends Entity {
       $return = array();
       foreach ($tourneys as $tourney_id => $tourney) {
         $instance = ActiveTourneyHandler::getInstance($tourney);
-        $return[$tourney_id] = $instance->getStandingsView();
+        $return[$tourney_id]["standings"] = $instance->getStandingsView();
       }
       return $return;
     }
@@ -108,5 +109,35 @@ class LeagueEntity extends Entity {
       $instance = ActiveTourneyHandler::getInstance($tourney);
       return $instance->getStandingsView();
     }
+  }
+
+  /**
+   * Public function to get the schedule of a tourney
+   */
+  public function getLeagueSchedule() {
+    $matches = array();
+    $games = array();
+    $schedule = array();
+
+    // get all tourneys
+    $tourneys = !$this->tourneys ? $this->getTournaments() : $this->tourneys;
+
+    // get all matches for all tourneys, then all games, then load first game in each set.    
+    foreach($tourneys as $tourney_id => $tourney) {
+      $matches += $tourney->getMatchIds();
+    }
+    $loaded_matches = tourney_match_load_multiple($matches);
+    foreach($loaded_matches as $match_id => $match) {
+      $games[] = reset($match->gameIds);
+    }
+    $loaded_games = tourney_game_load_multiple($games);
+    foreach($loaded_games as $game_id => $game) {
+      $schedule[$game_id] = $game->field_game_date[LANGUAGE_NONE][0]['value'];      
+    }
+    // flip the array to preserve keys, sort, flip again
+    $temp = array_flip($schedule);
+    ksort($temp);
+    $schdule = array_flip($temp);
+    return $schedule;
   }
 }
