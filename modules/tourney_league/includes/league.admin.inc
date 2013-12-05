@@ -6,40 +6,6 @@
  */
 
 /**
- * Page callback.
- */
-function tourney_league_admin_content() {  
-  // load all the leagues.
-  $leagues = entity_load('tourney_league');
-
-  // table header
-  $header = array("ID", "Label", "Edit", "Delete");
-  $output = '';
-  // table rows
-  $rows = array();
-  foreach($leagues as $id => $league) {
-    $row = array();
-    $row[] = $id;
-    $row[] = l($league->label, "tourney/league/$id");
-    $row[] = l("Edit", "tourney/league/$id/edit");
-    $row[] = l("Delete", "tourney/league/$id/delete");
-    $rows[] = $row;
-  }
-  $output .= theme('item_list', array('items' => array(l(t('Add league'), 'tourney/league/add')), 'attributes' => array('class' => 'action-links')));
-  $output .= theme('table', array(
-      "header" => $header,
-      "rows" => $rows,
-      "attributes" => array(),
-      "caption" => "",
-      "colgroups" => array(),
-      "sticky" => array(),
-      "empty" => array()
-    )
-  );
-  return $output;
-}
-
-/**
  * Returns content that drupal can use to render a page
  */
 function tourney_league_view_page($league, $view_mode = 'full') {

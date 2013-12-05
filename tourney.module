@@ -134,14 +134,14 @@ function tourney_menu() {
     'file' => 'includes/tourney.tournament.inc',
     'type' => MENU_NORMAL_ITEM,
   );
-  $items['admin/content/tourney'] = array(
-    'title' => 'Tournaments',
-    'page callback' => 'tourney_admin_content',
-    'access arguments' => array('administer tourney'),
-    'description' => 'View all the tournaments on your site.',
-    'file' => 'includes/tourney.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-  );
+//  $items['admin/content/tourney'] = array(
+//    'title' => 'Tournaments',
+//    'page callback' => 'tourney_admin_content',
+//    'access arguments' => array('administer tourney'),
+//    'description' => 'View all the tournaments on your site.',
+//    'file' => 'includes/tourney.admin.inc',
+//    'type' => MENU_LOCAL_TASK,
+//  );
   // Config
   $items['admin/config/tourney'] = array(
     'title' => 'Tourney',

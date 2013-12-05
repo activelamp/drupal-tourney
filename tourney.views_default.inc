@@ -91,6 +91,30 @@ function tourney_views_default_views() {
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['tab_options']['weight'] = '0';
+  $translatables['games_in_match'] = array(
+    t('Master'),
+    t('more'),
+    t('Apply'),
+    t('Reset'),
+    t('Sort by'),
+    t('Asc'),
+    t('Desc'),
+    t('Items per page'),
+    t('- All -'),
+    t('Offset'),
+    t('« first'),
+    t('‹ previous'),
+    t('next ›'),
+    t('last »'),
+    t('has game'),
+    t('Game ID'),
+    t('.'),
+    t(','),
+    t('Label'),
+    t('Edit Game'),
+    t('All'),
+    t('Page'),
+  );
   $views['games_in_match'] = $view;
 
   $view = new view();
@@ -189,33 +213,31 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['display_type'] = '0';
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['enable_select_all_pages'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['force_single'] = 0;
-  $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['display_result'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['entity_load_capacity'] = '10';
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_operations'] = array(
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_message_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_modify_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
@@ -225,6 +247,7 @@ function tourney_views_default_views() {
           '_all_' => '_all_',
         ),
       ),
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
       'selected' => 0,
@@ -237,24 +260,24 @@ function tourney_views_default_views() {
     ),
     'action::system_goto_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::tourney_unpublish_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
   );
   /* Field: Tournament: Tournament ID */
@@ -313,33 +336,31 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['display_type'] = '0';
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['enable_select_all_pages'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['force_single'] = 0;
-  $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['display_result'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['entity_load_capacity'] = '10';
   $handler->display->display_options['fields']['views_bulk_operations']['vbo_operations'] = array(
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_message_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_modify_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
@@ -349,6 +370,7 @@ function tourney_views_default_views() {
           '_all_' => '_all_',
         ),
       ),
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
       'selected' => 0,
@@ -361,38 +383,38 @@ function tourney_views_default_views() {
     ),
     'action::tourney_entity_publish_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::tourney_tournament_delete_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_goto_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::tourney_entity_unpublish_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
   );
   /* Field: Tournament: Tournament ID */
@@ -438,7 +460,7 @@ function tourney_views_default_views() {
   <a href="/tourney/tournament/[id]/edit">Edit</a>
   <a href="/tourney/tournament/[id]/delete">Delete</a>';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  $handler->display->display_options['path'] = 'admin/content/tourney/tournaments';
+  $handler->display->display_options['path'] = 'admin/content/tourney';
   $handler->display->display_options['menu']['type'] = 'tab';
   $handler->display->display_options['menu']['title'] = 'Tournaments';
   $handler->display->display_options['menu']['weight'] = '0';
@@ -476,33 +498,31 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['display_type'] = '0';
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['enable_select_all_pages'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['force_single'] = 0;
-  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['display_result'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['entity_load_capacity'] = '10';
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_operations'] = array(
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_message_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_modify_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
@@ -512,6 +532,7 @@ function tourney_views_default_views() {
           '_all_' => '_all_',
         ),
       ),
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
       'selected' => 0,
@@ -524,38 +545,38 @@ function tourney_views_default_views() {
     ),
     'action::tourney_entity_publish_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_goto_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::tourney_entity_unpublish_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::tourney_match_update_labels_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
   );
   /* Field: Tournament: Tournament ID */
@@ -640,33 +661,31 @@ function tourney_views_default_views() {
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['display_type'] = '0';
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['enable_select_all_pages'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['force_single'] = 0;
-  $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['display_result'] = 1;
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_settings']['entity_load_capacity'] = '10';
   $handler->display->display_options['fields']['views_bulk_operations_1']['vbo_operations'] = array(
     'action::views_bulk_operations_delete_item' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_message_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_script_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_modify_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
@@ -676,6 +695,7 @@ function tourney_views_default_views() {
           '_all_' => '_all_',
         ),
       ),
+      'postpone_processing' => 0,
     ),
     'action::views_bulk_operations_argument_selector_action' => array(
       'selected' => 0,
@@ -688,31 +708,31 @@ function tourney_views_default_views() {
     ),
     'action::tourney_entity_publish_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_goto_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::system_send_email_action' => array(
       'selected' => 0,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
     'action::tourney_entity_unpublish_action' => array(
       'selected' => 1,
-      'use_queue' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
+      'postpone_processing' => 0,
     ),
   );
   /* Field: Tournament: Tournament ID */
@@ -774,6 +794,67 @@ function tourney_views_default_views() {
   $handler->display->display_options['arguments']['id_2']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['id_2']['summary_options']['items_per_page'] = '25';
   $handler->display->display_options['path'] = 'admin/content/tourney/tournaments/%/matches/%/games';
+  $translatables['tourney'] = array(
+    t('Master'),
+    t('Tourney'),
+    t('more'),
+    t('Apply'),
+    t('Reset'),
+    t('Sort by'),
+    t('Asc'),
+    t('Desc'),
+    t('Items per page'),
+    t('- All -'),
+    t('Offset'),
+    t('« first'),
+    t('‹ previous'),
+    t('next ›'),
+    t('last »'),
+    t('<div class="item-list"><ul class="action-links"><li class="first last">
+   <a href="/admin/tourney/tournaments">Back to Tournaments</a></li>
+  </ul></div>'),
+    t('Operations'),
+    t('Tournament ID'),
+    t('.'),
+    t(','),
+    t('Label'),
+    t('Format'),
+    t('Players'),
+    t('Winner'),
+    t('View Edit Delete'),
+    t('All'),
+    t('Tournaments'),
+    t('<div class="item-list"><ul class="action-links"><li class="first last">
+   <a href="/tourney/tournament/add">Add Tournament</a></li>
+  </ul></div>'),
+    t('Status'),
+    t('Matches'),
+    t('<a href="/admin/content/tourney/tournaments/[id]/matches">View Matches</a>'),
+    t('<a href="/tourney/tournament/[id]">View</a>
+  <a href="/tourney/tournament/[id]/edit">Edit</a>
+  <a href="/tourney/tournament/[id]/delete">Delete</a>'),
+    t('Tournament Matches'),
+    t('<div class="item-list"><ul class="action-links"><li class="first last">
+   <a href="/admin/content/tourney">Back to Tournaments</a></li>
+  </ul></div>'),
+    t('has match'),
+    t('Match'),
+    t('Match ID'),
+    t('Name'),
+    t('Games'),
+    t('<a href="/admin/content/tourney/tournaments/[id]/matches/[id_1]/games">View Games</a>'),
+    t('<a href="/tourney/match/[id_1]">View</a>
+  <a href="/tourney/match/[id_1]/edit">Edit</a>'),
+    t('Match Games'),
+    t('<div class="item-list"><ul class="action-links"><li class="first last">
+   <a href="/admin/content/tourney/[id]/matches">Back to Matches</a></li>
+  </ul></div>'),
+    t('has game'),
+    t('Game'),
+    t('Game ID'),
+    t('<a href="/tourney/game/[id_1]">View</a>
+  <a href="/tourney/game/[id_1]/edit">Edit</a>'),
+  );
   $views['tourney'] = $view;
 
   return $views;
