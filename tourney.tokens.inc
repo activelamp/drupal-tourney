@@ -76,11 +76,11 @@ function tourney_tokens($type, $tokens, $data = array(), $options = array()) {
           break;
         case 'contestant_1':
           $contestant = $match->getContestant(1);
-          $replacements[$original] = $contestant ? $contestant->entity_name : 'TBD';
+          $replacements[$original] = $contestant ? $contestant->entity_name : t('TBD');
           break;
         case 'contestant_2':
           $contestant = $match->getContestant(2);
-          $replacements[$original] = $contestant ? $contestant->entity_name : 'TBD';
+          $replacements[$original] = $contestant ? $contestant->entity_name : t('TBD');
           break;
       }
     }
