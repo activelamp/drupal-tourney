@@ -108,8 +108,8 @@ function tourney_league_schema() {
  */
 function tourney_league_install() {
   $type = entity_create('tourney_league_type', array(
-    'name' => 'lol',
-    'label' => st('Bundle'),
+    'name' => 'general_league',
+    'label' => st('General League'),
     'weight' => 0,
   )); 
   $type->save();
@@ -123,7 +123,7 @@ function tourney_league_install() {
         'target_type' => 'tourney_league',
         'handler' => 'base',
         'handler_settings' => array(
-          'target_bundles' => array('lol')
+          'target_bundles' => array('general_league')
         )
       ),
     );

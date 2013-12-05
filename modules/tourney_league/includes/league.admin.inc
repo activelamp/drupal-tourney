@@ -14,7 +14,7 @@ function tourney_league_admin_content() {
 
   // table header
   $header = array("ID", "Label", "Edit", "Delete");
-
+  $output = '';
   // table rows
   $rows = array();
   foreach($leagues as $id => $league) {
@@ -25,11 +25,10 @@ function tourney_league_admin_content() {
     $row[] = l("Delete", "tourney/league/$id/delete");
     $rows[] = $row;
   }
-
-  return theme_table(
-    array(
-      "header" => $header, 
-      "rows" => $rows, 
+  $output .= theme('item_list', array('items' => array(l(t('Add league'), 'tourney/league/add')), 'attributes' => array('class' => 'action-links')));
+  $output .= theme('table', array(
+      "header" => $header,
+      "rows" => $rows,
       "attributes" => array(),
       "caption" => "",
       "colgroups" => array(),
@@ -37,6 +36,7 @@ function tourney_league_admin_content() {
       "empty" => array()
     )
   );
+  return $output;
 }
 
 /**
@@ -158,7 +158,7 @@ function league_form_delete_submit($form, &$form_state) {
  * Show the tournament page.
  */
 function tourney_league_page_view($tourney, $view_mode = 'full') {
-  return $tourney->view($mode, NULL, TRUE);
+  return $tourney->view($view_mode, NULL, TRUE);
 }
 
 /**

@@ -42,8 +42,8 @@ function tourney_league_entity_info() {
     $return['tourney_league']['bundles'][$type] = array(
       'label' => $info->label,
       'admin' => array(
-        'path' => 'admin/structure/leagues/manage/%tourney_league_type',
-        'real path' => 'admin/structure/leagues/manage/' . $type,
+        'path' => 'admin/structure/league/manage/%tourney_league_type',
+        'real path' => 'admin/structure/league/manage/' . $type,
         'bundle argument' => 4,
         'access arguments' => array('administer leagues')
       )
@@ -68,7 +68,7 @@ function tourney_league_entity_info() {
     'access callback' => 'tourney_league_type_access',
     // Enable the entity API's admin UI.
     'admin ui' => array(
-      'path' => 'admin/structure/leagues',
+      'path' => 'admin/structure/league',
       'file' => 'includes/league.bundle.inc',
       'controller class' => 'LeagueTypeUIController',
     ),
@@ -180,12 +180,12 @@ function tourney_league_menu() {
     'file' => 'includes/league.admin.inc',
   );
 
-  $items['admin/structure/league/manage'] = array(
-    'title' => 'League administration',
-    'description' => 'Manage the league entity',
-    'page callback' => 'league_info',
-    'access arguments' => array('access content')
-  );
+//  $items['admin/structure/league/manage'] = array(
+//    'title' => 'League administration',
+//    'description' => 'Manage the league entity',
+//    'page callback' => 'league_info',
+//    'access arguments' => array('access content')
+//  );
 
   $items['tourney/league/%tourney_league/schedule'] = array(
     'title' => 'league schedule',
