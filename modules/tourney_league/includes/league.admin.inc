@@ -7,11 +7,36 @@
 
 /**
  * Page callback.
- *
- * @todo: Implement this.
  */
-function tourney_league_admin_content() {
-  return 'Not implemented yet.';
+function tourney_league_admin_content() {  
+  // load all the leagues.
+  $leagues = entity_load('tourney_league');
+
+  // table header
+  $header = array("ID", "Label", "Edit", "Delete");
+
+  // table rows
+  $rows = array();
+  foreach($leagues as $id => $league) {
+    $row = array();
+    $row[] = $id;
+    $row[] = l($league->label, "tourney/league/$id");
+    $row[] = l("Edit", "tourney/league/$id/edit");
+    $row[] = l("Delete", "tourney/league/$id/delete");
+    $rows[] = $row;
+  }
+
+  return theme_table(
+    array(
+      "header" => $header, 
+      "rows" => $rows, 
+      "attributes" => array(),
+      "caption" => "",
+      "colgroups" => array(),
+      "sticky" => array(),
+      "empty" => array()
+    )
+  );
 }
 
 /**
@@ -33,10 +58,21 @@ function tourney_league_page_title($league) {
 }
 
 /**
- * @todo: Implement this.
+ * Delete page callback
  */
-function tourney_league_confirm_delete_page() {
-  return 'Not implemented yet.';
+function tourney_league_confirm_delete_page($form, &$form_state, $league) {
+  $form = array();
+
+  $form["#league"] = $league;
+  return confirm_form(
+    $form,
+    t('Are you sure you want to delete the league %title?', array('%title' => $league->label)),
+    "tourney/league/$league->id",
+    t('This action cannot be undone.'),
+    t('Delete'),
+    t('Cancel'),
+    'tourney_league_confirm_delete_page_submit'
+  );
 }
 
 
@@ -51,8 +87,6 @@ function tourney_league_types_information($league_type) {
  * Form defintion for the league forms
  */
 function tourney_league_form($form, &$form_state, $league) {
-  // @todo: We need to remove this hardcoded bundle.
-  $league->type = "lol";
   $form['#id'] = 'league-form';
 
   // store the league for later
@@ -77,16 +111,16 @@ function tourney_league_form($form, &$form_state, $league) {
     '#weight' => 5,
     '#submit' => array('tourney_league_form_submit'),
   );
-// @todo: Add delete handler
-//  if (!empty($league->id)) {
-//    $form['buttons']['delete'] = array(
-//      '#access' => user_access('delete league'),
-//      '#type' => 'submit',
-//      '#value' => t('Delete'),
-//      '#weight' => 15,
-//      '#submit' => array('league_form_delete_submit'),
-//    );
-//  }
+
+ if (!empty($league->id)) {
+   $form['buttons']['delete'] = array(
+     '#access' => user_access('delete league'),
+     '#type' => 'submit',
+     '#value' => t('Delete'),
+     '#weight' => 15,
+     '#submit' => array('league_form_delete_submit'),
+   );
+ }
 
   $form['#validate'][] = 'tourney_league_form_validate';
   field_attach_form('tourney_league', $league, $form, $form_state);
@@ -114,6 +148,13 @@ function tourney_league_form_submit($form, &$form_state) {
 }
 
 /**
+ * Implements league_form_delete_submit
+ */
+function league_form_delete_submit($form, &$form_state) {
+  tourney_league_confirm_delete_page_submit($form, $form_state);
+}
+
+/**
  * Show the tournament page.
  */
 function tourney_league_page_view($tourney, $view_mode = 'full') {
@@ -125,6 +166,13 @@ function tourney_league_page_view($tourney, $view_mode = 'full') {
  */
 function tourney_league_edit($league) {
   drupal_set_title(t('Edit League: @title', array('@title' => $league->label)));
-
   return drupal_get_form('tourney_league_form', $league);
+}
+
+/**
+ * Delete submit callback.
+ */
+function tourney_league_confirm_delete_page_submit($form, &$form_state) {
+  entity_delete('tourney_league', $form['#league']->id);
+  $form_state['redirect'] = "admin/content/league";
 }

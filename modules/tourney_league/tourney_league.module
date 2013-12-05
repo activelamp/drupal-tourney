@@ -159,13 +159,13 @@ function tourney_league_menu() {
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
   );
 
-  $items['tourney/tournament/%tourney_league/delete'] = array(
+  $items['tourney/league/%tourney_league/delete'] = array(
     'title' => 'Delete',
-    'page callback' => 'tourney_confirm_delete_page',
-    'page arguments' => array(2),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tourney_league_confirm_delete_page', 2),
     'access callback' => 'tourney_entity_access',
     'access arguments' => array('delete', 2),
-    'file' => 'includes/tourney.admin.inc',
+    'file' => 'includes/league.admin.inc',
     'weight' => 10,
     'type' => MENU_CALLBACK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -180,6 +180,20 @@ function tourney_league_menu() {
     'file' => 'includes/league.admin.inc',
   );
 
+  $items['admin/structure/league/manage'] = array(
+    'title' => 'League administration',
+    'description' => 'Manage the league entity',
+    'page callback' => 'league_info',
+    'access arguments' => array('access content')
+  );
+
+  $items['tourney/league/%tourney_league/schedule'] = array(
+    'title' => 'league schedule',
+    'page callback' => 'tourney_league_display_schedule',
+    'page arguments' => array(2),
+    'access arguments' => array('administer leagues'),
+    'description' => 'View schedule for a league',
+  );
   return $items;
 }
 
@@ -244,4 +258,23 @@ function tourney_league_add($type = 'league') {
 function tourney_league_get_types($type_name = NULL) {
   $types = entity_load_multiple_by_name('tourney_league_type', isset($type_name) ? array($type_name) : FALSE);
   return isset($type_name) ? reset($types) : $types;
+}
+
+function tourney_league_display_schedule($league) {
+  $schedule = $league->getLeagueSchedule();
+  $rows = array();
+  foreach($schedule as $game => $time) {
+    $rows[] = array($game, $time);
+  }
+  $vars = array(
+      "header" => array("id", "time"), 
+      "rows" => $rows, 
+      "attributes" => array(),
+      "caption" => "",
+      "colgroups" => array(),
+      "sticky" => array(),
+      "empty" => array()
+  );
+
+  return theme_table($vars);
 }
