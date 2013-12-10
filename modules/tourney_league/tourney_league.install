@@ -104,6 +104,65 @@ function tourney_league_schema() {
 }
 
 /**
+ * Install a bundle type
+ */
+function tourney_league_install() {
+  $type = entity_create('tourney_league_type', array(
+    'name' => 'league',
+    'label' => st('League'),
+    'weight' => 0,
+  )); 
+  $type->save();
+
+  if (!field_info_field('field_tourney_league_reference')) {
+    // create entity_reference field.
+    $field = array(
+      'field_name' => 'field_tourney_league_reference',
+      'type' => 'entityreference',
+      'settings' => array(
+        'target_type' => 'tourney_league',
+        'handler' => 'base',
+        'handler_settings' => array(
+          'target_bundles' => array('league')
+        )
+      ),
+    );
+    field_create_field($field);
+
+    // Create the entity_reference field instance.
+    $instance = array(
+      'field_name' => 'field_tourney_league_reference',
+      'entity_type' => 'tourney_tournament',
+      'bundle' => 'tournament',
+      'label' => 'League reference',
+      'description' => 'Stores a reference to leagues',
+      'requried' => TRUE,
+      'widget' => array(
+        'type' => 'entityreference_autocomplete',
+        'module' => 'entityreference',
+        'active' => 1,
+        'settings' => array(
+          'match_operator' => 'CONTAINS',
+          'size' => '60',
+          'maxlength_js_label' => 'Content limited to @limit characters, remaining: <strong>@remaining</strong>',
+          'path' => '',
+        ),      
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden'
+        )
+      )
+    );
+
+    field_create_instance($instance);
+    drupal_set_message(t("!field_name was added successfully", array(
+      '!field_name' => 'field_tourney_league_reference'
+    )));
+  }
+}
+
+/**
  * Implements hook_uninstall
  */
 function tourney_league_uninstall() {

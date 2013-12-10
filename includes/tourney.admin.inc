@@ -71,67 +71,6 @@ function tourney_tournament_type_form_submit_delete(&$form, &$form_state) {
   $form_state['redirect'] = 'admin/structure/tournament/manage/' . $form_state['tourney_tournament_type']->type . '/delete';
 }
 
-/**
- * Page callback.
- */
-function tourney_admin_content() {
-  $output = '';
-  $header = array(
-    'id' => array('data' => t('Id'), 'field' => 't.id', 'sort' => 'asc'),
-    'title' => array('data' => t('Label'), 'field' => 't.label'),
-    'format' => array('data' => t('Format'), 'field' => 't.format'),
-    'players' => array('data' => t('Players'), 'field' => 't.players'),
-    'winner' => array('data' => t('Winner'), 'field' => 't.winner'),
-    'operations' => array('data' => t('Operations'), 'colspan' => '3'),
-  );
-
-  // Grab all tournaments.
-  $query = db_select('tourney_tournament', 't')->extend('PagerDefault')->extend('TableSort');
-  $query->fields('t', array('id', 'label', 'format', 'players', 'winner'))
-    ->limit(50)
-    ->orderByHeader($header);
-  $tournaments = $query->execute();
-
-  $output .= theme('item_list', array('items' => array(l(t('Add tournament'), 'tourney/tournament/add')), 'attributes' => array('class' => 'action-links')));
-  $output .= theme('tourney_admin_content', array('tournaments' => $tournaments, 'header' => $header));
-  return $output;
-}
-
-/**
- * Generate a table of all tournaments on this site.
- */
-function theme_tourney_admin_content($variables) {
-  $tournaments = $variables['tournaments'];
-  $header = $variables['header'];
-
-  $rows = array();
-  if (empty($tournaments)) {
-    $message = t('There are currently no tournaments on your site.');
-
-    $rows[] = array(
-      array('data' => $message, 'colspan' => 8),
-    );
-  }
-  else foreach ($tournaments as $tournament) {
-    // $tournament is not a fully loaded object. Need to get the path via the
-    // static method on tournaments.
-    $uri = TourneyEntity::path($tournament->id, 'tourney_tournament');
-    $info = TourneyController::getPluginInfo($tournament->format);
-    $rows[] = array(
-      l($tournament->id, $uri),
-      l($tournament->label, $uri),
-      $info['title'],
-      $tournament->players,
-      $tournament->winner,
-      user_access('access tourney') ? l(t('View'), $uri . '') : '',
-      user_access('edit tourney') ? l(t('Edit'), $uri . '/edit') : '',
-      user_access('delete tourney') ? l(t('Delete'), $uri . '/delete') : '',
-    );
-  }
-
-  return theme('table', array('header' => $header, 'rows' => $rows)) . theme('pager');
-}
-
 function tourney_confirm_delete_page($tournament) {
   if ($tournament) {
     return drupal_get_form('tourney_confirm_delete', $tournament);

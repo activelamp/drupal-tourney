@@ -134,14 +134,14 @@ function tourney_menu() {
     'file' => 'includes/tourney.tournament.inc',
     'type' => MENU_NORMAL_ITEM,
   );
-  $items['admin/content/tourney'] = array(
-    'title' => 'Tournaments',
-    'page callback' => 'tourney_admin_content',
-    'access arguments' => array('administer tourney'),
-    'description' => 'View all the tournaments on your site.',
-    'file' => 'includes/tourney.admin.inc',
-    'type' => MENU_LOCAL_TASK,
-  );
+//  $items['admin/content/tourney'] = array(
+//    'title' => 'Tournaments',
+//    'page callback' => 'tourney_admin_content',
+//    'access arguments' => array('administer tourney'),
+//    'description' => 'View all the tournaments on your site.',
+//    'file' => 'includes/tourney.admin.inc',
+//    'type' => MENU_LOCAL_TASK,
+//  );
   // Config
   $items['admin/config/tourney'] = array(
     'title' => 'Tourney',
@@ -953,7 +953,7 @@ function tourney_entity_delete($entity, $type) {
  */
 function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') {
   $info = TourneyController::getPluginInfo($entity->format);
-  
+
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'
   );
@@ -979,14 +979,14 @@ function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') 
   }
   // Matches for this tournament displayed as a tree
   $tree = $entity->render('tree');
-  if ( $tree ) {
+  if ($tree) {
     $entity->content['bracket'] = array(
       '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
       '#suffix' => '</div>',
       '#markup' => $tree,
     );
   }
-  
+
   // Matches for this tournament displayed as a list
   $list = $entity->render('list');
   if ( $list ) {
@@ -994,7 +994,7 @@ function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') 
       '#prefix' => '<div class="field-label">Matches:</div><div class="field-content">',
       '#suffix' => '</div>',
       '#markup' => $list,
-    );  
+    );
   }
 }
 
