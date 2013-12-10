@@ -460,8 +460,8 @@ function tourney_views_default_views() {
   <a href="/tourney/tournament/[id]/edit">Edit</a>
   <a href="/tourney/tournament/[id]/delete">Delete</a>';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  $handler->display->display_options['path'] = 'admin/content/tourney';
-  $handler->display->display_options['menu']['type'] = 'tab';
+  $handler->display->display_options['path'] = 'admin/content/tourney/tournaments';
+  $handler->display->display_options['menu']['type'] = 'default tab';
   $handler->display->display_options['menu']['title'] = 'Tournaments';
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'management';
@@ -470,6 +470,7 @@ function tourney_views_default_views() {
   $handler->display->display_options['tab_options']['type'] = 'tab';
   $handler->display->display_options['tab_options']['title'] = 'Tournaments';
   $handler->display->display_options['tab_options']['weight'] = '0';
+  $handler->display->display_options['tab_options']['name'] = 'management';
 
   /* Display: Tournament Matches */
   $handler = $view->new_display('page', 'Tournament Matches', 'page_1');
