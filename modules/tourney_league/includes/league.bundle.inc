@@ -66,7 +66,7 @@ function tourney_league_type_form_submit(&$form, &$form_state) {
   $entity = entity_ui_form_submit_build_entity($form, $form_state);
   // Save and go back.
   $entity->save();
-  $form_state['redirect'] = 'admin/structure/leagues';
+  $form_state['redirect'] = 'admin/structure/league';
 }
 
 /**
