@@ -134,10 +134,21 @@ function tourney_league_views_default_views() {
   $handler->display->display_options['fields']['id']['id'] = 'id';
   $handler->display->display_options['fields']['id']['table'] = 'tourney_league';
   $handler->display->display_options['fields']['id']['field'] = 'id';
+  $handler->display->display_options['fields']['id']['separator'] = '';
   /* Field: League: Label */
   $handler->display->display_options['fields']['label']['id'] = 'label';
   $handler->display->display_options['fields']['label']['table'] = 'tourney_league';
   $handler->display->display_options['fields']['label']['field'] = 'label';
+  $handler->display->display_options['fields']['label']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['label']['alter']['path'] = 'tourney/league/[id]';
+  /* Field: Global: Custom text */
+  $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
+  $handler->display->display_options['fields']['nothing']['table'] = 'views';
+  $handler->display->display_options['fields']['nothing']['field'] = 'nothing';
+  $handler->display->display_options['fields']['nothing']['label'] = 'Operations';
+  $handler->display->display_options['fields']['nothing']['alter']['text'] = '<a href="/tourney/league/[id]">View</a>
+  <a href="/tourney/league/[id]/edit">Edit</a>
+  <a href="/tourney/league/[id]/delete">Delete</a>';
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
@@ -170,8 +181,10 @@ function tourney_league_views_default_views() {
     t('Operations'),
     t('League ID'),
     t('.'),
-    t(','),
     t('Label'),
+    t('<a href="/tourney/league/[id]">View</a>
+  <a href="/tourney/league/[id]/edit">Edit</a>
+  <a href="/tourney/league/[id]/delete">Delete</a>'),
     t('Page'),
   );
   $views['tourney_league'] = $view;
