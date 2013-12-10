@@ -25,7 +25,8 @@
     <?php 
       if ($match) {
         $match_output = $match->view('match_block', null, TRUE);
-        print drupal_render($match_output); 
+        // @todo: Suppressing this drupal_render. It is creating PHP Warnings that are difficult to track down.
+        print @drupal_render($match_output);
       }
     ?>
     <?php if (!$bye): ?>

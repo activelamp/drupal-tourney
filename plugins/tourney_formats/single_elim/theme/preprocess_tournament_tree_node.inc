@@ -46,6 +46,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
 
   $node_classes = array();
   $path_classes = array();
+  $parent_classes = array();
   $bye = (isset($node['bye'])) ? $node['bye'] : FALSE;
   $has_children = isset($node['children']) && count($node['children']);
   $is_child     = isset($node['child']);
@@ -88,7 +89,6 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
     $match = $plugin->tournament->getMatchById($node['id']);
     if ($match) {
       $match->matchInfo = $node;
-      $parent_classes = array();
 
       if (array_key_exists('hide', $match->matchInfo) && $match->matchInfo['hide'] == TRUE) {
         $parent_classes[] = 'hide-match';
@@ -110,7 +110,7 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   $vars['round_name']       = $round_name;
   $vars['node_classes']     = implode(' ', $node_classes);
   $vars['path_classes']     = implode(' ', $path_classes);
-  $vars['parent_classes']     = implode(' ', $parent_classes);
+  $vars['parent_classes']   = implode(' ', $parent_classes);
   $vars['bye']              = $bye;
   $vars['has_children']     = $has_children;
   $vars['round_name']       = '';
