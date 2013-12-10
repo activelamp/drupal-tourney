@@ -36,6 +36,7 @@ function tourney_league_views_default_views() {
   $handler->display->display_options['header']['area']['id'] = 'area';
   $handler->display->display_options['header']['area']['table'] = 'views';
   $handler->display->display_options['header']['area']['field'] = 'area';
+  $handler->display->display_options['header']['area']['empty'] = TRUE;
   $handler->display->display_options['header']['area']['content'] = '<div class="item-list"><ul class="action-links"><li class="first last">
    <a href="/tourney/league/add">Add League</a></li>
   </ul></div>';
@@ -137,24 +138,16 @@ function tourney_league_views_default_views() {
   $handler->display->display_options['fields']['label']['id'] = 'label';
   $handler->display->display_options['fields']['label']['table'] = 'tourney_league';
   $handler->display->display_options['fields']['label']['field'] = 'label';
-  /* Field: League: League Color */
-  $handler->display->display_options['fields']['field_league_color']['id'] = 'field_league_color';
-  $handler->display->display_options['fields']['field_league_color']['table'] = 'field_data_field_league_color';
-  $handler->display->display_options['fields']['field_league_color']['field'] = 'field_league_color';
-  $handler->display->display_options['fields']['field_league_color']['settings'] = array(
-    'width' => '20',
-    'height' => '20',
-    'field_formatter_class' => '',
-    'conditions' => array(
-      0 => array(
-        'condition' => '',
-      ),
-    ),
-  );
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
-  $handler->display->display_options['path'] = 'admin/content/league';
+  $handler->display->display_options['path'] = 'admin/content/tourney/league';
+  $handler->display->display_options['menu']['type'] = 'tab';
+  $handler->display->display_options['menu']['title'] = 'League';
+  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['name'] = 'management';
+  $handler->display->display_options['menu']['context'] = 0;
+  $handler->display->display_options['menu']['context_only_inline'] = 0;
   $translatables['tourney_league'] = array(
     t('Master'),
     t('Tourney League'),
@@ -179,7 +172,6 @@ function tourney_league_views_default_views() {
     t('.'),
     t(','),
     t('Label'),
-    t('League Color'),
     t('Page'),
   );
   $views['tourney_league'] = $view;

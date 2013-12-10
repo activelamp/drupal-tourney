@@ -117,7 +117,7 @@ function tourney_league_form_submit($form, &$form_state) {
  * Implements league_form_delete_submit
  */
 function league_form_delete_submit($form, &$form_state) {
-  tourney_league_confirm_delete_page_submit($form, $form_state);
+  $form_state['redirect'] = 'tourney/league/' . $form_state['league']->id. '/delete';
 }
 
 /**
