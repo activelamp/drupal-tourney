@@ -118,9 +118,9 @@ function tourney_league_load_multiple($ids = array(), $reset = FALSE) {
 /**
  * returns the url for a league entity
  */
-function league_uri($league) {
+function tourney_league_uri($league) {
   return array(
-    'path' => 'league/' . $league->id
+    'path' => 'tourney/league/' . $league->id
   );
 }
 
