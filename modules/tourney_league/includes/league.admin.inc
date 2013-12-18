@@ -88,7 +88,7 @@ function tourney_league_form($form, &$form_state, $league) {
   $form['options']['status'] = array(
     '#type' => 'checkbox',
     '#title' => t('Published'),
-    '#default_value' => isset($tourney->status) ? $tourney->status : 0,
+    '#default_value' => isset($league->status) ? $league->status : 0,
   );
 
   // buttons
