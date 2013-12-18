@@ -102,7 +102,7 @@ function tourney_league_views_default_views() {
       ),
     ),
     'action::tourney_entity_publish_action' => array(
-      'selected' => 0,
+      'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
@@ -116,14 +116,14 @@ function tourney_league_views_default_views() {
       'label' => '',
     ),
     'action::tourney_entity_unpublish_action' => array(
-      'selected' => 0,
+      'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
       'label' => '',
     ),
     'action::auto_entitylabel_entity_update_action' => array(
-      'selected' => 0,
+      'selected' => 1,
       'postpone_processing' => 0,
       'skip_confirmation' => 0,
       'override_label' => 0,
@@ -141,6 +141,11 @@ function tourney_league_views_default_views() {
   $handler->display->display_options['fields']['label']['field'] = 'label';
   $handler->display->display_options['fields']['label']['alter']['make_link'] = TRUE;
   $handler->display->display_options['fields']['label']['alter']['path'] = 'tourney/league/[id]';
+  /* Field: League: Status */
+  $handler->display->display_options['fields']['status']['id'] = 'status';
+  $handler->display->display_options['fields']['status']['table'] = 'tourney_league';
+  $handler->display->display_options['fields']['status']['field'] = 'status';
+  $handler->display->display_options['fields']['status']['separator'] = '';
   /* Field: Global: Custom text */
   $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
   $handler->display->display_options['fields']['nothing']['table'] = 'views';
@@ -159,34 +164,6 @@ function tourney_league_views_default_views() {
   $handler->display->display_options['menu']['name'] = 'management';
   $handler->display->display_options['menu']['context'] = 0;
   $handler->display->display_options['menu']['context_only_inline'] = 0;
-  $translatables['tourney_league'] = array(
-    t('Master'),
-    t('Tourney League'),
-    t('more'),
-    t('Apply'),
-    t('Reset'),
-    t('Sort by'),
-    t('Asc'),
-    t('Desc'),
-    t('Items per page'),
-    t('- All -'),
-    t('Offset'),
-    t('« first'),
-    t('‹ previous'),
-    t('next ›'),
-    t('last »'),
-    t('<div class="item-list"><ul class="action-links"><li class="first last">
-   <a href="/tourney/league/add">Add League</a></li>
-  </ul></div>'),
-    t('Operations'),
-    t('League ID'),
-    t('.'),
-    t('Label'),
-    t('<a href="/tourney/league/[id]">View</a>
-  <a href="/tourney/league/[id]/edit">Edit</a>
-  <a href="/tourney/league/[id]/delete">Delete</a>'),
-    t('Page'),
-  );
   $views['tourney_league'] = $view;
 
   return $views;

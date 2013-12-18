@@ -251,3 +251,34 @@ function tourney_league_get_types($type_name = NULL) {
   $types = entity_load_multiple_by_name('tourney_league_type', isset($type_name) ? array($type_name) : FALSE);
   return isset($type_name) ? reset($types) : $types;
 }
+
+/**
+ * Implements hook_entity_insert().
+ */
+function tourney_league_entity_insert($entity, $type) {
+  $entity->entity_type = $type;
+  if (is_a($entity, 'LeagueEntity')) {
+    tourney_update_alias($entity, 'insert');
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function tourney_league_entity_update($entity, $type) {
+  $info = entity_get_info($type);
+  if (is_a($entity, 'LeagueEntity')) {
+    tourney_update_alias($entity, 'update');
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function tourney_league_entity_delete($entity, $type) {
+  // Remove the pathauto aliases for all our defined entities.
+  if (module_exists('pathauto') && is_a($entity, 'LeagueEntity')) {
+    $uri = tourney_uri($entity);
+    pathauto_entity_path_delete_all($type, $entity, $uri);
+  }
+}

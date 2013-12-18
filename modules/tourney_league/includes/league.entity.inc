@@ -46,9 +46,9 @@ class LeagueEntity extends Entity {
    */
   public static function fetchTourneyIds($league_id) {
     // get all tournaments with our league id as a reference.
-    $query = db_select('field_data_field_tourney_league_reference', 'r')
+    $query = db_select('field_data_field_league_reference', 'r')
       ->fields('r', array('entity_id'))
-      ->condition('field_tourney_league_reference_target_id', $league_id)
+      ->condition('field_league_reference_target_id', $league_id)
       ->execute()
       ->fetchAllAssoc('entity_id');
 
