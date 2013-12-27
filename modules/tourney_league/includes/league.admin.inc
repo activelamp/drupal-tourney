@@ -73,7 +73,7 @@ function tourney_league_form($form, &$form_state, $league) {
     '#weight' => 99,
   );
 
-  $form['path'] = tourney_create_path_field($tourney);
+  $form['path'] = tourney_create_path_field($league);
 //  $form['menu'] = tourney_league_create_menu();
 
   $form['options'] = array(
