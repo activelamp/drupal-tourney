@@ -227,71 +227,20 @@ function _tourney_match_contestant($match, $this_eid = null) {
   );
 }
 /**
- * Get the bundles that can be contestants in a match and build an options
- * array to be used on the match edit form.
+ * Get the contestants on the tournament.
  *
  * @param $match
  *   The match object for the match being edited.
- * @param $this_eid
- *   Optional eid of a contestant to prevent it from being sanitized
  * @return array
- *   Returns an $options array of contestants that have not been added to a
- *   tournament yet.
- *
- * @see _tourney_match_contestant().
- * @see _tourney_match_contestants_sanitize().
+ *   Returns an $options array of contestants.
  */
-function _tourney_match_contestants($match, $this_eid = null) {
-  $query = db_select('relation_bundles', 'rb');
-  $query->fields('rb', array('entity_type', 'bundle'))
-    ->distinct()
-    ->condition('relation_type', array('contestant'))
-    ->condition('r_index', 1);
-  $results = $query->execute()->fetchAll();
-
+function _tourney_match_contestants($match) {
+  $contestants = $match->getTournament()->getContestants();
   $options = array('' => ' - Choose contestant -');
-  foreach ($results as $row) {
-    $entity_type = $row->entity_type;
-    $group = array();
 
-    if ($row->bundle === '*') {
-      $entities = entity_load($entity_type);
-    }
-    else {
-      $query = new EntityFieldQuery();
-      $query->entityCondition('entity_type', $entity_type, '=');
-      // Users don't have bundles, don't look for a bundle on user entities.
-      if ($entity_type != 'user') {
-        $query->propertyCondition('type', $row->bundle, '=');
-      }
-      $result = $query->execute();
-
-      $entities = array();
-      if (isset($result[$entity_type])) {
-        $ids = array_keys($result[$entity_type]);
-        $entities = entity_load($entity_type, $ids);
-      }
-    }
-
-    if (empty($entities)) {
-      $group[] = ' - Empty - ';
-    }
-    else {
-      foreach ($entities as $eid => $entity) {
-        $title = $entity->entity_name;
-        $group["$entity_type.$eid"] = $title;
-      }
-    }
-    if (!empty($group)) {
-      $group_name = $row->bundle !== '*' ? $entity_type . ' - ' . $row->bundle : $entity_type;
-      $options[$group_name] = $group;
-    }
+  foreach ($contestants as $eid => $contestant) {
+    $options[$eid] = $contestant->title;
   }
-  // Do not sanitize the list for "No Automation"
-  if (!$match->getTournament()->get('no_automation', FALSE)) {
-    _tourney_match_contestants_sanitize($match, $this_eid, $options);
-  }
-
   return $options;
 }
 

@@ -226,6 +226,15 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#weight' => 20,
   );
 
+  $form['contestants']['contestants'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Contestants in tournament.'),
+    '#description' => t('Choose the contestants participating in this tournament.'),
+    '#options' => _tourney_tournament_contestants($tourney),
+    '#default_value' => array_keys($tourney->get('seed_positions', array())),
+  );
+  dpm($tourney->get('seed_positions', array()));
+
   $form['contestants']['config_truncate'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of characters to truncate contestant names to.'),
@@ -303,6 +312,64 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
 
   $form['#submit'][] = 'tourney_tournament_form_submit';
   return $form;
+}
+
+/**
+ * Get the bundles that can be contestants to be used on the tournament edit form.
+ */
+function _tourney_tournament_contestants($tournament = NULL) {
+  $cid = 'tournament_contestants';
+  if ($cache = cache_get($cid, 'cache_tourney')) {
+    $options = $cache->data;
+  }
+  else {
+    $query = db_select('relation_bundles', 'rb');
+    $query->fields('rb', array('entity_type', 'bundle'))
+      ->distinct()
+      ->condition('relation_type', array('contestant'))
+      ->condition('r_index', 1);
+    $results = $query->execute()->fetchAll();
+
+    $options = array();
+    foreach ($results as $row) {
+      $entity_type = $row->entity_type;
+      $group = array();
+
+      if ($row->bundle === '*') {
+        $entities = entity_load($entity_type);
+      }
+      else {
+        $query = new EntityFieldQuery();
+        $query->entityCondition('entity_type', $entity_type, '=');
+        // Users don't have bundles, don't look for a bundle on user entities.
+        if ($entity_type != 'user') {
+          $query->propertyCondition('type', $row->bundle, '=');
+        }
+        $result = $query->execute();
+
+        $entities = array();
+        if (isset($result[$entity_type])) {
+          $ids = array_keys($result[$entity_type]);
+          $entities = entity_load($entity_type, $ids);
+        }
+      }
+
+      if (empty($entities)) {
+        $group[] = ' - Empty - ';
+      }
+      else {
+        foreach ($entities as $eid => $entity) {
+          $title = $entity->entity_name;
+          $group["$entity_type.$eid"] = $title;
+        }
+      }
+      if (!empty($group)) {
+        $options = $group;
+      }
+    }
+    cache_set($cid, $options, 'cache_tourney');
+  }
+  return $options;
 }
 
 /**
@@ -392,6 +459,8 @@ function tourney_machine_name_uniquify(&$element, &$form_state) {
  * Tournament form submit handler.
  */
 function tourney_tournament_form_submit($form, &$form_state) {
+  tourney_tournament_save_contestants($form_state);
+
   $tourney = $form_state['tourney'];
 
   // Save settings to a config array, for use before config is actually saved
@@ -438,6 +507,29 @@ function tourney_tournament_form_submit($form, &$form_state) {
 
   drupal_set_message(t('Your tournament has been saved.'));
   $form_state['redirect'] = $tourney->getUri();
+}
+
+/**
+ * Save Contestants on to the plugin.
+ */
+function tourney_tournament_save_contestants(&$form_state) {
+  $format = $form_state['values']['format'];
+  $contestants = array_filter($form_state['values']['contestants']);
+  $seed_positions = &$form_state['values']['plugin_options'][$format]['seed_positions'];
+
+  // Set new contestants that aren't in seed array.
+  foreach ($contestants as $contestant) {
+    if (!in_array($contestant, $form_state['values']['plugin_options'][$format]['seed_positions'])) {
+      $seed_positions[$contestant] = array('weight' => NULL, 'winner' => 0);
+    }
+  }
+
+  // Unset contestants no longer checked
+  foreach (array_keys($seed_positions) as $eid) {
+    if (!array_key_exists($eid, $contestants)) {
+      unset($seed_positions[$eid]);
+    }
+  }
 }
 
 /**
@@ -623,11 +715,18 @@ function tourney_set_plugin_options(&$tourney, &$form_state, $to_cache = FALSE) 
 
   if (!empty($form_state['values']['plugin_options'])) {
     foreach ($form_state['values']['plugin_options'] as $name => $values) {
+      $seed_positions = $form_state['values']['plugin_options'][$form_state['values']['format']]['seed_positions'];
       if ($to_cache == TRUE) {
         $tourney->config[$name] = $values;
+        if (!empty($seed_positions)) {
+          $tourney->config['seed_positions'] = $seed_positions;
+        }
       }
       else {
         $tourney->set($name, $values);
+        if (!empty($seed_positions)) {
+          $tourney->set('seed_positions', $seed_positions);
+        }
       }
     }
   }
