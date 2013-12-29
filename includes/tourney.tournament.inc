@@ -233,7 +233,6 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
     '#options' => _tourney_tournament_contestants($tourney),
     '#default_value' => array_keys($tourney->get('seed_positions', array())),
   );
-  dpm($tourney->get('seed_positions', array()));
 
   $form['contestants']['config_truncate'] = array(
     '#type' => 'textfield',
