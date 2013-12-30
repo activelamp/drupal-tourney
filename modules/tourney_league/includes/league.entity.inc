@@ -10,35 +10,6 @@ class LeagueEntity extends Entity {
   }
 
   /**
-   * Static utility function that loads
-   * all the leagues through entity_load.
-   */
-  public static function loadAll() {
-    if ($leagues = entity_load('tourney_league')) {
-      return $leagues;
-    }
-    else {
-      return FALSE;
-    }
-  }
-
-  /**
-   * Static utility function that loads
-   * a set of leagues.
-   *
-   * @param $set
-   *    An array of leagues to load.
-   */
-  public static function loadSet($set) {
-    if ($leagues = entity_load('tourney_league', $set)) {
-      return $leagues;
-    }
-    else {
-      return FALSE;
-    }
-  }
-
-  /**
    * Public static function to return all tourney id's for a league.
    *
    * @param $league_id

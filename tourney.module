@@ -1190,6 +1190,18 @@ function tourney_ctools_plugin_type() {
 }
 
 /**
+ * Wrapper function for form submit handlers callback.
+ *
+ * @param $form
+ * @param $form_state
+ */
+function tourney_plugin_options_validate(&$form, &$form_state) {
+  if ($form_state['values']['format'] == get_class($form['#plugin'])) {
+    call_user_func_array($form['#plugin']->validate, array($form, $form_state));
+  }
+}
+
+/**
  * Implements hook_ctools_plugin_directory().
  */
 function tourney_ctools_plugin_directory($module, $plugin) {

@@ -94,3 +94,37 @@ class TourneySeriesEntity extends TourneyEntity {
   }
 
 }
+
+class TourneySeriesController {
+
+  /**
+   * Constructor
+   */
+  public function __construct() {
+    $this->pluginInfo = self::getPluginInfo(get_class($this));
+  }
+
+  public function optionsForm(&$form_state) {
+    $form = array();
+    $form['controller_description'] = array(
+      '#markup' => $this->pluginInfo['description'],
+    );
+
+    return $form;
+  }
+
+  /**
+   * Get the machine name of the plugin.
+   *
+   * @param $controller_name
+   *   The name of the controller to find plugin information for.
+   */
+  public static function getPluginInfo($controller_name) {
+    $plugins = tourney_series_get_types();
+    foreach ($plugins as $info) {
+      if ($info['controller'] == $controller_name) {
+        return $info;
+      }
+    }
+  }
+}

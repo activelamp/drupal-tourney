@@ -80,7 +80,8 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   );
 
   // Get options form from plugin if one exists.
-  tourney_get_plugin_options($tourney, $form, $form_state);
+  $plugins = tourney_get_types();
+  tourney_get_plugin_options($form, $form_state, $tourney, $plugins);
   $plugins_with_players = array();
   foreach ($form['plugin_options'] as $key => $plugin) {
     if (strpos($key, '#') === 0) continue;
@@ -641,19 +642,25 @@ function tourney_get_type_options($reset = FALSE, $plugins) {
  * @todo Think about having these options load with ajax. It may get unwieldy if
  *   we have a ton of Tournament styles.
  */
-function tourney_get_plugin_options($tourney, &$form, &$form_state) {
+function tourney_get_plugin_options(&$form, &$form_state, $tourney, $plugins) {
   $form['plugin_options'] = array(
     '#type' => 'container',
     '#tree' => TRUE,
   );
 
-  $plugins = tourney_get_types();
   uasort($plugins, 'ctools_plugin_sort');
   foreach ($plugins as $info) {
     $controller = ctools_plugin_get_class($info, 'controller');
     if (class_exists($controller) && method_exists($controller, 'optionsForm')) {
       $plugin = new $controller(0, $tourney);
       $options_form = $plugin->optionsForm($form_state);
+
+      // Add form validation to the form from plugin.
+      if (method_exists($plugin, 'optionsFormValidate')) {
+        $form['#validate'][] = 'tourney_plugin_options_validate';
+        $form['#plugin'] = $plugin;
+        $form['#plugin']->validate = $plugin->pluginInfo['controller'] . '::optionsFormValidate';
+      }
 
       // If no options are defined move on.
       if (empty($options_form)) {

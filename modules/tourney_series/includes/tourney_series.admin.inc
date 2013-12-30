@@ -46,6 +46,9 @@ function tourney_series_form($form, &$form_state, $series) {
     '#default_value' => isset($series->format) ? $series->format : -1,
     '#weight' => -8,
   );
+  // Get options form from plugin if one exists.
+  $plugins = tourney_series_get_types();
+  tourney_get_plugin_options($form, $form_state, $series, $plugins);
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
