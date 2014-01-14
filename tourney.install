@@ -687,7 +687,25 @@ function tourney_update_7014() {
   return t('Machine name fields updated successfully.');
 }
 
-
+/**
+ * Adds fields to tourney entities
+ */
+function tourney_update_7015() {
+  db_add_field("tourney_tournament", 'created', 'created', array(
+    'type' => 'int',
+    'length' => '250'
+    'default' => 0
+    'not null' => TRUE,
+    'description' => "The time then entity was created"
+  ));
+  db_add_field("tourney_tournament", "changed", "changed", array(
+    'type' => 'int',
+    'length' => '250',
+    'default' => time(),
+    'not null' => TRUE,
+    'description' => "The time the entity was changed."
+  ));
+}
 
 /**
  * Helper functions
