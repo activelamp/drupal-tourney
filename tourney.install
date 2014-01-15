@@ -727,7 +727,7 @@ function tourney_update_7014() {
  * Adds fields to tourney entities
  */
 function tourney_update_7016() {
-  foreach(["tourney_tournament", "tourney_match", "tourney_game"] as $key => $type) {
+  foreach(["tourney_tournament", "tourney_match", "tourney_game", "tourney_league"] as $key => $type) {
     if (!db_field_exists($type, "created")) {
       db_add_field($type, 'created', array(
         'type' => 'int',

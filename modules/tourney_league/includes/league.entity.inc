@@ -9,6 +9,14 @@ class LeagueEntity extends Entity {
     $this->type = "league";
   }
 
+  public function save() {
+    if ($this->is_new) {
+      $this->created = time();
+    }
+    $this->changed = time();
+    parent::save();
+  }
+
   /**
    * Public static function to return all tourney id's for a league.
    *

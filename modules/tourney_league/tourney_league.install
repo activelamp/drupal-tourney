@@ -34,7 +34,21 @@ function tourney_league_schema() {
         'length' => 255,
         'not null' => 255, 
         'default' => 'league'
-      )
+      ),
+      'created' => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => 'The time the entity was created'
+      ),
+      "changed" => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+        'description' => "The time the entity was changed."
+      ),
     ),
     'unique keys' => array(
       'id' => array('id'),
