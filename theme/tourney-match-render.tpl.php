@@ -6,9 +6,11 @@
  * @ingroup tourney_templates
  */
 ?>
-<div class="match <?php print $match_classes; ?>">
-  <?php if ($has_children): ?>
-    <div class="connector to-children"></div>
-  <?php endif; ?>
-  <?php print $contestants; ?>
-</div>
+<a href="<?= drupal_get_path_alias($match->uri); ?>">
+	<div class="match <?php print $match_classes; ?>">
+	  <?php if ($has_children): ?>
+	    <div class="connector to-children"></div>
+	  <?php endif; ?>
+	  <?php print $contestants; ?>
+	</div>
+</a>
