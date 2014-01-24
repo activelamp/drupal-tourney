@@ -148,7 +148,8 @@ class TourneyMatchEntity extends TourneyEntity {
     if (count($contestants) > TourneyMatchEntity::$maxContestantCount) {
       // clear our cache due to bad data.
       cache_clear_all("fetchContestantIds_" . $match_id, 'cache_tourney');
-      throw new Exception("Match " . $matchId . " has too many contestants");
+      watchdog(WATCHDOG_ALERT, ["to many contestants", "backtrace" => debug_backtrace()]);
+      return array();
     }
     return $contestants;
   }
