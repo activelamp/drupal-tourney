@@ -161,7 +161,7 @@ function tourney_action_game_is_won($match, $quotient) {
         $match->getTournament()->winner = '';
         $match->getTournament()->save();
         $match->nextMatch()->status = 1;
-        $match->nextMatch()->removeContestant($match->getWinnerEntity());
+        $match->nextMatch()->queueRemoveContestant($match->getWinnerEntity());
         $match->nextMatch()->save();
         // Re-calculate the winner (if any). If the game has been changed then
         // there may no longer *be* a winner. If there is no winner then during
@@ -171,7 +171,7 @@ function tourney_action_game_is_won($match, $quotient) {
         $match->save();
       }
       if ($match->nextMatch('loser')) {
-        $match->nextMatch('loser')->removeContestant($match->getLoserEntity())->save();
+        $match->nextMatch('loser')->queueRemoveContestant($match->getLoserEntity())->save();
       }
     }
 
