@@ -8,6 +8,33 @@ define('TOURNEY_GAMES', 3);
 define('TOURNEY_TRUNCATE', 12);
 define('TOURNEY_DEBUG_EXTENDS', FALSE);
 
+class TourneyException extends Exception {}
+class TourneyMatchException extends TourneyException {
+  public function __construct($match = null, $message = null, $code = 0, Exception $previous = null) {
+    $match_id = '(new match)';
+    if (isset($match->id)) {
+      $match_id = $match->id;
+    }
+    if (!isset($message)) {
+      $message = 'On match {$match_id}.';
+    } else {
+      $message = 'On match {$match_id}: ' + $message;
+    }
+    parent::__construct($message, $code, $previous);
+  }  
+}
+class TourneyMatchInvalidParameter extends TourneyMatchException {
+  public function __construct($match = null, $message = null, $code = 0, Exception $previous = null) {
+    if (!isset($message)) {
+      $message = 'Invalid parameter.';
+    } else {
+      $message = 'Invalid parameter. ' + $message;
+    }
+    parent::__construct($message, $code, $previous);
+  }
+}
+class TourneyMatchQueue extends TourneyMatchException {}
+
 /**
  * Implements hook_menu().
  */

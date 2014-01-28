@@ -648,12 +648,12 @@ class TourneyTournamentEntity extends TourneyEntity {
       $winnerMatch = $match->nextMatch('winner');
       if ($winnerMatch && $winnerMatch->status == 1) {
         $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-        $winnerMatch->addContestant($winner, $slot)->save();
+        $winnerMatch->queueAddContestant($winner, $slot)->save();
       }
       $loserMatch = $match->nextMatch('loser');
       if ($loserMatch && $loserMatch->status == 1) {
         $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-        $loserMatch->addContestant($loser, $slot)->save();
+        $loserMatch->queueAddContestant($loser, $slot)->save();
       }
     }
     else {
@@ -700,7 +700,7 @@ class TourneyTournamentEntity extends TourneyEntity {
         if ($next === NULL) continue;
 
         $next_match = $this->getMatchById($next);
-        $next_match->addContestant($contestant, $next_slot)->save();
+        $next_match->queueAddContestant($contestant, $next_slot)->save();
 
         // Recurse
         $this->populateRoundRobinMatches($next, $next_slot);

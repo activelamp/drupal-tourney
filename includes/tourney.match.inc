@@ -380,7 +380,7 @@ function tourney_match_form_submit($form, &$form_state) {
     if ($eid = $form_state['input']['contestant1']) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
-      $match->addContestant($entity, 1);
+      $match->queueAddContestant($entity, 1);
     }
     else {
       $contestant = $match->getContestant(1);
@@ -391,7 +391,7 @@ function tourney_match_form_submit($form, &$form_state) {
     if ($eid = $form_state['input']['contestant2']) {
       @list($type, $id) = explode('.', $eid);
       $entity = entity_load_single($type, $id);
-      $match->addContestant($entity, 2);
+      $match->queueAddContestant($entity, 2);
     }
     else {
       $contestant = $match->getContestant(2);
