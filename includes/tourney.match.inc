@@ -376,27 +376,31 @@ function tourney_match_form_submit($form, &$form_state) {
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
   }
-  if (array_key_exists('contestant1', $form_state['input'])) {
-    if ($eid = $form_state['input']['contestant1']) {
-      @list($type, $id) = explode('.', $eid);
-      $entity = entity_load_single($type, $id);
-      $match->addContestant($entity, 1);
+  try {
+    if (array_key_exists('contestant1', $form_state['input'])) {
+      if ($eid = $form_state['input']['contestant1']) {
+        @list($type, $id) = explode('.', $eid);
+        $entity = entity_load_single($type, $id);
+        $match->queueAddContestant($entity, 1);
+      }
+      else {
+        $contestant = $match->getContestant(1);
+        $match->queueRemoveContestant($contestant);
+      }
     }
-    else {
-      $contestant = $match->getContestant(1);
-      $match->removeContestant($contestant, FALSE);
+    if (array_key_exists('contestant2', $form_state['input'])) {
+      if ($eid = $form_state['input']['contestant2']) {
+        @list($type, $id) = explode('.', $eid);
+        $entity = entity_load_single($type, $id);
+        $match->queueAddContestant($entity, 2);
+      }
+      else {
+        $contestant = $match->getContestant(2);
+        $match->queueRemoveContestant($contestant);
+      }
     }
-  }
-  if (array_key_exists('contestant2', $form_state['input'])) {
-    if ($eid = $form_state['input']['contestant2']) {
-      @list($type, $id) = explode('.', $eid);
-      $entity = entity_load_single($type, $id);
-      $match->addContestant($entity, 2);
-    }
-    else {
-      $contestant = $match->getContestant(2);
-      $match->removeContestant($contestant, FALSE);
-    }
+  } catch (TourneyMatchException $e) {
+    // Do nothing, just let the exception write to watchdog.
   }
 
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos

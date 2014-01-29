@@ -20,6 +20,8 @@ class TourneyMatchEntity extends TourneyEntity {
   private $matchWinner = NULL;
   private $matchLoser = NULL;
   public static $maxContestantCount = 2;
+  // Queue operations for execution during save process.
+  private $queue = array();
 
   public function __construct($values = array(), $entityType = 'tourney_match') {
     parent::__construct($values, $entityType);
@@ -477,26 +479,51 @@ class TourneyMatchEntity extends TourneyEntity {
 
     parent::delete();
   }
+
   /**
    * Save the entity
    */
   public function save() {
-    $this->winner = $this->getWinner();
-    if (property_exists($this, 'field_tournament') && !$this->field_tournament[LANGUAGE_NONE]) {
-      $tournament = $this->getTournament();
-      if ($tournament) {
-        $this->field_tournament[LANGUAGE_NONE][0]['target_id'] = $tournament->id;
+    // Transaction will commit when return value goes out of scope (end of method).
+    $transaction = db_transaction();
+    try {
+      $this->winner = $this->getWinner();
+      if (property_exists($this, 'field_tournament') && !$this->field_tournament[LANGUAGE_NONE]) {
+        $tournament = $this->getTournament();
+        if ($tournament) {
+          $this->field_tournament[LANGUAGE_NONE][0]['target_id'] = $tournament->id;
+        }
       }
+      // Queue operations require an entity id before they are run.
+      if (!isset($this->id)) {
+        parent::save();
+      }
+
+      // Add and remove any contestants.
+      if (isset($this->queue['remove_contestant'])) {
+        foreach($this->queue['remove_contestant'] as $operation) {
+          $this->removeContestant($operation['entity']);
+        }
+      }
+      if (isset($this->queue['add_contestant'])) {
+        foreach($this->queue['add_contestant'] as $operation) {
+          $this->addContestant($operation['entity'], $operation['slot']);
+        }
+        unset($this->queue['add_contestant']);
+      }
+
+      parent::save();
+
+      // Set the tournament winner if this was the last match.
+      if ($this->getTournament()) {
+        cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
+      }
+      // Why is the following line outside of the previous check?
+      // Why does the previous check exist?
+      cache_clear_all('getHeadToHeadMatchIds:' . $this->getTournament()->id, 'cache_tourney', TRUE);
+    } catch (TourneyMatchException $e) {
+      $transaction->rollback();
     }
-  
-    parent::save();
-    // Set the tournament winner if this was the last match.
-    if ($this->getTournament()) {
-      cache_clear_all('tourney_build_matches_' . $this->getTournament()->id, 'cache_tourney', TRUE);
-    }
-    // Why is the following line outside of the previous check?
-    // Why does the previous check exist?
-    cache_clear_all('getHeadToHeadMatchIds:' . $this->getTournament()->id, 'cache_tourney', TRUE);
   }
 
   /**
@@ -568,7 +595,11 @@ class TourneyMatchEntity extends TourneyEntity {
  * @param integer $entity
  *   Contestant entity to remove.
  */
-  public function removeContestant($entity, $save = TRUE) {
+  protected function removeContestant($entity) {
+    $deleted = FALSE;
+    if (!is_object($entity)) {
+      throw new TourneyMatchInvalidParameter('$entity type must be object.', $this);      
+    }
     // If we're locked, can't remove the contestant
     if ($this->isLocked()) {
       $message = t('Match is locked, cannot modify contestants.');
@@ -577,17 +608,100 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     // Get all the contestants, and, if we haven't got any, we can't remove any!
     $relations = tourney_relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant')->execute();
-    if (empty($relations)) {
-      return;
-    }
-    foreach ($relations as $relation) {
-      $relation = relation_load($relation->rid);
-      $rcon = $relation->endpoints[LANGUAGE_NONE][1];
-      if (is_object($entity) && $rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id) {
-        relation_delete($relation->rid);
+    if (!empty($relations)) {
+      foreach ($relations as $relation) {
+        if ($relation = relation_load($relation->rid)) {
+          $rcon = $relation->endpoints[LANGUAGE_NONE][1];
+          if ($rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id) {
+            relation_delete($relation->rid);
+            $deleted = TRUE;
+          }
+        }
       }
     }
-    if ($save) $this->save();
+    if (!$deleted) {
+      throw new TourneyMatchException("Entity of type {$entity->entity_type} and id {$entity->entity_id} could not be removed as contestant.", $this);
+    }
+  }
+
+ /**
+   * Queues contestants to be removed when save() is called.
+   *
+   * @param Object $entity
+   *   Contestant to be removed.
+   *
+   * @return $this
+   *   Current class, for chaining. Throws a TourneyMatchException on error.
+   *
+   * Example usage:
+   * @code
+   *   try {
+   *     $match->queueRemoveContestant($contestant)->save();
+   *   } catch (TourneyMatchException $e) {
+   *     if (user_access('administer tourney')) {
+   *       drupal_set_message($e->getMessage(), 'error');
+   *     }
+   *     watchdog('tourney', $e->getMessage(), DRUPAL_ERROR);
+   *   }
+   * @endcode
+   *
+   * @see TourneyMatchEntity::save();
+   * @see TourneyMatchEntity::removeContestant();
+   */
+  public function queueRemoveContestant($entity) {
+    if (!tourney_relation_type_is_target('contestant', $entity->entity_type)) {
+      throw new TourneyMatchInvalidParameter('$entity type is not configured to be a contestant.', $this);
+    }
+    if (isset($this->queue['remove_contestant']) && count($this->queue['remove_contestant']) > 1) {
+      throw new TourneyMatchQueue('You may not queue the removal of more than 2 contestants per save.', $this);
+    }
+    $this->queue['remove_contestant'][] = array(
+      'entity' => $entity,
+    );
+    return $this;
+  }
+
+  /**
+   * Queues contestants to be added when save() is called.
+   *
+   * @param Object $entity
+   *   Approved type of drupal entity to fill the target slot with.
+   * @param int $slot
+   *   Contestant slot to target (1 or 2)
+   *
+   * @return $this
+   *   Current class, for chaining. Throws a TourneyMatchException on error.
+   *
+   * Example usage:
+   * @code
+   *   try {
+   *     $match->queueAddContestant($contestant, 1)->save();
+   *   } catch (TourneyMatchException $e) {
+   *     if (user_access('administer tourney')) {
+   *       drupal_set_message($e->getMessage(), 'error');
+   *     }
+   *     watchdog('tourney', $e->getMessage(), DRUPAL_ERROR);
+   *   }
+   * @endcode
+   *
+   * @see TourneyMatchEntity::save();
+   * @see TourneyMatchEntity::addContestant();
+   */
+  public function queueAddContestant($entity, $slot = NULL) {
+    if (!tourney_relation_type_is_target('contestant', $entity->entity_type)) {
+      throw new TourneyMatchInvalidParameter('$entity type is not configured to be a contestant.', $this);
+    }
+    if ((intval($slot) != 1) && (intval($slot) != 2)) {
+      throw new TourneyMatchInvalidParameter('$slot must be the integer 1 or 2.', $this);
+    }
+    if (isset($this->queue['add_contestant']) && count($this->queue['add_contestant']) > 1) {
+      throw new TourneyMatchQueue('You may not queue the addition of more than 2 contestants per save.', $this);
+    }
+    $this->queue['add_contestant'][] = array(
+      'entity' => $entity,
+      'slot' => $slot,
+    );
+    return $this;
   }
 
   /**
@@ -597,10 +711,18 @@ class TourneyMatchEntity extends TourneyEntity {
    *   Any type of entity to fill the target slot with
    * @param integer $slot
    *   Contestant slot to target
+   *
+   * @return TourneyMatchEntity
+   *   $this for chaining. Throws TourneyMatchException on error.
+   *
+   * @see TourneyMatchEntity::queueAddContestant();
    */
-  public function addContestant($entity, $slot = NULL) {
+  protected function addContestant($entity, $slot) {
     if (!tourney_relation_type_is_target('contestant', $entity->entity_type)) {
-      throw new Exception('Invalid entity type. This type is not configured to be a contestant.');
+      throw new TourneyMatchInvalidParameter('$entity type is not configured to be a contestant.');
+    }
+    if ((intval($slot) != 1) && (intval($slot) != 2)) {
+      throw new TourneyMatchInvalidParameter('$slot must be the integer 1 or 2.', $this);
     }
 
     // If this is round 1, save seed positions.
@@ -614,35 +736,40 @@ class TourneyMatchEntity extends TourneyEntity {
       $tourney->set('seed_positions', $seed_positions);
     }
 
-    if (!$this->id) $this->save();
-
-    /* This logic allows contestants that are already on the match to be moved
-    without potentially being affected when the copy is removed */
+    // Flush the cache to make sure we are removing current players if needed.
     cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
     cache_clear_all('getContestants:' . $this->tournamentId, 'cache_tourney', TRUE);
 
     $current_eids = array();
-    foreach ($this->getContestantIds() as $contestant) {
+    $contestants = $this->getContestantIds();
+    foreach ($contestants as $contestant) {
       $current_eids[$contestant['eid']] = $contestant['slot'];
     }
-    if ( isset($current_eids[$entity->eid]) ) {
-      $this->removeContestant($this->getContestant($current_eids[$entity->eid]), FALSE);
-    }
-    /* */
-    if ($slot && $this->getContestant($slot)) {
-      $this->removeContestant($this->getContestant($slot), FALSE);
-    }
-    $entity_keys = array(
-      array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
-      array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
-    );
-    $rid = relation_insert("contestant", $entity_keys);
-    if ($slot) {
+
+    // Only make a change if the new contestant is different from the old.
+    if (!isset($current_eids[$entity->eid]) || $current_eids[$entity->eid] != $slot) {
+      // First remove any contestant already present in the slot.
+      if ($this->getContestant($slot)) {
+        $this->removeContestant($this->getContestant($slot));
+      }
+      $relations = tourney_relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant')->execute();
+      if (count($relations) >= 2) {
+        throw new TourneyMatchException('Adding contestant would result in more than 3 contestants.', $this);
+      }
+      $entity_keys = array(
+        array('entity_type' => 'tourney_match', 'entity_id' => $this->id),
+        array('entity_type' => $entity->entity_type, 'entity_id' => $entity->entity_id),
+      );
+      $rid = relation_insert("contestant", $entity_keys);
       $relation = relation_load($rid);
       $relation->slot[LANGUAGE_NONE][0]['value'] = $slot;
       relation_save($relation);
+      $this->contestantIds = NULL;
+
+      // Flush cache, players have changed.
+      cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
+      cache_clear_all('getContestants:' . $this->tournamentId, 'cache_tourney', TRUE);
     }
-    $this->contestantIds = NULL;
     return $this;
   }
 
