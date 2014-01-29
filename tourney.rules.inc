@@ -156,23 +156,27 @@ function tourney_action_game_is_won($match, $quotient) {
     // If the match already has a winner even though we've not met our quotient,
     // that means a game was changed. We need to get the next matches and clear
     // the necessary contestants
-    if ($match->getWinner()) {
-      if ($match->nextMatch()) {
-        $match->getTournament()->winner = '';
-        $match->getTournament()->save();
-        $match->nextMatch()->status = 1;
-        $match->nextMatch()->queueRemoveContestant($match->getWinnerEntity());
-        $match->nextMatch()->save();
-        // Re-calculate the winner (if any). If the game has been changed then
-        // there may no longer *be* a winner. If there is no winner then during
-        // the save a winner will be calculated, if any, so this is safe for all
-        // conditions.
-        $match->clearWinner();
-        $match->save();
+    try {
+      if ($match->getWinner()) {
+        if ($match->nextMatch()) {
+          $match->getTournament()->winner = '';
+          $match->getTournament()->save();
+          $match->nextMatch()->status = 1;
+          $match->nextMatch()->queueRemoveContestant($match->getWinnerEntity());
+          $match->nextMatch()->save();
+          // Re-calculate the winner (if any). If the game has been changed then
+          // there may no longer *be* a winner. If there is no winner then during
+          // the save a winner will be calculated, if any, so this is safe for all
+          // conditions.
+          $match->clearWinner();
+          $match->save();
+        }
+        if ($match->nextMatch('loser')) {
+          $match->nextMatch('loser')->queueRemoveContestant($match->getLoserEntity())->save();
+        }
       }
-      if ($match->nextMatch('loser')) {
-        $match->nextMatch('loser')->queueRemoveContestant($match->getLoserEntity())->save();
-      }
+    } catch (TourneyMatchException $e) {
+      // Do nothing, just let the exception write to watchdog.
     }
 
     // If all our games are played and won, then we'll need to make a new game to continue the match

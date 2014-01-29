@@ -645,15 +645,19 @@ class TourneyTournamentEntity extends TourneyEntity {
       // on the tiebreaker, in case the tiebreaker in unnecessary
       $match->save();
 
-      $winnerMatch = $match->nextMatch('winner');
-      if ($winnerMatch && $winnerMatch->status == 1) {
-        $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-        $winnerMatch->queueAddContestant($winner, $slot)->save();
-      }
-      $loserMatch = $match->nextMatch('loser');
-      if ($loserMatch && $loserMatch->status == 1) {
-        $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-        $loserMatch->queueAddContestant($loser, $slot)->save();
+      try {
+        $winnerMatch = $match->nextMatch('winner');
+        if ($winnerMatch && $winnerMatch->status == 1) {
+          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+          $winnerMatch->queueAddContestant($winner, $slot)->save();
+        }
+        $loserMatch = $match->nextMatch('loser');
+        if ($loserMatch && $loserMatch->status == 1) {
+          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
+          $loserMatch->queueAddContestant($loser, $slot)->save();
+        }
+      } catch (TourneyMatchException $e) {
+        // Do nothing, just let the exception write to watchdog.
       }
     }
     else {
@@ -700,7 +704,11 @@ class TourneyTournamentEntity extends TourneyEntity {
         if ($next === NULL) continue;
 
         $next_match = $this->getMatchById($next);
-        $next_match->queueAddContestant($contestant, $next_slot)->save();
+        try {
+          $next_match->queueAddContestant($contestant, $next_slot)->save();
+        } catch (TourneyMatchException $e) {
+          // Do nothing, just let the exception write to watchdog.
+        }
 
         // Recurse
         $this->populateRoundRobinMatches($next, $next_slot);
