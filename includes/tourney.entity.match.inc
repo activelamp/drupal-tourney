@@ -736,8 +736,7 @@ class TourneyMatchEntity extends TourneyEntity {
       $tourney->set('seed_positions', $seed_positions);
     }
 
-    /* This logic allows contestants that are already on the match to be moved
-    without potentially being affected when the copy is removed */
+    // Flush the cache to make sure we are removing current players if needed.
     cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
     cache_clear_all('getContestants:' . $this->tournamentId, 'cache_tourney', TRUE);
 
@@ -766,6 +765,10 @@ class TourneyMatchEntity extends TourneyEntity {
       $relation->slot[LANGUAGE_NONE][0]['value'] = $slot;
       relation_save($relation);
       $this->contestantIds = NULL;
+
+      // Flush cache, players have changed.
+      cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
+      cache_clear_all('getContestants:' . $this->tournamentId, 'cache_tourney', TRUE);
     }
     return $this;
   }
