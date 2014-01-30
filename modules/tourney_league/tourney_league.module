@@ -96,6 +96,9 @@ function tourney_league_views_api($module, $api) {
  * Access callback for the entity API.
  */
 function tourney_league_type_access($op = NULL, $type = NULL, $account = NULL) {
+  if ($op == "view") {
+    return user_access('view leagues', $account);
+  }
   return user_access('administer leagues', $account);
 }
 
@@ -130,6 +133,10 @@ function tourney_league_permission() {
       'title' => t('Administer Leagues'),
       'description' => t('Perform administration tasks on leagues.'),
     ),
+    'view leagues' => array(
+      'title' => t('View Leagues'),
+      'description' => t('View leagues')
+    )
   );
 }
 
