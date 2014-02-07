@@ -45,7 +45,7 @@ function tourney_league_entity_info() {
         'path' => 'admin/structure/league/manage/%tourney_league_type',
         'real path' => 'admin/structure/league/manage/' . $type,
         'bundle argument' => 4,
-        'access arguments' => array('administer leagues')
+        'access arguments' => array('create leagues')
       )
     );
   }
@@ -98,6 +98,9 @@ function tourney_league_views_api($module, $api) {
 function tourney_league_type_access($op = NULL, $type = NULL, $account = NULL) {
   if ($op == "view") {
     return user_access('view leagues', $account);
+  }
+  else if ($op == "create") {
+    return user_access("create leagues", $account)
   }
   return user_access('administer leagues', $account);
 }
