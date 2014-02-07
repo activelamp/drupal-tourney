@@ -67,9 +67,13 @@ function tourney_series_permission() {
       'description' => t('Remove tournaments from a series.'),
     ),
     'add tourney to series' => array(
-      'title' => ('Add Tournament to Series'),
-      'description' => ('Add tournaments to a series'),
-    )
+      'title' => t('Add Tournament to Series'),
+      'description' => t('Add tournaments to a series'),
+    ),
+    'edit series' => array(
+      'title' => t('Edit fields on series'),
+      'description' => t('Edit the fields on a series entity')
+    ),
   );
 }
 
@@ -119,7 +123,7 @@ function tourney_series_entity_info() {
         'path' => 'admin/structure/tourney/' . $entity_short . '/manage/%' . $entity_name . '_type',
         'real path' => 'admin/structure/tourney/' . $entity_short . '/manage/' . $type,
         'bundle argument' => 5,
-        'access arguments' => array('access content'),
+        'access arguments' => array('edit series'),
       ),
     );
   }
