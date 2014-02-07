@@ -100,7 +100,7 @@ function tourney_league_type_access($op = NULL, $type = NULL, $account = NULL) {
     return user_access('view leagues', $account);
   }
   else if ($op == "create") {
-    return user_access("create leagues", $account)
+    return user_access("create leagues", $account);
   }
   return user_access('administer leagues', $account);
 }
