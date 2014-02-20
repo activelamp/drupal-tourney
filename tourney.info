@@ -3,6 +3,7 @@ description = Provides entities to create a tournament, with matches, and games
 package = Tourney
 core = 7.x
 configure = admin/config/tourney
+php = 5.4
 
 dependencies[] = ctools
 dependencies[] = entity
