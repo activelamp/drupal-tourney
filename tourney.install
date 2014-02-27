@@ -145,6 +145,11 @@ function tourney_schema() {
         'default' => 0,
         'not null' => TRUE,
         'description' => "The time the entity was changed."),
+      'finished' => array(
+        'description' => 'Boolean indicating whether the match is finished.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
       ),
     'unique keys' => array(
       'id' => array('id'),
@@ -747,6 +752,30 @@ function tourney_update_7016() {
       ));
     }
   }
+}
+
+/**
+ * Add a finished boolean on matches to allow even number of games to tie the match.
+ */
+function tourney_update_7017() {
+  $schema = tourney_schema();
+
+  db_add_field('tourney_match', 'finished', $schema['tourney_match']['fields']['finished']);
+}
+
+/**
+ * Set finished boolean to true for any matches that already have a winner.
+ */
+function tourney_update_7018() {
+  // Weird double check is to pass SQL (not just mysql) syntax check.
+  $num = db_update('tourney_match')
+    ->fields(array('finished' => 1))
+    ->condition('winner', '', '!=')
+    ->execute();
+  $sql = "UPDATE tourney_match SET finished = 1 WHERE winner like '813%' and winner <>''";
+  $result = db_query($sql);
+
+  return "$num matches have been updated.";
 }
 
 /**

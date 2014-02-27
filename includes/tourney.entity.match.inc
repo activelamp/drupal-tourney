@@ -424,6 +424,10 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     asort($tally);
     $top = array_pop($tally);
+    // Is this->games current number of games, or max possible games?
+
+    // If any contestant has less than 50% of the wins report match not finished.
+    // (Do not allow a tie).
     if ($top < $this->games / 2) return FALSE;
     return TRUE;
   }

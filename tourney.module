@@ -1061,7 +1061,7 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
       '#options' => array('attributes' => array(), 'html' => FALSE),
     );
   }
-  
+
   if (array_key_exists('match_winner', $match_extra_fields) && $match_extra_fields['match_winner']) {
     $entity->content['match_winner'] = array(
       '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
