@@ -617,6 +617,8 @@ class TourneyTournamentEntity extends TourneyEntity {
    * specific callback, if there, then checks internally if the tournament's been
    * given a winner
    *
+   * @todo this should be refactored as matchIsFinished() because the match may be over, but tied.
+   *
    * @param $match
    *   match object to run win code on
    */
@@ -645,19 +647,22 @@ class TourneyTournamentEntity extends TourneyEntity {
       // on the tiebreaker, in case the tiebreaker in unnecessary
       $match->save();
 
-      try {
-        $winnerMatch = $match->nextMatch('winner');
-        if ($winnerMatch && $winnerMatch->status == 1) {
-          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-          $winnerMatch->queueAddContestant($winner, $slot)->save();
+      // Only promote contestants if this was not a tie.
+      if ($match->getWinner()) {
+        try {
+          $winnerMatch = $match->nextMatch('winner');
+          if ($winnerMatch && $winnerMatch->status == 1) {
+            $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+            $winnerMatch->queueAddContestant($winner, $slot)->save();
+          }
+          $loserMatch = $match->nextMatch('loser');
+          if ($loserMatch && $loserMatch->status == 1) {
+            $slot = $match->matchInfo['nextMatch']['loser']['slot'];
+            $loserMatch->queueAddContestant($loser, $slot)->save();
+          }
+        } catch (TourneyMatchException $e) {
+          // Do nothing, just let the exception write to watchdog.
         }
-        $loserMatch = $match->nextMatch('loser');
-        if ($loserMatch && $loserMatch->status == 1) {
-          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-          $loserMatch->queueAddContestant($loser, $slot)->save();
-        }
-      } catch (TourneyMatchException $e) {
-        // Do nothing, just let the exception write to watchdog.
       }
     }
     else {
