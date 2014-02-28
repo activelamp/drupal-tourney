@@ -392,6 +392,12 @@ class TourneyMatchEntity extends TourneyEntity {
   /**
    * Determine if match is finished (when all games are finished).
    *
+   * In multi-game matches the games are created one at a time. This method
+   * may be called while only 1 associated game actually exists, and has just
+   * completed, but before another game has been generated. Meaning because
+   * all existing games have been completed does not indicate the match is
+   * over.
+   *
    * @return bool
    */
   public function isFinished() {
@@ -424,28 +430,34 @@ class TourneyMatchEntity extends TourneyEntity {
     }
     asort($tally);
     $top = array_pop($tally);
-    // Is this->games current number of games, or max possible games?
 
-    // If any contestant has less than 50% of the wins report match not finished.
-    // (Do not allow a tie).
-    if ($top < $this->games / 2) return FALSE;
-    return TRUE;
+    // If any contestant has more than 50% wins of the maximum amount of games
+    // OR the maximum amount of games has been played, then the match is
+    // finished (even if its a tie).
+    if (($top > $this->games / 2) || (count($games) == $this->games)) return TRUE;
+
+    // Default to the match not being finished.
+    return FALSE;
   }
 
   /**
    * Set the winner property to the winner of this match.
    */
   public function determineWinner() {
-    $this->MatchWinner = NULL;
+    $this->matchWinner = NULL;
     if ($this->isFinished()) {
-      $ranks = $this->fetchRanks();
-      asort($ranks);
-      $keys = array_keys($ranks);
-      $this->matchWinner = array_pop($keys);
-      // @todo: Why are we using matchWinner instead of winner?
-      if ($this->winner !== $this->matchWinner) {
-        $this->winner = $this->matchWinner;
-        // $this->save();
+      // Match is always finished.
+      $this->finished = 1;
+      // But may not have a winner (draw).
+      $ranks = array_unique($this->fetchRanks());
+      if (count($ranks) > 1) {
+        asort($ranks);
+        $keys = array_keys($ranks);
+        $this->matchWinner = array_pop($keys);
+        // @todo: Why are we using matchWinner instead of winner?
+        if ($this->winner !== $this->matchWinner) {
+          $this->winner = $this->matchWinner;
+        }
       }
     }
     return $this->matchWinner;
