@@ -509,6 +509,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   $standings['eid'] = array(
    *     'wins'   => 0,
    *     'losses' => 0,
+   *     'ties'   => 0,
    *     'total'  => 0,
    *     'first'  => 0, // First is used for the rare case of ties, just to see who won first
    *   )
@@ -523,11 +524,11 @@ class TourneyTournamentEntity extends TourneyEntity {
       foreach ($match->getContestantIds() as $var => $contestant) {
         // If the standings array doesn't have this contestant yet, add it
         if (!array_key_exists($eid = $contestant['eid'], $standings)) {
-          $standings[$eid] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
+          $standings[$eid] = array('wins' => 0, 'losses' => 0, 'ties' => 0, 'total' => 0, 'first' => -1);
         }
 
-        // If a match hasn't been won yet, don't count its games
-        if (!$match->getWinner()) {
+        // If a match hasn't been finished yet, don't count its games
+        if (!$match->isFinished()) {
           continue;
         }
 
@@ -535,8 +536,10 @@ class TourneyTournamentEntity extends TourneyEntity {
         if ($match->getWinner() == $eid) {
           $standings[$eid]['wins']++;
         }
-        else {
+        elseif ($match->getWinner()) {
           $standings[$eid]['losses']++;
+        } else {
+          $standings[$eid]['ties']++;
         }
         $standings[$eid]['total']++;
         // First is used for the rare case of ties, just to see who won first
