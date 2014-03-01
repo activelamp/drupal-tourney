@@ -223,6 +223,98 @@ class TourneyTournamentEntity extends TourneyEntity {
   /**
    * Report current winner rankings for this tournament.
    *
+   * @todo this is designed to eventually replace fetchRanks().
+   *
+   * @return array
+   *   Associative array:
+   *     game_wins: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of game wins for this contestant.
+   *     game_loss: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of game losses for this contestant.
+   *     match_wins: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match wins for this contestant.
+   *     match_loss: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match losses for this contestant.
+   *     match_draw: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match draws for this contestant.
+   *     match_sweep: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match sweeps for this contestant.
+   *     match_got_sweept: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match sweeps against this contestant.
+   */
+  public function getRanks() {
+    $ranks = array();
+    $ranks['game_wins'] = array();
+    $ranks['game_loss'] = array();
+    $ranks['match_wins'] = array();
+    $ranks['match_loss'] = array();
+    $ranks['match_draw'] = array();
+    $ranks['match_sweep'] = array();
+    $ranks['match_got_swept'] = array();
+
+    // Load all the matches in this tournament.
+    $matches = tourney_match_load_multiple($this->getMatchIds());
+
+    // Initialize all default values.
+    foreach($this->getContestants() as $eid => $contestant) {
+      $ranks['game_wins'][$eid] = 0;
+      $ranks['game_loss'][$eid] = 0;
+      $ranks['match_wins'][$eid] = 0;
+      $ranks['match_loss'][$eid] = 0;
+      $ranks['match_draw'][$eid] = 0;
+      $ranks['match_sweep'][$eid] = 0;
+      $ranks['match_got_swept'][$eid] = 0;
+    }
+
+    if (!empty($matches)) {
+      foreach($matches as $match) {
+        // Increment games win/loss.
+        $games = $match->getGames();
+        foreach($games as $game) {
+          if ($game->isFinished()) {
+            $contestants = $game->getContestants();
+            $ranks['game_wins'][$game->getWinner()]++;
+            $ranks['game_loss'][$game->getLooser()]++;
+          }
+        }
+        if ($match->isFinished()) {
+          if ($match->getWinner()) {
+            $ranks['match_wins'][$match->getWinner()]++;
+            $ranks['match_loss'][$match->getLooser()]++;
+          } else {
+            foreach($match->getContestants() as $eid => $contestant)
+              $ranks['match_draw'][$eid]++;
+          }
+          $winner = null;
+          $wins = 0;
+          $games = $match->getGames();
+          foreach($games as $game) {
+            $winner = (isset($winner)) ? $winner : $game->getWinner();
+            if ($game->getWinner() == $winner)
+              $wins++;
+          }
+          if ($wins == count($games)) {
+            $ranks['match_sweep'][$match->getWinner()]++;
+            $ranks['match_got_swept'][$match->getLooser()]++;
+          }
+        }
+      }
+    }
+
+    // Sort the arrays by descending values.
+    arsort($ranks['match_wins']);
+    arsort($ranks['match_loss']);
+    arsort($ranks['match_draw']);
+    arsort($ranks['match_sweep']);
+    arsort($ranks['game_wins']);
+    arsort($ranks['game_loss']);
+
+    return $ranks;
+  }
+
+  /**
+   * Report current winner rankings for this tournament.
+   *
    * @return array
    *   associative array.
    *

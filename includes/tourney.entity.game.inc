@@ -129,6 +129,22 @@ class TourneyGameEntity extends TourneyEntity {
   }
 
   /**
+   * Report the entity id of the game looser.
+   *
+   * @return string|null
+   *   The entity id ('node.26') of the looser, or null if no looser.
+   */
+  public function getLooser() {
+    if ($this->getWinner()) {
+      $contestants = $this->getContestants();
+      foreach($contestants as $eid => $contestant)
+        if ($eid != $this->getWinner())
+          return $eid;
+    }
+    return NULL;
+  }
+
+  /**
    * Retrieve property. (Lazy load contestant objects).
    *
    * Example:
