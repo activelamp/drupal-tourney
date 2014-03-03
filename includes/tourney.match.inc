@@ -385,7 +385,9 @@ function tourney_match_form_submit($form, &$form_state) {
       }
       else {
         $contestant = $match->getContestant(1);
-        $match->queueRemoveContestant($contestant);
+        if ($contestant) {
+          $match->queueRemoveContestant($contestant);
+        }
       }
     }
     if (array_key_exists('contestant2', $form_state['input'])) {
@@ -396,7 +398,9 @@ function tourney_match_form_submit($form, &$form_state) {
       }
       else {
         $contestant = $match->getContestant(2);
-        $match->queueRemoveContestant($contestant);
+        if ($contestant) {
+          $match->queueRemoveContestant($contestant);
+        }
       }
     }
   } catch (TourneyMatchException $e) {
