@@ -318,17 +318,6 @@ class TourneyMatchEntity extends TourneyEntity {
     $this->matchLoser = NULL;
   }
 
-  public function getLoser() {
-    if (is_null($this->matchLoser)) {
-      if (!$this->getWinner()) return NULL;
-      foreach ($this->getContestantIds() as $contestant) {
-        if ($contestant['eid'] !== $this->getWinner())
-          $this->matchLoser = $contestant['eid'];
-      }
-    }
-    return $this->matchLoser;
-  }
-
   /**
    * Helper getters
    */
