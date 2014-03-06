@@ -274,13 +274,13 @@ class TourneyTournamentEntity extends TourneyEntity {
           if ($game->isFinished()) {
             $contestants = $game->getContestants();
             $ranks['game_wins'][$game->getWinner()]++;
-            $ranks['game_loss'][$game->getLooser()]++;
+            $ranks['game_loss'][$game->getLoser()]++;
           }
         }
         if ($match->isFinished()) {
           if ($match->getWinner()) {
             $ranks['match_wins'][$match->getWinner()]++;
-            $ranks['match_loss'][$match->getLooser()]++;
+            $ranks['match_loss'][$match->getLoser()]++;
           } else {
             foreach($match->getContestants() as $eid => $contestant)
               $ranks['match_draw'][$eid]++;
@@ -295,7 +295,7 @@ class TourneyTournamentEntity extends TourneyEntity {
           }
           if ($wins == count($games)) {
             $ranks['match_sweep'][$match->getWinner()]++;
-            $ranks['match_got_swept'][$match->getLooser()]++;
+            $ranks['match_got_swept'][$match->getLoser()]++;
           }
         }
       }
