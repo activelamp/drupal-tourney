@@ -798,7 +798,7 @@ class TourneyMatchEntity extends TourneyEntity {
   *   Newly created game entity
   */
   public function addGame() {
-    $this->cleanGames();
+    // $this->cleanGames();
     $game_count = count($this->getGameIds());
     $game = new TourneyGameEntity(array(
       'type'  => $this->getTournament()->get('game_bundle', 'game'),
