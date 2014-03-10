@@ -282,7 +282,7 @@ class TourneyTournamentEntity extends TourneyEntity {
             $ranks['match_wins'][$match->getWinner()]++;
             $ranks['match_loss'][$match->getLoser()]++;
           } else {
-            foreach($match->getContestants() as $eid => $contestant)
+            foreach($match->getMatchContestants() as $eid => $contestant)
               $ranks['match_draw'][$eid]++;
           }
           $winner = null;
