@@ -152,7 +152,7 @@ function tourney_action_game_is_won($match, $quotient) {
   $plugin = $match->getTournament()->tourneyFormatPlugin;
   $message = '';
   // Create a new game if enough games have not been won yet.
-  if ($quotient >= 2) {
+  if (!$match->isFinished() || $quotient > 2) {
     // If the match already has a winner even though we've not met our quotient,
     // that means a game was changed. We need to get the next matches and clear
     // the necessary contestants
@@ -192,7 +192,11 @@ function tourney_action_game_is_won($match, $quotient) {
   else {
     $match->getTournament()->matchIsWon($match);
     if ($plugin->moveWinners == TRUE) {
-      $message = t('Players moved to next round');    
+      if ($match->getWinner()) {
+        $message = t('Players moved to next round');    
+      } else {
+        $message = t('Players can not be moved to next round. Match was a tie!');
+      }
     }
   }
 

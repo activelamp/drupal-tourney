@@ -223,6 +223,98 @@ class TourneyTournamentEntity extends TourneyEntity {
   /**
    * Report current winner rankings for this tournament.
    *
+   * @todo this is designed to eventually replace fetchRanks().
+   *
+   * @return array
+   *   Associative array:
+   *     game_wins: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of game wins for this contestant.
+   *     game_loss: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of game losses for this contestant.
+   *     match_wins: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match wins for this contestant.
+   *     match_loss: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match losses for this contestant.
+   *     match_draw: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match draws for this contestant.
+   *     match_sweep: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match sweeps for this contestant.
+   *     match_got_sweept: (array) Associative array keyed by contestant entity id:
+   *       node.27: (int) Total number of match sweeps against this contestant.
+   */
+  public function getRanks() {
+    $ranks = array();
+    $ranks['game_wins'] = array();
+    $ranks['game_loss'] = array();
+    $ranks['match_wins'] = array();
+    $ranks['match_loss'] = array();
+    $ranks['match_draw'] = array();
+    $ranks['match_sweep'] = array();
+    $ranks['match_got_swept'] = array();
+
+    // Load all the matches in this tournament.
+    $matches = tourney_match_load_multiple($this->getMatchIds());
+
+    // Initialize all default values.
+    foreach($this->getContestants() as $eid => $contestant) {
+      $ranks['game_wins'][$eid] = 0;
+      $ranks['game_loss'][$eid] = 0;
+      $ranks['match_wins'][$eid] = 0;
+      $ranks['match_loss'][$eid] = 0;
+      $ranks['match_draw'][$eid] = 0;
+      $ranks['match_sweep'][$eid] = 0;
+      $ranks['match_got_swept'][$eid] = 0;
+    }
+
+    if (!empty($matches)) {
+      foreach($matches as $match) {
+        // Increment games win/loss.
+        $games = $match->getGames();
+        foreach($games as $game) {
+          if ($game->isFinished()) {
+            $contestants = $game->getContestants();
+            $ranks['game_wins'][$game->getWinner()]++;
+            $ranks['game_loss'][$game->getLoser()]++;
+          }
+        }
+        if ($match->isFinished()) {
+          if ($match->getWinner()) {
+            $ranks['match_wins'][$match->getWinner()]++;
+            $ranks['match_loss'][$match->getLoser()]++;
+          } else {
+            foreach($match->getMatchContestants() as $eid => $contestant)
+              $ranks['match_draw'][$eid]++;
+          }
+          $winner = null;
+          $wins = 0;
+          $games = $match->getGames();
+          foreach($games as $game) {
+            $winner = (isset($winner)) ? $winner : $game->getWinner();
+            if ($game->getWinner() == $winner)
+              $wins++;
+          }
+          if ($wins == count($games)) {
+            $ranks['match_sweep'][$match->getWinner()]++;
+            $ranks['match_got_swept'][$match->getLoser()]++;
+          }
+        }
+      }
+    }
+
+    // Sort the arrays by descending values.
+    arsort($ranks['match_wins']);
+    arsort($ranks['match_loss']);
+    arsort($ranks['match_draw']);
+    arsort($ranks['match_sweep']);
+    arsort($ranks['game_wins']);
+    arsort($ranks['game_loss']);
+
+    return $ranks;
+  }
+
+  /**
+   * Report current winner rankings for this tournament.
+   *
    * @return array
    *   associative array.
    *
@@ -509,6 +601,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   $standings['eid'] = array(
    *     'wins'   => 0,
    *     'losses' => 0,
+   *     'ties'   => 0,
    *     'total'  => 0,
    *     'first'  => 0, // First is used for the rare case of ties, just to see who won first
    *   )
@@ -523,11 +616,11 @@ class TourneyTournamentEntity extends TourneyEntity {
       foreach ($match->getContestantIds() as $var => $contestant) {
         // If the standings array doesn't have this contestant yet, add it
         if (!array_key_exists($eid = $contestant['eid'], $standings)) {
-          $standings[$eid] = array('wins' => 0, 'losses' => 0, 'total' => 0, 'first' => -1);
+          $standings[$eid] = array('wins' => 0, 'losses' => 0, 'ties' => 0, 'total' => 0, 'first' => -1);
         }
 
-        // If a match hasn't been won yet, don't count its games
-        if (!$match->getWinner()) {
+        // If a match hasn't been finished yet, don't count its games
+        if (!$match->isFinished()) {
           continue;
         }
 
@@ -535,8 +628,10 @@ class TourneyTournamentEntity extends TourneyEntity {
         if ($match->getWinner() == $eid) {
           $standings[$eid]['wins']++;
         }
-        else {
+        elseif ($match->getWinner()) {
           $standings[$eid]['losses']++;
+        } else {
+          $standings[$eid]['ties']++;
         }
         $standings[$eid]['total']++;
         // First is used for the rare case of ties, just to see who won first
@@ -617,6 +712,8 @@ class TourneyTournamentEntity extends TourneyEntity {
    * specific callback, if there, then checks internally if the tournament's been
    * given a winner
    *
+   * @todo this should be refactored as matchIsFinished() because the match may be over, but tied.
+   *
    * @param $match
    *   match object to run win code on
    */
@@ -645,19 +742,22 @@ class TourneyTournamentEntity extends TourneyEntity {
       // on the tiebreaker, in case the tiebreaker in unnecessary
       $match->save();
 
-      try {
-        $winnerMatch = $match->nextMatch('winner');
-        if ($winnerMatch && $winnerMatch->status == 1) {
-          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-          $winnerMatch->queueAddContestant($winner, $slot)->save();
+      // Only promote contestants if this was not a tie.
+      if ($match->getWinner()) {
+        try {
+          $winnerMatch = $match->nextMatch('winner');
+          if ($winnerMatch && $winnerMatch->status == 1) {
+            $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+            $winnerMatch->queueAddContestant($winner, $slot)->save();
+          }
+          $loserMatch = $match->nextMatch('loser');
+          if ($loserMatch && $loserMatch->status == 1) {
+            $slot = $match->matchInfo['nextMatch']['loser']['slot'];
+            $loserMatch->queueAddContestant($loser, $slot)->save();
+          }
+        } catch (TourneyMatchException $e) {
+          // Do nothing, just let the exception write to watchdog.
         }
-        $loserMatch = $match->nextMatch('loser');
-        if ($loserMatch && $loserMatch->status == 1) {
-          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-          $loserMatch->queueAddContestant($loser, $slot)->save();
-        }
-      } catch (TourneyMatchException $e) {
-        // Do nothing, just let the exception write to watchdog.
       }
     }
     else {

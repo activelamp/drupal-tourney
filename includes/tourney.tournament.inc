@@ -397,10 +397,11 @@ function _tourney_get_contestant_view_modes() {
  */
 function tourney_tournament_validate_games($element, &$form_state) {
   $value = $element['#value'];
-  if (!is_int($value) && $value % 2 === 0) {
-    form_error($element, t('%name must be an odd number.',
-      array('%name' => $element['#title'])));
-  }
+  // Now that we allow ties this should be be commented out.
+  // if (!is_int($value) && $value % 2 === 0) {
+  //   form_error($element, t('%name must be an odd number.',
+  //     array('%name' => $element['#title'])));
+  // }
 }
 
 /**
