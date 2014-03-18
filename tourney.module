@@ -1119,6 +1119,9 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
     );
     // Set the win count with the key that is set on the contestantIds.
     foreach($game_wins as $team => $winCount) {
+      if (!isset($entity->matchInfo['game_wins'])) {
+        $entity->matchInfo['game_wins'] = array();
+      }
       $entity->matchInfo['game_wins'][$playerIdToSlots[$team]] = $winCount;
     }
     // Place the game wins in it's own array to access later.
