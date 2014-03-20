@@ -41,7 +41,7 @@ class TourneySeriesEntity extends TourneyEntity {
     $series = array_shift($results['tourney_series']);
     return tourney_series_load($series->id);
   }
-  
+
   /**
    * Get tournaments in series.
    *
@@ -51,6 +51,29 @@ class TourneySeriesEntity extends TourneyEntity {
   public function getTournaments() {
     $wrapper = entity_metadata_wrapper('tourney_series', $this);
     return $wrapper->tournaments->value();
+  }
+
+  /**
+   * @return array
+   *  Returns an array of tournament ids that are on this series.
+   */
+  public function getTournamentIdArray() {
+    $tournaments = $this->getTournaments();
+    $tournament_ids = array();
+    foreach ($tournaments as $tournament) {
+      $tournament_ids[] = $tournament->id;
+    }
+    return $tournament_ids;
+  }
+
+  /**
+   * @return string
+   *  Returns a comma delimited string of tournaments in this series.
+   */
+  public function getTournamentsString() {
+    $tournaments = $this->getTournamentIdArray();
+    $tournament_ids = implode(',', $tournaments);
+    return $tournament_ids;
   }
 
   public function isFinished() {
