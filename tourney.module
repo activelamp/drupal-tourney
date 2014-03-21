@@ -1106,23 +1106,28 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
     $wins = array();
     foreach ($entity->gameIds as $gameId) {
       $game = tourney_game_load($gameId);
-      if (isset($game->winner)) {
+      if (isset($game->winner) && strlen($game->winner)) {
         $wins[] = (int) str_replace('node.', '', $game->winner);
       }
     }
     $game_wins = array_count_values($wins);
 
-    // Make sure that we have the correct position of teams that are ordered on the match.
-    $playerIdToSlots = array(
-      $entity->contestantIds[0]['id'] => 0,
-      $entity->contestantIds[1]['id'] => 1,
-    );
-    // Set the win count with the key that is set on the contestantIds.
-    foreach($game_wins as $team => $winCount) {
-      if (!isset($entity->matchInfo['game_wins'])) {
-        $entity->matchInfo['game_wins'] = array();
+    // Set default game wins.
+    if (!isset($entity->matchInfo['game_wins']))
+      $entity->matchInfo['game_wins'] = array();
+    $entity->matchInfo['game_wins'][0] = 0;
+    $entity->matchInfo['game_wins'][1] = 0;
+
+    if (!empty($entity->contestantIds)) {
+      // Make sure that we have the correct position of teams that are ordered on the match.
+      $playerIdToSlots = array(
+        $entity->contestantIds[0]['id'] => 0,
+        $entity->contestantIds[1]['id'] => 1,
+      );
+      // Set the win count with the key that is set on the contestantIds.
+      foreach($game_wins as $team => $winCount) {
+        $entity->matchInfo['game_wins'][$playerIdToSlots[$team]] = $winCount;
       }
-      $entity->matchInfo['game_wins'][$playerIdToSlots[$team]] = $winCount;
     }
     // Place the game wins in it's own array to access later.
     $entity->content['game_wins'] = $game_wins;
