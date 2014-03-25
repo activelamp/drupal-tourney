@@ -415,23 +415,18 @@ class TourneyMatchEntity extends TourneyEntity {
     }
 
     $games = tourney_game_load_multiple($this->getGameIds());
-    // Had to implement a tally count to double-check for a winner. For some
-    // reason, the second match of a match group was saying it was finished
-    // before it actually was.
-    $tally = array();
-    // if empty, it still needs to load games into, therefore is unfinished
-    if (empty($games)) {
+    if (empty($games))
       return FALSE;
-    }
 
-    $finishedGames = 0;
+    $wins = [];
     foreach ($games as $game)
-      $finishedGames = ($game->isFinished()) ? $finishedGames + 1 : $finishedGames;
+      if ($game->isFinished())
+        $wins[$game->getWinner()] = isset($wins[$game->getWinner()]) ? $wins[$game->getWinner()] + 1 : 1;
 
     // If any contestant has more than 50% wins of the maximum amount of games
     // OR the maximum amount of games has been played, then the match is
     // finished (even if its a tie).
-    if (($finishedGames > ($this->games / 2)) || (count($games) == $this->games))
+    if ((max($wins) > ($this->games / 2)) || (array_sum($wins) == $this->games))
       return TRUE;
 
     // Default to the match not being finished.
