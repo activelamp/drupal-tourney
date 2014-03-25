@@ -513,11 +513,6 @@ class TourneyMatchEntity extends TourneyEntity {
         parent::save();
       }
 
-      // If the match is finished then trim off any extra games that are no
-      // longer required.
-      if ($this->isFinished())
-        $this->cleanGames();
-
       // Add and remove any contestants.
       if (isset($this->queue['remove_contestant'])) {
         foreach($this->queue['remove_contestant'] as $operation) {
