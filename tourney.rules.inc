@@ -28,26 +28,6 @@ function tourney_rules_action_info() {
         ),
       ),
     ),
-    'tourney_action_game_is_won' => array(
-      'label' => t('Create a new game OR move the players to the next match'),
-      'group' => t('Tourney Rules'),
-      'parameter' => array(
-        'match' => array(
-          'type' => 'tourney_match',
-          'label' => t('The match this game belongs in'),
-        ),
-        'quotient' => array(
-          'type' => 'text',
-          'label' => t('Quotient of games won divided by total games'),
-        ),
-      ),
-      'provides' => array(
-        'action_message' => array(
-          'type' => 'text',
-          'label' => t('Action successful message'),
-        ),
-      ),
-    ),
     'tourney_action_set_all_matches' => array(
       'label' => t('Set contestant in all matches for Round Robin.'),
       'group' => t('Tourney Rules'),
@@ -131,78 +111,6 @@ function tourney_action_get_game_count($match) {
     // This should never return 0, can't divide by zero.
     'number_of_won_games' => max($winners) > 0 ? max($winners) : 1,
   ) : 1;
-}
-
-/**
- * Action to either create a new game, or move the winners to new match
- *
- * @param $match (object)
- *   The match the game belongs to
- * @param $quotient (integer)
- *   The number of games won by leader divided by total games in match.
- */
-function tourney_action_game_is_won($match, $quotient) {
-  // This static variable gets set when a match is being reset. If the variable
-  // is set, then we need to skip this rules logic.
-  $resetMatch = &drupal_static('resetMatch', FALSE);
-  if ($resetMatch) {
-    return;
-  }
-
-  $plugin = $match->getTournament()->tourneyFormatPlugin;
-  $message = '';
-  // Create a new game if enough games have not been won yet.
-  if (!$match->isFinished() || $quotient > 2) {
-    // If the match already has a winner even though we've not met our quotient,
-    // that means a game was changed. We need to get the next matches and clear
-    // the necessary contestants
-    try {
-      if ($match->getWinner()) {
-        if ($match->nextMatch()) {
-          $match->getTournament()->winner = '';
-          $match->getTournament()->save();
-          $match->nextMatch()->status = 1;
-          $match->nextMatch()->queueRemoveContestant($match->getWinnerEntity());
-          $match->nextMatch()->save();
-          // Re-calculate the winner (if any). If the game has been changed then
-          // there may no longer *be* a winner. If there is no winner then during
-          // the save a winner will be calculated, if any, so this is safe for all
-          // conditions.
-          $match->clearWinner();
-          $match->save();
-        }
-        if ($match->nextMatch('loser')) {
-          $match->nextMatch('loser')->queueRemoveContestant($match->getLoserEntity())->save();
-        }
-      }
-    } catch (TourneyMatchException $e) {
-      // Do nothing, just let the exception write to watchdog.
-    }
-
-    // If all our games are played and won, then we'll need to make a new game to continue the match
-    if ($match->checkGames() == TRUE) {
-      $game = $match->addGame();    
-      $message = t("A new game has been created for {$game->title}.");
-    }
-    else {
-      $message = t('Game updated, but not all games have a winner selected. Action not completed.');
-      watchdog('tourney', $message);
-    }
-  }
-  else {
-    $match->getTournament()->matchIsWon($match);
-    if ($plugin->moveWinners == TRUE) {
-      if ($match->getWinner()) {
-        $message = t('Players moved to next round');    
-      } else {
-        $message = t('Players can not be moved to next round. Match was a tie!');
-      }
-    }
-  }
-
-  return array(
-    'action_message' => $message,
-  );
 }
 
 /**

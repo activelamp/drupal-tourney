@@ -415,23 +415,18 @@ class TourneyMatchEntity extends TourneyEntity {
     }
 
     $games = tourney_game_load_multiple($this->getGameIds());
-    // Had to implement a tally count to double-check for a winner. For some
-    // reason, the second match of a match group was saying it was finished
-    // before it actually was.
-    $tally = array();
-    // if empty, it still needs to load games into, therefore is unfinished
-    if (empty($games)) {
+    if (empty($games))
       return FALSE;
-    }
 
-    $finishedGames = 0;
+    $wins = [];
     foreach ($games as $game)
-      $finishedGames = ($game->isFinished()) ? $finishedGames + 1 : $finishedGames;
+      if ($game->isFinished())
+        $wins[$game->getWinner()] = isset($wins[$game->getWinner()]) ? $wins[$game->getWinner()] + 1 : 1;
 
     // If any contestant has more than 50% wins of the maximum amount of games
     // OR the maximum amount of games has been played, then the match is
     // finished (even if its a tie).
-    if (($finishedGames > ($this->games / 2)) || (count($games) == $this->games))
+    if ((max($wins) > ($this->games / 2)) || (array_sum($wins) == $this->games))
       return TRUE;
 
     // Default to the match not being finished.
@@ -501,7 +496,47 @@ class TourneyMatchEntity extends TourneyEntity {
     // Transaction will commit when return value goes out of scope (end of method).
     $transaction = db_transaction();
     try {
-      $this->winner = $this->getWinner();
+      // If we already have a winner or the match is marked as finished but
+      // according to logic the match is not finished yet then something has
+      // changed e.g.: the winner on a game was switched
+      if (($this->winner || $this->finished) && !$this->isFinished()) {
+        // If there is automation remove the old winner as a contestant on the
+        // next match and remove the old looser as a contestant from whever
+        // they went.
+        if ($this->nextMatch('winner')) {
+          $this->getTournament()->winner = '';
+          $this->getTournament()->save();
+          $this->nextMatch()->queueRemoveContestant($this->getWinnerEntity())->save();
+        }
+        if ($this->nextMatch('loser')) {
+          $this->nextMatch('loser')->queueRemoveContestant($this->getLoserEntity())->save();
+        }
+      }
+      if (!$this->isFinished()) {
+        $this->clearWinner();
+        $this->winner = '';
+        $this->finished = 0;
+        // If all our games are played and won, then we'll need to make a new
+        // game to continue the match
+        if ($this->checkGames() == TRUE) {
+          $game = $this->addGame();
+          drupal_set_message(t("A new game ({$game->id}) has been created for match {$this->id}."), 'status');
+        }
+      }
+      if ($this->isFinished()) {
+        $this->cleanGames();
+        $this->winner = $this->getWinner();
+        $this->finished = 1;
+        $this->getTournament()->matchIsWon($this);
+        if ($plugin->moveWinners == TRUE) {
+          if ($this->getWinner()) {
+            $message = t('Players moved to next round');    
+          } else {
+            $message = t('Players can not be moved to next round. Match was a tie!');
+          }
+        }
+      }
+
       if (property_exists($this, 'field_tournament') && !$this->field_tournament[LANGUAGE_NONE]) {
         $tournament = $this->getTournament();
         if ($tournament) {

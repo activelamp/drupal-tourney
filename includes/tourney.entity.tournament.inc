@@ -721,7 +721,6 @@ class TourneyTournamentEntity extends TourneyEntity {
     $old_winner = $match->winner;
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
-    $match->cleanGames();
 
     module_load_include('inc', 'tourney', 'includes/tourney.rank');
     if (!$this->get('no_automation', FALSE) && $this->format != 'RoundRobinController') {
@@ -738,37 +737,26 @@ class TourneyTournamentEntity extends TourneyEntity {
 
       $winner = $match->getWinnerEntity();
       $loser = $match->getLoserEntity();
-      // this code here lets the champion round rule fire before setting winners
-      // on the tiebreaker, in case the tiebreaker in unnecessary
-      $match->save();
 
       // Only promote contestants if this was not a tie.
       if ($match->getWinner()) {
-        try {
-          $winnerMatch = $match->nextMatch('winner');
-          if ($winnerMatch && $winnerMatch->status == 1) {
-            $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-            $winnerMatch->queueAddContestant($winner, $slot)->save();
-          }
-          $loserMatch = $match->nextMatch('loser');
-          if ($loserMatch && $loserMatch->status == 1) {
-            $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-            $loserMatch->queueAddContestant($loser, $slot)->save();
-          }
-        } catch (TourneyMatchException $e) {
-          // Do nothing, just let the exception write to watchdog.
+        $winnerMatch = $match->nextMatch('winner');
+        if ($winnerMatch && $winnerMatch->status == 1) {
+          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+          $winnerMatch->queueAddContestant($winner, $slot)->save();
+        }
+        $loserMatch = $match->nextMatch('loser');
+        if ($loserMatch && $loserMatch->status == 1) {
+          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
+          $loserMatch->queueAddContestant($loser, $slot)->save();
         }
       }
     }
-    else {
-      $match->determineWinner();
-      $match->save();
-    }
+
     if (!$old_winner || ($old_winner && $old_winner !== $match->getWinner())) {
       tourney_rank_win($this, $match->getWinnerEntity());
       tourney_rank_lose($this, $match->getLoserEntity());
     }
-    
     
     $this->determineWinner();
   }
