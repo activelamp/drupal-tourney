@@ -423,23 +423,16 @@ class TourneyMatchEntity extends TourneyEntity {
     if (empty($games)) {
       return FALSE;
     }
-    foreach ($games as $game) {
-      // Delegate the checking to the game to see if each game is finished
-      if (array_key_exists($game->winner, $tally))
-        $tally[$game->winner]++;
-      else
-        $tally[$game->winner] = 1;
-      if (!$game->isFinished()) {
-        return FALSE;
-      }
-    }
-    asort($tally);
-    $top = array_pop($tally);
+
+    $finishedGames = 0;
+    foreach ($games as $game)
+      $finishedGames = ($game->isFinished()) ? $finishedGames + 1 : $finishedGames;
 
     // If any contestant has more than 50% wins of the maximum amount of games
     // OR the maximum amount of games has been played, then the match is
     // finished (even if its a tie).
-    if (($top > $this->games / 2) || (count($games) == $this->games)) return TRUE;
+    if (($finishedGames > ($this->games / 2)) || (count($games) == $this->games))
+      return TRUE;
 
     // Default to the match not being finished.
     return FALSE;
@@ -519,6 +512,11 @@ class TourneyMatchEntity extends TourneyEntity {
       if (!isset($this->id)) {
         parent::save();
       }
+
+      // If the match is finished then trim off any extra games that are no
+      // longer required.
+      if ($this->isFinished())
+        $this->cleanGames();
 
       // Add and remove any contestants.
       if (isset($this->queue['remove_contestant'])) {
