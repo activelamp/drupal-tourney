@@ -337,6 +337,7 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
+
   $match_reset = FALSE;
   $is_new = isset($match->is_new) ? TRUE : FALSE;
   // Match was created manually through the user interface.
@@ -410,7 +411,6 @@ function tourney_match_form_submit($form, &$form_state) {
   }
 
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
-  $match->getWinner();
   foreach ($form_state['input'] as $id => $value) {
     // If we're not dealing with a game move on.
     if (!$value || substr($id, 0, 5) != 'game_' || $match_reset) continue;
@@ -420,8 +420,6 @@ function tourney_match_form_submit($form, &$form_state) {
     if ($game->winner != $value) {
       $game->winner = $value;
       tourney_game_save($game);
-      // The winner needs to be re set for the match
-      $match->winner = '';
     }
   }
 
@@ -572,7 +570,9 @@ function tourney_game_form_submit($form, &$form_state) {
   $game = $form_state['game'];
   $game->label = $form_state['input']['label'];
   entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
+
   tourney_game_save($game);
+  tourney_match_save(tourney_match_load($game->getMatchId()));
   drupal_set_message(url($game->getUri()));
 
   $form_state['redirect'] = $game->getUri();
