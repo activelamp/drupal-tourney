@@ -154,13 +154,15 @@ function tourney_match_form($form, &$form_state, $match) {
       $form['fix_games'] = array(
         '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
       );
-    }
-    else {
+    } elseif (!isset($match->contestantIds) || count($match->contestantIds) < 2) {
+      $form['fix_games'] = array(
+        '#markup' => "Two contestants must be present in order to set winners on games.",
+      );
+    } else {
       $form['fix_games'] = array(
         '#theme' => 'tourney_match_fix',
         '#games' => $match->games,
       );
-
       foreach ($match->getGames() as $id => $game) {
         $form['fix_games']['game.' . $id] = array(
           '#type' => 'radios',

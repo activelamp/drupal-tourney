@@ -433,23 +433,20 @@ class TourneyMatchEntity extends TourneyEntity {
   }
 
   /**
-   * Set the winner property to the winner of this match.
+   * Determine who the winner of this match is.
+   *
+   * @return string|null
+   *   The entity eid ('node.1') of the winner, or null if none.
    */
   public function determineWinner() {
     $this->matchWinner = NULL;
     if ($this->isFinished()) {
-      // Match is always finished.
-      $this->finished = 1;
       // But may not have a winner (draw).
       $ranks = array_unique($this->fetchRanks());
       if (count($ranks) > 1) {
         asort($ranks);
         $keys = array_keys($ranks);
         $this->matchWinner = array_pop($keys);
-        // @todo: Why are we using matchWinner instead of winner?
-        // if ($this->winner !== $this->matchWinner) {
-        //   $this->winner = $this->matchWinner;
-        // }
       }
     }
     return $this->matchWinner;
@@ -490,6 +487,8 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Save the entity
+   *
+   * Saving will also calculate and populate the winner and finished properties.
    */
   public function save() {
     // Transaction will commit when return value goes out of scope (end of method).
@@ -501,26 +500,6 @@ class TourneyMatchEntity extends TourneyEntity {
         parent::save();
       }
 
-      // If we already have a winner or the match is marked as finished but
-      // according to logic the match is not finished yet then something has
-      // changed e.g.: the winner on a game was switched
-      // if ((strlen($this->winner) || $this->finished) && !$this->isFinished()) {
-      //   // If there is automation remove the old winner as a contestant on the
-      //   // next match and remove the old looser as a contestant from whever
-      //   // they went.
-      //   if ($this->nextMatch('winner')) {
-      //     $this->getTournament()->winner = '';
-      //     $this->getTournament()->save();
-      //     $this->nextMatch('winner')->queueRemoveContestant($this->getWinnerEntity())->save();
-      //     $this->nextMatch('winner')->resetMatch();
-      //     drupal_set_message("Reseting games of match {$this->nextMatch('winner')->id}.", 'status');
-      //   }
-      //   if ($this->nextMatch('loser')) {
-      //     $this->nextMatch('loser')->queueRemoveContestant($this->getLoserEntity())->save();
-      //     $this->nextMatch('loser')->resetMatch();
-      //     drupal_set_message("Reseting games of match {$this->nextMatch('loser')->id}.", 'status');
-      //   }
-      // }
       if (!$this->isFinished()) {
         $this->clearWinner();
         $this->setWinner('');
@@ -536,7 +515,7 @@ class TourneyMatchEntity extends TourneyEntity {
       }
       if ($this->isFinished()) {
         $this->cleanGames();
-        $this->setWinner($this->getWinner());
+        $this->setWinner($this->determineWinner());
         $this->finished = 1;
         $this->getTournament()->matchIsWon($this);
       }
