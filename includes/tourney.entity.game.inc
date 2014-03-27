@@ -200,9 +200,9 @@ class TourneyGameEntity extends TourneyEntity {
    * Save the game.
    *
    * @param bool $bubble
-   *   (Defaults to FALSE) Call match save when the game save is finished.
+   *   (Defaults to TRUE) Call match save when the game save is finished.
    */
-  public function save($bubble = FALSE) {
+  public function save($bubble = TRUE) {
     if (property_exists($this, 'field_match') && !$this->field_match[LANGUAGE_NONE]) {
       $match = $this->getMatchId();
       if ($match) {
@@ -211,7 +211,13 @@ class TourneyGameEntity extends TourneyEntity {
     }
 
     parent::save();
-    cache_clear_all('tourney_winner_count_' . $this->getMatchId(), 'cache_tourney');
+
+    // Clear caches.
+    if ($match_id = $this->getMatchId()) {
+      cache_clear_all("tourney_winner_count_{$match_id}", 'cache_tourney');
+      cache_clear_all("tourney_match_games_{$match_id}", 'cache_tourney', TRUE);
+      cache_clear_all("tourney_build_matches_{$this->getTournamentId()}", 'cache_tourney', TRUE);
+    }
 
     // Now that the game state may have changed the match may want to recalculate
     // and do something (like set the winner on the match)

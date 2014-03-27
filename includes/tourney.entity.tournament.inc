@@ -740,14 +740,15 @@ class TourneyTournamentEntity extends TourneyEntity {
 
       // Only promote contestants if this was not a tie.
       if ($match->getWinner()) {
-        drupal_set_message(t('Players moved to next round'), 'satus');
         $winnerMatch = $match->nextMatch('winner');
-        if ($winnerMatch && $winnerMatch->status == 1) {
+        if ($winnerMatch && $winnerMatch->status == 1 && !$winnerMatch->isContestant($winner->eid)) {
           $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+          drupal_set_message(t("Winner on match {$match->eid} moved to next round {$winnerMatch->eid}"), 'satus');
           $winnerMatch->queueAddContestant($winner, $slot)->save();
         }
         $loserMatch = $match->nextMatch('loser');
-        if ($loserMatch && $loserMatch->status == 1) {
+        if ($loserMatch && $loserMatch->status == 1 && !$loserMatch->isContestant($loser->eid)) {
+          drupal_set_message(t("Loser on match {$match->eid} moved to next round {$loserMatch->eid}"), 'satus');
           $slot = $match->matchInfo['nextMatch']['loser']['slot'];
           $loserMatch->queueAddContestant($loser, $slot)->save();
         }

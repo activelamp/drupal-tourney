@@ -1182,6 +1182,8 @@ function tourney_match_save(&$match) {
 
 /**
  * Save a game entity.
+ *
+ * Generally deprecated, use $game->save() instead.
  */
 function tourney_game_save(&$game) {
   entity_save('tourney_game', $game);

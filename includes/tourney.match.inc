@@ -29,7 +29,7 @@ function tourney_game_win_form_submit($form, &$form_state) {
   $match = tourney_match_load($extra['match']);
   $game = tourney_game_load($extra['game']);
   $game->winner = $contestant;
-  tourney_game_save($game);
+  $game->save(TRUE);
   $form_sate['redirect'] = $match->getUri();
 }
 
@@ -362,22 +362,6 @@ function tourney_match_form_submit($form, &$form_state) {
     $match->name = $tournament->name . '_match-' . ++$mid;
   }
 
-  // Check to see if the contestants on this match are different than who is
-  // currently associated with the match. If they are different, we need to
-  // reset the match.
-  // Line below commented out BKH 2013.08.21, not used??
-  // $contestant_ids = array_keys($match->getMatchContestants());
-  // @todo: Not sure what this code did, but it seems we dont need anymore.
-  //   Remove this in a few days if we don't see bug pop up.
-  // if (!empty($contestant_ids) 
-  //   && (!in_array($form_state['values']['contestant1'], $contestant_ids)
-  //     || !in_array($form_state['values']['contestant2'], $contestant_ids))) {
-  //   
-  //   $match->resetMatch();
-  //   $match_reset = TRUE;
-  //   drupal_set_message('The games in this match have been reset');
-  // }
-
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
   }
@@ -421,7 +405,7 @@ function tourney_match_form_submit($form, &$form_state) {
     $game = tourney_game_load($parts[1]);
     if ($game->winner != $value) {
       $game->winner = $value;
-      tourney_game_save($game);
+      $game->save(FALSE);
     }
   }
 
@@ -446,7 +430,7 @@ function tourney_match_form_submit($form, &$form_state) {
       'field_match' => array(LANGUAGE_NONE => array(array('target_id' => array($match->id)))),
       '_match' => $match,
     ));
-    $game->save();
+    $game->save(FALSE);
     $create_alias = FALSE;
     if (module_exists('pathauto')) {
       module_load_include('inc', 'pathauto');
@@ -572,9 +556,7 @@ function tourney_game_form_submit($form, &$form_state) {
   $game = $form_state['game'];
   $game->label = $form_state['input']['label'];
   entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
-
-  tourney_game_save($game);
-  tourney_match_save(tourney_match_load($game->getMatchId()));
+  $game->save(TRUE);
   drupal_set_message(url($game->getUri()));
 
   $form_state['redirect'] = $game->getUri();

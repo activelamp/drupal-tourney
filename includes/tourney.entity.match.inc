@@ -261,6 +261,28 @@ class TourneyMatchEntity extends TourneyEntity {
   }
 
   /**
+   * Determine if a entity id is a contestant on this match.
+   *
+   * @param string $eid
+   *   The entity id (such as 'node.1') to test
+   *
+   * @return int|null
+   *   The slot number if eid is contestant, otherwise null
+   */
+  public function isContestant($eid) {
+    if ($contestants = $this->getContestantIds()) {
+      if (is_array($contestants)) {
+        foreach($contestants as $contestant) {
+          if (isset($contestant['eid']) && $contestant['eid'] == $eid) {
+            return $contestant['slot'];
+          }
+        }
+      }
+    }
+    return NULL;
+  }
+
+  /**
    * Get the contestant entity type and id for this match.
    */
   public function getContestantIds() {
@@ -835,7 +857,7 @@ class TourneyMatchEntity extends TourneyEntity {
       'title' => 'Game ' . ++$game_count,
       'name'  => $this->name . '_game-' . ++$game_count,
     ));
-    $game->save();
+    $game->save(FALSE);
     // Add the relationship to the game.
     $rid = tourney_create_relation('has_game', 'tourney_match', $this->id, 'tourney_game', $game->id);
     cache_clear_all('fetchGameIds_' . $this->id, 'cache_tourney', TRUE);
@@ -923,7 +945,7 @@ class TourneyMatchEntity extends TourneyEntity {
       $game = tourney_game_load($game_id);
       if (is_object($game)) {
         $game->winner = NULL;
-        $game->save();
+        $game->save(FALSE);
       }
     }
     $this->addGame();
