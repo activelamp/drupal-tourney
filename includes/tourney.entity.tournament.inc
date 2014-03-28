@@ -757,6 +757,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       }
     }
 
+
     if (!$old_winner || ($old_winner && $old_winner !== $match->getWinner())) {
       tourney_rank_win($this, $match->getWinnerEntity());
       tourney_rank_lose($this, $match->getLoserEntity());

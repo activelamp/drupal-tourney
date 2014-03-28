@@ -522,6 +522,8 @@ class TourneyMatchEntity extends TourneyEntity {
         parent::save();
       }
 
+      $winnerChange = ($this->winner != $this->determineWinner());
+
       if (!$this->isFinished()) {
         $this->clearWinner();
         $this->setWinner('');
@@ -539,7 +541,6 @@ class TourneyMatchEntity extends TourneyEntity {
         $this->cleanGames();
         $this->setWinner($this->determineWinner());
         $this->finished = 1;
-        $this->getTournament()->matchIsWon($this);
       }
 
       if (property_exists($this, 'field_tournament') && !$this->field_tournament[LANGUAGE_NONE]) {
@@ -563,8 +564,9 @@ class TourneyMatchEntity extends TourneyEntity {
       }
       parent::save();
 
-      // If we have changed contestants then the game winners may need to be cleaned up.
-
+      // Poke the tournament letting it know a match has changed winners.
+      if ($winnerChange)
+        $this->getTournament()->matchIsWon($this);
 
       // Set the tournament winner if this was the last match.
       if ($this->getTournament()) {
