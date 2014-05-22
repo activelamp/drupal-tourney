@@ -374,7 +374,7 @@ class TourneyController implements TourneyControllerInterface {
     }
     else {
       foreach ($matches as $mid => $match) {
-        self::saveMatch($this, $mid, $match, NULL);
+        self::saveMatch($this, $mid, $match);
       }
     }
   }
