@@ -3,14 +3,14 @@
 /**
  * @file
  * Provides the page callbacks for seeds ctools modal.
- * 
+ *
  * @todo: refactor this duplicate code.
  */
 
 
 function tourney_configure_seeds($js = FALSE, $object_id, $controller) {
   $slots = tourney_configure_slots(func_get_args());
-  
+
   $form_state = array(
     'ajax' => $js,
     'title' => t('Configure seed names.'),
@@ -57,7 +57,7 @@ function tourney_configure_seeds_form($form, &$form_state) {
     // If the object_id is numeric, we have a tournament id.
     if (is_numeric($form_state['object_id'])) {
       $tourney = tourney_tournament_load($form_state['object_id']);
-      $seed_title = $tourney->get('seed_' . $sid, $seed['title']);
+      $seed_title = $tourney->get('seed_' . $sid);
     }
     if (!$seed_title) {
       $seed_title = $sid;
