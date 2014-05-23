@@ -57,7 +57,7 @@ function tourney_configure_seeds_form($form, &$form_state) {
     // If the object_id is numeric, we have a tournament id.
     if (is_numeric($form_state['object_id'])) {
       $tourney = tourney_tournament_load($form_state['object_id']);
-      $seed_title = $tourney->get('seed_' . $sid);
+      $seed_title = $tourney->get('seed_' . $sid, $sid);
     }
     if (!$seed_title) {
       $seed_title = $sid;

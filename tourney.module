@@ -1706,10 +1706,10 @@ function tourney_relation_query($entity_type = NULL, $entity_id = NULL, $r_index
  */
 function tourney_configure_slots($args) {
   // Get the third parameter, it's the controller in the parameter list.
-  $controller = array_pop($args);
+  $controller = $args[2];
   $plugins_with_player = json_decode(array_pop($args));
   $key = array_search($controller, $plugins_with_player);
 
   // The number of players start after the initial 3 parameters.
-  return $args[$key + 2];
+  return $args[$key + 3];
 }
