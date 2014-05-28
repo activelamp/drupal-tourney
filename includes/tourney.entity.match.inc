@@ -526,7 +526,7 @@ class TourneyMatchEntity extends TourneyEntity {
 
       if (!$this->isFinished()) {
         $this->clearWinner();
-        $this->setWinner('');
+        $this->setWinner(NULL);
         $this->finished = 0;
         // If there already exists at least one game (this is not a new match)
         // and all our games are played and won, then we'll need to make a new
@@ -555,6 +555,7 @@ class TourneyMatchEntity extends TourneyEntity {
         foreach($this->queue['remove_contestant'] as $operation) {
           $this->removeContestant($operation['entity']);
         }
+        unset($this->queue['remove_contestant']);
       }
       if (isset($this->queue['add_contestant'])) {
         foreach($this->queue['add_contestant'] as $operation) {
@@ -672,6 +673,9 @@ class TourneyMatchEntity extends TourneyEntity {
           }
         }
       }
+      // Flush cache, players have changed.
+      cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
+      cache_clear_all('getContestants:' . $this->tournamentId, 'cache_tourney', TRUE);
     }
     if (!$deleted) {
       throw new TourneyMatchException("Entity of type {$entity->entity_type} and id {$entity->entity_id} could not be removed as contestant.", $this);
@@ -951,7 +955,7 @@ class TourneyMatchEntity extends TourneyEntity {
       }
     }
     $this->addGame();
-    $this->setWinner('');
+    $this->setWinner(NULL);
     $this->save();
     drupal_static_reset(__FUNCTION__);
     drupal_set_message("Reset games of match {$this->id}.", 'status');

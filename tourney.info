@@ -8,7 +8,6 @@ php = 5.4
 dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = relation
-dependencies[] = rules
 dependencies[] = views
 dependencies[] = views_bulk_operations
 dependencies[] = number
