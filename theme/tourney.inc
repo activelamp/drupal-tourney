@@ -76,7 +76,7 @@ function template_preprocess_tourney_match_render(&$vars) {
 
   //find the order of how the contestants to games are stored
   foreach($match->contestantIds as $key => $value) {
-    $contestant_map[$value['eid']] = $key;
+    $contestant_map[$value['eid']] = $value['slot'] - 1;
   }
 
   foreach (array_values($contestants) as $slot => $contestant) {
