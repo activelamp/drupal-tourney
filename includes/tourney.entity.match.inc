@@ -437,12 +437,13 @@ class TourneyMatchEntity extends TourneyEntity {
     }
 
     $games = tourney_game_load_multiple($this->getGameIds());
+    if (empty($games))
+      return FALSE;
+
     $wins = [];
     foreach ($games as $game)
       if ($game->isFinished())
         $wins[$game->getWinner()] = isset($wins[$game->getWinner()]) ? $wins[$game->getWinner()] + 1 : 1;
-    if (empty($wins))
-      return FALSE;
 
     // If any contestant has more than 50% wins of the maximum amount of games
     // OR the maximum amount of games has been played, then the match is

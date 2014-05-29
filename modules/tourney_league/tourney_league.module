@@ -96,13 +96,7 @@ function tourney_league_views_api($module, $api) {
  * Access callback for the entity API.
  */
 function tourney_league_type_access($op = NULL, $type = NULL, $account = NULL) {
-  if ($op == "view") {
-    return user_access('view leagues', $account);
-  }
-  else if ($op == "create") {
-    return user_access("create leagues", $account);
-  }
-  return user_access('administer leagues', $account);
+  return user_access("$op leagues");
 }
 
 /**
@@ -132,14 +126,22 @@ function tourney_league_uri($league) {
 
 function tourney_league_permission() {
   return array(
-    'administer leagues' => array(
-      'title' => t('Administer Leagues'),
-      'description' => t('Perform administration tasks on leagues.'),
-    ),
     'view leagues' => array(
       'title' => t('View Leagues'),
       'description' => t('View leagues')
-    )
+    ),
+    'create leagues' => array(
+      'title' => t('Add Leagues'),
+      'description' => t('Create new leagues')
+    ),
+    'edit leagues' => array(
+      'title' => t('Edit Leagues'),
+      'description' => t('Edit leagues')
+    ),
+    'delete leagues' => array(
+      'title' => t('Delete Leagues'),
+      'description' => t('Delete leagues.'),
+    ),
   );
 }
 
@@ -151,7 +153,7 @@ function tourney_league_menu() {
     'title' => 'Add a new league',
     'page callback' => 'entity_ui_get_form',
     'page arguments' => array('tourney_league', NULL, 'add'),
-    'access arguments' => array('administer leagues'),
+    'access arguments' => array('create leagues'),
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'file' => 'includes/league.admin.inc',
   );
@@ -161,8 +163,7 @@ function tourney_league_menu() {
     'title arguments' => array(2),
     'page callback' => 'tourney_league_page_view',
     'page arguments' => array(2),
-    'access callback' => 'tourney_entity_access',
-    'access arguments' => array('view', 2),
+    'access arguments' => array('view leagues'),
     'file' => 'includes/league.admin.inc',
   );
 
@@ -176,8 +177,7 @@ function tourney_league_menu() {
     'title' => 'Edit',
     'page callback' => 'tourney_league_edit',
     'page arguments' => array(2),
-    'access callback' => 'tourney_entity_access',
-    'access arguments' => array('edit', 2),
+    'access arguments' => array('edit leagues'),
     'file' => 'includes/league.admin.inc',
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
@@ -188,8 +188,7 @@ function tourney_league_menu() {
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('tourney_league_confirm_delete_page', 2),
-    'access callback' => 'tourney_entity_access',
-    'access arguments' => array('delete', 2),
+    'access arguments' => array('delete leagues'),
     'file' => 'includes/league.admin.inc',
     'weight' => 10,
     'type' => MENU_CALLBACK,

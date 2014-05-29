@@ -34,7 +34,7 @@ class TourneyMatchException extends TourneyException {
       $message = "On match {$match_id}: " . $message;
     }
     parent::__construct($message, $code, $previous);
-  }  
+  }
 }
 class TourneyMatchInvalidParameter extends TourneyMatchException {
   public function __construct($message = null, $match = null, $code = 0, Exception $previous = null) {
@@ -204,7 +204,7 @@ function tourney_menu() {
     'access arguments' => array('create tourney'),
     'file' => 'includes/tourney.modal.seeds.inc',
   );
-  
+
 
   return $items;
 }
@@ -767,7 +767,7 @@ function tourney_entity_get_types($entity_name, $type_name = NULL) {
 /**
  * Entity access callback for tourney module.
  *
- * This is the access callback for the entity when it has not been accessed 
+ * This is the access callback for the entity when it has not been accessed
  * through a menu router. I.E. a node with an entity reference field to a
  * tournament.
  *
@@ -800,7 +800,7 @@ function tourney_access($op = 'view', $entity_type = NULL, $entity = NULL, $acco
 /**
  * Entity access callback for tourney module.
  *
- * This is the access callback for the entity when it has not been accessed 
+ * This is the access callback for the entity when it has not been accessed
  * through a menu router. I.E. a node with an entity reference field to a
  * tournament.
  *
@@ -1001,20 +1001,20 @@ function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') 
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
   );
   $entity->content['tourney_format'] = array(
-   '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
-   '#suffix' => '</div>',
-   '#markup' => $info['title'],
+    '#prefix' => '<div class="field-label">Tournament Format:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $info['title'],
   );
   $entity->content['tourney_players'] = array(
-   '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
-   '#suffix' => '</div>',
-   '#markup' => $entity->players,
+    '#prefix' => '<div class="field-label">Number of players:</div><div class="field-content">',
+    '#suffix' => '</div>',
+    '#markup' => $entity->players,
   );
   if ($entity->winner) {
     $entity->content['tourney_winner'] = array(
-     '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
-     '#suffix' => '</div>',
-     '#markup' => $entity->winner,
+      '#prefix' => '<div class="field-label">Winner:</div><div class="field-content">',
+      '#suffix' => '</div>',
+      '#markup' => $entity->winner,
     );
   }
   // Matches for this tournament displayed as a tree
@@ -1043,14 +1043,14 @@ function tourney_tourney_tournament_view($entity, $view_mode, $langcode = 'en') 
  */
 function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'en') {
   $match_extra_fields = $entity->getTournament()->get('match_extra_fields', array());
-  
+
   $entity->content['#attached']['css'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.css'
   );
   $entity->content['#attached']['js'] = array(
     drupal_get_path('module', 'tourney') . '/theme/tourney.js'
   );
-  
+
   if (array_key_exists('tournament', $match_extra_fields) && $match_extra_fields['tournament']) {
     $entity->content['tournament'] = array(
       '#prefix' => '<div class="field-label">Tournament:</div><div class="field-content">',
@@ -1069,7 +1069,7 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
       '#markup' => $entity->getWinner(),
     );
   }
-  
+
   if (array_key_exists('contestants', $match_extra_fields) && $match_extra_fields['contestants']) {
     $default_contestant_classes = array('field-content', 'contestant');
     $contestant_view_mode = $entity->getTournament()->get('contestant_view_mode', 'full');
@@ -1080,7 +1080,7 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
       if ($entity->winner == $contestant->entity_type . '.' . $contestant->entity_id) {
         $contestant_classes[] = 'winner';
       }
-    
+
       $entity->content['match_contestant' . $i] = array(
         '#prefix' => '<div class="field-label">Contestant ' . $i . ':</div><div class="'. join(' ', $contestant_classes) .'">',
         '#suffix' => '</div>',
@@ -1089,7 +1089,7 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
       $i++;
     }
   }
-  
+
   if (array_key_exists('match_table', $match_extra_fields) && $match_extra_fields['match_table']) {
     if (property_exists($entity, 'matchInfo') && $entity->matchInfo && !array_key_exists('bye', $entity->matchInfo) || !$entity->matchInfo['bye']) {
       $entity->content['match_table'] = array(
@@ -1098,7 +1098,7 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
       );
     }
   }
-  
+
 
   if ($view_mode == 'match_block') {
     // Gathering the winner nid's from each game.
@@ -1696,12 +1696,12 @@ function tourney_relation_query($entity_type = NULL, $entity_id = NULL, $r_index
 
 /**
  * Returns the number of slots based on players set in plugin.
- * 
+ *
  * @param $controller
  *   The plugin type that has a player field.
  * @param $args
  *   All the parameters passed into the functions below.
- * 
+ *
  * @see tourney_configure_rounds().
  * @see tourney_configure_seeds().
  */
@@ -1710,7 +1710,7 @@ function tourney_configure_slots($args) {
   $controller = $args[2];
   $plugins_with_player = json_decode(array_pop($args));
   $key = array_search($controller, $plugins_with_player);
-  
+
   // The number of players start after the initial 3 parameters.
   return $args[$key + 3];
 }

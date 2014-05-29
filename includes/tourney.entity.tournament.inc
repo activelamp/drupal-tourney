@@ -481,8 +481,14 @@ class TourneyTournamentEntity extends TourneyEntity {
 
   /**
   * Save the entity
+  *
+  * @param bool $use_batch
+  *   (defaults to TRUE) Use the batch api to construct matches. This should
+  *   be used when tournament creation is being performed from the GUI,
+  *   otherwise a programmatic tournament creation should not use the batch
+  *   api.
   */
-  public function save() {
+  public function save($use_batch = TRUE) {
     // Store the is_new property in local variable. The property is no longer
     // there after the entity is initially saved.
     $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
@@ -497,7 +503,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       // saveMatches isn't part of the plugin interface. We need to make sure
       // sure the method exists before calling.
       if (method_exists($controller, 'saveMatches')) {
-        $controller->saveMatches();
+        $controller->saveMatches($use_batch);
       }
 
       // Update the tournament with the number of matches created
