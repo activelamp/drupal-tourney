@@ -150,7 +150,7 @@ function tourney_match_form($form, &$form_state, $match) {
       );
     }
 
-    if (is_array($match->matchInfo) && !array_key_exists('bye', $match->matchInfo) && $match->isLocked()) {
+    if (is_array($match->matchInfo) && !(array_key_exists('bye', $match->matchInfo) && $match->matchInfo['bye']) && $match->isLocked()) {
       $form['fix_games'] = array(
         '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
       );
