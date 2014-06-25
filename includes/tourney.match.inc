@@ -109,7 +109,8 @@ function tourney_match_form($form, &$form_state, $match) {
   // Don't bother with contestants if the match is not yet associated
   // with a tournament.
   if (!$is_new) {
-    $canset = $match->getTournament()->canSetContestants($match->getMID());
+    $tournament = $match->getTournament();
+    $canset = $tournament->canSetContestants($match->getMID());
     foreach (array(1,2) as $slot) {
       $contestant = $match->getContestant($slot);
       $eid = is_object($contestant) ? $contestant->eid : null;
@@ -118,6 +119,19 @@ function tourney_match_form($form, &$form_state, $match) {
         '#default_value' => $eid,
         '#disabled' => !($slot & $canset),
       ) + _tourney_match_contestant($match, $eid);
+    }
+
+    $controller = $tournament->format;
+    $plugin = new $controller(0, $tourney);
+
+    if ($plugin && method_exists($plugin, 'matchForm')) {
+      $form['plugin_options'] = array(
+        '#title' => 'Plugin Options',
+        '#type' => 'fieldset',
+        '#tree' => TRUE,
+      );
+
+      $form['plugin_options'][$controller][$match->id] = $plugin->matchForm($form_state);
     }
   }
 
@@ -442,6 +456,16 @@ function tourney_match_form_submit($form, &$form_state) {
     }
     // Create the Match/Game relation.
     tourney_create_relation('has_game', 'tourney_match', $match->id, 'tourney_game', $game->id);
+  }
+
+  if (array_key_exists('plugin_options', $form_state['values'])) {
+    $tournament = $match->getTournament();
+
+    foreach ($form_state['values']['plugin_options'] as $controller => $values) {
+      $key = $controller . '_matches';
+      $options = $values + $tournament->get($key, []);
+      $tournament->set($key, $options);
+    }
   }
 
   $form_state['redirect'] = $match->getUri();

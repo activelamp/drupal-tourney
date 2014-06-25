@@ -448,7 +448,7 @@ class TourneyMatchEntity extends TourneyEntity {
     // If any contestant has more than 50% wins of the maximum amount of games
     // OR the maximum amount of games has been played, then the match is
     // finished (even if its a tie).
-    if ((max($wins) > ($this->games / 2)) || (array_sum($wins) == $this->games))
+    if ($wins && ((max($wins) > ($this->games / 2)) || (array_sum($wins) == $this->games)))
       return TRUE;
 
     // Default to the match not being finished.
