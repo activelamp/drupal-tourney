@@ -426,6 +426,14 @@ class SingleEliminationController extends TourneyController {
     return theme('tourney_tournament_render', array('plugin' => $this));
   }
 
+  public function lastMatch() {
+    $this->build();
+    $matches = array_reverse($this->find('matches', array('bracket' => 'main')));
+    foreach ($matches as $match) {
+      if (!array_key_exists('nextMatch', $match) || !$match['nextMatch']) return $this->tournament->getMatchById($match['id'], TRUE);
+    }
+    return NULL;
+  }
 }
 
 /**

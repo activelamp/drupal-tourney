@@ -437,6 +437,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   Returns the full loaded last match of the tournament.
    */
   public function lastMatch() {
+    if (method_exists($this->tourneyFormatPlugin, 'lastMatch')) return $this->tourneyFormatPlugin->lastMatch();
     $matches = array_reverse($this->tourneyFormatPlugin->data['matches']);
     foreach ($matches as $match) {
       $entity = $this->getMatchById($match['id'], TRUE);
