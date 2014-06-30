@@ -788,10 +788,10 @@ function tourney_access($op = 'view', $entity_type = NULL, $entity = NULL, $acco
       }
 
     case 'edit':
-      return user_access('edit tournament');
+      return user_access('edit tourney');
 
     case 'delete':
-      return user_access('delete tournament');
+      return user_access('delete tourney');
   }
 
   return FALSE;
@@ -821,10 +821,10 @@ function tourney_entity_access($op = 'view', $entity = NULL, $account = NULL, $e
       }
 
     case 'edit':
-      return user_access('edit tournament');
+      return user_access('edit tourney');
 
     case 'delete':
-      return user_access('delete tournament');
+      return user_access('delete tourney');
   }
 
   return FALSE;
