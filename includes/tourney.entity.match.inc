@@ -564,6 +564,14 @@ class TourneyMatchEntity extends TourneyEntity {
         }
         unset($this->queue['add_contestant']);
       }
+
+      if (!$this->isFinished() && count($this->getContestantIds())) {
+        $tournament = $this->getTournament();
+        if (in_array($tournament->format, ['ManualUploadController', 'RoundRobinController'])) {
+          $tournament->populateRoundRobinMatches($match->matchInfo['id']);
+        }
+      }
+
       parent::save();
 
       // Poke the tournament letting it know a match has changed winners.
