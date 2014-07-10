@@ -492,6 +492,8 @@ class TourneyTournamentEntity extends TourneyEntity {
     // Store the is_new property in local variable. The property is no longer
     // there after the entity is initially saved.
     $new = property_exists($this, 'is_new') ? $this->is_new : FALSE;
+    if (isset($this->use_batch))
+      $use_batch = $this->use_batch;
     parent::save();
 
     // Clear any necessary caches
