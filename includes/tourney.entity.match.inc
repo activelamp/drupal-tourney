@@ -209,7 +209,7 @@ class TourneyMatchEntity extends TourneyEntity {
     if (!is_numeric($slot)) {
       throw new Exception(t('$slot must be a number'));
     }
-    $contestants = $this->getMatchContestants();
+    $contestants = $this->getMatchContestants(true);
     if (!$contestants) {
       return NULL;
     }
@@ -272,15 +272,30 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Get the contestant entities
+   *
+   * @param bool $simple_array
+   *   (Defaults to false) Instead of a associative array keyed by entity id
+   *   return a simple indexed array instead. If both teams are TBD one will
+   *   overwrite the other in the index.
+   *
+   * @return array
+   *   Keyed by entity id unless $simple_array is specified.
    */
-  public function getMatchContestants() {
+  public function getMatchContestants($simple_array = false) {
     $entities = array();
 
     foreach ($this->getContestantIds() as $contestant) {
-      $entity = entity_load_single_by_eid($contestant['eid']);
-      $entities[$entity->eid] = $entity;
-      $entities[$entity->eid]->slot = $contestant['slot'];
+      $entity = clone entity_load_single_by_eid($contestant['eid']);
+      if ($simple_array) {
+        $entity->slot = $contestant['slot'];
+        array_push($entities, $entity);
+      }
+      else {
+        $entities[$entity->eid] = $entity;
+        $entities[$entity->eid]->slot = $contestant['slot'];
+      }
     }
+
     return $entities;
   }
 
