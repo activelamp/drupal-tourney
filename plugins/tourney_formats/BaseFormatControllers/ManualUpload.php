@@ -67,8 +67,11 @@ class ManualUploadController extends TourneyController {
       '#default_value' => array_key_exists('match_lineup_file', $plugin_options) ? $plugin_options['match_lineup_file'] : 0,
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
       '#size' => 22,
-      '#element_validate' => array('manualupload_file_validate'),
-      "#upload_validators"  => array("file_validate_extensions" => array("csv txt")),
+      "#upload_validators" => [
+        'file_validate_extensions' => ['csv txt'], 
+        'manualupload_upload_validate' => [],
+      ],
+      '#element_validate' => ['manualupload_file_validate'],
     );
     $form['max_team_play'] = array(
       '#type' => 'textfield',
@@ -186,12 +189,20 @@ class ManualUploadController extends TourneyController {
   }
 
   /**
-   * @see manualupload_parse_file()
+   * @see manualupload_parse_csv()
    */
   public function parseUploadFile($fid) {
-    $report = manualupload_parse_file($fid);
+    if (!is_numeric($fid)) {
+      throw new Exception('Invalid parameter. File identification must be integer.');
+    }
+    if (!$file = file_load(intval($fid))) {
+      throw new Exception('File can not be loaded from FID.');
+    };
+    if (!$file_contents = file_get_contents($file->uri)) {
+      throw new Exception('File can not be read or is empty.');
+    };
 
-    return $report;
+    return manualupload_parse_csv($file_contents);
   }
 
   public function buildBrackets() {
@@ -398,139 +409,132 @@ function manualupload_match_times_validate($element, &$form_state) {
 }
 
 /**
+ * Element validate callback.
+ *
+ * @see ManualUploadController::optionsForm()
+ */
+function manualupload_upload_validate(stdClass $file) {
+  $errors = [];
+
+  $file_contents = file_get_contents($file->uri);
+  try {
+    $report = manualupload_parse_csv($file_contents);    
+  }
+  catch (Exception $e) {
+    $report = FALSE;
+    $errors[] = $e->getMessage();
+  }
+
+  if ($report) dpm($report);
+
+  return $errors;
+}
+
+/**
  * Callback for #element_validate.
  *
  * @see ManualUploadController::optionsForm()
  */
 function manualupload_file_validate($element, &$form_state) {
-  // Don't marry an option to its plugin name. Our class may have been
-  // extended, in which case the same plugin options will be keyed with another
-  // value.
+  $tournament = array_key_exists('tourney', $form_state) ? $form_state['tourney'] : NULL;
+
+  $plugin_name = $form_state['values']['format'];
+  $plugin_options = &$form_state['values']['plugin_options'][$plugin_name];
   $file_schema = NULL;
-  $plugin = $form_state['values']['format'];
 
   // Try to get the tournament match schema from tournament options.
-  if (isset($form_state['tourney']) && $plugin) {
-    $tournament = $form_state['tourney'];
-    if ($tournament->tourneyFormatPlugin != NULL) {
-      $tournament->tourneyFormatPlugin->getPluginOptions();
-      $options = $tournament->tourneyFormatPlugin->pluginOptions;
-      $plugin_options = array_key_exists($plugin, $options) ? $options[$plugin] : array();
-      if (!empty($plugin_options) && isset($plugin_options['file_schema'])) {
-        $file_schema = $plugin_options['file_schema'];
+  if ($tournament && $plugin_name) {
+    $plugin = $tournament->tourneyFormatPlugin;
+    if ($plugin !== NULL) {
+      $options = $plugin->getPluginOptions();
+      $tournament_plugin_options = array_key_exists($plugin_name, $options) ? $options[$plugin_name] : [];
+      if (!empty($plugin_options) && array_key_exists('file_schema', $tournament_plugin_options)) {
+        $file_schema = $tournament_plugin_options['file_schema'];
       }
     }
   }
+
   // Try to get the tournament match schema from an uploaded file.
-  if (!$file_schema && $plugin) {
-    if (isset($form_state['values']['plugin_options'][$plugin]['match_lineup_file'])) {
-      $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
-      try {
-        $file_schema = manualupload_parse_file($fid);
-      } catch (Exception $e) {
-        form_error($element, $e->getMessage());
-      }
-    }
-  }
+  if ($file_schema === NULL && array_key_exists('match_lineup_file', $plugin_options)) {
+    $file = file_load(intval($plugin_options['match_lineup_file']['fid']));
+    if ($file) {
+      $file_contents = file_get_contents($file->uri);
+      $file_schema = manualupload_parse_csv($file_contents);        
 
-  // Set the number of contestants based on the tournament match schema.
-  if (isset($form_state['values']['plugin_options'][$plugin]['match_lineup_file'])) {
-    $players = count($file_schema['contestants']); 
-    if ($players > 0) {
-      $form_state['values']['plugin_options'][$plugin]['players'] = $players;  
-    } else {
-      form_error($element, t('Number of players must be greater than 0'));
-    }
-  }
-
-  // Save the file if it was just uploaded.
-  if (isset($form_state['values']['plugin_options'][$plugin]['match_lineup_file'])) {
-    $fid = $form_state['values']['plugin_options'][$plugin]['match_lineup_file']['fid'];
-    try {
-      $file = file_load($fid);
-      // Tell drupal to keep track of this file if it was just uploaded.
-      if ($file->status != 1) {
-        if (!$file = file_move($file, 'public://')) {
-          throw new Exception('Unable to move file to permanent location.');
-        }
-        $file->status = 1;
-        file_save($file);
+      $contestants = $file_schema['contestants'];
+      if (count($contestants) > 0) {
+        $plugin_options['players'] = count($contestants);
       }
-    } catch (Exception $e) {
-      form_error($element, $e->getMessage());
+      else {
+        form_error($element, t('Number of players must be greater than zero.'));
+      }
     }
   }
 }
 
 /**
- * Parse the uploaded file into a single nested array of usable information.
+ * Parse a CSV file's contents into a single nested array of usable information.
  *
- * @param int $fid
- *   The drupal file id of an uploaded file stored in the temporary path.
+ * @param string $contents
+ *   The contents of the CSV file to be parsed
  *
  * @return
  *   An associative array:
- *   - rows: (array) The original CSV file's rows. Each element in this
- *     array is further broken down into a sub array of the fields in each
- *     row.
- *   - meta: (array) The first row in the original CSV file. Each element
- *     in the array will contain a column name.
- *   - contestants: (array) 1 based, of contestant identifier strings.
- *   - team_fields: (array):
- *     - 0: (int) field of row that contains first reference to contestant.
- *     - 1: (int) field of row that contains second reference to contestant.
+ *     - meta: (array) The first row in the original CSV file. Each element in
+ *             the array will contain a column name.
+ *     - fields: (array) An array of matches of column names to field names.
+ *       - field_name: (array) An array of column name keys where the field
+ *                     refers to a column name.
+ *     - rows: (array) The original CSV file's rows. Each element in this array
+ *             is further broken down into a sub-array of fields in each row.
+ *     - contestants: (array) 1 based array of contestant identifier strings.
  */
-function manualupload_parse_file($fid) {
-  $report = array();
-  if (!is_numeric($fid)) {
-    throw new Exception('Invalid parameter. File identification must be integer.');
-  }
-  if (!$file = file_load(intval($fid))) {
-    throw new Exception('File can not be loaded from FID.');
-  };
-  if (!$file_contents = file_get_contents($file->uri)) {
-    throw new Exception('File can not be read or is empty.');
-  };
-  $file_lines = explode("\n", $file_contents);
-  if (empty($file_lines)) {
+function manualupload_parse_csv($contents) {
+  $report = [];
+  $lines = explode("\n", $contents);
+
+  if (empty($lines)) {
     throw new Exception('File is empty or of the wrong format.');
   }
-  // Determine which columns contain the team players.
-  $file_info = str_getcsv($file_lines[0]);
-  if (empty($file_info)) {
-    throw new Exception('Can not locate file meta data (column names).');
+  
+  $report['meta'] = array_map('strtolower', str_getcsv(array_shift($lines)));
+  if (empty($report['meta'])) {
+    throw new Exception('Could not locate file metadata (column names).');
   }
-  $report['meta'] = $file_info;
-  $teams_meta = array();
-  foreach($file_info as $key => $value) {
-    if (strpos(strtoupper($value), 'TEAM') !== FALSE) {
-      $teams_meta[] = $key;
+
+  $report['fields'] = [];
+  $required_fields = ['team', 'time', 'date'];
+
+  foreach ($required_fields as $field) {
+    $fields = array_keys($report['meta'], $field);
+    if (empty($fields)) {
+      throw new Exception("Could not locate $field column(s).");
     }
+    $report['fields'][$field] = $fields;
   }
-  if (empty($teams_meta)) {
-    throw new Exception('Can not locate team columns.');
-  }
-  $report['team_fields'] = $teams_meta;
-  // Generate a 1 based array of all contestants. The numeric keys will
-  // be used later on as the contestant placeholder for seeding.
-  $file_contestants = array();
-  for($x=1; $x<sizeof($file_lines); $x++) {
-    $elements = str_getcsv($file_lines[$x]);
-    // If the line is empty just ignore it.
-    if (!empty($elements) && strlen($elements[0])) {
-      $report['rows'][] = $elements;
-      $file_contestants[$elements[$teams_meta[0]]] = TRUE;
-      $file_contestants[$elements[$teams_meta[1]]] = TRUE;
+
+  $report['rows'] = [];
+  $contestants = [];
+  foreach ($lines as $line) {
+    $row = str_getcsv($line);
+
+    $timestring = strtotime($row[reset($report['fields']['time'])] + ' ' + $row[reset($report['fields']['date'])]);
+    if ($timestring === FALSE) {
+      throw new Exception("Unix timestamp can not be constructed from supplied text string: $timestring");
     }
+
+    foreach ($report['fields']['team'] as $team_field) {
+      $contestants[$row[$team_field]] = TRUE;
+    }
+    $report['rows'][] = $row;
   }
-  if (empty($file_contestants)) {
-    throw new Exception('Can not locate team contestants.');
+  if (empty($contestants)) {
+    throw new Except('Could not locate team contestants.');
   }
-  $file_contestants = array_keys($file_contestants);
-  array_unshift($file_contestants, FALSE);
-  unset($file_contestants[0]);
-  $report['contestants'] = $file_contestants;
+  $contestants = array_keys($contestants);
+  array_unshift($contestants, NULL);
+  unset($contestants[0]);
+  $report['contestants'] = $contestants;
 
   return $report;
 }
-
