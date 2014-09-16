@@ -162,8 +162,7 @@ class ManualUploadController extends TourneyController {
     drupal_static_reset('rr_matches');
 
     // Calculate the maximum number of rounds.
-    $this->getPluginOptions();
-    $options = $this->pluginOptions;
+    $options = $this->getPluginOptions();
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
     if (!empty($plugin_options) && $plugin_options['max_team_play']) {
       $this->roundsMultiplier = (int)$plugin_options['max_team_play'];
@@ -289,10 +288,11 @@ class ManualUploadController extends TourneyController {
     if (empty($matches)) {
       $matches = array();
       $contestants = array_flip($this->uploadSchema['contestants']);
-      $team_fields = $this->uploadSchema['team_fields'];
-      foreach($this->uploadSchema['rows'] as $key => $row) {
-        $matches[$key][1] = $contestants[$row[$team_fields[0]]];
-        $matches[$key][2] = $contestants[$row[$team_fields[1]]];
+      $team_fields = $this->uploadSchema['fields']['team'];
+      foreach ($this->uploadSchema['rows'] as $key => $row) {
+        foreach ($team_fields as $n => $column) {
+          $matches[$key][$n + 1] = $contestants[$row[$column]];
+        }
       }
       // Extend matches by the round multiplier.
       $matches_new = array(NULL);
@@ -434,14 +434,17 @@ function manualupload_upload_validate(stdClass $file) {
  * @see ManualUploadController::optionsForm()
  */
 function manualupload_file_validate($element, &$form_state) {
-  $tournament = array_key_exists('tourney', $form_state) ? $form_state['tourney'] : NULL;
-
   $plugin_name = $form_state['values']['format'];
+
+  // Only validate the file field belonging to the selected format.
+  if ($element['#parents'][1] !== $plugin_name) return;
+
+  $tournament = array_key_exists('tourney', $form_state) ? $form_state['tourney'] : NULL;
   $plugin_options = &$form_state['values']['plugin_options'][$plugin_name];
   $file_schema = NULL;
 
   // Try to get the tournament match schema from tournament options.
-  if ($tournament && $plugin_name) {
+  if ($tournament) {
     $plugin = $tournament->tourneyFormatPlugin;
     if ($plugin !== NULL) {
       $options = $plugin->getPluginOptions();
@@ -455,18 +458,23 @@ function manualupload_file_validate($element, &$form_state) {
   // Try to get the tournament match schema from an uploaded file.
   if ($file_schema === NULL && array_key_exists('match_lineup_file', $plugin_options)) {
     $file = file_load(intval($plugin_options['match_lineup_file']['fid']));
-    if ($file) {
-      $file_contents = file_get_contents($file->uri);
-      $file_schema = manualupload_parse_csv($file_contents);        
-
-      $contestants = $file_schema['contestants'];
-      if (count($contestants) > 0) {
-        $plugin_options['players'] = count($contestants);
-      }
-      else {
-        form_error($element, t('Number of players must be greater than zero.'));
+    if (!$file) {
+      if (is_a($plugin_name, 'ManualUploadController', TRUE)) {
+        form_error($element, t('File must be uploaded with this plugin.'));
       }
     }
+    else {
+      $file_contents = file_get_contents($file->uri);
+      $file_schema = manualupload_parse_csv($file_contents);
+    }
+  }
+
+  if ($file_schema) {
+    $plugin_options['players'] = count($file_schema['contestants']);
+  }
+
+  if ($plugin_options['players'] <= 0) {
+    form_error($element, t('Number of players must be greater than zero.'));
   }
 }
 

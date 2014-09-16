@@ -462,52 +462,56 @@ function tourney_machine_name_uniquify(&$element, &$form_state) {
 function tourney_tournament_form_submit($form, &$form_state) {
   tourney_tournament_save_contestants($form_state);
 
-  $tourney = $form_state['tourney'];
+  $tournament = $form_state['tourney'];
+
+  entity_form_submit_build_entity('tourney_tournament', $tournament, $form, $form_state);
 
   // Save settings to a config array, for use before config is actually saved
   // to the tourney table.
-  $tourney->config = array();
+  $tournament->config = array();
   foreach ($form_state['values'] as $key => $value) {
     if (substr($key, 0, 7) != 'config_') {
       continue;
     }
-    $tourney->config[substr($key, 7)] = $value;
+    $tournament->config[substr($key, 7)] = $value;
   }
-  tourney_set_plugin_options($tourney, $form_state, TRUE);
+  $tournament->config = array_merge($tournament->config, $tournament->plugin_options);
 
-  entity_form_submit_build_entity('tourney_tournament', $tourney, $form, $form_state);
+  tourney_set_plugin_options($tournament, $form_state, TRUE);
 
   // Grab the number of contestants from the plugin.
-  $controller = $tourney->format;
-  $plugin = new $controller(0, $tourney);
+  $controller = $tournament->format;
+  $plugin = new $controller(0, $tournament);
   $plugin->getPluginOptions();
+
   if (!$players = $plugin->getNumberOfPlayers()) {
     throw new Exception('Plugin returned 0 players. Tournament can not be constructed.');
   }
-  $tourney->players = $players;
+  $tournament->players = $players;
   unset($plugin);
-  tourney_tournament_save($tourney);
+
+  tourney_tournament_save($tournament);
 
   // Any fields preceded with "config_" should be saved as configuration.
   foreach ($form_state['values'] as $key => $value) {
     if (substr($key, 0, 7) != 'config_') {
       continue;
     }
-    $tourney->set(substr($key, 7), $value);
+    $tournament->set(substr($key, 7), $value);
   }
 
   // Save plugin options
-  tourney_set_plugin_options($tourney, $form_state);
+  tourney_set_plugin_options($tournament, $form_state);
 
   // Clear the ctools object cache
-  if ($tourney->config['show_round_names']) {
+  if ($tournament->config['show_round_names']) {
     $object = tourney_configure_rounds_cache_get($form_state['values']['rounds_form_id']);
-    tourney_configure_rounds_cache_set($tourney->id, $object);
+    tourney_configure_rounds_cache_set($tournament->id, $object);
     tourney_configure_rounds_cache_clear($form_state['values']['rounds_form_id']);
   }
 
   drupal_set_message(t('Your tournament has been saved.'));
-  $form_state['redirect'] = $tourney->getUri();
+  $form_state['redirect'] = $tournament->getUri();
 }
 
 /**
@@ -516,6 +520,7 @@ function tourney_tournament_form_submit($form, &$form_state) {
 function tourney_tournament_save_contestants(&$form_state) {
   $format = $form_state['values']['format'];
   $contestants = array_filter($form_state['values']['contestants']);
+  if (!$contestants) return;
   $seed_positions = &$form_state['values']['plugin_options'][$format]['seed_positions'];
 
   // Set new contestants that aren't in seed array.
@@ -720,7 +725,8 @@ function tourney_set_plugin_options(&$tourney, &$form_state, $to_cache = FALSE) 
     }
   }
 
-  if (!empty($form_state['values']['plugin_options'])) {
+  if (!empty($form_state['values']['plugin_options']) && 
+      array_key_exists('seed_positions', $form_state['values']['plugin_options'][$form_state['values']['format']])) {
     foreach ($form_state['values']['plugin_options'] as $name => $values) {
       $seed_positions = $form_state['values']['plugin_options'][$form_state['values']['format']]['seed_positions'];
       if ($to_cache == TRUE) {
