@@ -425,8 +425,6 @@ function manualupload_upload_validate(stdClass $file) {
     $errors[] = $e->getMessage();
   }
 
-  if ($report) dpm($report);
-
   return $errors;
 }
 
