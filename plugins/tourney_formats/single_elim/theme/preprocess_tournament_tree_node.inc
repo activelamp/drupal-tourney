@@ -113,5 +113,4 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   $vars['parent_classes']   = implode(' ', $parent_classes);
   $vars['bye']              = $bye;
   $vars['has_children']     = $has_children;
-  $vars['round_name']       = '';
 }
