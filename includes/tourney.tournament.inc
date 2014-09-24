@@ -520,7 +520,7 @@ function tourney_tournament_save_contestants(&$form_state) {
 
   // Set new contestants that aren't in seed array.
   foreach ($contestants as $contestant) {
-    if (!array_key_exists($contestant, $form_state['values']['plugin_options'][$format]['seed_positions'])) {
+    if (!array_key_exists($contestant, $seed_positions)) {
       $seed_positions[$contestant] = array('weight' => NULL, 'winner' => 0);
     }
   }

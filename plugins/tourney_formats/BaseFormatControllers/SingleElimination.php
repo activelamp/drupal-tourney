@@ -48,6 +48,8 @@ class SingleEliminationController extends TourneyController {
     $options = $this->pluginOptions;
     $plugin_options = array_key_exists(get_class($this), $options) ? $options[get_class($this)] : array();
 
+    $tournament = $form_state['tourney'];
+
     form_load_include($form_state, 'php', 'tourney', 'plugins/tourney_formats/BaseFormatControllers/SingleElimination');
     $num_players = array_key_exists('players', $plugin_options) ? $plugin_options['players'] : 2;
     $form['players'] = array(
@@ -56,7 +58,7 @@ class SingleEliminationController extends TourneyController {
       '#title' => t('Number of Contestants'),
       '#description' => t('Number of contestants that will be playing in this tournament.'),
       '#default_value' => $num_players,
-      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
+      '#disabled' => !empty($tournament->id) ? TRUE : FALSE,
       '#element_validate' => array('singleelimination_players_validate'),
       '#attributes' => array('class' => array('edit-configure-round-names-url', 'edit-configure-seed-names-url')),
       '#states' => array(
@@ -76,15 +78,15 @@ class SingleEliminationController extends TourneyController {
       '#description' => t('By checking this option, a Consolation bracket will be created with one match to determine third place.'),
       '#default_value' => array_key_exists('third_place', $plugin_options)
         ? $plugin_options['third_place'] : -1,
-      '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
+      '#disabled' => !empty($tournament->id) ? TRUE : FALSE,
     );
 
     if (array_key_exists('values', $form_state)) {
       $players = $form_state['values']['plugin_options'][$form_state['values']['format']]['players'] ?: $players = $form_state['tourney']->players;
       $possible = self::possibleWinners($players);
     }
-    else if (is_a($form_state['tourney'], 'TourneyTournamentEntity')) {
-      $possible = self::possibleWinners($form_state['tourney']->players);
+    else if (is_a($tournament, 'TourneyTournamentEntity') && !(property_exists($tournament, 'is_new') && $tournament->is_new)) {
+      $possible = self::possibleWinners($tournament->players);
     }
     else {
       $possible = array(1);

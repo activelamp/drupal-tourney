@@ -1119,11 +1119,10 @@ function tourney_tourney_match_view($entity, $view_mode = 'full', $langcode = 'e
     $entity->matchInfo['game_wins'][1] = 0;
 
     if (!empty($entity->contestantIds)) {
-      // Make sure that we have the correct position of teams that are ordered on the match.
-      $playerIdToSlots = array(
-        $entity->contestantIds[0]['id'] => 0,
-        $entity->contestantIds[1]['id'] => 1,
-      );
+      $playerIdToSlots = array();
+      foreach ($entity->contestantIds as $contestant) {
+        $playerIdToSlots[$contestant['id']] = $contestant['slot'] - 1;
+      }
       // Set the win count with the key that is set on the contestantIds.
       foreach($game_wins as $team => $winCount) {
         $entity->matchInfo['game_wins'][$playerIdToSlots[$team]] = $winCount;
@@ -1182,6 +1181,8 @@ function tourney_match_save(&$match) {
 
 /**
  * Save a game entity.
+ *
+ * Generally deprecated, use $game->save() instead.
  */
 function tourney_game_save(&$game) {
   entity_save('tourney_game', $game);
