@@ -157,12 +157,12 @@ class TourneyController implements TourneyControllerInterface {
    *   Filled out round data array
    */
   public function buildRound($data) {
+    $round_name = 'Round ' . $data['id'];
     if (is_object($this->tournament)) {
       // If we have a tournament see if we have a round name defined.
-      $round_name = $this->tournament->get("round_" . $data['id']) 
-        ? $this->tournament->get("round_" . $data['id']) : 'Round ' . $data['id'];
+      $tournament_round_name = $this->tournament->get("round_" . $data['id']);
+      if ($tournament_round_name) $round_name = $tournament_round_name;
     }
-    
     $round = array(
       'title' => $round_name,
       'id'    => 'round-' . $data['id'],
@@ -638,13 +638,15 @@ abstract class TourneyEntity extends Entity {
   public function getWinner() {
     return $this->winner;
   }
+
   public function save() {
-    if ($this->is_new) {
+    if (property_exists($this, 'is_new') && $this->is_new) {
       $this->created = time();
     }
     $this->changed = time();
     parent::save();
   }
+
   public function delete() {
     watchdog('tourney', 'Deleted @type #@id.', array('@type' => $this->type, '@id' => $this->id));
     parent::delete();

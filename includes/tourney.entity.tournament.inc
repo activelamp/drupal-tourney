@@ -437,6 +437,7 @@ class TourneyTournamentEntity extends TourneyEntity {
    *   Returns the full loaded last match of the tournament.
    */
   public function lastMatch() {
+    if (method_exists($this->tourneyFormatPlugin, 'lastMatch')) return $this->tourneyFormatPlugin->lastMatch();
     $matches = array_reverse($this->tourneyFormatPlugin->data['matches']);
     foreach ($matches as $match) {
       $entity = $this->getMatchById($match['id'], TRUE);
@@ -496,9 +497,7 @@ class TourneyTournamentEntity extends TourneyEntity {
       $use_batch = $this->use_batch;
     parent::save();
 
-    // Clear any necessary caches
-    cache_clear_all('getContestants:' . $this->eid, 'cache_tourney');
-
+    
     // Create the matches and first game if new tournament.
     if ($new) {
       $controller = TourneyController::loadPlugin($this);
@@ -515,6 +514,9 @@ class TourneyTournamentEntity extends TourneyEntity {
       drupal_write_record('tourney_tournament', $this, 'id');
     }
     else {
+      // Clear any necessary caches
+      cache_clear_all('getContestants:' . $this->eid, 'cache_tourney');
+
       if ($this->name_original !== $this->name) {
         $mquery = tourney_relation_query('tourney_tournament', $this->id)->entityCondition('bundle', 'has_match');
         $matches = $mquery->execute();
@@ -729,7 +731,6 @@ class TourneyTournamentEntity extends TourneyEntity {
     $old_winner = $match->winner;
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
-    $match->cleanGames();
 
     module_load_include('inc', 'tourney', 'includes/tourney.rank');
     if (!$this->get('no_automation', FALSE) && $this->format != 'RoundRobinController') {
@@ -746,37 +747,31 @@ class TourneyTournamentEntity extends TourneyEntity {
 
       $winner = $match->getWinnerEntity();
       $loser = $match->getLoserEntity();
-      // this code here lets the champion round rule fire before setting winners
-      // on the tiebreaker, in case the tiebreaker in unnecessary
-      $match->save();
 
       // Only promote contestants if this was not a tie.
       if ($match->getWinner()) {
-        try {
-          $winnerMatch = $match->nextMatch('winner');
-          if ($winnerMatch && $winnerMatch->status == 1) {
-            $slot = $match->matchInfo['nextMatch']['winner']['slot'];
-            $winnerMatch->queueAddContestant($winner, $slot)->save();
-          }
-          $loserMatch = $match->nextMatch('loser');
-          if ($loserMatch && $loserMatch->status == 1) {
-            $slot = $match->matchInfo['nextMatch']['loser']['slot'];
-            $loserMatch->queueAddContestant($loser, $slot)->save();
-          }
-        } catch (TourneyMatchException $e) {
-          // Do nothing, just let the exception write to watchdog.
+        $winnerMatch = $match->nextMatch('winner');
+        if ($winnerMatch && $winnerMatch->status == 1 && !$winnerMatch->isContestant($winner->eid)) {
+          $slot = $match->matchInfo['nextMatch']['winner']['slot'];
+          drupal_set_message(t("Winner on match {$match->eid} moved to next round {$winnerMatch->eid}"), 'satus');
+          $winnerMatch->queueAddContestant($winner, $slot)->save();
         }
+        $loserMatch = $match->nextMatch('loser');
+        if ($loserMatch && $loserMatch->status == 1 && !$loserMatch->isContestant($loser->eid)) {
+          drupal_set_message(t("Loser on match {$match->eid} moved to next round {$loserMatch->eid}"), 'satus');
+          $slot = $match->matchInfo['nextMatch']['loser']['slot'];
+          $loserMatch->queueAddContestant($loser, $slot)->save();
+        }
+      } else {
+        drupal_set_message(t('Players can not be moved to next round. Match was a tie!'), 'status');
       }
     }
-    else {
-      $match->determineWinner();
-      $match->save();
-    }
+
+
     if (!$old_winner || ($old_winner && $old_winner !== $match->getWinner())) {
       tourney_rank_win($this, $match->getWinnerEntity());
       tourney_rank_lose($this, $match->getLoserEntity());
     }
-    
     
     $this->determineWinner();
   }

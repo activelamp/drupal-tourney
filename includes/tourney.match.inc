@@ -29,7 +29,7 @@ function tourney_game_win_form_submit($form, &$form_state) {
   $match = tourney_match_load($extra['match']);
   $game = tourney_game_load($extra['game']);
   $game->winner = $contestant;
-  tourney_game_save($game);
+  $game->save(TRUE);
   $form_sate['redirect'] = $match->getUri();
 }
 
@@ -154,13 +154,15 @@ function tourney_match_form($form, &$form_state, $match) {
       $form['fix_games'] = array(
         '#markup' => "Sorry, one or more of the next matches have already started, you cannot edit this match's games anymore.",
       );
-    }
-    else {
+    } elseif (!isset($match->contestantIds) || count($match->contestantIds) < 2) {
+      $form['fix_games'] = array(
+        '#markup' => "Two contestants must be present in order to set winners on games.",
+      );
+    } else {
       $form['fix_games'] = array(
         '#theme' => 'tourney_match_fix',
         '#games' => $match->games,
       );
-
       foreach ($match->getGames() as $id => $game) {
         $form['fix_games']['game.' . $id] = array(
           '#type' => 'radios',
@@ -337,6 +339,7 @@ function tourney_match_form_validate($form, &$form_state) {
  */
 function tourney_match_form_submit($form, &$form_state) {
   $match = $form_state['match'];
+
   $match_reset = FALSE;
   $is_new = isset($match->is_new) ? TRUE : FALSE;
   // Match was created manually through the user interface.
@@ -358,22 +361,6 @@ function tourney_match_form_submit($form, &$form_state) {
     // a tournament is created. @see build()
     $match->name = $tournament->name . '_match-' . ++$mid;
   }
-
-  // Check to see if the contestants on this match are different than who is
-  // currently associated with the match. If they are different, we need to
-  // reset the match.
-  // Line below commented out BKH 2013.08.21, not used??
-  // $contestant_ids = array_keys($match->getMatchContestants());
-  // @todo: Not sure what this code did, but it seems we dont need anymore.
-  //   Remove this in a few days if we don't see bug pop up.
-  // if (!empty($contestant_ids) 
-  //   && (!in_array($form_state['values']['contestant1'], $contestant_ids)
-  //     || !in_array($form_state['values']['contestant2'], $contestant_ids))) {
-  //   
-  //   $match->resetMatch();
-  //   $match_reset = TRUE;
-  //   drupal_set_message('The games in this match have been reset');
-  // }
 
   if (isset($form_state['input']['label']) && $form_state['input']['label'] !== '%AutoEntityLabel%') {
     $match->label = $form_state['input']['label'];
@@ -410,7 +397,6 @@ function tourney_match_form_submit($form, &$form_state) {
   }
 
   // This is here to set the ->winner property. This way it's loaded in so the rule can fix undos
-  $match->getWinner();
   foreach ($form_state['input'] as $id => $value) {
     // If we're not dealing with a game move on.
     if (!$value || substr($id, 0, 5) != 'game_' || $match_reset) continue;
@@ -419,9 +405,7 @@ function tourney_match_form_submit($form, &$form_state) {
     $game = tourney_game_load($parts[1]);
     if ($game->winner != $value) {
       $game->winner = $value;
-      tourney_game_save($game);
-      // The winner needs to be re set for the match
-      $match->winner = '';
+      $game->save(FALSE);
     }
   }
 
@@ -446,7 +430,7 @@ function tourney_match_form_submit($form, &$form_state) {
       'field_match' => array(LANGUAGE_NONE => array(array('target_id' => array($match->id)))),
       '_match' => $match,
     ));
-    $game->save();
+    $game->save(FALSE);
     $create_alias = FALSE;
     if (module_exists('pathauto')) {
       module_load_include('inc', 'pathauto');
@@ -572,7 +556,7 @@ function tourney_game_form_submit($form, &$form_state) {
   $game = $form_state['game'];
   $game->label = $form_state['input']['label'];
   entity_form_submit_build_entity('tourney_game', $game, $form, $form_state);
-  tourney_game_save($game);
+  $game->save(TRUE);
   drupal_set_message(url($game->getUri()));
 
   $form_state['redirect'] = $game->getUri();
