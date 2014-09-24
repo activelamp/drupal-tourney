@@ -638,13 +638,15 @@ abstract class TourneyEntity extends Entity {
   public function getWinner() {
     return $this->winner;
   }
+
   public function save() {
-    if ($this->is_new) {
+    if (property_exists($this, 'is_new') && $this->is_new) {
       $this->created = time();
     }
     $this->changed = time();
     parent::save();
   }
+
   public function delete() {
     watchdog('tourney', 'Deleted @type #@id.', array('@type' => $this->type, '@id' => $this->id));
     parent::delete();

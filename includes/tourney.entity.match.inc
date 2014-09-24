@@ -261,6 +261,28 @@ class TourneyMatchEntity extends TourneyEntity {
   }
 
   /**
+   * Determine if a entity id is a contestant on this match.
+   *
+   * @param string $eid
+   *   The entity id (such as 'node.1') to test
+   *
+   * @return int|null
+   *   The slot number if eid is contestant, otherwise null
+   */
+  public function isContestant($eid) {
+    if ($contestants = $this->getContestantIds()) {
+      if (is_array($contestants)) {
+        foreach($contestants as $contestant) {
+          if (isset($contestant['eid']) && $contestant['eid'] == $eid) {
+            return $contestant['slot'];
+          }
+        }
+      }
+    }
+    return NULL;
+  }
+
+  /**
    * Get the contestant entity type and id for this match.
    */
   public function getContestantIds() {
@@ -449,23 +471,20 @@ class TourneyMatchEntity extends TourneyEntity {
   }
 
   /**
-   * Set the winner property to the winner of this match.
+   * Determine who the winner of this match is.
+   *
+   * @return string|null
+   *   The entity eid ('node.1') of the winner, or null if none.
    */
   public function determineWinner() {
     $this->matchWinner = NULL;
     if ($this->isFinished()) {
-      // Match is always finished.
-      $this->finished = 1;
       // But may not have a winner (draw).
       $ranks = array_unique($this->fetchRanks());
       if (count($ranks) > 1) {
         asort($ranks);
         $keys = array_keys($ranks);
         $this->matchWinner = array_pop($keys);
-        // @todo: Why are we using matchWinner instead of winner?
-        if ($this->winner !== $this->matchWinner) {
-          $this->winner = $this->matchWinner;
-        }
       }
     }
     return $this->matchWinner;
@@ -506,21 +525,45 @@ class TourneyMatchEntity extends TourneyEntity {
 
   /**
    * Save the entity
+   *
+   * Saving will also calculate and populate the winner and finished properties.
    */
   public function save() {
     // Transaction will commit when return value goes out of scope (end of method).
     $transaction = db_transaction();
     try {
-      $this->winner = $this->getWinner();
+      // Queue operations require an entity id before they are run. We may not
+      // have an id if this object has just been created.
+      if (!isset($this->id)) {
+        parent::save();
+      }
+
+      $winnerChange = ($this->winner != $this->determineWinner());
+
+      if (!$this->isFinished()) {
+        $this->clearWinner();
+        $this->setWinner(NULL);
+        $this->finished = 0;
+        // If there already exists at least one game (this is not a new match)
+        // and all our games are played and won, then we'll need to make a new
+        // game to continue the match.
+        $game_ids = $this->getGameIds(true);
+        if (!empty($game_ids) && ($this->checkGames() == TRUE)) {
+          $game = $this->addGame();
+          drupal_set_message(t("A new game ({$game->id}) has been created for match {$this->id}."), 'status');
+        }
+      }
+      if ($this->isFinished()) {
+        $this->cleanGames();
+        $this->setWinner($this->determineWinner());
+        $this->finished = 1;
+      }
+
       if (property_exists($this, 'field_tournament') && !$this->field_tournament[LANGUAGE_NONE]) {
         $tournament = $this->getTournament();
         if ($tournament) {
           $this->field_tournament[LANGUAGE_NONE][0]['target_id'] = $tournament->id;
         }
-      }
-      // Queue operations require an entity id before they are run.
-      if (!isset($this->id)) {
-        parent::save();
       }
 
       // Add and remove any contestants.
@@ -528,6 +571,7 @@ class TourneyMatchEntity extends TourneyEntity {
         foreach($this->queue['remove_contestant'] as $operation) {
           $this->removeContestant($operation['entity']);
         }
+        unset($this->queue['remove_contestant']);
       }
       if (isset($this->queue['add_contestant'])) {
         foreach($this->queue['add_contestant'] as $operation) {
@@ -536,7 +580,18 @@ class TourneyMatchEntity extends TourneyEntity {
         unset($this->queue['add_contestant']);
       }
 
+      if (!$this->isFinished() && count($this->getContestantIds())) {
+        $tournament = $this->getTournament();
+        if (in_array($tournament->format, ['ManualUploadController', 'RoundRobinController'])) {
+          $tournament->populateRoundRobinMatches($match->matchInfo['id']);
+        }
+      }
+
       parent::save();
+
+      // Poke the tournament letting it know a match has changed winners.
+      if ($winnerChange)
+        $this->getTournament()->matchIsWon($this);
 
       // Set the tournament winner if this was the last match.
       if ($this->getTournament()) {
@@ -642,6 +697,9 @@ class TourneyMatchEntity extends TourneyEntity {
           }
         }
       }
+      // Flush cache, players have changed.
+      cache_clear_all('fetchContestantIds_' . $this->id, 'cache_tourney', TRUE);
+      cache_clear_all('getContestants:' . $this->tournamentId, 'cache_tourney', TRUE);
     }
     if (!$deleted) {
       throw new TourneyMatchException("Entity of type {$entity->entity_type} and id {$entity->entity_id} could not be removed as contestant.", $this);
@@ -829,7 +887,7 @@ class TourneyMatchEntity extends TourneyEntity {
       'title' => 'Game ' . ++$game_count,
       'name'  => $this->name . '_game-' . ++$game_count,
     ));
-    $game->save();
+    $game->save(FALSE);
     // Add the relationship to the game.
     $rid = tourney_create_relation('has_game', 'tourney_match', $this->id, 'tourney_game', $game->id);
     cache_clear_all('fetchGameIds_' . $this->id, 'cache_tourney', TRUE);
@@ -874,6 +932,39 @@ class TourneyMatchEntity extends TourneyEntity {
   }
 
   /**
+   * Set the winner of the match.
+   *
+   * If a winner was previously set and automation had previously promoted a
+   * contestant, then the match that the contestant was promoted to will be
+   * reset and the contestant will be removed from that match.
+   *
+   * @param string $winner_eid
+   *   Such as 'node.1'
+   *
+   * @return TourneyMatchEntity
+   *   For chaining.
+   */
+  public function setWinner($winner_eid) {
+    // Are we changing an already set winner?
+    if (strlen($this->winner) && $this->winner != $winner_eid) {
+      $oldWinner = entity_load_single_by_eid($this->winner);
+      if ($this->nextMatch('winner')) {
+        $this->getTournament()->winner = '';
+        $this->getTournament()->save();
+        $this->nextMatch('winner')->queueRemoveContestant($oldWinner)->save();
+        $this->nextMatch('winner')->resetMatch();
+      }
+      if ($this->nextMatch('loser')) {
+        $this->nextMatch('loser')->queueRemoveContestant($oldWinner)->save();
+        $this->nextMatch('loser')->resetMatch();
+      }
+    }
+
+    $this->winner = $winner_eid;
+    return $this;
+  }
+
+  /**
    * Resets a match so that all the games to the match are deleted, and a fresh
    * new game is added to the match.
    */
@@ -884,13 +975,14 @@ class TourneyMatchEntity extends TourneyEntity {
       $game = tourney_game_load($game_id);
       if (is_object($game)) {
         $game->winner = NULL;
-        $game->save();
+        $game->save(FALSE);
       }
     }
     $this->addGame();
-    $this->winner = "";
+    $this->setWinner(NULL);
     $this->save();
     drupal_static_reset(__FUNCTION__);
+    drupal_set_message("Reset games of match {$this->id}.", 'status');
   }
 
  /**
