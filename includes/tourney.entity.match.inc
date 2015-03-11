@@ -613,16 +613,22 @@ class TourneyMatchEntity extends TourneyEntity {
     return $this->getTournament()->canSetContestants($this);
   }
 
-/**
- * Cleanly removes an existing contestant from a match, deleting the relation
- *
- * @param integer $entity
- *   Contestant entity to remove.
- */
-  protected function removeContestant($entity) {
+  /**
+   * Cleanly removes an existing contestant from a match, deleting the relation
+   *
+   * @param integer $entity
+   *   Contestant entity to remove.
+   * @param int|null $slot
+   *   (optional) Only remove a contestant from a match if they are in the slot
+   *   specified. If not specified they will be removed regardless of their slot.
+   *   Specifying a slot may be required if the match currently has the same
+   *   contestants in both slots. This can happen temporarily during processing
+   *   if an editor is trying to swap the position of the teams on the match.
+   */
+  protected function removeContestant($entity, $slot = null) {
     $deleted = FALSE;
     if (!is_object($entity)) {
-      throw new TourneyMatchInvalidParameter('$entity type must be object.', $this);      
+      throw new TourneyMatchInvalidParameter('$entity type must be object.', $this);
     }
     // If we're locked, can't remove the contestant
     if ($this->isLocked()) {
@@ -635,10 +641,12 @@ class TourneyMatchEntity extends TourneyEntity {
     if (!empty($relations)) {
       foreach ($relations as $relation) {
         if ($relation = relation_load($relation->rid)) {
-          $rcon = $relation->endpoints[LANGUAGE_NONE][1];
-          if ($rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id) {
-            relation_delete($relation->rid);
-            $deleted = TRUE;
+          if ($slot === null || $slot == $relation->slot[LANGUAGE_NONE][0]['value']) {
+            $rcon = $relation->endpoints[LANGUAGE_NONE][1];
+            if ($rcon['entity_type'] == $entity->entity_type && $rcon['entity_id'] == $entity->entity_id) {
+              relation_delete($relation->rid);
+              $deleted = TRUE;
+            }
           }
         }
       }
@@ -767,14 +775,17 @@ class TourneyMatchEntity extends TourneyEntity {
     $current_eids = array();
     $contestants = $this->getContestantIds();
     foreach ($contestants as $contestant) {
-      $current_eids[$contestant['eid']] = $contestant['slot'];
+      $current_eids[$contestant['slot']] = $contestant['eid'];
     }
 
     // Only make a change if the new contestant is different from the old.
-    if (!isset($current_eids[$entity->eid]) || $current_eids[$entity->eid] != $slot) {
+    if (!isset($current_eids[$slot]) || $current_eids[$slot] != $entity->eid) {
       // First remove any contestant already present in the slot.
-      if ($this->getContestant($slot)) {
-        $this->removeContestant($this->getContestant($slot));
+      if ($remove_contestant = $this->getContestant($slot)) {
+        // Must specify the slot, otherwise if we are trying to simply switch
+        // the contestant positions on the match, during the second call to this
+        // function both relations will get removed.
+        $this->removeContestant($remove_contestant, $slot);
       }
       $relations = tourney_relation_query('tourney_match', $this->id)->entityCondition('bundle', 'contestant')->execute();
       if (count($relations) >= 2) {
