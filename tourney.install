@@ -150,6 +150,11 @@ function tourney_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0),
+      'skip' => array(
+        'description' => 'Boolean indicating that all statistic calculations should ignore this match. Possibly a tie breaker.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
       ),
     'unique keys' => array(
       'id' => array('id'),
@@ -776,6 +781,18 @@ function tourney_update_7018() {
   $result = db_query($sql);
 
   return "$num matches have been updated.";
+}
+
+/**
+ * Add a skip boolean on matches instructing all statistics calculators to ignore
+ * the presence of this match.
+ */
+function tourney_update_7019() {
+  $schema = tourney_schema();
+
+  db_add_field('tourney_match', 'skip', $schema['tourney_match']['fields']['skip']);
+
+  return "Added skip field to matches.";
 }
 
 /**

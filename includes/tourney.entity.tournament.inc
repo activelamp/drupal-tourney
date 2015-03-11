@@ -268,6 +268,9 @@ class TourneyTournamentEntity extends TourneyEntity {
 
     if (!empty($matches)) {
       foreach($matches as $match) {
+        if ($match->getSkip()) {
+          continue;
+        }
         // Increment games win/loss.
         $games = $match->getGames();
         foreach($games as $game) {
