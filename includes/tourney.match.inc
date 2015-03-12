@@ -201,6 +201,13 @@ function tourney_match_form($form, &$form_state, $match) {
     '#default_value' => isset($match->status) ? $match->status : 0,
   );
 
+  $form['options']['skip'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Hide Stats'),
+    '#description' => 'Cause any statistics or win/loss calculations to ignore the existence of this match.',
+    '#default_value' => isset($match->skip) ? $match->skip : 0,
+  );
+
   field_attach_form('tourney_match', $match, $form, $form_state);
 
   $form['#submit'][] = 'tourney_match_form_submit';
