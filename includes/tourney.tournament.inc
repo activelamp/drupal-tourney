@@ -126,8 +126,15 @@ function tourney_tournament_form($form, &$form_state, $tourney) {
   $form['tourney']['config_show_round_names'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show Round Names'),
-    '#description' => t('Show round names above each round.'),
+    '#description' => t('Show round names once above each round column.'),
     '#default_value' => $tourney->get('show_round_names', FALSE),
+  );
+
+  $form['tourney']['config_show_round_names_each'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Round Names on Matches'),
+    '#description' => t('Show round names above each match in all round columns.'),
+    '#default_value' => $tourney->get('show_round_names_each', FALSE),
   );
 
   $form['tourney']['configure_round_names'] = array(
