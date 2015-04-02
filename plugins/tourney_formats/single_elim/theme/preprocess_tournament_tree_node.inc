@@ -33,8 +33,17 @@ function template_preprocess_tourney_tournament_tree_node(&$vars) {
   $node = &$vars['node'];
 
   $round_name = '';
-  if (isset($options['show_round_names']) && $options['show_round_names']) {
-    if ($node['roundMatch'] == 1) {
+  // Show round names only once above each round column.
+  $show_round_names = isset($options['show_round_names']) ?
+                      $options['show_round_names'] :
+                      false;
+  // Show round names above each match.
+  $show_round_names_each = isset($options['show_round_names_each']) ?
+                           $options['show_round_names_each'] :
+                           false;
+
+  if ($show_round_names || $show_round_names_each) {
+    if ($node['roundMatch'] == 1 || $show_round_names_each) {
       if (is_object($plugin->tournament)) {
         $round_name = $plugin->tournament->get('round_' . $node['tourneyRound'], $plugin->data['rounds'][$node['tourneyRound']]['title']);
       }
