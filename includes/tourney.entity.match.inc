@@ -842,10 +842,11 @@ class TourneyMatchEntity extends TourneyEntity {
   public function addGame() {
     $this->cleanGames();
     $game_count = count($this->getGameIds());
+    $game_count++;
     $game = new TourneyGameEntity(array(
       'type'  => $this->getTournament()->get('game_bundle', 'game'),
-      'title' => 'Game ' . ++$game_count,
-      'name'  => $this->name . '_game-' . ++$game_count,
+      'title' => 'Game ' . $game_count,
+      'name'  => $this->name . '_game-' . $game_count,
     ));
     $game->save();
     // Add the relationship to the game.
