@@ -639,7 +639,7 @@ abstract class TourneyEntity extends Entity {
     return $this->winner;
   }
   public function save() {
-    if ($this->is_new || $this->created == 0) {
+    if ((isset($this->is_new) && $this->is_new) || $this->created == 0) {
       $this->created = time();
     }
     $this->changed = time();
