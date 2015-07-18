@@ -79,11 +79,11 @@ class SingleEliminationController extends TourneyController {
       '#disabled' => !empty($form_state['tourney']->id) ? TRUE : FALSE,
     );
 
-    if (array_key_exists('values', $form_state)) {
+    if (array_key_exists('values', $form_state) && array_key_exists('format', $form_state['values'])) {
       $players = $form_state['values']['plugin_options'][$form_state['values']['format']]['players'] ?: $players = $form_state['tourney']->players;
       $possible = self::possibleWinners($players);
     }
-    else if (is_a($form_state['tourney'], 'TourneyTournamentEntity')) {
+    else if (is_a($form_state['tourney'], 'TourneyTournamentEntity') && property_exists($form_state['tourney'], 'players')) {
       $possible = self::possibleWinners($form_state['tourney']->players);
     }
     else {
@@ -213,6 +213,7 @@ class SingleEliminationController extends TourneyController {
   }
 
   public function buildGames() {
+    if (!$this->data['matches']) return;
     foreach ($this->data['matches'] as $id => &$match) {
       $this->data['games'][$id] = $this->buildGame(array(
         'id' => $id,

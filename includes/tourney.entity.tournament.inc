@@ -500,7 +500,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     parent::save();
 
     // Clear any necessary caches
-    cache_clear_all('getContestants:' . $this->eid, 'cache_tourney');
+    if (property_exists($this, 'eid')) cache_clear_all('getContestants:' . $this->eid, 'cache_tourney');
 
     // Create the matches and first game if new tournament.
     if ($new) {
