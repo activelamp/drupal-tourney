@@ -732,7 +732,7 @@ class TourneyTournamentEntity extends TourneyEntity {
     $old_winner = $match->winner;
     $plugin = $this->tourneyFormatPlugin;
     $info = $match->matchInfo;
-    $match->cleanGames();
+    // $match->cleanGames();
 
     module_load_include('inc', 'tourney', 'includes/tourney.rank');
     if (!$this->get('no_automation', FALSE) && $this->format != 'RoundRobinController') {
